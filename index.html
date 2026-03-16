@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agentic.js — The 12KB AI toolkit</title>
+  <meta name="description" content="Four tiny libraries. 12KB total. Everything you need to build AI apps. No frameworks, no build steps, no bullshit.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050505; --s1: #0a0a0a; --s2: #0f0f0f; --s3: #141414;
+      --border: #1c1c1c; --text: #e4e4e7; --t2: #999; --t3: #555;
+      --yellow: #f5c518; --purple: #a78bfa; --green: #34d399; --blue: #818cf8; --pink: #f472b6;
+      --mono: 'DM Mono', 'SF Mono', monospace;
+      --serif: 'Newsreader', Georgia, serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--mono);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden;font-size:14px}
+    body::before{content:'';position:fixed;inset:0;opacity:.02;pointer-events:none;z-index:9999;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+    a{color:var(--yellow);text-decoration:none}a:hover{text-decoration:underline}
+    .w{max-width:900px;margin:0 auto;padding:0 24px}
+
+    /* Nav */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,5,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+    nav .logo{font-size:15px;font-weight:500;display:flex;align-items:center;gap:8px}
+    nav .logo span{color:var(--yellow)}
+    nav .links{display:flex;gap:20px;font-size:13px}
+    nav .links a{color:var(--t2);transition:color .15s}nav .links a:hover{color:var(--text);text-decoration:none}
+
+    /* Hero */
+    .hero{padding:150px 0 60px;text-align:center;position:relative}
+    .hero::before{content:'';position:absolute;top:40px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,#f5c51808 0%,#a78bfa06 40%,transparent 70%);pointer-events:none}
+    .hero .tagline{font-family:var(--serif);font-size:clamp(40px,7vw,72px);line-height:1.05;font-weight:400;letter-spacing:-2px;margin-bottom:20px}
+    .hero .tagline em{font-style:italic;color:var(--yellow)}
+    .hero .sub{font-size:15px;color:var(--t2);max-width:500px;margin:0 auto 40px;line-height:1.7}
+
+    /* Total size badge */
+    .total{display:inline-flex;align-items:center;gap:16px;padding:14px 28px;background:var(--s2);border:1px solid var(--border);border-radius:10px;margin-bottom:40px}
+    .total .num{font-size:28px;font-weight:500;color:var(--yellow)}
+    .total .lbl{font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+    .total .detail{font-size:12px;color:var(--t3);border-left:1px solid var(--border);padding-left:16px}
+
+    /* Module cards */
+    .modules{padding:20px 0 80px}
+    .mod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .mod{background:var(--s1);padding:32px 24px;transition:background .2s;cursor:pointer;text-decoration:none;display:block;color:var(--text)}
+    .mod:hover{background:var(--s2);text-decoration:none}
+    .mod .emoji{font-size:28px;margin-bottom:14px;display:block}
+    .mod h3{font-size:15px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+    .mod .sz{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:400}
+    .mod p{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:12px}
+    .mod .api{font-size:12px;color:var(--t3);font-family:var(--mono)}
+    .mod:nth-child(1) .sz{background:#f5c51820;color:var(--yellow)}
+    .mod:nth-child(2) .sz{background:#a78bfa20;color:var(--purple)}
+    .mod:nth-child(3) .sz{background:#34d39920;color:var(--green)}
+    .mod:nth-child(4) .sz{background:#818cf820;color:var(--blue)}
+
+    /* Flow diagram */
+    .flow{padding:40px 0 80px}
+    .flow h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:12px;letter-spacing:-.5px}
+    .flow .sub-h{text-align:center;font-size:13px;color:var(--t3);margin-bottom:36px}
+    .flow-line{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
+    .flow-step{padding:16px 24px;background:var(--s2);border:1px solid var(--border);border-radius:8px;text-align:center;min-width:140px}
+    .flow-step .fs-emoji{font-size:20px;margin-bottom:6px}
+    .flow-step .fs-name{font-size:13px;font-weight:500}
+    .flow-step .fs-desc{font-size:11px;color:var(--t3);margin-top:2px}
+    .flow-arrow{font-size:18px;color:var(--t3);padding:0 8px}
+
+    /* Code */
+    .code-section{padding:40px 0 80px}
+    .code-section h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:12px;letter-spacing:-.5px}
+    .code-section .sub-h{text-align:center;font-size:13px;color:var(--t3);margin-bottom:32px}
+    .code-block{background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
+    .code-header{padding:8px 16px;background:#111;font-size:12px;color:var(--t3);display:flex;justify-content:space-between;align-items:center}
+    .code-body{padding:20px 22px;font-size:13px;line-height:1.8;overflow-x:auto;white-space:pre}
+    .kw{color:#c792ea}.fn{color:var(--yellow)}.str{color:#c3e88d}.cmt{color:#546e7a}.prop{color:#89ddff}.typ{color:#ffcb6b}
+
+    /* Playground */
+    .playground{padding:40px 0 80px}
+    .playground h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:12px;letter-spacing:-.5px}
+    .playground .sub-h{text-align:center;font-size:13px;color:var(--t3);margin-bottom:24px}
+    .pg-box{border:1px solid var(--border);border-radius:12px;background:var(--s1);overflow:hidden}
+    .pg-config{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .pg-config label{font-size:12px;color:var(--t3)}
+    .pg-config input,.pg-config select{padding:7px 12px;background:#18181b;border:1px solid #27272a;border-radius:6px;color:#e4e4e7;font-size:12px;outline:none;font-family:var(--mono)}
+    .pg-config input:focus{border-color:var(--yellow)}
+    .pg-chat{max-height:400px;overflow-y:auto;padding:20px}
+    .pg-msg{margin-bottom:14px;font-size:14px;line-height:1.7}
+    .pg-msg .pg-role{font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+    .pg-msg.user .pg-role{color:#60a5fa}
+    .pg-msg.assistant .pg-role{color:var(--purple)}
+    .pg-empty{color:var(--t3);text-align:center;padding:40px;font-size:13px}
+    .pg-input{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border)}
+    .pg-input input{flex:1;padding:10px 14px;background:#18181b;border:1px solid #27272a;border-radius:8px;color:#e4e4e7;font-size:14px;outline:none;font-family:var(--mono)}
+    .pg-input input:focus{border-color:var(--yellow)}
+    .pg-input button{padding:10px 22px;background:var(--yellow);color:#000;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--mono)}
+    .pg-input button:disabled{opacity:.4;cursor:not-allowed}
+    .pg-status{padding:8px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--t3);display:flex;justify-content:space-between}
+
+    /* Compare */
+    .compare{padding:40px 0 80px}
+    .compare h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:40px;letter-spacing:-.5px}
+    .cmp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .cmp{background:var(--s1);padding:18px 20px;font-size:13px}
+    .cmp.hd{background:#111;font-weight:500;font-size:14px}
+    .cmp.hi{color:var(--green)}
+    .cmp.lo{color:var(--t3)}
+    .cmp.lb{color:var(--t2)}
+
+    footer{border-top:1px solid var(--border);padding:36px 0;text-align:center;font-size:12px;color:var(--t3)}
+
+    @media(max-width:768px){.mod-grid{grid-template-columns:1fr 1fr}.flow-line{flex-direction:column;gap:8px}.flow-arrow{transform:rotate(90deg)}.cmp-grid{grid-template-columns:1fr}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    .fu{animation:fadeUp .5s ease-out both}
+    .fu1{animation-delay:.08s}.fu2{animation-delay:.16s}.fu3{animation-delay:.24s}.fu4{animation-delay:.32s}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><span>⚡</span> agentic.js</div>
+  <div class="links">
+    <a href="#modules">Modules</a>
+    <a href="#playground">Playground</a>
+    <a href="#code">Code</a>
+    <a href="https://github.com/momomo-agent">GitHub</a>
+  </div>
+</nav>
+
+<section class="hero w">
+  <div class="tagline fu">Build AI apps<br><em>without the bloat</em></div>
+  <p class="sub fu fu1">Four tiny libraries. 12KB total. LLM calls, streaming rendering, conversation memory, and vector search. No frameworks. No build steps.</p>
+  <div class="total fu fu2">
+    <div><div class="num">12KB</div><div class="lbl">total gzip</div></div>
+    <div class="detail">4 modules · 0 dependencies<br>vanilla JS · works everywhere</div>
+  </div>
+</section>
+
+<section class="modules w" id="modules">
+  <div class="mod-grid">
+    <a class="mod" href="https://momomo-agent.github.io/agentic-lite/">
+      <span class="emoji">⚡</span>
+      <h3>agentic-lite <span class="sz">4KB</span></h3>
+      <p>LLM calls with built-in search, code execution, and file tools. One function.</p>
+      <div class="api">ask(prompt, config)</div>
+    </a>
+    <a class="mod" href="https://momomo-agent.github.io/agentic-render/">
+      <span class="emoji">✨</span>
+      <h3>agentic-render <span class="sz">4KB</span></h3>
+      <p>Streaming markdown renderer. Syntax highlighting, dark/light themes, no flicker.</p>
+      <div class="api">create(el, opts)</div>
+    </a>
+    <a class="mod" href="https://momomo-agent.github.io/agentic-memory/">
+      <span class="emoji">🧠</span>
+      <h3>agentic-memory <span class="sz">2KB</span></h3>
+      <p>Conversation context management. Auto-trimming, persistence, token budgets.</p>
+      <div class="api">createMemory(opts)</div>
+    </a>
+    <a class="mod" href="https://momomo-agent.github.io/agentic-embed/">
+      <span class="emoji">🔮</span>
+      <h3>agentic-embed <span class="sz">2KB</span></h3>
+      <p>Vector search and RAG. Text chunking, embeddings, semantic retrieval.</p>
+      <div class="api">create(opts).search(q)</div>
+    </a>
+  </div>
+</section>
+
+<section class="flow w">
+  <h2>How they fit together</h2>
+  <p class="sub-h">Each module works standalone. Together, they're a full AI stack.</p>
+  <div class="flow-line">
+    <div class="flow-step">
+      <div class="fs-emoji">📝</div>
+      <div class="fs-name">User input</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--green)">
+      <div class="fs-emoji">🧠</div>
+      <div class="fs-name">memory</div>
+      <div class="fs-desc">add context</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--blue)">
+      <div class="fs-emoji">🔮</div>
+      <div class="fs-name">embed</div>
+      <div class="fs-desc">find relevant docs</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--yellow)">
+      <div class="fs-emoji">⚡</div>
+      <div class="fs-name">lite</div>
+      <div class="fs-desc">call LLM + tools</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--purple)">
+      <div class="fs-emoji">✨</div>
+      <div class="fs-name">render</div>
+      <div class="fs-desc">stream output</div>
+    </div>
+  </div>
+</section>
+
+<section class="playground w" id="playground">
+  <h2>Playground</h2>
+  <p class="sub-h">All four modules running together. Bring your API key — it stays in your browser.</p>
+  <div class="pg-box">
+    <div class="pg-config">
+      <label>Provider</label>
+      <select id="pgProvider">
+        <option value="anthropic">Anthropic</option>
+        <option value="openai">OpenAI</option>
+      </select>
+      <label>API Key</label>
+      <input id="pgKey" type="password" placeholder="sk-..." style="flex:1;min-width:180px">
+      <label>Proxy</label>
+      <input id="pgProxy" value="https://proxy.link2web.site/proxy" style="width:200px;font-size:11px;color:var(--t3)">
+    </div>
+    <div class="pg-chat" id="pgChat">
+      <div class="pg-empty">Send a message to start a conversation.<br>Memory auto-trims. Markdown streams in real-time.</div>
+    </div>
+    <div class="pg-input">
+      <input id="pgInput" placeholder="Ask anything...">
+      <button id="pgSend" onclick="pgDoSend()">Send</button>
+    </div>
+    <div class="pg-status">
+      <span id="pgMem">Memory: 0 tokens · 0 turns</span>
+      <span id="pgState">Ready</span>
+    </div>
+  </div>
+</section>
+
+<section class="code-section w" id="code">
+  <h2>Full stack in 20 lines</h2>
+  <p class="sub-h">A complete AI chat app with memory and streaming rendering.</p>
+  <div class="code-block">
+    <div class="code-header">Complete AI chat app</div>
+    <div class="code-body"><span class="kw">import</span> { <span class="fn">ask</span> } <span class="kw">from</span> <span class="str">'agentic-lite'</span>
+<span class="kw">import</span> { <span class="fn">createMemory</span> } <span class="kw">from</span> <span class="str">'agentic-memory'</span>
+
+<span class="kw">const</span> mem  = <span class="fn">createMemory</span>({ <span class="prop">maxTokens</span>: <span class="typ">8000</span> })
+<span class="kw">const</span> view = AgenticRender.<span class="fn">create</span>(<span class="str">'#output'</span>)
+
+<span class="kw">async function</span> <span class="fn">chat</span>(prompt) {
+  <span class="kw">await</span> mem.<span class="fn">user</span>(prompt)
+
+  <span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">ask</span>(prompt, {
+    <span class="prop">provider</span>: <span class="str">'anthropic'</span>,
+    <span class="prop">apiKey</span>:   <span class="str">'sk-ant-...'</span>,
+    <span class="prop">history</span>: mem.<span class="fn">history</span>(),
+    <span class="prop">tools</span>:   [<span class="str">'search'</span>],
+  })
+
+  <span class="kw">await</span> mem.<span class="fn">assistant</span>(result.answer)
+  view.<span class="fn">set</span>(result.answer)         <span class="cmt">// render with streaming markdown</span>
+}
+
+<span class="fn">chat</span>(<span class="str">'What happened in AI this week?'</span>)
+<span class="fn">chat</span>(<span class="str">'Tell me more about the first one'</span>)  <span class="cmt">// has context!</span></div>
+  </div>
+</section>
+
+<section class="compare w">
+  <h2>How it compares</h2>
+  <div class="cmp-grid">
+    <div class="cmp hd"></div>
+    <div class="cmp hd">LangChain + React</div>
+    <div class="cmp hd" style="color:var(--yellow)">agentic.js</div>
+
+    <div class="cmp lb">Total size</div>
+    <div class="cmp lo">~80MB node_modules</div>
+    <div class="cmp hi">12KB</div>
+
+    <div class="cmp lb">Dependencies</div>
+    <div class="cmp lo">200+</div>
+    <div class="cmp hi">0</div>
+
+    <div class="cmp lb">Build step</div>
+    <div class="cmp lo">Webpack/Vite/Next.js</div>
+    <div class="cmp hi">None</div>
+
+    <div class="cmp lb">Concepts to learn</div>
+    <div class="cmp lo">Chains, Agents, Callbacks, Runnables, Memory, Retrievers...</div>
+    <div class="cmp hi">ask(), create(), search()</div>
+
+    <div class="cmp lb">Time to first result</div>
+    <div class="cmp lo">~1 hour</div>
+    <div class="cmp hi">~5 minutes</div>
+
+    <div class="cmp lb">Framework lock-in</div>
+    <div class="cmp lo">React required</div>
+    <div class="cmp hi">Works with anything</div>
+  </div>
+</section>
+
+<footer>
+  <div class="w">
+    MIT · <a href="https://github.com/momomo-agent">GitHub</a> ·
+    <a href="https://momomo-agent.github.io/agentic-lite/">lite</a> ·
+    <a href="https://momomo-agent.github.io/agentic-render/">render</a> ·
+    <a href="https://momomo-agent.github.io/agentic-memory/">memory</a> ·
+    <a href="https://momomo-agent.github.io/agentic-embed/">embed</a>
+  </div>
+</footer>
+
+<!-- Load all four modules for playground -->
+<script src="https://momomo-agent.github.io/agentic-render/render.js"></script>
+<script src="https://momomo-agent.github.io/agentic-memory/memory.js"></script>
+<script>
+  // Playground state
+  let pgMem = AgenticMemory.createMemory({ maxTokens: 6000 })
+  let pgRenderer = null
+  const pgChatEl = document.getElementById('pgChat')
+  const pgInputEl = document.getElementById('pgInput')
+
+  // Load saved key
+  try {
+    const saved = JSON.parse(localStorage.getItem('agentic-pg') || '{}')
+    if (saved.key) document.getElementById('pgKey').value = saved.key
+    if (saved.provider) document.getElementById('pgProvider').value = saved.provider
+    if (saved.proxy) document.getElementById('pgProxy').value = saved.proxy
+  } catch {}
+
+  pgInputEl.addEventListener('keydown', e => { if (e.key === 'Enter') pgDoSend() })
+
+  function pgSaveConfig() {
+    try {
+      localStorage.setItem('agentic-pg', JSON.stringify({
+        key: document.getElementById('pgKey').value,
+        provider: document.getElementById('pgProvider').value,
+        proxy: document.getElementById('pgProxy').value,
+      }))
+    } catch {}
+  }
+
+  async function pgDoSend() {
+    const text = pgInputEl.value.trim()
+    const apiKey = document.getElementById('pgKey').value.trim()
+    if (!text) return
+    if (!apiKey) { alert('Enter an API key'); return }
+
+    pgSaveConfig()
+    pgInputEl.value = ''
+    const btn = document.getElementById('pgSend')
+    btn.disabled = true
+
+    // Clear empty state
+    const empty = pgChatEl.querySelector('.pg-empty')
+    if (empty) empty.remove()
+
+    // Add user message
+    addPgMsg('user', text)
+
+    // Add to memory
+    await pgMem.user(text)
+    updatePgStatus()
+
+    // Create assistant message container
+    const assistDiv = document.createElement('div')
+    assistDiv.className = 'pg-msg assistant'
+    assistDiv.innerHTML = '<div class="pg-role">assistant</div><div class="pg-content"></div>'
+    pgChatEl.appendChild(assistDiv)
+    const contentEl = assistDiv.querySelector('.pg-content')
+
+    // Create renderer for this message
+    const renderer = AgenticRender.create(contentEl, { theme: 'dark' })
+
+    document.getElementById('pgState').textContent = 'Calling LLM...'
+
+    try {
+      const provider = document.getElementById('pgProvider').value
+      const proxy = document.getElementById('pgProxy').value.trim()
+      const history = pgMem.history()
+
+      // Direct API call (through proxy for CORS)
+      const answer = await callLLM(text, { provider, apiKey, proxy, history })
+
+      renderer.set(answer)
+      await pgMem.assistant(answer)
+      updatePgStatus()
+      document.getElementById('pgState').textContent = 'Ready'
+    } catch (err) {
+      contentEl.innerHTML = `<span style="color:#ef4444">${esc(err.message)}</span>`
+      document.getElementById('pgState').textContent = 'Error'
+    }
+
+    btn.disabled = false
+    pgChatEl.scrollTop = pgChatEl.scrollHeight
+    pgInputEl.focus()
+  }
+
+  async function callLLM(prompt, { provider, apiKey, proxy, history }) {
+    const messages = [
+      ...history.slice(0, -1),  // exclude the last user msg we just added
+      { role: 'user', content: prompt }
+    ]
+
+    let url, headers, body
+
+    if (provider === 'anthropic') {
+      url = 'https://api.anthropic.com/v1/messages'
+      headers = {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      }
+      body = JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2048,
+        messages,
+      })
+    } else {
+      url = 'https://api.openai.com/v1/chat/completions'
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      }
+      body = JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 2048,
+        messages,
+      })
+    }
+
+    // Use proxy for CORS
+    const finalUrl = proxy ? `${proxy}/${url.replace('https://','')}` : url
+
+    const res = await fetch(finalUrl, { method: 'POST', headers, body })
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '')
+      throw new Error(`API error ${res.status}: ${errBody.slice(0, 200)}`)
+    }
+    const data = await res.json()
+
+    if (provider === 'anthropic') {
+      return data.content?.[0]?.text || '(no response)'
+    } else {
+      return data.choices?.[0]?.message?.content || '(no response)'
+    }
+  }
+
+  function addPgMsg(role, text) {
+    const div = document.createElement('div')
+    div.className = `pg-msg ${role}`
+    div.innerHTML = `<div class="pg-role">${role}</div><div class="pg-content">${esc(text)}</div>`
+    pgChatEl.appendChild(div)
+    pgChatEl.scrollTop = pgChatEl.scrollHeight
+  }
+
+  function updatePgStatus() {
+    const info = pgMem.info()
+    document.getElementById('pgMem').textContent = `Memory: ${info.tokens} tokens · ${info.turns} turns`
+  }
+
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+</script>
+</body>
+</html>
