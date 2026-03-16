@@ -7,9 +7,14 @@ import { detectToolCallLoop, recordToolCall, recordToolCallOutcome } from './loo
 const MAX_ROUNDS = 200  // 安全兜底，实际由循环检测控制（与 OpenClaw 一致）
 
 export async function agenticAsk(prompt, config, emit) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2 } = config
   
   if (!apiKey) throw new Error('API Key required')
+  
+  // Schema mode: structured output with validation + retry
+  if (schema) {
+    return await schemaAsk(prompt, config, emit)
+  }
   
   const { defs: toolDefs, customTools } = buildToolDefs(tools)
   
@@ -449,4 +454,107 @@ async function searchWeb(query, apiKey) {
   })
   const data = await response.json()
   return { results: data.results || [] }
+}
+
+// ── Schema Mode (Structured Output) ──
+
+async function schemaAsk(prompt, config, emit) {
+  const { provider = 'anthropic', baseUrl, apiKey, model, history, proxyUrl, schema, retries = 2 } = config
+  
+  const schemaStr = JSON.stringify(schema, null, 2)
+  const systemPrompt = `You must respond with valid JSON that matches this schema:\n${schemaStr}\n\nRules:\n- Output ONLY the JSON object, no markdown, no explanation, no code fences\n- All required fields must be present\n- Types must match exactly`
+  
+  const messages = []
+  if (history?.length) messages.push(...history)
+  messages.push({ role: 'user', content: prompt })
+  
+  let lastError = null
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) {
+      console.log(`[schema] Retry ${attempt}/${retries}: ${lastError}`)
+      emit('status', { message: `Retry ${attempt}/${retries}...` })
+      // Add error feedback for retry
+      messages.push({ role: 'assistant', content: lastError.raw })
+      messages.push({ role: 'user', content: `That JSON was invalid: ${lastError.message}\n\nPlease fix and return ONLY valid JSON matching the schema.` })
+    }
+    
+    emit('status', { message: attempt === 0 ? 'Generating structured output...' : `Retry ${attempt}/${retries}...` })
+    
+    const chatFn = provider === 'anthropic' ? anthropicChat : openaiChat
+    const response = await chatFn({
+      messages: [{ role: 'user', content: systemPrompt + '\n\n' + prompt }],
+      tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit
+    })
+    
+    const raw = response.content.trim()
+    
+    // Try to extract JSON (handle markdown fences)
+    let jsonStr = raw
+    const fenceMatch = raw.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/)
+    if (fenceMatch) jsonStr = fenceMatch[1].trim()
+    
+    // Parse
+    let parsed
+    try {
+      parsed = JSON.parse(jsonStr)
+    } catch (e) {
+      lastError = { message: `JSON parse error: ${e.message}`, raw }
+      continue
+    }
+    
+    // Validate against schema
+    const validation = validateSchema(parsed, schema)
+    if (!validation.valid) {
+      lastError = { message: validation.error, raw }
+      continue
+    }
+    
+    // Success
+    return { answer: raw, data: parsed, attempts: attempt + 1 }
+  }
+  
+  // All retries exhausted
+  throw new Error(`Schema validation failed after ${retries + 1} attempts: ${lastError.message}`)
+}
+
+function validateSchema(data, schema) {
+  if (!schema || !schema.type) return { valid: true }
+  
+  // Type check
+  if (schema.type === 'object') {
+    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+      return { valid: false, error: `Expected object, got ${Array.isArray(data) ? 'array' : typeof data}` }
+    }
+    // Required fields
+    if (schema.required) {
+      for (const field of schema.required) {
+        if (!(field in data)) {
+          return { valid: false, error: `Missing required field: "${field}"` }
+        }
+      }
+    }
+    // Property types
+    if (schema.properties) {
+      for (const [key, prop] of Object.entries(schema.properties)) {
+        if (key in data && data[key] !== null && data[key] !== undefined) {
+          const val = data[key]
+          if (prop.type === 'string' && typeof val !== 'string') return { valid: false, error: `Field "${key}" should be string, got ${typeof val}` }
+          if (prop.type === 'number' && typeof val !== 'number') return { valid: false, error: `Field "${key}" should be number, got ${typeof val}` }
+          if (prop.type === 'boolean' && typeof val !== 'boolean') return { valid: false, error: `Field "${key}" should be boolean, got ${typeof val}` }
+          if (prop.type === 'array' && !Array.isArray(val)) return { valid: false, error: `Field "${key}" should be array, got ${typeof val}` }
+          // Enum check
+          if (prop.enum && !prop.enum.includes(val)) return { valid: false, error: `Field "${key}" must be one of: ${prop.enum.join(', ')}` }
+        }
+      }
+    }
+  } else if (schema.type === 'array') {
+    if (!Array.isArray(data)) return { valid: false, error: `Expected array, got ${typeof data}` }
+  } else if (schema.type === 'string') {
+    if (typeof data !== 'string') return { valid: false, error: `Expected string, got ${typeof data}` }
+  } else if (schema.type === 'number') {
+    if (typeof data !== 'number') return { valid: false, error: `Expected number, got ${typeof data}` }
+  }
+  
+  return { valid: true }
 }
