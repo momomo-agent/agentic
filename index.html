@@ -448,12 +448,13 @@
       })
     }
 
-    // Use proxy for CORS — skip proxy when using custom baseUrl (usually already accessible)
+    // Use proxy for CORS — skip proxy when using custom baseUrl (usually has CORS enabled)
     let finalUrl
-    if (proxy && !baseUrl) {
-      finalUrl = `${proxy}/${url.replace('https://','')}`
-    } else if (proxy && baseUrl) {
-      // Custom base URL: try direct first, user can clear proxy if it causes issues
+    if (baseUrl) {
+      // Custom base URL: go direct (most custom endpoints support CORS)
+      finalUrl = url
+    } else if (proxy) {
+      // Default API endpoints need proxy for CORS
       finalUrl = `${proxy}/${url.replace('https://','')}`
     } else {
       finalUrl = url
