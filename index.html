@@ -394,7 +394,7 @@
       updatePgStatus()
       document.getElementById('pgState').textContent = 'Ready'
     } catch (err) {
-      contentEl.innerHTML = `<span style="color:#ef4444">${esc(err.message)}</span>`
+      contentEl.innerHTML = `<span style="color:#ef4444">${esc(err.message)}</span><br><span style="color:#666;font-size:11px">Check browser console for details</span>`
       document.getElementById('pgState').textContent = 'Error'
     }
 
@@ -448,10 +448,33 @@
       })
     }
 
-    // Use proxy for CORS
-    const finalUrl = proxy ? `${proxy}/${url.replace('https://','')}` : url
+    // Use proxy for CORS — skip proxy when using custom baseUrl (usually already accessible)
+    let finalUrl
+    if (proxy && !baseUrl) {
+      finalUrl = `${proxy}/${url.replace('https://','')}`
+    } else if (proxy && baseUrl) {
+      // Custom base URL: try direct first, user can clear proxy if it causes issues
+      finalUrl = `${proxy}/${url.replace('https://','')}`
+    } else {
+      finalUrl = url
+    }
 
-    const res = await fetch(finalUrl, { method: 'POST', headers, body })
+    let res
+    console.log('[agentic playground]', finalUrl)
+    try {
+      res = await fetch(finalUrl, { method: 'POST', headers, body })
+    } catch (e) {
+      // If proxy fetch failed, try direct as fallback
+      if (proxy) {
+        try {
+          res = await fetch(url, { method: 'POST', headers, body })
+        } catch (e2) {
+          throw new Error(`Network error: both proxy and direct requests failed. Check your Base URL and Proxy settings.`)
+        }
+      } else {
+        throw new Error(`Network error: ${e.message}. You may need a CORS proxy.`)
+      }
+    }
     if (!res.ok) {
       const errBody = await res.text().catch(() => '')
       throw new Error(`API error ${res.status}: ${errBody.slice(0, 200)}`)
