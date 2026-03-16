@@ -214,6 +214,8 @@
         <option value="anthropic">Anthropic</option>
         <option value="openai">OpenAI</option>
       </select>
+      <label>Base URL</label>
+      <input id="pgBase" placeholder="https://api.openai.com/v1" style="width:200px;font-size:11px;color:var(--t3)">
       <label>API Key</label>
       <input id="pgKey" type="password" placeholder="sk-..." style="flex:1;min-width:180px">
       <label>Proxy</label>
@@ -322,6 +324,7 @@
     if (saved.key) document.getElementById('pgKey').value = saved.key
     if (saved.provider) document.getElementById('pgProvider').value = saved.provider
     if (saved.proxy) document.getElementById('pgProxy').value = saved.proxy
+    if (saved.baseUrl) document.getElementById('pgBase').value = saved.baseUrl
   } catch {}
 
   pgInputEl.addEventListener('keydown', e => { if (e.key === 'Enter') pgDoSend() })
@@ -332,6 +335,7 @@
         key: document.getElementById('pgKey').value,
         provider: document.getElementById('pgProvider').value,
         proxy: document.getElementById('pgProxy').value,
+        baseUrl: document.getElementById('pgBase').value,
       }))
     } catch {}
   }
@@ -373,10 +377,11 @@
     try {
       const provider = document.getElementById('pgProvider').value
       const proxy = document.getElementById('pgProxy').value.trim()
+      const baseUrl = document.getElementById('pgBase').value.trim()
       const history = pgMem.history()
 
       // Direct API call (through proxy for CORS)
-      const answer = await callLLM(text, { provider, apiKey, proxy, history })
+      const answer = await callLLM(text, { provider, apiKey, proxy, baseUrl, history })
 
       renderer.set(answer)
       await pgMem.assistant(answer)
@@ -392,7 +397,7 @@
     pgInputEl.focus()
   }
 
-  async function callLLM(prompt, { provider, apiKey, proxy, history }) {
+  async function callLLM(prompt, { provider, apiKey, proxy, baseUrl, history }) {
     const messages = [
       ...history.slice(0, -1),  // exclude the last user msg we just added
       { role: 'user', content: prompt }
@@ -401,7 +406,7 @@
     let url, headers, body
 
     if (provider === 'anthropic') {
-      url = 'https://api.anthropic.com/v1/messages'
+      url = (baseUrl || 'https://api.anthropic.com') + '/v1/messages'
       headers = {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
@@ -413,7 +418,7 @@
         messages,
       })
     } else {
-      url = 'https://api.openai.com/v1/chat/completions'
+      url = (baseUrl || 'https://api.openai.com/v1') + '/chat/completions'
       headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
