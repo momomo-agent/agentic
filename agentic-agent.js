@@ -11,7 +11,7 @@ export async function agenticAsk(prompt, config, emit) {
   
   if (!apiKey) throw new Error('API Key required')
   
-  const toolDefs = buildToolDefs(tools)
+  const { defs: toolDefs, customTools } = buildToolDefs(tools)
   
   // Build messages
   const messages = []
@@ -72,7 +72,7 @@ export async function agenticAsk(prompt, config, emit) {
       }
       
       emit('tool', { name: call.name, input: call.input })
-      const result = await executeTool(call.name, call.input, { searchApiKey })
+      const result = await executeTool(call.name, call.input, { searchApiKey, customTools })
       console.log(`[Round ${round}] Tool result:`, JSON.stringify(result).slice(0, 100))
       
       recordToolCallOutcome(state, call.name, call.input, result, null)
@@ -401,18 +401,43 @@ function reassembleSSE(raw) {
 
 function buildToolDefs(tools) {
   const defs = []
-  if (tools.includes('search')) {
-    defs.push({ name: 'search', description: 'Search the web for current information', input_schema: { type: 'object', properties: { query: { type: 'string', description: 'Search query' } }, required: ['query'] } })
+  const customTools = []
+  
+  for (const tool of tools) {
+    if (typeof tool === 'string') {
+      // Built-in tool
+      if (tool === 'search') {
+        defs.push({ name: 'search', description: 'Search the web for current information', input_schema: { type: 'object', properties: { query: { type: 'string', description: 'Search query' } }, required: ['query'] } })
+      } else if (tool === 'code') {
+        defs.push({ name: 'execute_code', description: 'Execute Python code', input_schema: { type: 'object', properties: { code: { type: 'string', description: 'Python code to execute' } }, required: ['code'] } })
+      }
+    } else if (typeof tool === 'object' && tool.name) {
+      // Custom tool
+      defs.push({
+        name: tool.name,
+        description: tool.description || '',
+        input_schema: tool.parameters || tool.input_schema || { type: 'object', properties: {} }
+      })
+      customTools.push(tool)
+    }
   }
-  if (tools.includes('code')) {
-    defs.push({ name: 'execute_code', description: 'Execute Python code', input_schema: { type: 'object', properties: { code: { type: 'string', description: 'Python code to execute' } }, required: ['code'] } })
-  }
-  return defs
+  
+  return { defs, customTools }
 }
 
 async function executeTool(name, input, config) {
+  // Check custom tools first
+  if (config.customTools) {
+    const custom = config.customTools.find(t => t.name === name)
+    if (custom && custom.execute) {
+      return await custom.execute(input)
+    }
+  }
+  
+  // Built-in tools
   if (name === 'search') return await searchWeb(input.query, config.searchApiKey)
   if (name === 'execute_code') return { output: '[Code execution not available in browser]' }
+  
   return { error: 'Unknown tool' }
 }
 
