@@ -69,23 +69,27 @@ async function pgDoSend() {
     const model = document.getElementById('pgModel').value.trim()
     const proxy = document.getElementById('pgProxy').value.trim()
 
-    // Use agentic-lite (agenticAsk) for LLM calls
-    const answer = await agenticAsk(text, {
+    // Use agentic-lite (agenticAsk) for LLM calls — with streaming
+    const result = await agenticAsk(text, {
       provider,
       apiKey,
       baseUrl: baseUrl || undefined,
       model: model || undefined,
       proxyUrl: proxy || undefined,
       history: pgMem.history(),
-      tools: []
+      tools: [],
+      stream: true,
     }, (event, data) => {
       if (event === 'status') {
         document.getElementById('pgState').textContent = data.message
+      } else if (event === 'token') {
+        // Stream tokens to renderer in real-time
+        renderer.append(data.text)
       }
     })
 
-    renderer.set(answer)
-    await pgMem.assistant(answer)
+    // result.answer has the full text (already rendered via tokens)
+    await pgMem.assistant(result.answer)
     updatePgStatus()
     document.getElementById('pgState').textContent = 'Ready'
   } catch (err) {
