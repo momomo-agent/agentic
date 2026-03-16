@@ -122,10 +122,22 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
     return await streamAnthropic(url, headers, body, emit)
   }
 
+  if (stream && proxyUrl) {
+    // Stream via proxy: send non-stream request, simulate token output
+    body.stream = false
+  }
+
   const response = await callLLM(url, apiKey, body, proxyUrl, true)
   
+  const text = response.content.find(c => c.type === 'text')?.text || ''
+  
+  // Simulate streaming if requested
+  if (stream && proxyUrl && text) {
+    simulateStream(text, emit)
+  }
+  
   return {
-    content: response.content.find(c => c.type === 'text')?.text || '',
+    content: text,
     tool_calls: response.content.filter(c => c.type === 'tool_use').map(t => ({
       id: t.id, name: t.name, input: t.input
     })),
@@ -146,6 +158,11 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
     return await streamOpenAI(url, headers, body, emit)
   }
 
+  if (stream && proxyUrl) {
+    // Stream via proxy: send non-stream request, simulate token output
+    body.stream = false
+  }
+
   const response = await callLLM(url, apiKey, body, proxyUrl, false)
   
   // Handle SSE response from non-stream endpoints
@@ -156,8 +173,15 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   const choice = response.choices?.[0]
   if (!choice) return { content: '', tool_calls: [], stop_reason: 'stop' }
   
+  const text = choice.message?.content || ''
+  
+  // Simulate streaming if requested
+  if (stream && proxyUrl && text) {
+    simulateStream(text, emit)
+  }
+  
   return {
-    content: choice.message?.content || '',
+    content: text,
     tool_calls: choice.message?.tool_calls?.map(t => {
       let input = {}
       try { input = JSON.parse(t.function.arguments || '{}') } catch {}
@@ -168,6 +192,13 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
 }
 
 // ── Streaming Functions ──
+
+// Simulate streaming for proxy mode (proxy can't forward SSE)
+function simulateStream(text, emit) {
+  // Emit the full text at once as a single token event
+  // The renderer handles incremental append, so this works fine
+  emit('token', { text })
+}
 
 async function streamAnthropic(url, headers, body, emit) {
   const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) })
