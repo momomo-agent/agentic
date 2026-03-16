@@ -219,6 +219,8 @@
       <input id="pgKey" type="password" placeholder="sk-ant-... or sk-...">
       <label>Base URL</label>
       <input id="pgBase" placeholder="Leave empty for default">
+      <label>Model</label>
+      <input id="pgModel" placeholder="Leave empty for default">
       <label>Proxy</label>
       <input id="pgProxy" value="https://proxy.link2web.site/proxy" placeholder="CORS proxy URL">
     </div>
@@ -326,6 +328,7 @@
     if (saved.provider) document.getElementById('pgProvider').value = saved.provider
     if (saved.proxy) document.getElementById('pgProxy').value = saved.proxy
     if (saved.baseUrl) document.getElementById('pgBase').value = saved.baseUrl
+    if (saved.model) document.getElementById('pgModel').value = saved.model
   } catch {}
 
   pgInputEl.addEventListener('keydown', e => { if (e.key === 'Enter') pgDoSend() })
@@ -337,6 +340,7 @@
         provider: document.getElementById('pgProvider').value,
         proxy: document.getElementById('pgProxy').value,
         baseUrl: document.getElementById('pgBase').value,
+        model: document.getElementById('pgModel').value,
       }))
     } catch {}
   }
@@ -379,10 +383,11 @@
       const provider = document.getElementById('pgProvider').value
       const proxy = document.getElementById('pgProxy').value.trim()
       const baseUrl = document.getElementById('pgBase').value.trim()
+      const model = document.getElementById('pgModel').value.trim()
       const history = pgMem.history()
 
       // Direct API call (through proxy for CORS)
-      const answer = await callLLM(text, { provider, apiKey, proxy, baseUrl, history })
+      const answer = await callLLM(text, { provider, apiKey, proxy, baseUrl, model, history })
 
       renderer.set(answer)
       await pgMem.assistant(answer)
@@ -398,7 +403,7 @@
     pgInputEl.focus()
   }
 
-  async function callLLM(prompt, { provider, apiKey, proxy, baseUrl, history }) {
+  async function callLLM(prompt, { provider, apiKey, proxy, baseUrl, model, history }) {
     const messages = [
       ...history.slice(0, -1),  // exclude the last user msg we just added
       { role: 'user', content: prompt }
@@ -407,25 +412,37 @@
     let url, headers, body
 
     if (provider === 'anthropic') {
-      url = (baseUrl || 'https://api.anthropic.com') + '/v1/messages'
+      const base = baseUrl || 'https://api.anthropic.com'
+      // If baseUrl ends with a path segment (e.g. /v1), append /messages
+      // If it's just a domain, append /v1/messages
+      if (base.includes('/v1')) {
+        url = base.replace(/\/+$/, '') + '/messages'
+      } else {
+        url = base.replace(/\/+$/, '') + '/v1/messages'
+      }
       headers = {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       }
       body = JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: model || 'claude-sonnet-4-20250514',
         max_tokens: 2048,
         messages,
       })
     } else {
-      url = (baseUrl || 'https://api.openai.com/v1') + '/chat/completions'
+      const base = baseUrl || 'https://api.openai.com/v1'
+      if (base.includes('/v1')) {
+        url = base.replace(/\/+$/, '') + '/chat/completions'
+      } else {
+        url = base.replace(/\/+$/, '') + '/v1/chat/completions'
+      }
       headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       }
       body = JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: model || 'gpt-4o-mini',
         max_tokens: 2048,
         messages,
       })
