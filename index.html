@@ -314,7 +314,9 @@
 <!-- Load all four modules for playground -->
 <script src="https://momomo-agent.github.io/agentic-render/render.js"></script>
 <script src="https://momomo-agent.github.io/agentic-memory/memory.js"></script>
-<script>
+<script type="module" id="pgScript">
+  import { agenticAsk } from './agentic-agent.js'
+
   // Playground state
   let pgMem = AgenticMemory.createMemory({ maxTokens: 6000 })
   let pgRenderer = null
@@ -381,13 +383,23 @@
 
     try {
       const provider = document.getElementById('pgProvider').value
-      const proxy = document.getElementById('pgProxy').value.trim()
       const baseUrl = document.getElementById('pgBase').value.trim()
       const model = document.getElementById('pgModel').value.trim()
-      const history = pgMem.history()
+      const proxy = document.getElementById('pgProxy').value.trim()
 
-      // Direct API call (through proxy for CORS)
-      const answer = await callLLM(text, { provider, apiKey, proxy, baseUrl, model, history })
+      const answer = await agenticAsk(text, {
+        provider,
+        apiKey,
+        baseUrl: baseUrl || undefined,
+        model: model || undefined,
+        proxyUrl: proxy || undefined,
+        history: pgMem.history(),
+        tools: []  // No tools in playground for simplicity
+      }, (event, data) => {
+        if (event === 'status') {
+          document.getElementById('pgState').textContent = data.message
+        }
+      })
 
       renderer.set(answer)
       await pgMem.assistant(answer)
@@ -396,97 +408,12 @@
     } catch (err) {
       contentEl.innerHTML = `<span style="color:#ef4444">${esc(err.message)}</span><br><span style="color:#666;font-size:11px">Check browser console for details</span>`
       document.getElementById('pgState').textContent = 'Error'
+      console.error('[playground]', err)
     }
 
     btn.disabled = false
     pgChatEl.scrollTop = pgChatEl.scrollHeight
     pgInputEl.focus()
-  }
-
-  async function callLLM(prompt, { provider, apiKey, proxy, baseUrl, model, history }) {
-    const messages = [
-      ...history.slice(0, -1),  // exclude the last user msg we just added
-      { role: 'user', content: prompt }
-    ]
-
-    let url, headers, body
-
-    if (provider === 'anthropic') {
-      const base = baseUrl || 'https://api.anthropic.com'
-      // If baseUrl ends with a path segment (e.g. /v1), append /messages
-      // If it's just a domain, append /v1/messages
-      if (base.includes('/v1')) {
-        url = base.replace(/\/+$/, '') + '/messages'
-      } else {
-        url = base.replace(/\/+$/, '') + '/v1/messages'
-      }
-      headers = {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      }
-      body = JSON.stringify({
-        model: model || 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
-        messages,
-      })
-    } else {
-      const base = baseUrl || 'https://api.openai.com/v1'
-      if (base.includes('/v1')) {
-        url = base.replace(/\/+$/, '') + '/chat/completions'
-      } else {
-        url = base.replace(/\/+$/, '') + '/v1/chat/completions'
-      }
-      headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      }
-      body = JSON.stringify({
-        model: model || 'gpt-4o-mini',
-        max_tokens: 2048,
-        messages,
-      })
-    }
-
-    // Use proxy for CORS — skip proxy when using custom baseUrl (usually has CORS enabled)
-    let finalUrl
-    if (baseUrl) {
-      // Custom base URL: go direct (most custom endpoints support CORS)
-      finalUrl = url
-    } else if (proxy) {
-      // Default API endpoints need proxy for CORS
-      finalUrl = `${proxy}/${url.replace('https://','')}`
-    } else {
-      finalUrl = url
-    }
-
-    let res
-    console.log('[agentic playground]', finalUrl)
-    try {
-      res = await fetch(finalUrl, { method: 'POST', headers, body })
-    } catch (e) {
-      // If proxy fetch failed, try direct as fallback
-      if (proxy) {
-        try {
-          res = await fetch(url, { method: 'POST', headers, body })
-        } catch (e2) {
-          throw new Error(`Network error: both proxy and direct requests failed. Check your Base URL and Proxy settings.`)
-        }
-      } else {
-        throw new Error(`Network error: ${e.message}. You may need a CORS proxy.`)
-      }
-    }
-    if (!res.ok) {
-      const errBody = await res.text().catch(() => '')
-      throw new Error(`API error ${res.status}: ${errBody.slice(0, 200)}`)
-    }
-    const data = await res.json()
-
-    if (provider === 'anthropic') {
-      return data.content?.[0]?.text || '(no response)'
-    } else {
-      return data.choices?.[0]?.message?.content || '(no response)'
-    }
   }
 
   function addPgMsg(role, text) {
