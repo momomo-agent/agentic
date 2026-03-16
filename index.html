@@ -84,10 +84,11 @@
     .playground h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:12px;letter-spacing:-.5px}
     .playground .sub-h{text-align:center;font-size:13px;color:var(--t3);margin-bottom:24px}
     .pg-box{border:1px solid var(--border);border-radius:12px;background:var(--s1);overflow:hidden}
-    .pg-config{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .pg-config label{font-size:12px;color:var(--t3)}
-    .pg-config input,.pg-config select{padding:7px 12px;background:#18181b;border:1px solid #27272a;border-radius:6px;color:#e4e4e7;font-size:12px;outline:none;font-family:var(--mono)}
+    .pg-config{padding:16px 20px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center}
+    .pg-config label{font-size:11px;color:var(--t3);text-align:right;white-space:nowrap}
+    .pg-config input,.pg-config select{padding:7px 12px;background:#18181b;border:1px solid #27272a;border-radius:6px;color:#e4e4e7;font-size:12px;outline:none;font-family:var(--mono);width:100%}
     .pg-config input:focus{border-color:var(--yellow)}
+    .pg-config .pg-row{display:contents}
     .pg-chat{max-height:400px;overflow-y:auto;padding:20px}
     .pg-msg{margin-bottom:14px;font-size:14px;line-height:1.7}
     .pg-msg .pg-role{font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
@@ -214,12 +215,12 @@
         <option value="anthropic">Anthropic</option>
         <option value="openai">OpenAI</option>
       </select>
-      <label>Base URL</label>
-      <input id="pgBase" placeholder="https://api.openai.com/v1" style="width:200px;font-size:11px;color:var(--t3)">
       <label>API Key</label>
-      <input id="pgKey" type="password" placeholder="sk-..." style="flex:1;min-width:180px">
+      <input id="pgKey" type="password" placeholder="sk-ant-... or sk-...">
+      <label>Base URL</label>
+      <input id="pgBase" placeholder="Leave empty for default">
       <label>Proxy</label>
-      <input id="pgProxy" value="https://proxy.link2web.site/proxy" style="width:200px;font-size:11px;color:var(--t3)">
+      <input id="pgProxy" value="https://proxy.link2web.site/proxy" placeholder="CORS proxy URL">
     </div>
     <div class="pg-chat" id="pgChat">
       <div class="pg-empty">Send a message to start a conversation.<br>Memory auto-trims. Markdown streams in real-time.</div>
