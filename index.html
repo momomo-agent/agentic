@@ -134,20 +134,32 @@
 
 <section class="hero w">
   <div class="tagline fu">Build AI apps<br><em>without the bloat</em></div>
-  <p class="sub fu fu1">Four tiny libraries. 12KB total. LLM calls, streaming rendering, conversation memory, and vector search. No frameworks. No build steps.</p>
+  <p class="sub fu fu1">Three building blocks + one runtime. LLM calls, memory, streaming rendering, and a ready-made agent. No frameworks. No build steps.</p>
   <div class="total fu fu2">
-    <div><div class="num">12KB</div><div class="lbl">total gzip</div></div>
-    <div class="detail">4 modules · 0 dependencies<br>vanilla JS · works everywhere</div>
+    <div><div class="num">~10KB</div><div class="lbl">total gzip</div></div>
+    <div class="detail">3 blocks + 1 runtime · 0 dependencies<br>vanilla JS · works everywhere</div>
   </div>
 </section>
 
 <section class="modules w" id="modules">
   <div class="mod-grid">
-    <a class="mod" href="https://momomo-agent.github.io/agentic-lite/">
+    <a class="mod" href="https://momomo-agent.github.io/agentic-claw/">
+      <span class="emoji">🦀</span>
+      <h3>agentic-claw <span class="sz">~3KB</span></h3>
+      <p>AI agent runtime + CLI. Wire up core + memory into a living agent.</p>
+      <div class="api">createClaw(opts).chat(msg)</div>
+    </a>
+    <a class="mod" href="https://momomo-agent.github.io/agentic-core/">
       <span class="emoji">⚡</span>
-      <h3>agentic-lite <span class="sz">4KB</span></h3>
-      <p>LLM calls with built-in search, code execution, and file tools. One function.</p>
+      <h3>agentic-core <span class="sz">4KB</span></h3>
+      <p>LLM engine with tools, schema validation, and streaming. One function.</p>
       <div class="api">ask(prompt, config)</div>
+    </a>
+    <a class="mod" href="https://momomo-agent.github.io/agentic-memory/">
+      <span class="emoji">🧠</span>
+      <h3>agentic-memory <span class="sz">4KB</span></h3>
+      <p>Conversation context + knowledge retrieval. Short-term chat + long-term recall.</p>
+      <div class="api">createMemory(opts)</div>
     </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-render/">
       <span class="emoji">✨</span>
@@ -155,45 +167,33 @@
       <p>Streaming markdown renderer. Syntax highlighting, dark/light themes, no flicker.</p>
       <div class="api">create(el, opts)</div>
     </a>
-    <a class="mod" href="https://momomo-agent.github.io/agentic-memory/">
-      <span class="emoji">🧠</span>
-      <h3>agentic-memory <span class="sz">2KB</span></h3>
-      <p>Conversation context management. Auto-trimming, persistence, token budgets.</p>
-      <div class="api">createMemory(opts)</div>
-    </a>
-    <a class="mod" href="https://momomo-agent.github.io/agentic-embed/">
-      <span class="emoji">🔮</span>
-      <h3>agentic-embed <span class="sz">2KB</span></h3>
-      <p>Vector search and RAG. Text chunking, embeddings, semantic retrieval.</p>
-      <div class="api">create(opts).search(q)</div>
-    </a>
   </div>
 </section>
 
 <section class="flow w">
   <h2>How they fit together</h2>
-  <p class="sub-h">Each module works standalone. Together, they're a full AI stack.</p>
+  <p class="sub-h">Use claw for instant setup, or wire the blocks yourself.</p>
   <div class="flow-line">
     <div class="flow-step">
       <div class="fs-emoji">📝</div>
       <div class="fs-name">User input</div>
     </div>
     <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--pink)">
+      <div class="fs-emoji">🦀</div>
+      <div class="fs-name">claw</div>
+      <div class="fs-desc">auto-wires everything</div>
+    </div>
+    <div class="flow-arrow">→</div>
     <div class="flow-step" style="border-color:var(--green)">
       <div class="fs-emoji">🧠</div>
       <div class="fs-name">memory</div>
-      <div class="fs-desc">add context</div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step" style="border-color:var(--blue)">
-      <div class="fs-emoji">🔮</div>
-      <div class="fs-name">embed</div>
-      <div class="fs-desc">find relevant docs</div>
+      <div class="fs-desc">context + recall</div>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step" style="border-color:var(--yellow)">
       <div class="fs-emoji">⚡</div>
-      <div class="fs-name">lite</div>
+      <div class="fs-name">core</div>
       <div class="fs-desc">call LLM + tools</div>
     </div>
     <div class="flow-arrow">→</div>
@@ -242,29 +242,20 @@
   <h2>Full stack in 20 lines</h2>
   <p class="sub-h">A complete AI chat app with memory and streaming rendering.</p>
   <div class="code-block">
-    <div class="code-header">Complete AI chat app</div>
-    <div class="code-body"><span class="kw">import</span> { <span class="fn">ask</span> } <span class="kw">from</span> <span class="str">'agentic-lite'</span>
-<span class="kw">import</span> { <span class="fn">createMemory</span> } <span class="kw">from</span> <span class="str">'agentic-memory'</span>
+    <div class="code-header">Complete AI chat app — with claw</div>
+    <div class="code-body"><span class="kw">import</span> { <span class="fn">createClaw</span> } <span class="kw">from</span> <span class="str">'agentic-claw'</span>
 
-<span class="kw">const</span> mem  = <span class="fn">createMemory</span>({ <span class="prop">maxTokens</span>: <span class="typ">8000</span> })
-<span class="kw">const</span> view = AgenticRender.<span class="fn">create</span>(<span class="str">'#output'</span>)
+<span class="kw">const</span> claw = <span class="fn">createClaw</span>({
+  <span class="prop">apiKey</span>: <span class="str">'sk-ant-...'</span>,
+  <span class="prop">knowledge</span>: <span class="typ">true</span>,
+})
 
-<span class="kw">async function</span> <span class="fn">chat</span>(prompt) {
-  <span class="kw">await</span> mem.<span class="fn">user</span>(prompt)
+<span class="cmt">// Teach it something</span>
+<span class="kw">await</span> claw.<span class="fn">learn</span>(<span class="str">'docs'</span>, longDocument)
 
-  <span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">ask</span>(prompt, {
-    <span class="prop">provider</span>: <span class="str">'anthropic'</span>,
-    <span class="prop">apiKey</span>:   <span class="str">'sk-ant-...'</span>,
-    <span class="prop">history</span>: mem.<span class="fn">history</span>(),
-    <span class="prop">tools</span>:   [<span class="str">'search'</span>],
-  })
-
-  <span class="kw">await</span> mem.<span class="fn">assistant</span>(result.answer)
-  view.<span class="fn">set</span>(result.answer)         <span class="cmt">// render with streaming markdown</span>
-}
-
-<span class="fn">chat</span>(<span class="str">'What happened in AI this week?'</span>)
-<span class="fn">chat</span>(<span class="str">'Tell me more about the first one'</span>)  <span class="cmt">// has context!</span></div>
+<span class="cmt">// Chat — auto: memory → recall → LLM → store</span>
+<span class="kw">await</span> claw.<span class="fn">chat</span>(<span class="str">'What does the doc say?'</span>)
+<span class="kw">await</span> claw.<span class="fn">chat</span>(<span class="str">'Tell me more about that'</span>)  <span class="cmt">// has context!</span></div>
   </div>
 </section>
 
@@ -304,10 +295,10 @@
 <footer>
   <div class="w">
     MIT · <a href="https://github.com/momomo-agent">GitHub</a> ·
-    <a href="https://momomo-agent.github.io/agentic-lite/">lite</a> ·
+    <a href="https://momomo-agent.github.io/agentic-claw/">claw</a> ·
+    <a href="https://momomo-agent.github.io/agentic-core/">core</a> ·
     <a href="https://momomo-agent.github.io/agentic-render/">render</a> ·
-    <a href="https://momomo-agent.github.io/agentic-memory/">memory</a> ·
-    <a href="https://momomo-agent.github.io/agentic-embed/">embed</a>
+    <a href="https://momomo-agent.github.io/agentic-memory/">memory</a>
   </div>
 </footer>
 

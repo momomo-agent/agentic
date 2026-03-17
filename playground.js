@@ -69,7 +69,7 @@ async function pgDoSend() {
     const model = document.getElementById('pgModel').value.trim()
     const proxy = document.getElementById('pgProxy').value.trim()
 
-    // Use agentic-lite (agenticAsk) for LLM calls — with streaming
+    // Use agentic-core (agenticAsk) for LLM calls — with streaming
     const result = await agenticAsk(text, {
       provider,
       apiKey,
@@ -121,4 +121,4 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // Expose to global scope for onclick
 window.pgDoSend = pgDoSend
 
-console.log('[playground] Loaded — agentic-lite + agentic-memory + agentic-render')
+console.log('[playground] Loaded — agentic-core + agentic-memory + agentic-render')
