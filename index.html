@@ -3,280 +3,265 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>agentic.js — The 12KB AI toolkit</title>
-  <meta name="description" content="Four tiny libraries. 12KB total. Everything you need to build AI apps. No frameworks, no build steps, no bullshit.">
+  <title>agentic.js — Sense, Think, Act</title>
+  <meta name="description" content="Eight tiny modules for building AI-native applications. Zero dependencies, vanilla JS, works everywhere.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #050505; --s1: #0a0a0a; --s2: #0f0f0f; --s3: #141414;
-      --border: #1c1c1c; --text: #e4e4e7; --t2: #999; --t3: #555;
-      --yellow: #f5c518; --purple: #a78bfa; --green: #34d399; --blue: #818cf8; --pink: #f472b6;
-      --mono: 'DM Mono', 'SF Mono', monospace;
-      --serif: 'Newsreader', Georgia, serif;
+      --bg: #06060a;
+      --surface: rgba(255,255,255,0.02);
+      --surface2: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.1);
+      --text: rgba(255,255,255,0.9);
+      --text2: rgba(255,255,255,0.5);
+      --text3: rgba(255,255,255,0.22);
+      --accent: #818cf8;
+      --green: #4ade80;
+      --warm: #fb923c;
+      --pink: #f472b6;
+      --cyan: #22d3ee;
+      --red: #f87171;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --mono: 'Space Mono', 'SF Mono', monospace;
     }
-    *{margin:0;padding:0;box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{font-family:var(--mono);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden;font-size:14px}
-    body::before{content:'';position:fixed;inset:0;opacity:.02;pointer-events:none;z-index:9999;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-    a{color:var(--yellow);text-decoration:none}a:hover{text-decoration:underline}
-    .w{max-width:900px;margin:0 auto;padding:0 24px}
+    * { margin:0; padding:0; box-sizing:border-box }
+    html { scroll-behavior: smooth }
+    body { font-family:var(--mono); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overflow-x:hidden; font-size:13px; line-height:1.6 }
+    body::before { content:''; position:fixed; inset:0; background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999 }
 
-    /* Nav */
-    nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,5,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-    nav .logo{font-size:15px;font-weight:500;display:flex;align-items:center;gap:8px}
-    nav .logo span{color:var(--yellow)}
-    nav .links{display:flex;gap:20px;font-size:13px}
-    nav .links a{color:var(--t2);transition:color .15s}nav .links a:hover{color:var(--text);text-decoration:none}
+    nav { position:fixed; top:0; left:0; right:0; z-index:100; padding:0 10vw; height:56px; display:flex; align-items:center; justify-content:space-between; background:rgba(6,6,10,0.8); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--border) }
+    nav .logo { font-family:var(--serif); font-size:18px; font-style:italic; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:8px }
+    nav .logo .dot { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 2.5s ease-in-out infinite }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    nav .links { display:flex; gap:24px }
+    nav .links a { font-size:11px; color:var(--text3); text-decoration:none; letter-spacing:0.5px; text-transform:uppercase; transition:color .2s }
+    nav .links a:hover { color:var(--text2) }
 
-    /* Hero */
-    .hero{padding:150px 0 60px;text-align:center;position:relative}
-    .hero::before{content:'';position:absolute;top:40px;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,#f5c51808 0%,#a78bfa06 40%,transparent 70%);pointer-events:none}
-    .hero .tagline{font-family:var(--serif);font-size:clamp(40px,7vw,72px);line-height:1.05;font-weight:400;letter-spacing:-2px;margin-bottom:20px}
-    .hero .tagline em{font-style:italic;color:var(--yellow)}
-    .hero .sub{font-size:15px;color:var(--t2);max-width:500px;margin:0 auto 40px;line-height:1.7}
+    .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:0 10vw; position:relative }
+    .hero::after { content:''; position:absolute; top:15%; right:0; width:50vw; height:60vh; background:radial-gradient(ellipse at 70% 40%,rgba(129,140,248,0.04) 0%,transparent 60%); pointer-events:none }
+    .hero-label { font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:4px; margin-bottom:28px }
+    .hero h1 { font-family:var(--serif); font-size:clamp(52px,8vw,100px); font-weight:400; line-height:1.02; letter-spacing:-0.025em; max-width:800px }
+    .hero h1 em { font-style:italic; color:var(--accent) }
+    .hero .hero-sub { font-size:14px; color:var(--text2); max-width:440px; line-height:1.9; margin-top:32px }
+    .hero-stats { display:flex; gap:40px; margin-top:48px; padding-top:32px; border-top:1px solid var(--border); max-width:500px }
+    .hero-stat .num { font-size:32px; font-weight:700; font-family:var(--mono) }
+    .hero-stat .label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-top:4px }
 
-    /* Total size badge */
-    .total{display:inline-flex;align-items:center;gap:16px;padding:14px 28px;background:var(--s2);border:1px solid var(--border);border-radius:10px;margin-bottom:40px}
-    .total .num{font-size:28px;font-weight:500;color:var(--yellow)}
-    .total .lbl{font-size:12px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
-    .total .detail{font-size:12px;color:var(--t3);border-left:1px solid var(--border);padding-left:16px}
+    section { padding:120px 10vw }
+    .section-label { font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:4px; margin-bottom:16px }
+    .section-title { font-family:var(--serif); font-size:clamp(32px,5vw,56px); font-weight:400; letter-spacing:-0.02em; margin-bottom:16px }
+    .section-desc { font-size:13px; color:var(--text2); max-width:480px; line-height:1.9 }
 
-    /* Module cards */
-    .modules{padding:20px 0 80px}
-    .mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-    .mod{background:var(--s1);padding:32px 24px;transition:background .2s;cursor:pointer;text-decoration:none;display:block;color:var(--text)}
-    .mod:hover{background:var(--s2);text-decoration:none}
-    .mod .emoji{font-size:28px;margin-bottom:14px;display:block}
-    .mod h3{font-size:15px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:8px}
-    .mod .sz{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:400}
-    .mod p{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:12px}
-    .mod .api{font-size:12px;color:var(--t3);font-family:var(--mono)}
-    .mod:nth-child(1) .sz{background:#f5c51820;color:var(--yellow)}
-    .mod:nth-child(2) .sz{background:#a78bfa20;color:var(--purple)}
-    .mod:nth-child(3) .sz{background:#34d39920;color:var(--green)}
-    .mod:nth-child(4) .sz{background:#818cf820;color:var(--blue)}
-    .mod:nth-child(5) .sz{background:#f472b620;color:var(--pink)}
-    .mod:nth-child(6) .sz{background:#fb923c20;color:#fb923c}
-    .mod:nth-child(7) .sz{background:#22d3ee20;color:#22d3ee}
-    .mod:nth-child(8) .sz{background:#f87171b0;color:#f87171}
+    .modules-header { margin-bottom:64px }
+    .mod-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:16px; overflow:hidden }
+    .mod { background:var(--bg); padding:36px 28px; text-decoration:none; color:var(--text); display:flex; flex-direction:column; transition:background .3s }
+    .mod:hover { background:var(--surface2) }
+    .mod .mod-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:20px; border:1px solid var(--border); transition:all .3s }
+    .mod h3 { font-size:14px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px }
+    .mod .sz { font-size:10px; font-weight:400; padding:2px 8px; border-radius:4px; background:var(--surface2); color:var(--text3) }
+    .mod p { font-size:11px; color:var(--text2); line-height:1.7; flex:1 }
+    .mod .api { font-size:11px; color:var(--text3); margin-top:16px; padding-top:12px; border-top:1px solid var(--border) }
+    .mod:nth-child(1):hover .mod-icon { border-color:rgba(129,140,248,0.3); background:rgba(129,140,248,0.06) }
+    .mod:nth-child(2):hover .mod-icon { border-color:rgba(167,139,250,0.3); background:rgba(167,139,250,0.06) }
+    .mod:nth-child(3):hover .mod-icon { border-color:rgba(74,222,128,0.3); background:rgba(74,222,128,0.06) }
+    .mod:nth-child(4):hover .mod-icon { border-color:rgba(251,146,60,0.3); background:rgba(251,146,60,0.06) }
+    .mod:nth-child(5):hover .mod-icon { border-color:rgba(244,114,182,0.3); background:rgba(244,114,182,0.06) }
+    .mod:nth-child(6):hover .mod-icon { border-color:rgba(34,211,238,0.3); background:rgba(34,211,238,0.06) }
+    .mod:nth-child(7):hover .mod-icon { border-color:rgba(248,113,113,0.3); background:rgba(248,113,113,0.06) }
+    .mod:nth-child(8):hover .mod-icon { border-color:rgba(253,224,71,0.3); background:rgba(253,224,71,0.06) }
 
-    /* Flow diagram */
-    .flow{padding:40px 0 80px}
-    .flow h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:12px;letter-spacing:-.5px}
-    .flow .sub-h{text-align:center;font-size:13px;color:var(--t3);margin-bottom:36px}
-    .flow-line{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
-    .flow-step{padding:16px 24px;background:var(--s2);border:1px solid var(--border);border-radius:8px;text-align:center;min-width:140px}
-    .flow-step .fs-emoji{font-size:20px;margin-bottom:6px}
-    .flow-step .fs-name{font-size:13px;font-weight:500}
-    .flow-step .fs-desc{font-size:11px;color:var(--t3);margin-top:2px}
-    .flow-arrow{font-size:18px;color:var(--t3);padding:0 8px}
+    .flow-section { background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border) }
+    .flow-header { text-align:center; margin-bottom:64px }
+    .flow-header .section-desc { margin:12px auto 0 }
+    .pipeline { display:flex; align-items:center; justify-content:center; margin-bottom:40px }
+    .pipe-node { text-align:center; padding:24px 20px; min-width:120px }
+    .pipe-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 10px; border:1px solid var(--border2); background:var(--bg) }
+    .pipe-name { font-size:12px; font-weight:700; margin-bottom:2px }
+    .pipe-desc { font-size:10px; color:var(--text3) }
+    .pipe-arrow { color:var(--text3); font-size:16px; flex-shrink:0 }
+    .pipe-support { display:flex; justify-content:center; gap:24px; margin-top:12px }
+    .pipe-support .pipe-node { padding:16px; min-width:90px }
+    .pipe-support .pipe-icon { width:36px; height:36px; font-size:16px; border-radius:8px }
+    .pipe-support .pipe-name { font-size:11px }
 
-    /* Code */
-    .code-section{padding:40px 0 80px}
-    .code-section h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:12px;letter-spacing:-.5px}
-    .code-section .sub-h{text-align:center;font-size:13px;color:var(--t3);margin-bottom:32px}
-    .code-block{background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px}
-    .code-header{padding:8px 16px;background:#111;font-size:12px;color:var(--t3);display:flex;justify-content:space-between;align-items:center}
-    .code-body{padding:20px 22px;font-size:13px;line-height:1.8;overflow-x:auto;white-space:pre}
-    .kw{color:#c792ea}.fn{color:var(--yellow)}.str{color:#c3e88d}.cmt{color:#546e7a}.prop{color:#89ddff}.typ{color:#ffcb6b}
+    .pg-header { margin-bottom:40px }
+    .pg-box { border:1px solid var(--border); border-radius:14px; background:var(--bg); overflow:hidden }
+    .pg-config { padding:16px 24px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; flex-wrap:wrap }
+    .pg-field { display:flex; align-items:center; gap:6px }
+    .pg-field label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; white-space:nowrap }
+    .pg-field input,.pg-field select { padding:7px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:11px; outline:none; font-family:var(--mono) }
+    .pg-field input:focus,.pg-field select:focus { border-color:rgba(129,140,248,0.3) }
+    .pg-field input { width:180px }
+    .pg-chat { min-height:300px; max-height:420px; overflow-y:auto; padding:24px }
+    .pg-msg { margin-bottom:16px; font-size:13px; line-height:1.7 }
+    .pg-msg .pg-role { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:var(--text3); margin-bottom:4px }
+    .pg-msg.user .pg-role { color:var(--accent) }
+    .pg-msg.assistant .pg-role { color:var(--green) }
+    .pg-empty { color:var(--text3); text-align:center; padding:80px 20px; font-size:12px; line-height:2 }
+    .pg-input { display:flex; gap:8px; padding:14px 24px; border-top:1px solid var(--border) }
+    .pg-input input { flex:1; padding:10px 16px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; outline:none; font-family:var(--mono) }
+    .pg-input input:focus { border-color:rgba(129,140,248,0.3) }
+    .pg-input button { padding:10px 24px; background:var(--accent); color:#000; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:12px; font-family:var(--mono); transition:background .2s }
+    .pg-input button:hover { background:#a5b4fc }
+    .pg-input button:disabled { opacity:.3; cursor:not-allowed }
+    .pg-status { padding:8px 24px; border-top:1px solid var(--border); font-size:10px; color:var(--text3); display:flex; justify-content:space-between }
 
-    /* Playground */
-    .playground{padding:40px 0 80px}
-    .playground h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:12px;letter-spacing:-.5px}
-    .playground .sub-h{text-align:center;font-size:13px;color:var(--t3);margin-bottom:24px}
-    .pg-box{border:1px solid var(--border);border-radius:12px;background:var(--s1);overflow:hidden}
-    .pg-config{padding:16px 20px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center}
-    .pg-config label{font-size:11px;color:var(--t3);text-align:right;white-space:nowrap}
-    .pg-config input,.pg-config select{padding:7px 12px;background:#18181b;border:1px solid #27272a;border-radius:6px;color:#e4e4e7;font-size:12px;outline:none;font-family:var(--mono);width:100%}
-    .pg-config input:focus{border-color:var(--yellow)}
-    .pg-config .pg-row{display:contents}
-    .pg-chat{max-height:400px;overflow-y:auto;padding:20px}
-    .pg-msg{margin-bottom:14px;font-size:14px;line-height:1.7}
-    .pg-msg .pg-role{font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
-    .pg-msg.user .pg-role{color:#60a5fa}
-    .pg-msg.assistant .pg-role{color:var(--purple)}
-    .pg-empty{color:var(--t3);text-align:center;padding:40px;font-size:13px}
-    .pg-input{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--border)}
-    .pg-input input{flex:1;padding:10px 14px;background:#18181b;border:1px solid #27272a;border-radius:8px;color:#e4e4e7;font-size:14px;outline:none;font-family:var(--mono)}
-    .pg-input input:focus{border-color:var(--yellow)}
-    .pg-input button{padding:10px 22px;background:var(--yellow);color:#000;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--mono)}
-    .pg-input button:disabled{opacity:.4;cursor:not-allowed}
-    .pg-status{padding:8px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--t3);display:flex;justify-content:space-between}
+    .code-header-area { margin-bottom:40px }
+    .code-block { border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--bg) }
+    .code-label { padding:12px 24px; font-size:10px; color:var(--text3); border-bottom:1px solid var(--border); text-transform:uppercase; letter-spacing:1px }
+    .code-body { padding:28px; font-size:13px; line-height:2; overflow-x:auto; white-space:pre }
+    .kw { color:var(--accent) } .fn { color:var(--warm) } .str { color:var(--green) } .cmt { color:var(--text3); font-style:italic } .prop { color:var(--cyan) }
 
-    /* Compare */
-    .compare{padding:40px 0 80px}
-    .compare h2{font-family:var(--serif);font-size:32px;font-weight:400;text-align:center;margin-bottom:40px;letter-spacing:-.5px}
-    .cmp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-    .cmp{background:var(--s1);padding:18px 20px;font-size:13px}
-    .cmp.hd{background:#111;font-weight:500;font-size:14px}
-    .cmp.hi{color:var(--green)}
-    .cmp.lo{color:var(--t3)}
-    .cmp.lb{color:var(--t2)}
+    .compare-grid { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-top:48px }
+    .cmp { background:var(--bg); padding:16px 20px; font-size:12px }
+    .cmp.hd { background:var(--surface2); font-weight:700; font-size:13px }
+    .cmp.hd.ours { color:var(--accent) }
+    .cmp.hi { color:var(--green) } .cmp.lo { color:var(--text3) } .cmp.lb { color:var(--text2); font-size:11px }
 
-    footer{border-top:1px solid var(--border);padding:36px 0;text-align:center;font-size:12px;color:var(--t3)}
+    .phil-grid { display:grid; grid-template-columns:1fr 1fr; gap:48px; margin-top:64px }
+    .phil-card { padding-left:24px; border-left:2px solid var(--border) }
+    .phil-card.active { border-left-color:var(--accent) }
+    .phil-card h3 { font-family:var(--serif); font-size:24px; font-weight:400; margin-bottom:12px }
+    .phil-card p { font-size:12px; color:var(--text2); line-height:1.9 }
 
-    @media(max-width:768px){.mod-grid{grid-template-columns:1fr}.flow-line{flex-direction:column;gap:8px}.flow-arrow{transform:rotate(90deg)}.cmp-grid{grid-template-columns:1fr}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-    .fu{animation:fadeUp .5s ease-out both}
-    .fu1{animation-delay:.08s}.fu2{animation-delay:.16s}.fu3{animation-delay:.24s}.fu4{animation-delay:.32s}
+    footer { padding:48px 10vw; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center }
+    footer .f-logo { font-family:var(--serif); font-style:italic; font-size:16px }
+    footer .f-links { display:flex; gap:20px }
+    footer .f-links a { font-size:10px; color:var(--text3); text-decoration:none; text-transform:uppercase; letter-spacing:.5px }
+    footer .f-links a:hover { color:var(--text2) }
+
+    @media(max-width:1024px) { .mod-grid{grid-template-columns:repeat(2,1fr)} }
+    @media(max-width:768px) { nav,section,footer{padding-left:6vw;padding-right:6vw} .hero{padding:0 6vw} .mod-grid{grid-template-columns:1fr} .pipeline{flex-direction:column;gap:4px} .pipe-arrow{transform:rotate(90deg)} .pipe-support{flex-wrap:wrap} .phil-grid{grid-template-columns:1fr} .compare-grid{grid-template-columns:1fr} .hero-stats{flex-wrap:wrap;gap:24px} }
+
+    @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .fade { animation:fadeIn .6s ease-out both }
+    .d1{animation-delay:.08s} .d2{animation-delay:.16s} .d3{animation-delay:.24s} .d4{animation-delay:.36s}
   </style>
 </head>
 <body>
 
 <nav>
-  <div class="logo"><span>⚡</span> agentic.js</div>
+  <a class="logo" href="#"><span class="dot"></span> agentic.js</a>
   <div class="links">
     <a href="#modules">Modules</a>
+    <a href="#flow">Architecture</a>
     <a href="#playground">Playground</a>
     <a href="#code">Code</a>
     <a href="https://github.com/momomo-agent">GitHub</a>
   </div>
 </nav>
 
-<section class="hero w">
-  <div class="tagline fu">Build AI apps<br><em>without the bloat</em></div>
-  <p class="sub fu fu1">Eight tiny modules. Sense, think, remember, speak, act, render. No frameworks, no build steps, no bullshit.</p>
-  <div class="total fu fu2">
-    <div><div class="num">8</div><div class="lbl">modules</div></div>
-    <div class="detail">0 dependencies · vanilla JS<br>works everywhere</div>
+<section class="hero">
+  <div class="hero-label fade">AI Toolkit</div>
+  <h1 class="fade d1">Sense, think,<br><em>act.</em></h1>
+  <p class="hero-sub fade d2">Eight tiny modules for building AI-native applications. Zero dependencies, vanilla JS, works everywhere.</p>
+  <div class="hero-stats fade d3">
+    <div class="hero-stat"><div class="num">8</div><div class="label">Modules</div></div>
+    <div class="hero-stat"><div class="num">0</div><div class="label">Dependencies</div></div>
+    <div class="hero-stat"><div class="num">~30KB</div><div class="label">Total</div></div>
   </div>
 </section>
 
-<section class="modules w" id="modules">
+<section id="modules">
+  <div class="modules-header">
+    <div class="section-label">Modules</div>
+    <div class="section-title">The family</div>
+    <div class="section-desc">Each module solves one problem well. Compose them however you want.</div>
+  </div>
   <div class="mod-grid">
     <a class="mod" href="https://momomo-agent.github.io/agentic-core/">
-      <span class="emoji">⚡</span>
-      <h3>agentic-core <span class="sz">4KB</span></h3>
-      <p>LLM engine with tools, vision, and streaming. One function.</p>
+      <div class="mod-icon">⚡</div>
+      <h3>core <span class="sz">4KB</span></h3>
+      <p>LLM engine. Tools, vision, streaming. One function call.</p>
       <div class="api">ask(prompt, config)</div>
     </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-sense/">
-      <span class="emoji">👁</span>
-      <h3>agentic-sense <span class="sz">~5KB</span></h3>
-      <p>Human perception. Face detection, attention tracking, expression analysis via MediaPipe.</p>
+      <div class="mod-icon">👁</div>
+      <h3>sense <span class="sz">~5KB</span></h3>
+      <p>Human perception via MediaPipe. Face, attention, expression, pose.</p>
       <div class="api">Sense.create(video, opts)</div>
     </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-act/">
-      <span class="emoji">🎯</span>
-      <h3>agentic-act <span class="sz">~5KB</span></h3>
-      <p>Intent execution engine. Multimodal input → structured action decision.</p>
-      <div class="api">act.decide(input) / act.run(input)</div>
+      <div class="mod-icon">🎯</div>
+      <h3>act <span class="sz">~5KB</span></h3>
+      <p>Intent execution. Multimodal input → structured action decision.</p>
+      <div class="api">act.decide(input)</div>
     </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-memory/">
-      <span class="emoji">🧠</span>
-      <h3>agentic-memory <span class="sz">4KB</span></h3>
-      <p>Conversation context + knowledge retrieval. Short-term chat + long-term recall.</p>
+      <div class="mod-icon">🧠</div>
+      <h3>memory <span class="sz">4KB</span></h3>
+      <p>Conversation context + knowledge retrieval. Short-term and long-term.</p>
       <div class="api">createMemory(opts)</div>
     </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-render/">
-      <span class="emoji">✨</span>
-      <h3>agentic-render <span class="sz">4KB</span></h3>
-      <p>Streaming markdown renderer. Syntax highlighting, dark/light themes, no flicker.</p>
+      <div class="mod-icon">✨</div>
+      <h3>render <span class="sz">4KB</span></h3>
+      <p>Streaming markdown renderer. Syntax highlighting, zero flicker.</p>
       <div class="api">create(el, opts)</div>
     </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-store/">
-      <span class="emoji">💾</span>
-      <h3>agentic-store <span class="sz">~3KB</span></h3>
-      <p>SQLite-first persistence. Browser (WASM) + Node.js. 8 backends, auto-fallback.</p>
-      <div class="api">createStore(name) → get/set/sql</div>
+      <div class="mod-icon">💾</div>
+      <h3>store <span class="sz">~3KB</span></h3>
+      <p>SQLite-first persistence. Browser WASM + Node.js, auto-fallback.</p>
+      <div class="api">createStore(name)</div>
     </a>
     <a class="mod" href="https://github.com/momomo-agent/agentic-voice">
-      <span class="emoji">🎙</span>
-      <h3>agentic-voice <span class="sz">~4KB</span></h3>
-      <p>Speech for AI apps. TTS + STT in one library. OpenAI-compatible. Push-to-talk.</p>
-      <div class="api">voice.speak(text) / voice.startListening()</div>
+      <div class="mod-icon">🎙</div>
+      <h3>voice <span class="sz">~4KB</span></h3>
+      <p>TTS + STT in one library. OpenAI-compatible. Push-to-talk.</p>
+      <div class="api">voice.speak(text)</div>
     </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-claw/">
-      <span class="emoji">🦀</span>
-      <h3>agentic-claw <span class="sz">~3KB</span></h3>
-      <p>AI agent runtime. Wire up core + memory into a living agent.</p>
+      <div class="mod-icon">🦀</div>
+      <h3>claw <span class="sz">~3KB</span></h3>
+      <p>Agent runtime. Wire core + memory + tools into a living agent.</p>
       <div class="api">createClaw(opts).chat(msg)</div>
     </a>
   </div>
 </section>
 
-<section class="flow w">
-  <h2>How they fit together</h2>
-  <p class="sub-h">Sense the world → Think → Decide → Act → Remember</p>
-  <div class="flow-line">
-    <div class="flow-step">
-      <div class="fs-emoji">📝</div>
-      <div class="fs-name">Input</div>
-      <div class="fs-desc">text / image / audio</div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step" style="border-color:var(--purple)">
-      <div class="fs-emoji">👁</div>
-      <div class="fs-name">sense</div>
-      <div class="fs-desc">perceive humans</div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step" style="border-color:var(--yellow)">
-      <div class="fs-emoji">⚡</div>
-      <div class="fs-name">core</div>
-      <div class="fs-desc">think + reason</div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step" style="border-color:var(--blue)">
-      <div class="fs-emoji">🎯</div>
-      <div class="fs-name">act</div>
-      <div class="fs-desc">decide what to do</div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step" style="border-color:var(--green)">
-      <div class="fs-emoji">✨</div>
-      <div class="fs-name">render</div>
-      <div class="fs-desc">show output</div>
-    </div>
+<section class="flow-section" id="flow">
+  <div class="flow-header">
+    <div class="section-label">Architecture</div>
+    <div class="section-title">How they fit together</div>
+    <div class="section-desc">Sense the world → Think → Decide → Act → Remember</div>
   </div>
-  <div class="flow-line" style="margin-top:12px;gap:0">
-    <div style="width:140px"></div>
-    <div class="flow-arrow" style="visibility:hidden">→</div>
-    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex:1">
-      <div class="flow-step" style="border-color:#fb923c;min-width:100px;padding:10px 16px">
-        <div class="fs-emoji" style="font-size:16px;margin-bottom:2px">💾</div>
-        <div class="fs-name" style="font-size:12px">store</div>
-      </div>
-      <div class="flow-step" style="border-color:var(--green);min-width:100px;padding:10px 16px">
-        <div class="fs-emoji" style="font-size:16px;margin-bottom:2px">🧠</div>
-        <div class="fs-name" style="font-size:12px">memory</div>
-      </div>
-      <div class="flow-step" style="border-color:#f87171;min-width:100px;padding:10px 16px">
-        <div class="fs-emoji" style="font-size:16px;margin-bottom:2px">🎙</div>
-        <div class="fs-name" style="font-size:12px">voice</div>
-      </div>
-      <div class="flow-step" style="border-color:var(--pink);min-width:100px;padding:10px 16px">
-        <div class="fs-emoji" style="font-size:16px;margin-bottom:2px">🦀</div>
-        <div class="fs-name" style="font-size:12px">claw</div>
-        <div class="fs-desc" style="font-size:9px">wires it all</div>
-      </div>
-    </div>
-    <div class="flow-arrow" style="visibility:hidden">→</div>
-    <div style="width:140px"></div>
+  <div class="pipeline">
+    <div class="pipe-node"><div class="pipe-icon">📝</div><div class="pipe-name">Input</div><div class="pipe-desc">text / image / audio</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(167,139,250,0.3)">👁</div><div class="pipe-name">sense</div><div class="pipe-desc">perceive humans</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(129,140,248,0.3)">⚡</div><div class="pipe-name">core</div><div class="pipe-desc">think + reason</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(74,222,128,0.3)">🎯</div><div class="pipe-name">act</div><div class="pipe-desc">decide what to do</div></div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(244,114,182,0.3)">✨</div><div class="pipe-name">render</div><div class="pipe-desc">show output</div></div>
+  </div>
+  <div class="pipe-support">
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(34,211,238,0.25)">💾</div><div class="pipe-name">store</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(251,146,60,0.25)">🧠</div><div class="pipe-name">memory</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(248,113,113,0.25)">🎙</div><div class="pipe-name">voice</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(253,224,71,0.25)">🦀</div><div class="pipe-name">claw</div></div>
   </div>
 </section>
 
-<section class="playground w" id="playground">
-  <h2>Playground</h2>
-  <p class="sub-h">Core + memory + render running together. Bring your API key — it stays in your browser.</p>
+<section id="playground">
+  <div class="pg-header">
+    <div class="section-label">Playground</div>
+    <div class="section-title">Try it live</div>
+    <div class="section-desc">Core + memory + render running together. Your API key stays in your browser.</div>
+  </div>
   <div class="pg-box">
     <div class="pg-config">
-      <label>Provider</label>
-      <select id="pgProvider">
-        <option value="anthropic">Anthropic</option>
-        <option value="openai">OpenAI</option>
-      </select>
-      <label>API Key</label>
-      <input id="pgKey" type="password" placeholder="sk-ant-... or sk-...">
-      <label>Base URL</label>
-      <input id="pgBase" placeholder="Leave empty for default">
-      <label>Model</label>
-      <input id="pgModel" placeholder="Leave empty for default">
-      <label>Proxy</label>
-      <input id="pgProxy" value="https://proxy.link2web.site/proxy" placeholder="CORS proxy URL">
+      <div class="pg-field"><label>Provider</label><select id="pgProvider"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option></select></div>
+      <div class="pg-field"><label>Key</label><input id="pgKey" type="password" placeholder="sk-ant-... or sk-..."></div>
+      <div class="pg-field"><label>Base URL</label><input id="pgBase" placeholder="Leave empty for default"></div>
+      <div class="pg-field"><label>Model</label><input id="pgModel" placeholder="Default model"></div>
+      <div class="pg-field"><label>Proxy</label><input id="pgProxy" value="https://proxy.link2web.site/proxy" placeholder="CORS proxy URL"></div>
     </div>
     <div class="pg-chat" id="pgChat">
       <div class="pg-empty">Send a message to start a conversation.<br>Memory auto-trims. Markdown streams in real-time.</div>
@@ -292,16 +277,19 @@
   </div>
 </section>
 
-<section class="code-section w" id="code">
-  <h2>Full stack in 20 lines</h2>
-  <p class="sub-h">A complete AI chat app with memory and streaming rendering.</p>
+<section class="code-section" id="code">
+  <div class="code-header-area">
+    <div class="section-label">Code</div>
+    <div class="section-title">Full stack in 20 lines</div>
+    <div class="section-desc">A complete AI chat app with memory and streaming rendering.</div>
+  </div>
   <div class="code-block">
-    <div class="code-header">Complete AI chat app — with claw</div>
+    <div class="code-label">Complete AI chat app — with claw</div>
     <div class="code-body"><span class="kw">import</span> { <span class="fn">createClaw</span> } <span class="kw">from</span> <span class="str">'agentic-claw'</span>
 
 <span class="kw">const</span> claw = <span class="fn">createClaw</span>({
   <span class="prop">apiKey</span>: <span class="str">'sk-ant-...'</span>,
-  <span class="prop">knowledge</span>: <span class="typ">true</span>,
+  <span class="prop">knowledge</span>: <span class="kw">true</span>,
 })
 
 <span class="cmt">// Teach it something</span>
@@ -311,55 +299,57 @@
 <span class="kw">await</span> claw.<span class="fn">chat</span>(<span class="str">'What does the doc say?'</span>)
 <span class="kw">await</span> claw.<span class="fn">chat</span>(<span class="str">'Tell me more about that'</span>)  <span class="cmt">// has context!</span></div>
   </div>
+
+  <div class="compare-grid">
+    <div class="cmp hd"></div><div class="cmp hd">LangChain + React</div><div class="cmp hd ours">agentic.js</div>
+    <div class="cmp lb">Total size</div><div class="cmp lo">~80MB node_modules</div><div class="cmp hi">~30KB</div>
+    <div class="cmp lb">Dependencies</div><div class="cmp lo">200+</div><div class="cmp hi">0</div>
+    <div class="cmp lb">Build step</div><div class="cmp lo">Webpack / Vite / Next.js</div><div class="cmp hi">None</div>
+    <div class="cmp lb">Concepts to learn</div><div class="cmp lo">Chains, Agents, Callbacks, Runnables...</div><div class="cmp hi">ask(), create(), search()</div>
+    <div class="cmp lb">Time to first result</div><div class="cmp lo">~1 hour</div><div class="cmp hi">~5 minutes</div>
+    <div class="cmp lb">Framework lock-in</div><div class="cmp lo">React required</div><div class="cmp hi">Works with anything</div>
+  </div>
 </section>
 
-<section class="compare w">
-  <h2>How it compares</h2>
-  <div class="cmp-grid">
-    <div class="cmp hd"></div>
-    <div class="cmp hd">LangChain + React</div>
-    <div class="cmp hd" style="color:var(--yellow)">agentic.js</div>
+<section>
+  <div class="section-label">Philosophy</div>
+  <div class="section-title">Why this exists</div>
 
-    <div class="cmp lb">Total size</div>
-    <div class="cmp lo">~80MB node_modules</div>
-    <div class="cmp hi">12KB</div>
-
-    <div class="cmp lb">Dependencies</div>
-    <div class="cmp lo">200+</div>
-    <div class="cmp hi">0</div>
-
-    <div class="cmp lb">Build step</div>
-    <div class="cmp lo">Webpack/Vite/Next.js</div>
-    <div class="cmp hi">None</div>
-
-    <div class="cmp lb">Concepts to learn</div>
-    <div class="cmp lo">Chains, Agents, Callbacks, Runnables, Memory, Retrievers...</div>
-    <div class="cmp hi">ask(), create(), search()</div>
-
-    <div class="cmp lb">Time to first result</div>
-    <div class="cmp lo">~1 hour</div>
-    <div class="cmp hi">~5 minutes</div>
-
-    <div class="cmp lb">Framework lock-in</div>
-    <div class="cmp lo">React required</div>
-    <div class="cmp hi">Works with anything</div>
+  <div class="phil-grid">
+    <div class="phil-card active">
+      <h3>No abstraction tax</h3>
+      <p>Each module is a single file you can read in 10 minutes. No hidden complexity, no magic. When something breaks, you can find and fix it yourself.</p>
+    </div>
+    <div class="phil-card">
+      <h3>Composition over framework</h3>
+      <p>Use one module or all eight. They work together by convention, not coupling. Replace any piece with your own implementation — the others won't notice.</p>
+    </div>
+    <div class="phil-card">
+      <h3>Browser-first</h3>
+      <p>Every module works with a script tag. No Node.js required, no build step, no transpiler. Drop it in and it works.</p>
+    </div>
+    <div class="phil-card active">
+      <h3>AI is the platform</h3>
+      <p>Not a chatbot library. A toolkit for building AI-native interfaces — where the AI senses, thinks, decides, and acts as a first-class participant.</p>
+    </div>
   </div>
 </section>
 
 <footer>
-  <div class="w">
-    MIT · <a href="https://github.com/momomo-agent">GitHub</a> ·
-    <a href="https://momomo-agent.github.io/agentic-core/">core</a> ·
-    <a href="https://momomo-agent.github.io/agentic-sense/">sense</a> ·
-    <a href="https://momomo-agent.github.io/agentic-act/">act</a> ·
-    <a href="https://momomo-agent.github.io/agentic-memory/">memory</a> ·
-    <a href="https://momomo-agent.github.io/agentic-render/">render</a> ·
-    <a href="https://github.com/momomo-agent/agentic-voice">voice</a> ·
-    <a href="https://momomo-agent.github.io/agentic-claw/">claw</a>
+  <div class="f-logo">agentic.js</div>
+  <div class="f-links">
+    <a href="https://github.com/momomo-agent">GitHub</a>
+    <a href="https://momomo-agent.github.io/agentic-core/">Core</a>
+    <a href="https://momomo-agent.github.io/agentic-sense/">Sense</a>
+    <a href="https://momomo-agent.github.io/agentic-act/">Act</a>
+    <a href="https://momomo-agent.github.io/agentic-memory/">Memory</a>
+    <a href="https://momomo-agent.github.io/agentic-render/">Render</a>
+    <a href="https://momomo-agent.github.io/agentic-store/">Store</a>
+    <a href="https://github.com/momomo-agent/agentic-voice">Voice</a>
+    <a href="https://momomo-agent.github.io/agentic-claw/">Claw</a>
   </div>
 </footer>
 
-<!-- Load all four modules for playground -->
 <script src="https://momomo-agent.github.io/agentic-render/render.js"></script>
 <script src="https://momomo-agent.github.io/agentic-memory/memory.js"></script>
 <script type="module" src="./playground.js"></script>
