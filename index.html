@@ -3,143 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>agentic.js — Sense, Think, Act</title>
-  <meta name="description" content="Eight tiny modules for building AI-native applications. Zero dependencies, vanilla JS, works everywhere.">
+  <title>agentic.js — Give AI a body</title>
+  <meta name="description" content="Perception, thought, action, memory, voice. Eight modules that turn AI from a text box into a complete being.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #06060a;
-      --surface: rgba(255,255,255,0.02);
-      --surface2: rgba(255,255,255,0.04);
-      --border: rgba(255,255,255,0.06);
-      --border2: rgba(255,255,255,0.1);
-      --text: rgba(255,255,255,0.9);
-      --text2: rgba(255,255,255,0.5);
-      --text3: rgba(255,255,255,0.22);
-      --accent: #818cf8;
-      --green: #4ade80;
-      --warm: #fb923c;
-      --pink: #f472b6;
-      --cyan: #22d3ee;
-      --red: #f87171;
-      --serif: 'Instrument Serif', Georgia, serif;
-      --mono: 'Space Mono', 'SF Mono', monospace;
+      --bg:#06060a; --s1:rgba(255,255,255,0.02); --s2:rgba(255,255,255,0.04);
+      --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.1);
+      --text:rgba(255,255,255,0.9); --t2:rgba(255,255,255,0.5); --t3:rgba(255,255,255,0.22);
+      --accent:#818cf8; --green:#4ade80; --warm:#fb923c; --pink:#f472b6; --cyan:#22d3ee; --red:#f87171; --yellow:#fde047;
+      --serif:'Instrument Serif',Georgia,serif; --mono:'Space Mono','SF Mono',monospace;
     }
-    * { margin:0; padding:0; box-sizing:border-box }
-    html { scroll-behavior: smooth }
-    body { font-family:var(--mono); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overflow-x:hidden; font-size:13px; line-height:1.6 }
-    body::before { content:''; position:fixed; inset:0; background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"); pointer-events:none; z-index:9999 }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--mono);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden;font-size:13px;line-height:1.6}
+    body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999}
+    a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 
-    nav { position:fixed; top:0; left:0; right:0; z-index:100; padding:0 10vw; height:56px; display:flex; align-items:center; justify-content:space-between; background:rgba(6,6,10,0.8); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--border) }
-    nav .logo { font-family:var(--serif); font-size:18px; font-style:italic; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:8px }
-    nav .logo .dot { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 2.5s ease-in-out infinite }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    nav .links { display:flex; gap:24px }
-    nav .links a { font-size:11px; color:var(--text3); text-decoration:none; letter-spacing:0.5px; text-transform:uppercase; transition:color .2s }
-    nav .links a:hover { color:var(--text2) }
+    /* Nav */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 10vw;height:56px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,6,10,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+    nav .logo{font-family:var(--serif);font-size:18px;font-style:italic;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+    nav .logo .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    nav .links{display:flex;gap:24px}
+    nav .links a{font-size:11px;color:var(--t3);text-decoration:none;letter-spacing:.5px;text-transform:uppercase;transition:color .2s}
+    nav .links a:hover{color:var(--t2);text-decoration:none}
 
-    .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding:0 10vw; position:relative }
-    .hero::after { content:''; position:absolute; top:15%; right:0; width:50vw; height:60vh; background:radial-gradient(ellipse at 70% 40%,rgba(129,140,248,0.04) 0%,transparent 60%); pointer-events:none }
-    .hero-label { font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:4px; margin-bottom:28px }
-    .hero h1 { font-family:var(--serif); font-size:clamp(52px,8vw,100px); font-weight:400; line-height:1.02; letter-spacing:-0.025em; max-width:800px }
-    .hero h1 em { font-style:italic; color:var(--accent) }
-    .hero .hero-sub { font-size:14px; color:var(--text2); max-width:440px; line-height:1.9; margin-top:32px }
-    .hero-stats { display:flex; gap:40px; margin-top:48px; padding-top:32px; border-top:1px solid var(--border); max-width:500px }
-    .hero-stat .num { font-size:32px; font-weight:700; font-family:var(--mono) }
-    .hero-stat .label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-top:4px }
+    /* Hero */
+    .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 10vw;position:relative}
+    .hero::after{content:'';position:absolute;top:10%;right:-5%;width:60vw;height:70vh;background:radial-gradient(ellipse at 60% 40%,rgba(129,140,248,0.035) 0%,transparent 55%);pointer-events:none}
+    .hero-label{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:4px;margin-bottom:28px}
+    .hero h1{font-family:var(--serif);font-size:clamp(48px,7.5vw,88px);font-weight:400;line-height:1.05;letter-spacing:-.025em;max-width:750px}
+    .hero h1 em{font-style:italic;color:var(--accent)}
+    .hero-sub{font-size:14px;color:var(--t2);max-width:500px;line-height:2;margin-top:32px}
 
-    section { padding:120px 10vw }
-    .section-label { font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:4px; margin-bottom:16px }
-    .section-title { font-family:var(--serif); font-size:clamp(32px,5vw,56px); font-weight:400; letter-spacing:-0.02em; margin-bottom:16px }
-    .section-desc { font-size:13px; color:var(--text2); max-width:480px; line-height:1.9 }
+    /* Section */
+    section{padding:120px 10vw}
+    .s-label{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:4px;margin-bottom:16px}
+    .s-title{font-family:var(--serif);font-size:clamp(28px,4.5vw,52px);font-weight:400;letter-spacing:-.02em;margin-bottom:16px;max-width:700px}
+    .s-desc{font-size:13px;color:var(--t2);max-width:520px;line-height:2}
 
-    .modules-header { margin-bottom:64px }
-    .mod-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:16px; overflow:hidden }
-    .mod { background:var(--bg); padding:36px 28px; text-decoration:none; color:var(--text); display:flex; flex-direction:column; transition:background .3s }
-    .mod:hover { background:var(--surface2) }
-    .mod .mod-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:20px; border:1px solid var(--border); transition:all .3s }
-    .mod h3 { font-size:14px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px }
-    .mod .sz { font-size:10px; font-weight:400; padding:2px 8px; border-radius:4px; background:var(--surface2); color:var(--text3) }
-    .mod p { font-size:11px; color:var(--text2); line-height:1.7; flex:1 }
-    .mod .api { font-size:11px; color:var(--text3); margin-top:16px; padding-top:12px; border-top:1px solid var(--border) }
-    .mod:nth-child(1):hover .mod-icon { border-color:rgba(129,140,248,0.3); background:rgba(129,140,248,0.06) }
-    .mod:nth-child(2):hover .mod-icon { border-color:rgba(167,139,250,0.3); background:rgba(167,139,250,0.06) }
-    .mod:nth-child(3):hover .mod-icon { border-color:rgba(74,222,128,0.3); background:rgba(74,222,128,0.06) }
-    .mod:nth-child(4):hover .mod-icon { border-color:rgba(251,146,60,0.3); background:rgba(251,146,60,0.06) }
-    .mod:nth-child(5):hover .mod-icon { border-color:rgba(244,114,182,0.3); background:rgba(244,114,182,0.06) }
-    .mod:nth-child(6):hover .mod-icon { border-color:rgba(34,211,238,0.3); background:rgba(34,211,238,0.06) }
-    .mod:nth-child(7):hover .mod-icon { border-color:rgba(248,113,113,0.3); background:rgba(248,113,113,0.06) }
-    .mod:nth-child(8):hover .mod-icon { border-color:rgba(253,224,71,0.3); background:rgba(253,224,71,0.06) }
+    /* Problem */
+    .problem{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    .problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;margin-top:56px}
+    .problem-left{font-size:14px;color:var(--t2);line-height:2.2}
+    .problem-left strong{color:var(--text);font-weight:700}
+    .problem-right{display:flex;flex-direction:column;gap:20px}
+    .problem-item{display:flex;align-items:flex-start;gap:16px;padding:20px;background:var(--s2);border:1px solid var(--border);border-radius:10px}
+    .problem-item .pi-icon{font-size:20px;flex-shrink:0;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(129,140,248,0.06);border:1px solid rgba(129,140,248,0.1)}
+    .problem-item .pi-text{font-size:12px;color:var(--t2);line-height:1.8}
+    .problem-item .pi-text strong{color:var(--text);font-weight:700;display:block;margin-bottom:2px;font-size:13px}
 
-    .flow-section { background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border) }
-    .flow-header { text-align:center; margin-bottom:64px }
-    .flow-header .section-desc { margin:12px auto 0 }
-    .pipeline { display:flex; align-items:center; justify-content:center; margin-bottom:40px }
-    .pipe-node { text-align:center; padding:24px 20px; min-width:120px }
-    .pipe-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; margin:0 auto 10px; border:1px solid var(--border2); background:var(--bg) }
-    .pipe-name { font-size:12px; font-weight:700; margin-bottom:2px }
-    .pipe-desc { font-size:10px; color:var(--text3) }
-    .pipe-arrow { color:var(--text3); font-size:16px; flex-shrink:0 }
-    .pipe-support { display:flex; justify-content:center; gap:24px; margin-top:12px }
-    .pipe-support .pipe-node { padding:16px; min-width:90px }
-    .pipe-support .pipe-icon { width:36px; height:36px; font-size:16px; border-radius:8px }
-    .pipe-support .pipe-name { font-size:11px }
+    /* Anatomy */
+    .anatomy-grid{display:flex;flex-direction:column;gap:2px;margin-top:56px}
+    .organ{display:grid;grid-template-columns:80px 140px 1fr 200px;align-items:center;gap:0;padding:0;background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:all .3s;text-decoration:none;color:var(--text)}
+    .organ:hover{background:var(--s2);border-color:var(--border2);text-decoration:none}
+    .organ-icon{font-size:22px;display:flex;align-items:center;justify-content:center;padding:24px 0;align-self:stretch}
+    .organ-name{font-size:15px;font-weight:700;padding:24px 0}
+    .organ-desc{font-size:12px;color:var(--t2);line-height:1.7;padding:24px 16px}
+    .organ-api{font-size:11px;color:var(--t3);padding:24px 20px;text-align:right}
+    .organ:nth-child(1) .organ-icon{background:rgba(167,139,250,0.05)}
+    .organ:nth-child(2) .organ-icon{background:rgba(129,140,248,0.05)}
+    .organ:nth-child(3) .organ-icon{background:rgba(74,222,128,0.05)}
+    .organ:nth-child(4) .organ-icon{background:rgba(244,114,182,0.05)}
+    .organ:nth-child(5) .organ-icon{background:rgba(248,113,113,0.05)}
+    .organ:nth-child(6) .organ-icon{background:rgba(251,146,60,0.05)}
+    .organ:nth-child(7) .organ-icon{background:rgba(34,211,238,0.05)}
+    .organ:nth-child(8) .organ-icon{background:rgba(253,224,71,0.05)}
 
-    .pg-header { margin-bottom:40px }
-    .pg-box { border:1px solid var(--border); border-radius:14px; background:var(--bg); overflow:hidden }
-    .pg-config { padding:16px 24px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:center; flex-wrap:wrap }
-    .pg-field { display:flex; align-items:center; gap:6px }
-    .pg-field label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; white-space:nowrap }
-    .pg-field input,.pg-field select { padding:7px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:11px; outline:none; font-family:var(--mono) }
-    .pg-field input:focus,.pg-field select:focus { border-color:rgba(129,140,248,0.3) }
-    .pg-field input { width:180px }
-    .pg-chat { min-height:300px; max-height:420px; overflow-y:auto; padding:24px }
-    .pg-msg { margin-bottom:16px; font-size:13px; line-height:1.7 }
-    .pg-msg .pg-role { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:var(--text3); margin-bottom:4px }
-    .pg-msg.user .pg-role { color:var(--accent) }
-    .pg-msg.assistant .pg-role { color:var(--green) }
-    .pg-empty { color:var(--text3); text-align:center; padding:80px 20px; font-size:12px; line-height:2 }
-    .pg-input { display:flex; gap:8px; padding:14px 24px; border-top:1px solid var(--border) }
-    .pg-input input { flex:1; padding:10px 16px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; outline:none; font-family:var(--mono) }
-    .pg-input input:focus { border-color:rgba(129,140,248,0.3) }
-    .pg-input button { padding:10px 24px; background:var(--accent); color:#000; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:12px; font-family:var(--mono); transition:background .2s }
-    .pg-input button:hover { background:#a5b4fc }
-    .pg-input button:disabled { opacity:.3; cursor:not-allowed }
-    .pg-status { padding:8px 24px; border-top:1px solid var(--border); font-size:10px; color:var(--text3); display:flex; justify-content:space-between }
+    /* Flow */
+    .flow-section{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    .flow-header{text-align:center;margin-bottom:64px}
+    .flow-header .s-desc{margin:12px auto 0}
+    .pipeline{display:flex;align-items:center;justify-content:center;margin-bottom:32px}
+    .pipe-node{text-align:center;padding:20px 16px;min-width:110px}
+    .pipe-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 10px;border:1px solid var(--border2);background:var(--bg)}
+    .pipe-name{font-size:12px;font-weight:700;margin-bottom:2px}
+    .pipe-desc{font-size:10px;color:var(--t3)}
+    .pipe-arrow{color:var(--t3);font-size:14px;flex-shrink:0}
+    .pipe-support{display:flex;justify-content:center;gap:20px;margin-top:8px}
+    .pipe-support .pipe-node{padding:14px;min-width:80px}
+    .pipe-support .pipe-icon{width:36px;height:36px;font-size:16px;border-radius:8px}
+    .pipe-support .pipe-name{font-size:11px}
+    .flow-note{text-align:center;font-size:11px;color:var(--t3);margin-top:24px;font-style:italic;font-family:var(--serif);font-size:14px}
 
-    .code-header-area { margin-bottom:40px }
-    .code-block { border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--bg) }
-    .code-label { padding:12px 24px; font-size:10px; color:var(--text3); border-bottom:1px solid var(--border); text-transform:uppercase; letter-spacing:1px }
-    .code-body { padding:28px; font-size:13px; line-height:2; overflow-x:auto; white-space:pre }
-    .kw { color:var(--accent) } .fn { color:var(--warm) } .str { color:var(--green) } .cmt { color:var(--text3); font-style:italic } .prop { color:var(--cyan) }
+    /* Playground */
+    .pg-header{margin-bottom:40px}
+    .pg-box{border:1px solid var(--border);border-radius:14px;background:var(--bg);overflow:hidden}
+    .pg-config{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .pg-field{display:flex;align-items:center;gap:6px}
+    .pg-field label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+    .pg-field input,.pg-field select{padding:7px 12px;background:var(--s2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;outline:none;font-family:var(--mono)}
+    .pg-field input:focus,.pg-field select:focus{border-color:rgba(129,140,248,0.3)}
+    .pg-field input{width:180px}
+    .pg-chat{min-height:280px;max-height:400px;overflow-y:auto;padding:24px}
+    .pg-msg{margin-bottom:16px;font-size:13px;line-height:1.7}
+    .pg-msg .pg-role{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:4px}
+    .pg-msg.user .pg-role{color:var(--accent)}
+    .pg-msg.assistant .pg-role{color:var(--green)}
+    .pg-empty{color:var(--t3);text-align:center;padding:60px 20px;font-size:12px;line-height:2}
+    .pg-input{display:flex;gap:8px;padding:14px 24px;border-top:1px solid var(--border)}
+    .pg-input input{flex:1;padding:10px 16px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:var(--mono)}
+    .pg-input input:focus{border-color:rgba(129,140,248,0.3)}
+    .pg-input button{padding:10px 24px;background:var(--accent);color:#000;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;font-family:var(--mono);transition:background .2s}
+    .pg-input button:hover{background:#a5b4fc}
+    .pg-input button:disabled{opacity:.3;cursor:not-allowed}
+    .pg-status{padding:8px 24px;border-top:1px solid var(--border);font-size:10px;color:var(--t3);display:flex;justify-content:space-between}
 
-    .compare-grid { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-top:48px }
-    .cmp { background:var(--bg); padding:16px 20px; font-size:12px }
-    .cmp.hd { background:var(--surface2); font-weight:700; font-size:13px }
-    .cmp.hd.ours { color:var(--accent) }
-    .cmp.hi { color:var(--green) } .cmp.lo { color:var(--text3) } .cmp.lb { color:var(--text2); font-size:11px }
+    /* Code */
+    .code-block{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--bg);margin-top:40px}
+    .code-label{padding:12px 24px;font-size:10px;color:var(--t3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:1px}
+    .code-body{padding:28px;font-size:13px;line-height:2;overflow-x:auto;white-space:pre}
+    .kw{color:var(--accent)}.fn{color:var(--warm)}.str{color:var(--green)}.cmt{color:var(--t3);font-style:italic}.prop{color:var(--cyan)}
 
-    .phil-grid { display:grid; grid-template-columns:1fr 1fr; gap:48px; margin-top:64px }
-    .phil-card { padding-left:24px; border-left:2px solid var(--border) }
-    .phil-card.active { border-left-color:var(--accent) }
-    .phil-card h3 { font-family:var(--serif); font-size:24px; font-weight:400; margin-bottom:12px }
-    .phil-card p { font-size:12px; color:var(--text2); line-height:1.9 }
+    /* Numbers */
+    .numbers{display:flex;gap:48px;margin-top:56px;padding-top:40px;border-top:1px solid var(--border)}
+    .num-item .num-val{font-size:36px;font-weight:700;font-family:var(--mono)}
+    .num-item .num-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
 
-    footer { padding:48px 10vw; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center }
-    footer .f-logo { font-family:var(--serif); font-style:italic; font-size:16px }
-    footer .f-links { display:flex; gap:20px }
-    footer .f-links a { font-size:10px; color:var(--text3); text-decoration:none; text-transform:uppercase; letter-spacing:.5px }
-    footer .f-links a:hover { color:var(--text2) }
+    /* Philosophy */
+    .phil-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:56px}
+    .phil-card{padding-left:24px;border-left:2px solid var(--border)}
+    .phil-card.hi{border-left-color:var(--accent)}
+    .phil-card h3{font-family:var(--serif);font-size:22px;font-weight:400;margin-bottom:10px}
+    .phil-card p{font-size:12px;color:var(--t2);line-height:1.9}
 
-    @media(max-width:1024px) { .mod-grid{grid-template-columns:repeat(2,1fr)} }
-    @media(max-width:768px) { nav,section,footer{padding-left:6vw;padding-right:6vw} .hero{padding:0 6vw} .mod-grid{grid-template-columns:1fr} .pipeline{flex-direction:column;gap:4px} .pipe-arrow{transform:rotate(90deg)} .pipe-support{flex-wrap:wrap} .phil-grid{grid-template-columns:1fr} .compare-grid{grid-template-columns:1fr} .hero-stats{flex-wrap:wrap;gap:24px} }
+    /* Footer */
+    footer{padding:48px 10vw;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    footer .f-logo{font-family:var(--serif);font-style:italic;font-size:16px}
+    footer .f-links{display:flex;gap:20px}
+    footer .f-links a{font-size:10px;color:var(--t3);text-decoration:none;text-transform:uppercase;letter-spacing:.5px}
+    footer .f-links a:hover{color:var(--t2)}
 
-    @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-    .fade { animation:fadeIn .6s ease-out both }
-    .d1{animation-delay:.08s} .d2{animation-delay:.16s} .d3{animation-delay:.24s} .d4{animation-delay:.36s}
+    @media(max-width:1024px){.organ{grid-template-columns:60px 120px 1fr}.organ-api{display:none}}
+    @media(max-width:768px){
+      nav,section,footer{padding-left:6vw;padding-right:6vw}
+      .hero{padding:0 6vw}
+      .problem-grid{grid-template-columns:1fr;gap:40px}
+      .organ{grid-template-columns:50px 1fr;gap:0}
+      .organ-desc,.organ-api{display:none}
+      .pipeline{flex-direction:column;gap:4px}
+      .pipe-arrow{transform:rotate(90deg)}
+      .pipe-support{flex-wrap:wrap}
+      .phil-grid{grid-template-columns:1fr}
+      .numbers{flex-wrap:wrap;gap:32px}
+    }
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .fade{animation:fadeIn .6s ease-out both}
+    .d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.2s}.d4{animation-delay:.3s}
   </style>
 </head>
 <body>
@@ -147,7 +162,7 @@
 <nav>
   <a class="logo" href="#"><span class="dot"></span> agentic.js</a>
   <div class="links">
-    <a href="#modules">Modules</a>
+    <a href="#anatomy">Anatomy</a>
     <a href="#flow">Architecture</a>
     <a href="#playground">Playground</a>
     <a href="#code">Code</a>
@@ -155,105 +170,131 @@
   </div>
 </nav>
 
+<!-- ═══ Hero ═══ -->
 <section class="hero">
-  <div class="hero-label fade">AI Toolkit</div>
-  <h1 class="fade d1">Sense, think,<br><em>act.</em></h1>
-  <p class="hero-sub fade d2">Eight tiny modules for building AI-native applications. Zero dependencies, vanilla JS, works everywhere.</p>
-  <div class="hero-stats fade d3">
-    <div class="hero-stat"><div class="num">8</div><div class="label">Modules</div></div>
-    <div class="hero-stat"><div class="num">0</div><div class="label">Dependencies</div></div>
-    <div class="hero-stat"><div class="num">~30KB</div><div class="label">Total</div></div>
+  <div class="hero-label fade">agentic.js</div>
+  <h1 class="fade d1">Give AI<br><em>a body.</em></h1>
+  <p class="hero-sub fade d2">Today's AI can only type. It can't see you, can't hear you, can't decide how to reach you, can't remember yesterday. Eight modules that change that.</p>
+</section>
+
+<!-- ═══ Problem ═══ -->
+<section class="problem">
+  <div class="s-label">The problem</div>
+  <div class="s-title">AI is a brain in a jar</div>
+  <div class="problem-grid">
+    <div class="problem-left">
+      Every AI product ships the same interface: <strong>a text box</strong>. ChatGPT, Claude, Gemini — the most powerful technology in human history, and the only way to interact with it is typing.<br><br>
+      Humans don't work like that. We <strong>see</strong> each other. We <strong>choose</strong> how to communicate — a tap on the shoulder, a whisper, a notification. We <strong>remember</strong> what happened. We <strong>act</strong> on intent, not instruction.<br><br>
+      AI needs the same capabilities. Not as features bolted on, but as <strong>fundamental building blocks</strong>.
+    </div>
+    <div class="problem-right">
+      <div class="problem-item">
+        <div class="pi-icon">👁</div>
+        <div class="pi-text"><strong>It can't see you</strong>No awareness of who's there, whether they're paying attention, or how they feel.</div>
+      </div>
+      <div class="problem-item">
+        <div class="pi-icon">🎯</div>
+        <div class="pi-text"><strong>It can't choose how to reach you</strong>Always the same channel. Can't decide between voice, notification, light, or silence.</div>
+      </div>
+      <div class="problem-item">
+        <div class="pi-icon">🧠</div>
+        <div class="pi-text"><strong>It forgets everything</strong>Every conversation starts from zero. No continuity, no growth, no relationship.</div>
+      </div>
+    </div>
   </div>
 </section>
 
-<section id="modules">
-  <div class="modules-header">
-    <div class="section-label">Modules</div>
-    <div class="section-title">The family</div>
-    <div class="section-desc">Each module solves one problem well. Compose them however you want.</div>
-  </div>
-  <div class="mod-grid">
-    <a class="mod" href="https://momomo-agent.github.io/agentic-core/">
-      <div class="mod-icon">⚡</div>
-      <h3>core <span class="sz">4KB</span></h3>
-      <p>LLM engine. Tools, vision, streaming. One function call.</p>
-      <div class="api">ask(prompt, config)</div>
+<!-- ═══ Anatomy ═══ -->
+<section id="anatomy">
+  <div class="s-label">The anatomy</div>
+  <div class="s-title">Eight organs for a complete being</div>
+  <div class="s-desc">Each module is one capability. One file, zero dependencies, works in any browser or Node.js. Compose them into whatever shape of AI you need.</div>
+
+  <div class="anatomy-grid">
+    <a class="organ" href="https://momomo-agent.github.io/agentic-sense/">
+      <div class="organ-icon">👁</div>
+      <div class="organ-name">sense</div>
+      <div class="organ-desc">The eyes. Face detection, attention tracking, expression reading, head pose — via MediaPipe. AI sees who's there and whether they're engaged.</div>
+      <div class="organ-api">Sense.create(video, opts)</div>
     </a>
-    <a class="mod" href="https://momomo-agent.github.io/agentic-sense/">
-      <div class="mod-icon">👁</div>
-      <h3>sense <span class="sz">~5KB</span></h3>
-      <p>Human perception via MediaPipe. Face, attention, expression, pose.</p>
-      <div class="api">Sense.create(video, opts)</div>
+    <a class="organ" href="https://momomo-agent.github.io/agentic-core/">
+      <div class="organ-icon">⚡</div>
+      <div class="organ-name">core</div>
+      <div class="organ-desc">The brain. LLM calls with tools, vision, streaming, and structured output. One function — ask() — replaces an entire framework.</div>
+      <div class="organ-api">ask(prompt, config)</div>
     </a>
-    <a class="mod" href="https://momomo-agent.github.io/agentic-act/">
-      <div class="mod-icon">🎯</div>
-      <h3>act <span class="sz">~5KB</span></h3>
-      <p>Intent execution. Multimodal input → structured action decision.</p>
-      <div class="api">act.decide(input)</div>
+    <a class="organ" href="https://momomo-agent.github.io/agentic-act/">
+      <div class="organ-icon">🎯</div>
+      <div class="organ-name">act</div>
+      <div class="organ-desc">The will. Multimodal input → structured action decision. Doesn't ask "what can I do" — asks "what should I do." Intent, not instruction.</div>
+      <div class="organ-api">act.decide(input)</div>
     </a>
-    <a class="mod" href="https://momomo-agent.github.io/agentic-memory/">
-      <div class="mod-icon">🧠</div>
-      <h3>memory <span class="sz">4KB</span></h3>
-      <p>Conversation context + knowledge retrieval. Short-term and long-term.</p>
-      <div class="api">createMemory(opts)</div>
+    <a class="organ" href="https://momomo-agent.github.io/agentic-render/">
+      <div class="organ-icon">✨</div>
+      <div class="organ-name">render</div>
+      <div class="organ-desc">The expression. Streaming markdown renderer — syntax highlighting, zero flicker, dark/light themes. AI's thoughts made visible in real-time.</div>
+      <div class="organ-api">create(el, opts)</div>
     </a>
-    <a class="mod" href="https://momomo-agent.github.io/agentic-render/">
-      <div class="mod-icon">✨</div>
-      <h3>render <span class="sz">4KB</span></h3>
-      <p>Streaming markdown renderer. Syntax highlighting, zero flicker.</p>
-      <div class="api">create(el, opts)</div>
+    <a class="organ" href="https://github.com/momomo-agent/agentic-voice">
+      <div class="organ-icon">🎙</div>
+      <div class="organ-name">voice</div>
+      <div class="organ-desc">The voice. TTS + STT in one library. OpenAI-compatible. Push-to-talk. AI speaks and listens.</div>
+      <div class="organ-api">voice.speak(text)</div>
     </a>
-    <a class="mod" href="https://momomo-agent.github.io/agentic-store/">
-      <div class="mod-icon">💾</div>
-      <h3>store <span class="sz">~3KB</span></h3>
-      <p>SQLite-first persistence. Browser WASM + Node.js, auto-fallback.</p>
-      <div class="api">createStore(name)</div>
+    <a class="organ" href="https://momomo-agent.github.io/agentic-memory/">
+      <div class="organ-icon">🧠</div>
+      <div class="organ-name">memory</div>
+      <div class="organ-desc">The memory. Conversation context + knowledge retrieval. Auto-trimming, persistence, fork. Conversations that build on each other.</div>
+      <div class="organ-api">createMemory(opts)</div>
     </a>
-    <a class="mod" href="https://github.com/momomo-agent/agentic-voice">
-      <div class="mod-icon">🎙</div>
-      <h3>voice <span class="sz">~4KB</span></h3>
-      <p>TTS + STT in one library. OpenAI-compatible. Push-to-talk.</p>
-      <div class="api">voice.speak(text)</div>
+    <a class="organ" href="https://momomo-agent.github.io/agentic-store/">
+      <div class="organ-icon">💾</div>
+      <div class="organ-name">store</div>
+      <div class="organ-desc">The long-term memory. SQLite-first persistence — browser WASM + Node.js. Key-value simple, raw SQL when you need it. 8 backends, auto-fallback.</div>
+      <div class="organ-api">createStore(name)</div>
     </a>
-    <a class="mod" href="https://momomo-agent.github.io/agentic-claw/">
-      <div class="mod-icon">🦀</div>
-      <h3>claw <span class="sz">~3KB</span></h3>
-      <p>Agent runtime. Wire core + memory + tools into a living agent.</p>
-      <div class="api">createClaw(opts).chat(msg)</div>
+    <a class="organ" href="https://momomo-agent.github.io/agentic-claw/">
+      <div class="organ-icon">🦀</div>
+      <div class="organ-name">claw</div>
+      <div class="organ-desc">The body. Wires core + memory + tools into a living agent. Multi-session, heartbeat, lifecycle. The runtime that holds it all together.</div>
+      <div class="organ-api">createClaw(opts)</div>
     </a>
   </div>
 </section>
 
+<!-- ═══ Flow ═══ -->
 <section class="flow-section" id="flow">
   <div class="flow-header">
-    <div class="section-label">Architecture</div>
-    <div class="section-title">How they fit together</div>
-    <div class="section-desc">Sense the world → Think → Decide → Act → Remember</div>
+    <div class="s-label">Architecture</div>
+    <div class="s-title">Sense → Think → Act</div>
+    <div class="s-desc">A complete perception-cognition-action loop. Like a nervous system.</div>
   </div>
   <div class="pipeline">
     <div class="pipe-node"><div class="pipe-icon">📝</div><div class="pipe-name">Input</div><div class="pipe-desc">text / image / audio</div></div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(167,139,250,0.3)">👁</div><div class="pipe-name">sense</div><div class="pipe-desc">perceive humans</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(167,139,250,0.3)">👁</div><div class="pipe-name">sense</div><div class="pipe-desc">perceive</div></div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(129,140,248,0.3)">⚡</div><div class="pipe-name">core</div><div class="pipe-desc">think + reason</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(129,140,248,0.3)">⚡</div><div class="pipe-name">core</div><div class="pipe-desc">think</div></div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(74,222,128,0.3)">🎯</div><div class="pipe-name">act</div><div class="pipe-desc">decide what to do</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(74,222,128,0.3)">🎯</div><div class="pipe-name">act</div><div class="pipe-desc">decide</div></div>
     <div class="pipe-arrow">→</div>
-    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(244,114,182,0.3)">✨</div><div class="pipe-name">render</div><div class="pipe-desc">show output</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(244,114,182,0.3)">✨</div><div class="pipe-name">render</div><div class="pipe-desc">express</div></div>
   </div>
   <div class="pipe-support">
-    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(34,211,238,0.25)">💾</div><div class="pipe-name">store</div></div>
-    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(251,146,60,0.25)">🧠</div><div class="pipe-name">memory</div></div>
     <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(248,113,113,0.25)">🎙</div><div class="pipe-name">voice</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(251,146,60,0.25)">🧠</div><div class="pipe-name">memory</div></div>
+    <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(34,211,238,0.25)">💾</div><div class="pipe-name">store</div></div>
     <div class="pipe-node"><div class="pipe-icon" style="border-color:rgba(253,224,71,0.25)">🦀</div><div class="pipe-name">claw</div></div>
   </div>
+  <div class="flow-note">Use one organ or all eight. They compose by convention, not coupling.</div>
 </section>
 
+<!-- ═══ Playground ═══ -->
 <section id="playground">
   <div class="pg-header">
-    <div class="section-label">Playground</div>
-    <div class="section-title">Try it live</div>
-    <div class="section-desc">Core + memory + render running together. Your API key stays in your browser.</div>
+    <div class="s-label">Playground</div>
+    <div class="s-title">Talk to it</div>
+    <div class="s-desc">Core + memory + render running together in your browser. API key stays local.</div>
   </div>
   <div class="pg-box">
     <div class="pg-config">
@@ -264,7 +305,7 @@
       <div class="pg-field"><label>Proxy</label><input id="pgProxy" value="https://proxy.link2web.site/proxy" placeholder="CORS proxy URL"></div>
     </div>
     <div class="pg-chat" id="pgChat">
-      <div class="pg-empty">Send a message to start a conversation.<br>Memory auto-trims. Markdown streams in real-time.</div>
+      <div class="pg-empty">Send a message to start.<br>Memory auto-trims. Markdown streams in real-time.</div>
     </div>
     <div class="pg-input">
       <input id="pgInput" placeholder="Ask anything...">
@@ -277,60 +318,58 @@
   </div>
 </section>
 
-<section class="code-section" id="code">
-  <div class="code-header-area">
-    <div class="section-label">Code</div>
-    <div class="section-title">Full stack in 20 lines</div>
-    <div class="section-desc">A complete AI chat app with memory and streaming rendering.</div>
-  </div>
+<!-- ═══ Code ═══ -->
+<section id="code">
+  <div class="s-label">Code</div>
+  <div class="s-title">A living agent in 12 lines</div>
+  <div class="s-desc">Not a demo. A complete agent with memory, knowledge recall, and streaming.</div>
+
   <div class="code-block">
-    <div class="code-label">Complete AI chat app — with claw</div>
+    <div class="code-label">createClaw — the whole body</div>
     <div class="code-body"><span class="kw">import</span> { <span class="fn">createClaw</span> } <span class="kw">from</span> <span class="str">'agentic-claw'</span>
 
-<span class="kw">const</span> claw = <span class="fn">createClaw</span>({
+<span class="kw">const</span> agent = <span class="fn">createClaw</span>({
   <span class="prop">apiKey</span>: <span class="str">'sk-ant-...'</span>,
   <span class="prop">knowledge</span>: <span class="kw">true</span>,
 })
 
 <span class="cmt">// Teach it something</span>
-<span class="kw">await</span> claw.<span class="fn">learn</span>(<span class="str">'docs'</span>, longDocument)
+<span class="kw">await</span> agent.<span class="fn">learn</span>(<span class="str">'docs'</span>, longDocument)
 
-<span class="cmt">// Chat — auto: memory → recall → LLM → store</span>
-<span class="kw">await</span> claw.<span class="fn">chat</span>(<span class="str">'What does the doc say?'</span>)
-<span class="kw">await</span> claw.<span class="fn">chat</span>(<span class="str">'Tell me more about that'</span>)  <span class="cmt">// has context!</span></div>
+<span class="cmt">// It remembers, it recalls, it reasons</span>
+<span class="kw">await</span> agent.<span class="fn">chat</span>(<span class="str">'What does the doc say?'</span>)
+<span class="kw">await</span> agent.<span class="fn">chat</span>(<span class="str">'Tell me more'</span>)  <span class="cmt">// it remembers</span></div>
   </div>
 
-  <div class="compare-grid">
-    <div class="cmp hd"></div><div class="cmp hd">LangChain + React</div><div class="cmp hd ours">agentic.js</div>
-    <div class="cmp lb">Total size</div><div class="cmp lo">~80MB node_modules</div><div class="cmp hi">~30KB</div>
-    <div class="cmp lb">Dependencies</div><div class="cmp lo">200+</div><div class="cmp hi">0</div>
-    <div class="cmp lb">Build step</div><div class="cmp lo">Webpack / Vite / Next.js</div><div class="cmp hi">None</div>
-    <div class="cmp lb">Concepts to learn</div><div class="cmp lo">Chains, Agents, Callbacks, Runnables...</div><div class="cmp hi">ask(), create(), search()</div>
-    <div class="cmp lb">Time to first result</div><div class="cmp lo">~1 hour</div><div class="cmp hi">~5 minutes</div>
-    <div class="cmp lb">Framework lock-in</div><div class="cmp lo">React required</div><div class="cmp hi">Works with anything</div>
+  <div class="numbers">
+    <div class="num-item"><div class="num-val">~30KB</div><div class="num-label">Total size</div></div>
+    <div class="num-item"><div class="num-val">0</div><div class="num-label">Dependencies</div></div>
+    <div class="num-item"><div class="num-val">8</div><div class="num-label">Modules</div></div>
+    <div class="num-item"><div class="num-val">0</div><div class="num-label">Build steps</div></div>
   </div>
 </section>
 
+<!-- ═══ Philosophy ═══ -->
 <section>
-  <div class="section-label">Philosophy</div>
-  <div class="section-title">Why this exists</div>
+  <div class="s-label">Philosophy</div>
+  <div class="s-title">Why organs, not features</div>
 
   <div class="phil-grid">
-    <div class="phil-card active">
-      <h3>No abstraction tax</h3>
-      <p>Each module is a single file you can read in 10 minutes. No hidden complexity, no magic. When something breaks, you can find and fix it yourself.</p>
+    <div class="phil-card hi">
+      <h3>Tools extend input. Actions extend output.</h3>
+      <p>Tools let AI pull information in — search, compute, query. Actions let AI push intent out — speak, notify, illuminate. Two symmetric halves. Most frameworks only have the first.</p>
     </div>
     <div class="phil-card">
-      <h3>Composition over framework</h3>
-      <p>Use one module or all eight. They work together by convention, not coupling. Replace any piece with your own implementation — the others won't notice.</p>
+      <h3>One file you can read</h3>
+      <p>Every module is a single file. No hidden complexity. When something breaks, you read the source, find the line, fix it. That's the entire debugging story.</p>
     </div>
     <div class="phil-card">
-      <h3>Browser-first</h3>
-      <p>Every module works with a script tag. No Node.js required, no build step, no transpiler. Drop it in and it works.</p>
+      <h3>Frameworks shape thinking</h3>
+      <p>Call it a "tool" and developers think "what can AI access?" Call it "act" and they think "what should AI do?" The abstraction changes the question, and the question changes the product.</p>
     </div>
-    <div class="phil-card active">
-      <h3>AI is the platform</h3>
-      <p>Not a chatbot library. A toolkit for building AI-native interfaces — where the AI senses, thinks, decides, and acts as a first-class participant.</p>
+    <div class="phil-card hi">
+      <h3>AI is not a backend</h3>
+      <p>It's a participant. It should perceive the room, remember the conversation, choose how to respond, and express itself. That's what these eight modules enable.</p>
     </div>
   </div>
 </section>
