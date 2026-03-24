@@ -46,7 +46,7 @@
 
     /* Module cards */
     .modules{padding:20px 0 80px}
-    .mod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
     .mod{background:var(--s1);padding:32px 24px;transition:background .2s;cursor:pointer;text-decoration:none;display:block;color:var(--text)}
     .mod:hover{background:var(--s2);text-decoration:none}
     .mod .emoji{font-size:28px;margin-bottom:14px;display:block}
@@ -58,6 +58,9 @@
     .mod:nth-child(2) .sz{background:#a78bfa20;color:var(--purple)}
     .mod:nth-child(3) .sz{background:#34d39920;color:var(--green)}
     .mod:nth-child(4) .sz{background:#818cf820;color:var(--blue)}
+    .mod:nth-child(5) .sz{background:#f472b620;color:var(--pink)}
+    .mod:nth-child(6) .sz{background:#fb923c20;color:#fb923c}
+    .mod:nth-child(7) .sz{background:#22d3ee20;color:#22d3ee}
 
     /* Flow diagram */
     .flow{padding:40px 0 80px}
@@ -114,7 +117,7 @@
 
     footer{border-top:1px solid var(--border);padding:36px 0;text-align:center;font-size:12px;color:var(--t3)}
 
-    @media(max-width:768px){.mod-grid{grid-template-columns:1fr 1fr}.flow-line{flex-direction:column;gap:8px}.flow-arrow{transform:rotate(90deg)}.cmp-grid{grid-template-columns:1fr}}
+    @media(max-width:768px){.mod-grid{grid-template-columns:1fr}.flow-line{flex-direction:column;gap:8px}.flow-arrow{transform:rotate(90deg)}.cmp-grid{grid-template-columns:1fr}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
     .fu{animation:fadeUp .5s ease-out both}
     .fu1{animation-delay:.08s}.fu2{animation-delay:.16s}.fu3{animation-delay:.24s}.fu4{animation-delay:.32s}
@@ -134,26 +137,32 @@
 
 <section class="hero w">
   <div class="tagline fu">Build AI apps<br><em>without the bloat</em></div>
-  <p class="sub fu fu1">Three building blocks + one runtime. LLM calls, memory, streaming rendering, and a ready-made agent. No frameworks. No build steps.</p>
+  <p class="sub fu fu1">Seven tiny modules. Sense, think, remember, act, render. No frameworks, no build steps, no bullshit.</p>
   <div class="total fu fu2">
-    <div><div class="num">~10KB</div><div class="lbl">total gzip</div></div>
-    <div class="detail">3 blocks + 1 runtime · 0 dependencies<br>vanilla JS · works everywhere</div>
+    <div><div class="num">7</div><div class="lbl">modules</div></div>
+    <div class="detail">0 dependencies · vanilla JS<br>works everywhere</div>
   </div>
 </section>
 
 <section class="modules w" id="modules">
   <div class="mod-grid">
-    <a class="mod" href="https://momomo-agent.github.io/agentic-claw/">
-      <span class="emoji">🦀</span>
-      <h3>agentic-claw <span class="sz">~3KB</span></h3>
-      <p>AI agent runtime. Wire up core + memory into a living agent.</p>
-      <div class="api">createClaw(opts).chat(msg)</div>
-    </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-core/">
       <span class="emoji">⚡</span>
       <h3>agentic-core <span class="sz">4KB</span></h3>
-      <p>LLM engine with tools, schema validation, and streaming. One function.</p>
+      <p>LLM engine with tools, vision, and streaming. One function.</p>
       <div class="api">ask(prompt, config)</div>
+    </a>
+    <a class="mod" href="https://momomo-agent.github.io/agentic-sense/">
+      <span class="emoji">👁</span>
+      <h3>agentic-sense <span class="sz">~5KB</span></h3>
+      <p>Human perception. Face detection, attention tracking, expression analysis via MediaPipe.</p>
+      <div class="api">Sense.create(video, opts)</div>
+    </a>
+    <a class="mod" href="https://momomo-agent.github.io/agentic-act/">
+      <span class="emoji">🎯</span>
+      <h3>agentic-act <span class="sz">~5KB</span></h3>
+      <p>Intent execution engine. Multimodal input → structured action decision.</p>
+      <div class="api">act.decide(input) / act.run(input)</div>
     </a>
     <a class="mod" href="https://momomo-agent.github.io/agentic-memory/">
       <span class="emoji">🧠</span>
@@ -167,47 +176,81 @@
       <p>Streaming markdown renderer. Syntax highlighting, dark/light themes, no flicker.</p>
       <div class="api">create(el, opts)</div>
     </a>
+    <a class="mod" href="https://github.com/momomo-agent/agentic-store">
+      <span class="emoji">💾</span>
+      <h3>agentic-store <span class="sz">~3KB</span></h3>
+      <p>IndexedDB persistence. Key-value storage with versioned schema for AI app state.</p>
+      <div class="api">store.get(key) / store.set(key, val)</div>
+    </a>
+    <a class="mod" href="https://momomo-agent.github.io/agentic-claw/">
+      <span class="emoji">🦀</span>
+      <h3>agentic-claw <span class="sz">~3KB</span></h3>
+      <p>AI agent runtime. Wire up core + memory into a living agent.</p>
+      <div class="api">createClaw(opts).chat(msg)</div>
+    </a>
   </div>
 </section>
 
 <section class="flow w">
   <h2>How they fit together</h2>
-  <p class="sub-h">Use claw for instant setup, or wire the blocks yourself.</p>
+  <p class="sub-h">Sense the world → Think → Decide → Act → Remember</p>
   <div class="flow-line">
     <div class="flow-step">
       <div class="fs-emoji">📝</div>
-      <div class="fs-name">User input</div>
+      <div class="fs-name">Input</div>
+      <div class="fs-desc">text / image / audio</div>
     </div>
     <div class="flow-arrow">→</div>
-    <div class="flow-step" style="border-color:var(--pink)">
-      <div class="fs-emoji">🦀</div>
-      <div class="fs-name">claw</div>
-      <div class="fs-desc">auto-wires everything</div>
-    </div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step" style="border-color:var(--green)">
-      <div class="fs-emoji">🧠</div>
-      <div class="fs-name">memory</div>
-      <div class="fs-desc">context + recall</div>
+    <div class="flow-step" style="border-color:var(--purple)">
+      <div class="fs-emoji">👁</div>
+      <div class="fs-name">sense</div>
+      <div class="fs-desc">perceive humans</div>
     </div>
     <div class="flow-arrow">→</div>
     <div class="flow-step" style="border-color:var(--yellow)">
       <div class="fs-emoji">⚡</div>
       <div class="fs-name">core</div>
-      <div class="fs-desc">call LLM + tools</div>
+      <div class="fs-desc">think + reason</div>
     </div>
     <div class="flow-arrow">→</div>
-    <div class="flow-step" style="border-color:var(--purple)">
+    <div class="flow-step" style="border-color:var(--blue)">
+      <div class="fs-emoji">🎯</div>
+      <div class="fs-name">act</div>
+      <div class="fs-desc">decide what to do</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--green)">
       <div class="fs-emoji">✨</div>
       <div class="fs-name">render</div>
-      <div class="fs-desc">stream output</div>
+      <div class="fs-desc">show output</div>
     </div>
+  </div>
+  <div class="flow-line" style="margin-top:12px;gap:0">
+    <div style="width:140px"></div>
+    <div class="flow-arrow" style="visibility:hidden">→</div>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex:1">
+      <div class="flow-step" style="border-color:#fb923c;min-width:100px;padding:10px 16px">
+        <div class="fs-emoji" style="font-size:16px;margin-bottom:2px">💾</div>
+        <div class="fs-name" style="font-size:12px">store</div>
+      </div>
+      <div class="flow-step" style="border-color:var(--green);min-width:100px;padding:10px 16px">
+        <div class="fs-emoji" style="font-size:16px;margin-bottom:2px">🧠</div>
+        <div class="fs-name" style="font-size:12px">memory</div>
+      </div>
+      <div class="flow-step" style="border-color:var(--pink);min-width:100px;padding:10px 16px">
+        <div class="fs-emoji" style="font-size:16px;margin-bottom:2px">🦀</div>
+        <div class="fs-name" style="font-size:12px">claw</div>
+        <div class="fs-desc" style="font-size:9px">wires it all</div>
+      </div>
+    </div>
+    <div class="flow-arrow" style="visibility:hidden">→</div>
+    <div style="width:140px"></div>
   </div>
 </section>
 
 <section class="playground w" id="playground">
   <h2>Playground</h2>
-  <p class="sub-h">All four modules running together. Bring your API key — it stays in your browser.</p>
+  <p class="sub-h">Core + memory + render running together. Bring your API key — it stays in your browser.</p>
   <div class="pg-box">
     <div class="pg-config">
       <label>Provider</label>
@@ -295,10 +338,12 @@
 <footer>
   <div class="w">
     MIT · <a href="https://github.com/momomo-agent">GitHub</a> ·
-    <a href="https://momomo-agent.github.io/agentic-claw/">claw</a> ·
     <a href="https://momomo-agent.github.io/agentic-core/">core</a> ·
+    <a href="https://momomo-agent.github.io/agentic-sense/">sense</a> ·
+    <a href="https://momomo-agent.github.io/agentic-act/">act</a> ·
+    <a href="https://momomo-agent.github.io/agentic-memory/">memory</a> ·
     <a href="https://momomo-agent.github.io/agentic-render/">render</a> ·
-    <a href="https://momomo-agent.github.io/agentic-memory/">memory</a>
+    <a href="https://momomo-agent.github.io/agentic-claw/">claw</a>
   </div>
 </footer>
 

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "F001",
+    "description": "Rename agentic-lite to agentic-core",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F002",
+    "description": "Merge embed into memory",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F003",
+    "description": "Create agentic-claw runtime",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F004",
+    "description": "Separate claw-cli from claw",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F005",
+    "description": "Deploy 7 GitHub Pages sites",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F006",
+    "description": "Clean old artifacts from all repos",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F007",
+    "description": "Deprecate agentic-embed + agentic-lite",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F008",
+    "description": "Unit tests: agentic-core (8)",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F009",
+    "description": "Unit tests: agentic-memory (15)",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F010",
+    "description": "Unit tests: agentic-render (10)",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F011",
+    "description": "Unit tests: agentic-claw (24)",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F012",
+    "description": "Unit+E2E tests: claw-cli (11)",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F013",
+    "description": "Unit tests: companion-ui (22)",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F014",
+    "description": "E2E: claw-cli real API test",
+    "milestone": "m1",
+    "passes": false
+  },
+  {
+    "id": "F015",
+    "description": "E2E: companion-ui manual verification",
+    "milestone": "m1",
+    "passes": false
+  }
+]
