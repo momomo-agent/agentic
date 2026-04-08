@@ -38,39 +38,43 @@
       <section class="section">
         <h3 class="section-title">Models</h3>
         
-        <div class="models">
-          <!-- Installed -->
-          <div class="panel">
-            <div class="panel-header">
-              <h4>Installed</h4>
-              <span class="count">{{ ollama.models.length }}</span>
-            </div>
-            <div v-if="!ollama.running" class="empty">Ollama not running</div>
-            <div v-else-if="ollama.models.length === 0" class="empty">No models</div>
-            <div v-else class="list">
-              <div v-for="m in ollama.models" :key="m" class="item installed">
-                <span class="name">{{ m }}</span>
-                <button class="delete" @click="deleteModel(m)">Delete</button>
+        <!-- Installed -->
+        <div v-if="ollama.running && ollama.models.length > 0" class="model-group">
+          <div class="group-header">
+            <h4>Installed</h4>
+            <span class="badge">{{ ollama.models.length }}</span>
+          </div>
+          <div class="model-grid">
+            <div v-for="m in ollama.models" :key="m" class="model-card installed">
+              <div class="card-content">
+                <div class="model-icon">✓</div>
+                <div class="model-info">
+                  <div class="model-name">{{ m }}</div>
+                </div>
               </div>
+              <button class="btn-delete" @click="deleteModel(m)">Delete</button>
             </div>
           </div>
+        </div>
 
-          <!-- Recommended -->
-          <div class="panel">
-            <div class="panel-header">
-              <h4>Recommended</h4>
-            </div>
-            <div class="list">
-              <div v-for="m in recommended" :key="m.name" class="item">
-                <div class="info">
-                  <span class="name">{{ m.name }}</span>
-                  <span class="desc">{{ m.desc }}</span>
+        <!-- Recommended -->
+        <div class="model-group">
+          <div class="group-header">
+            <h4>Available Models</h4>
+          </div>
+          <div class="model-grid">
+            <div v-for="m in recommended" :key="m.name" class="model-card">
+              <div class="card-content">
+                <div class="model-icon">{{ getModelIcon(m.name) }}</div>
+                <div class="model-info">
+                  <div class="model-name">{{ m.name }}</div>
+                  <div class="model-desc">{{ m.desc }}</div>
                 </div>
-                <div v-if="progress[m.name]" class="progress">{{ progress[m.name] }}</div>
-                <button v-else class="download" @click="downloadModel(m.name)" :disabled="!ollama.running">
-                  Download
-                </button>
               </div>
+              <div v-if="progress[m.name]" class="model-progress">{{ progress[m.name] }}</div>
+              <button v-else class="btn-download" @click="downloadModel(m.name)" :disabled="!ollama.running">
+                Download
+              </button>
             </div>
           </div>
         </div>
@@ -215,6 +219,16 @@ async function deleteModel(name) {
 function formatGPU(gpu) {
   if (!gpu) return '—'
   return gpu.type === 'apple-silicon' ? 'Apple Silicon' : gpu.type
+}
+
+function getModelIcon(name) {
+  if (name.includes('gemma')) return '💎'
+  if (name.includes('qwen')) return '🔷'
+  if (name.includes('glm')) return '🌟'
+  if (name.includes('llama')) return '🦙'
+  if (name.includes('phi')) return '🧠'
+  if (name.includes('mistral')) return '🌊'
+  return '🤖'
 }
 
 onMounted(() => {
@@ -411,121 +425,137 @@ body {
 }
 
 /* Models */
-.models {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 32px;
+.model-group {
+  margin-bottom: 48px;
 }
 
-.panel {
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.group-header h4 {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.231px;
+  color: #1d1d1f;
+}
+
+.badge {
+  padding: 4px 10px;
+  background: rgba(0, 113, 227, 0.1);
+  color: #0071e3;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.model-card {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
-  padding: 24px;
-}
-
-.panel-header {
+  padding: 20px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.2s;
 }
 
-.panel-header h4 {
-  font-size: 17px;
+.model-card:hover {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.model-card.installed {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3);
+}
+
+.card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.model-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.model-card.installed .model-icon {
+  color: #10b981;
+}
+
+.model-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.model-name {
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.374px;
   color: #1d1d1f;
+  margin-bottom: 4px;
 }
 
-.count {
-  font-size: 14px;
+.model-desc {
+  font-size: 13px;
   color: #86868b;
+  line-height: 1.4;
 }
 
-.empty {
-  padding: 48px 24px;
-  text-align: center;
-  font-size: 14px;
-  color: #86868b;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 16px;
-  background: #f5f5f7;
-  border-radius: 8px;
-}
-
-.item.installed {
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  background: rgba(16, 185, 129, 0.05);
-}
-
-.item .info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.item .name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #1d1d1f;
-}
-
-.item .desc {
-  font-size: 12px;
-  color: #86868b;
-}
-
-.item .progress {
-  font-size: 12px;
+.model-progress {
+  font-size: 13px;
   font-weight: 500;
   color: #0071e3;
+  text-align: center;
 }
 
-.item button {
-  padding: 6px 12px;
-  border-radius: 6px;
+.model-card button {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
   border: none;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.item .download {
+.btn-download {
   background: #0071e3;
   color: #ffffff;
 }
 
-.item .download:hover:not(:disabled) {
+.btn-download:hover:not(:disabled) {
   background: #0077ed;
 }
 
-.item .download:disabled {
+.btn-download:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.item .delete {
+.btn-delete {
   background: transparent;
   color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
 }
 
-.item .delete:hover {
+.btn-delete:hover {
   background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.5) !important;
 }
 
 /* System */
