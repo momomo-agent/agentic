@@ -1,0 +1,14 @@
+{
+  "id": "task-1775588109786",
+  "title": "Fix grep -i multi-file/recursive inconsistency",
+  "description": "Fix grep -i case-insensitive inconsistency in multi-file/recursive path. Currently -i works in pipe/streaming paths but multi-file/recursive passes empty string to fs.grep() and post-filters, causing inconsistent -l/-c behavior. Acceptance: grep -i -l and grep -i -c produce correct results across all code paths (single file, multi-file, recursive, piped).",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-07T18:55:09.786Z",
+  "updated": "2026-04-08T02:45:09.523Z",
+  "milestoneId": "m26"
+}

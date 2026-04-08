@@ -1,0 +1,56 @@
+{
+  "id": "cr-1775614258494",
+  "from": "developer",
+  "reason": "ARCHITECTURE.md has multiple factual errors listing implemented features as 'Future Enhancements'. Exit codes documented as 'not currently implemented' but exec() returns {output, exitCode}. File line count claim is stale (~400 lines, actual 971). Five features fully implemented but listed as future work. architecture.json gap score (85%) is artificially low due to these doc discrepancies.",
+  "affectedTasks": ["task-1775614258494"],
+  "triedSources": ["src/index.ts verified against ARCHITECTURE.md lines 9, 147, 204-213"],
+  "status": "resolved",
+  "reviewedAt": "2026-04-08T15:35:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Task task-1775614258494 already addresses all 7 discrepancies — currently in review status. ARCHITECTURE.md updates being verified by tester.",
+  "created": "2026-04-08T03:11:45.000Z",
+  "discrepancies": [
+    {
+      "archLine": 9,
+      "documented": "All shell logic lives in src/index.ts (~400 lines)",
+      "actual": "src/index.ts is 971 lines",
+      "fix": "Update to ~970 lines. Consider splitting trigger has been reached per Refactoring Triggers section."
+    },
+    {
+      "archLine": 147,
+      "documented": "Exit codes: not currently implemented (all commands return strings)",
+      "actual": "exec() returns Promise<{ output: string; exitCode: number }>. exitCodeFor() maps output patterns to codes 0, 1, 2.",
+      "fix": "Document that exec() returns {output, exitCode} with exitCode 0 for success, 1 for file/command errors, 2 for syntax/missing operand errors."
+    },
+    {
+      "archLine": 208,
+      "documented": "Glob pattern support (*, ?, []) listed under Future Enhancements",
+      "actual": "matchGlob() supports *, ?, [abc], [a-z], [!abc]. expandGlob() handles single-dir and ** recursive. expandPathArgs() auto-expands in commands.",
+      "fix": "Move to documented feature. Document that glob expansion happens automatically in path args before command execution."
+    },
+    {
+      "archLine": 209,
+      "documented": "Environment variables ($VAR) listed under Future Enhancements",
+      "actual": "setEnv(), getEnv(), substituteEnv() implement ${VAR} and $VAR substitution from env map.",
+      "fix": "Move to documented feature."
+    },
+    {
+      "archLine": 210,
+      "documented": "Command substitution ($(cmd)) listed under Future Enhancements",
+      "actual": "substituteCommands() implements $(cmd) with nesting support, depth limiting (maxDepth=3), and backtick syntax.",
+      "fix": "Move to documented feature."
+    },
+    {
+      "archLine": 211,
+      "documented": "Redirection (>, >>, <) listed under Future Enhancements",
+      "actual": "exec() handles > output, >> append, and < input redirection in execPipeline().",
+      "fix": "Move to documented feature with description of how exec() handles redirection."
+    },
+    {
+      "archLine": 212,
+      "documented": "Background jobs (&) listed under Future Enhancements",
+      "actual": "isBackground(), job tracking Map, jobs/fg/bg commands fully implemented.",
+      "fix": "Move to documented feature."
+    }
+  ]
+}

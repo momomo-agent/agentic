@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+*.log
+.team/daemon.pid
+.team/daemon.log
+.team/*.log

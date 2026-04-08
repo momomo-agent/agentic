@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567285818",
+  "title": "echo output redirection",
+  "description": "Add > and >> redirection support to echo command. echo hello > file.txt and echo hello >> file.txt.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T13:08:05.819Z",
+  "updated": "2026-04-07T13:19:48.655Z"
+}

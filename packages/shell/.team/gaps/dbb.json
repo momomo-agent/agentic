@@ -1,0 +1,10 @@
+{
+  "match": 88,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "gaps": [
+    { "description": "grep standalone no-match returns exit code 0 — exitCodeFor('') returns 0 but UNIX convention requires exit 1 for no match. Pipe context correctly returns 1 (line 180), but non-pipe grep does not. Ref: EXPECTED_DBB DBB-grep-002, DBB-grep-008", "status": "partial", "severity": "major" },
+    { "description": "vitest.config.ts coverage threshold enforcement not verified — thresholds {statements: 80, branches: 75} configured but no CI gate confirmed (DBB-M10-001, DBB-m13-012/013, DBB-m16-004)", "status": "partial", "severity": "major" },
+    { "description": "Test file exclusion: src/index.test.ts excluded from default vitest run (vitest.config.ts line 15). test/mkdir-find-cd.test.ts also excluded (line 16) but runs via vitest.excluded.config.ts. Ref: DBB-env-001, DBB-m14-env-001", "status": "partial", "severity": "minor" },
+    { "description": "ARCHITECTURE.md documentation stale — Future Enhancements lists 7 items already implemented (exit codes, glob, env vars, command sub, redirection, background jobs, job control). Error Propagation section says 'Exit codes: not currently implemented' but exec() returns {output, exitCode}. Blocks architecture-alignment-m28.test.ts (7/9 failures).", "status": "partial", "severity": "major" }
+  ]
+}

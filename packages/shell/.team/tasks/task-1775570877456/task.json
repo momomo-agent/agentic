@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570877456",
+  "title": "Fix cp without -r on directory",
+  "description": "cp /dir /dest should return 'cp: /dir: is a directory (use -r)' instead of silently falling through to read(). Add test.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-07T14:07:57.456Z",
+  "updated": "2026-04-07T14:28:22.196Z",
+  "milestoneId": "m14"
+}

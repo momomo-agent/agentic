@@ -1,0 +1,16 @@
+{
+  "id": "task-1775532757782",
+  "title": "ls 分页支持",
+  "description": "实现 ls 命令的分页输出，支持大目录场景，可配置每页条数。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [
+    "task-1775531782004"
+  ],
+  "groupId": "m3",
+  "hasDesign": true,
+  "created": "2026-04-07T03:32:37.782Z",
+  "updated": "2026-04-07T05:08:30.031Z",
+  "milestoneId": "m3"
+}

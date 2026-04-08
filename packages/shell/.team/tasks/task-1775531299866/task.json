@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531299866",
+  "title": "添加测试套件",
+  "description": "每个命令的单元测试，边界 case 覆盖",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": null,
+  "hasDesign": true,
+  "created": "2026-04-07T03:08:19.866Z",
+  "updated": "2026-04-07T03:59:58.874Z",
+  "milestoneId": "m1"
+}

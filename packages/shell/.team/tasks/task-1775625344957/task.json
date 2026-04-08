@@ -1,0 +1,16 @@
+{
+  "id": "task-1775625344957",
+  "title": "Update VISION.md near-term roadmap — items already implemented",
+  "description": "VISION.md lines 46-51 list 4 'Near-Term Roadmap' items that are already implemented: (1) Recursive glob patterns (**/*.ts) — expandGlob already supports **; (2) Cross-environment consistency test suite — node-fs-integration.test.ts exists with 21 passing tests; (3) Performance benchmarks — benchmark tests exist in index.test.ts; (4) Test coverage quality gate — vitest.config.ts has {statements:80, branches:75} thresholds. Update roadmap to only list genuinely unimplemented features. Also update line 41 from ~950 lines to ~970 lines to match actual src/index.ts size.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "pm",
+  "blockedBy": [
+    "task-1775623204028"
+  ],
+  "groupId": "m29",
+  "hasDesign": true,
+  "created": "2026-04-08T05:15:44.957Z",
+  "updated": "2026-04-08T05:28:41.576Z",
+  "milestoneId": "m29"
+}

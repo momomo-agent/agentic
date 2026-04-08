@@ -1,0 +1,20 @@
+{
+  "milestoneId": "m11",
+  "match": 85,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-m11-001: cp -r copies directory tree", "status": "pass" },
+    { "criterion": "DBB-m11-002: cp -r destination already exists — contents merged", "status": "pass" },
+    { "criterion": "DBB-m11-003: cp -r on non-existent source returns error", "status": "pass" },
+    { "criterion": "DBB-m11-004: cp without -r on directory returns error", "status": "fail" },
+    { "criterion": "DBB-m11-005: mv moves a directory", "status": "pass" },
+    { "criterion": "DBB-m11-006: mv directory to existing destination", "status": "pass" },
+    { "criterion": "DBB-m11-007: mv non-existent source returns error", "status": "pass" },
+    { "criterion": "DBB-m11-008: echo > creates/overwrites file", "status": "pass" },
+    { "criterion": "DBB-m11-009: echo >> appends to file", "status": "pass" },
+    { "criterion": "DBB-m11-010: echo >> creates file if not exists", "status": "pass" },
+    { "criterion": "DBB-m11-011: echo > in readOnly mode returns Permission denied", "status": "pass" },
+    { "criterion": "DBB-m11-012: ARCHITECTURE.md exists at repo root", "status": "pass" },
+    { "criterion": "DBB-m11-013: ARCHITECTURE.md covers command pattern, pipe, path resolution, AgenticFileSystem interface", "status": "partial" }
+  ]
+}

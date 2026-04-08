@@ -1,0 +1,10 @@
+{
+  "milestoneId": "m18",
+  "match": 92,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m18-001: wc tab-separated output — full, -l, -w, -c all use \\t separator (verified in src/index.ts lines 966-969)", "status": "pass" },
+    { "criterion": "DBB-m18-002: unknown command returns exit code 2 (exitCodeFor() line 223: /command not found/ → 2). Tested in exit-code-distinction.test.ts.", "status": "pass" },
+    { "criterion": "DBB-m18-003: mkdir .keep fallback — mkdirOne() lines 745-751: when fs.mkdir is undefined, falls back to fs.write(path + '/.keep', ''). When fs.mkdir exists, uses native method. Tested in mkdir-no-keep-fallback.test.ts.", "status": "pass" }
+  ]
+}

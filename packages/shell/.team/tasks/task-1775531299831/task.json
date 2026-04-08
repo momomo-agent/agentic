@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531299831",
+  "title": "pipe 支持",
+  "description": "实现 | 管道，让命令可以组合，如 cat file | grep pattern",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": null,
+  "hasDesign": true,
+  "created": "2026-04-07T03:08:19.831Z",
+  "updated": "2026-04-07T03:59:38.870Z",
+  "milestoneId": "m1"
+}

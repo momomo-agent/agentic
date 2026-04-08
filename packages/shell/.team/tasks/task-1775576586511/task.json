@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576586511",
+  "title": "Fix unknown command exit code",
+  "description": "Unknown commands should return exitCode 2, not 127. Update exitCodeFor() or the exec() fallback for unrecognized commands. Covers DBB-m15 exit code mismatch.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m18-dup",
+  "hasDesign": true,
+  "created": "2026-04-07T15:43:06.511Z",
+  "updated": "2026-04-07T15:48:15.027Z"
+}

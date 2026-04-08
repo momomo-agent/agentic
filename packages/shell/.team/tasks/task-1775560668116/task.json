@@ -1,0 +1,13 @@
+{
+  "id": "task-1775560668116",
+  "title": "ls -a 真实隐藏文件",
+  "description": "修复 ls -a，从 fs 适配器读取真实的隐藏文件（以 . 开头），而不只是合成 . 和 ..。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m6",
+  "hasDesign": true,
+  "created": "2026-04-07T11:17:48.116Z",
+  "updated": "2026-04-07T11:39:58.023Z"
+}

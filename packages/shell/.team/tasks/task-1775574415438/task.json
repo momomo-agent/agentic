@@ -1,0 +1,13 @@
+{
+  "id": "task-1775574415438",
+  "title": "Implement input redirection (<)",
+  "description": "Parse and handle 'cmd < file' syntax in exec(). Read file content and pass as stdin to the command. grep and other stdin-aware commands should work with it.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T15:06:55.438Z",
+  "updated": "2026-04-07T15:17:35.117Z"
+}

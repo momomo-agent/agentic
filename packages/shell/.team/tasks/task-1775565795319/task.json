@@ -1,0 +1,14 @@
+{
+  "id": "task-1775565795319",
+  "title": "grep error propagation on missing directory",
+  "description": "Add explicit test: grep -r on non-existent directory should return a clear error (not empty string). Verify fs.grep throwing is handled and surfaced correctly.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T12:43:15.319Z",
+  "updated": "2026-04-07T13:01:28.652Z",
+  "milestoneId": "m10"
+}

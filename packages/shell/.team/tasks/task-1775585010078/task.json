@@ -1,0 +1,14 @@
+{
+  "id": "task-1775585010078",
+  "title": "Document cross-environment testing strategy",
+  "description": "Outline testing approach for browser/Electron/Node.js consistency. DBB gap: 'Cross-environment consistency tests (DBB-env-001/002/003) — no cross-env test suite'. Define test matrix, mock strategies, and CI integration plan.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m22",
+  "hasDesign": true,
+  "created": "2026-04-07T18:03:30.079Z",
+  "updated": "2026-04-07T18:57:17.062Z",
+  "milestoneId": "m22"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775586432548",
+  "title": "Fix wc output format (tabs + filename)",
+  "description": "wc output must use tab separators not spaces and include filename. Current output: '5' should be '5\\t/file'. Fix wc() formatter to join counts with tab char and append filename. DBB-wc-001, DBB-m14-wc-001, DBB-m13-008.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-07T18:27:12.548Z",
+  "updated": "2026-04-07T18:52:34.292Z",
+  "milestoneId": "m23"
+}

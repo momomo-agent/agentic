@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567285874",
+  "title": "Write ARCHITECTURE.md",
+  "description": "Create ARCHITECTURE.md at repo root documenting single-file design, command pattern, pipe support, path resolution, and AgenticFileSystem interface contract.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T13:08:05.874Z",
+  "updated": "2026-04-07T13:19:48.693Z"
+}

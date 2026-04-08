@@ -1,0 +1,18 @@
+{
+  "id": "cr-1775578700000",
+  "from": "tester-1",
+  "reason": "Contradictory exit code requirements: m15 DBB (exit-code-distinction-m15.test.ts) requires unknown commands return exitCode 127, while m12 DBB (exit-codes.test.ts) and m18 design require exitCode 2. Cannot satisfy both simultaneously.",
+  "affectedTasks": [
+    "task-1775576245522",
+    "task-1775571373147"
+  ],
+  "triedSolutions": [
+    "Verified both test files run against same source — one must fail regardless of implementation"
+  ],
+  "status": "resolved",
+  "created": "2026-04-07T16:19:00.000Z",
+  "resolution": "Both affected tasks (task-1775576245522, task-1775571373147) completed. Exit code conflict reconciled by dev team.",
+  "reviewedAt": "2026-04-08T01:41:51.698Z",
+  "resolvedAt": "2026-04-08T15:00:00.000Z",
+  "resolvedBy": "pm"
+}

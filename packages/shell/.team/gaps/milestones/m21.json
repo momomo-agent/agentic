@@ -1,0 +1,11 @@
+{
+  "milestoneId": "m21",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m21-001: $VAR environment variable substitution — substituteEnv() lines 20-24 handles $VAR and ${VAR} patterns. Tested in env-var-substitution-m21.test.ts and env-vars.test.ts.", "status": "pass" },
+    { "criterion": "DBB-m21-002: $(cmd) command substitution — substituteCommands() lines 26-53 handles $(cmd) and backtick syntax with depth limiting (maxDepth=3). Tested in cmd-substitution-m21.test.ts.", "status": "pass" },
+    { "criterion": "DBB-m21-003: Bracket glob [abc] character sets — matchGlob() lines 375-399 handles [abc], [a-z], [!abc] patterns. expandGlob() integrates with ls. Tested in bracket-glob-m21.test.ts (6/6 pass).", "status": "pass" },
+    { "criterion": "DBB-m21-004: Each task has >= 3 passing tests, no regressions (all 63 test files pass except architecture-alignment-m28 which is m28-specific)", "status": "pass" }
+  ]
+}

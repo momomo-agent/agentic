@@ -1,0 +1,414 @@
+{
+  "milestones": [
+    {
+      "id": "m1",
+      "name": "Foundation & Quality Gate",
+      "status": "completed",
+      "completedAt": "2026-04-07T11:16:00.000Z",
+      "tasks": [
+        "task-1775531299796",
+        "task-1775531299831",
+        "task-1775531299866",
+        "task-1775531687828",
+        "task-1775531687871"
+      ],
+      "created": "2026-04-07T11:15:00.000Z",
+      "targetCompletion": "2026-04-21T00:00:00.000Z"
+    },
+    {
+      "id": "m2",
+      "name": "Command Completeness & Permissions",
+      "status": "completed",
+      "completedAt": "2026-04-07T05:09:49.832Z",
+      "tasks": [
+        "task-1775531782004",
+        "task-1775531800001",
+        "task-1775531800002",
+        "task-1775531800003",
+        "task-1775531800004"
+      ],
+      "created": "2026-04-07T03:16:30.000Z",
+      "targetCompletion": "2026-05-05T00:00:00.000Z"
+    },
+    {
+      "id": "m3",
+      "name": "Pagination & Streaming",
+      "status": "completed",
+      "completedAt": "2026-04-07T05:09:55.000Z",
+      "tasks": [
+        "task-1775532757782",
+        "task-1775532765892",
+        "task-1775535632908"
+      ],
+      "created": "2026-04-07T03:32:47.000Z",
+      "targetCompletion": "2026-05-19T00:00:00.000Z"
+    },
+    {
+      "id": "m4",
+      "name": "Command Completeness — Round 2",
+      "status": "completed",
+      "completedAt": "2026-04-07T11:57:00.000Z",
+      "tasks": [
+        "task-1775538626249",
+        "task-1775538654857",
+        "task-1775538654890",
+        "task-1775538654925",
+        "task-1775558780631"
+      ],
+      "created": "2026-04-07T05:10:55.000Z",
+      "targetCompletion": "2026-05-03T00:00:00.000Z"
+    },
+    {
+      "id": "m5",
+      "name": "Test Hardening & DBB Compliance",
+      "status": "completed",
+      "completedAt": "2026-04-07T11:17:00.000Z",
+      "tasks": [
+        "task-1775558192784",
+        "task-1775558192826",
+        "task-1775558192863"
+      ],
+      "created": "2026-04-07T10:45:03.000Z",
+      "targetCompletion": "2026-05-17T00:00:00.000Z"
+    },
+    {
+      "id": "m6",
+      "name": "Command Completeness — Round 3",
+      "status": "completed",
+      "completedAt": "2026-04-07T11:47:00.000Z",
+      "tasks": [
+        "task-1775560660291",
+        "task-1775560668073",
+        "task-1775560668116",
+        "task-1775560668155"
+      ],
+      "created": "2026-04-07T11:17:14.000Z",
+      "targetCompletion": "2026-05-31T00:00:00.000Z"
+    },
+    {
+      "id": "m7",
+      "name": "Quality Polish & Interface Hardening",
+      "status": "completed",
+      "completedAt": "2026-04-07T12:09:00.000Z",
+      "tasks": [
+        "task-1775562188244",
+        "task-1775562196095",
+        "task-1775562201029"
+      ],
+      "created": "2026-04-07T11:43:21.000Z",
+      "targetCompletion": "2026-06-14T00:00:00.000Z"
+    },
+    {
+      "id": "m8",
+      "name": "DBB Compliance & Test Coverage",
+      "status": "completed",
+      "completedAt": "2026-04-07T12:35:00.000Z",
+      "tasks": [
+        "task-1775563842095",
+        "task-1775564324762"
+      ],
+      "created": "2026-04-07T12:10:54.000Z",
+      "targetCompletion": "2026-06-28T00:00:00.000Z"
+    },
+    {
+      "id": "m9",
+      "name": "Command Completeness — Round 4",
+      "status": "completed",
+      "completedAt": "2026-04-07T12:42:00.000Z",
+      "tasks": [
+        "task-1775565354148",
+        "task-1775565373159",
+        "task-1775565373196",
+        "task-1775565373232",
+        "task-1775565373279"
+      ],
+      "created": "2026-04-07T12:36:13.000Z",
+      "targetCompletion": "2026-07-12T00:00:00.000Z"
+    },
+    {
+      "id": "m10",
+      "name": "Final DBB Compliance & Coverage Verification",
+      "status": "completed",
+      "completedAt": "2026-04-07T13:06:30.000Z",
+      "tasks": [
+        "task-1775565786926",
+        "task-1775565795319",
+        "task-1775565800893",
+        "task-1775565806215"
+      ],
+      "created": "2026-04-07T12:43:00.000Z",
+      "targetCompletion": "2026-07-26T00:00:00.000Z"
+    },
+    {
+      "id": "m11",
+      "name": "Command Completeness — Round 5 & ARCHITECTURE.md",
+      "status": "completed",
+      "completedAt": "2026-04-07T13:18:16.000Z",
+      "tasks": [
+        "task-1775567275854",
+        "task-1775567285755",
+        "task-1775567285818",
+        "task-1775567285874"
+      ],
+      "created": "2026-04-07T13:08:19.000Z",
+      "targetCompletion": "2026-08-09T00:00:00.000Z"
+    },
+    {
+      "id": "m12",
+      "name": "Exit Codes, Input Redirection & Glob Expansion",
+      "status": "completed",
+      "completedAt": "2026-04-07T14:15:00.000Z",
+      "tasks": [
+        "task-1775568346972",
+        "task-1775568352370",
+        "task-1775568357122"
+      ],
+      "created": "2026-04-07T13:26:07.646Z",
+      "targetCompletion": "2026-08-23T00:00:00.000Z"
+    },
+    {
+      "id": "m13",
+      "name": "PRD Compliance & Test Coverage Gates",
+      "status": "completed",
+      "completedAt": "2026-04-07T14:44:00.000Z",
+      "tasks": [
+        "task-1775570162531",
+        "task-1775570185511",
+        "task-1775570192399",
+        "task-1775570192432"
+      ],
+      "created": "2026-04-07T13:56:05.000Z",
+      "targetCompletion": "2026-09-06T00:00:00.000Z"
+    },
+    {
+      "id": "m14",
+      "name": "DBB Compliance Cleanup",
+      "status": "completed",
+      "completedAt": "2026-04-07T14:53:00.000Z",
+      "tasks": [
+        "task-1775570877456",
+        "task-1775570891635",
+        "task-1775570891676",
+        "task-1775572452545"
+      ],
+      "created": "2026-04-07T14:08:12.000Z",
+      "targetCompletion": "2026-09-20T00:00:00.000Z"
+    },
+    {
+      "id": "m15",
+      "name": "Exit Code Edge Cases & Stdin No-Match",
+      "status": "completed",
+      "completedAt": "2026-04-07T15:06:20.000Z",
+      "tasks": [
+        "task-1775571373147",
+        "task-1775571390938",
+        "task-1775571401881",
+        "task-1775571406334"
+      ],
+      "created": "2026-04-07T14:16:46.000Z",
+      "targetCompletion": "2026-10-04T00:00:00.000Z"
+    },
+    {
+      "id": "m16",
+      "name": "PRD Compliance: grep -i, wc -l, touch fix, coverage gate",
+      "status": "completed",
+      "completedAt": "2026-04-07T15:22:15.000Z",
+      "tasks": [
+        "task-1775573395861",
+        "task-1775573404564",
+        "task-1775573404601",
+        "task-1775573404635"
+      ],
+      "created": "2026-04-07T14:50:04.952Z",
+      "targetCompletion": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "id": "m17",
+      "name": "Glob Expansion, cp Error & Input Redirection",
+      "status": "completed",
+      "completedAt": "2026-04-08T00:00:00.000Z",
+      "tasks": [
+        "task-1775574408103",
+        "task-1775574415352",
+        "task-1775574415438"
+      ],
+      "created": "2026-04-07T15:07:04.000Z",
+      "targetCompletion": "2026-11-01T00:00:00.000Z"
+    },
+    {
+      "id": "m18",
+      "name": "DBB Compliance & Test Coverage Gaps",
+      "status": "completed",
+      "completedAt": "2026-04-08T00:00:00.000Z",
+      "tasks": [
+        "task-1775576241453",
+        "task-1775576245522",
+        "task-1775576251141",
+        "task-1775576593103",
+        "task-1775576599322"
+      ],
+      "created": "2026-04-07T15:43:23.815Z",
+      "targetCompletion": "2026-11-15T00:00:00.000Z"
+    },
+    {
+      "id": "m19",
+      "name": "Architecture Compliance & Quality Gates",
+      "status": "completed",
+      "completedAt": "2026-04-08T00:00:00.000Z",
+      "tasks": [
+        "task-1775578585704",
+        "task-1775578592971",
+        "task-1775578600190"
+      ],
+      "created": "2026-04-07T16:16:46.000Z",
+      "targetCompletion": "2026-11-29T00:00:00.000Z"
+    },
+    {
+      "id": "m20",
+      "name": "Test Quality & PRD Compliance Gaps",
+      "status": "completed",
+      "completedAt": "2026-04-08T00:00:00.000Z",
+      "tasks": [
+        "task-1775580789278",
+        "task-1775580794745",
+        "task-1775580800582",
+        "task-1775580806196"
+      ],
+      "created": "2026-04-07T16:53:32.000Z",
+      "targetCompletion": "2026-12-13T00:00:00.000Z"
+    },
+    {
+      "id": "m21",
+      "name": "Shell Scripting Foundations",
+      "status": "completed",
+      "completedAt": "2026-04-08T00:00:00.000Z",
+      "tasks": [
+        "task-1775582074220",
+        "task-1775582079663",
+        "task-1775582087197",
+        "task-1775582402878"
+      ],
+      "created": "2026-04-07T17:14:54.000Z",
+      "targetCompletion": "2026-12-27T00:00:00.000Z"
+    },
+    {
+      "id": "m22",
+      "name": "Documentation Alignment & Vision Capture",
+      "status": "completed",
+      "completedAt": "2026-04-08T15:30:00.000Z",
+      "tasks": [
+        "task-1775585009931",
+        "task-1775585010000",
+        "task-1775585010078",
+        "task-1775607159768"
+      ],
+      "created": "2026-04-08T00:00:00.000Z",
+      "targetCompletion": "2027-01-10T00:00:00.000Z"
+    },
+    {
+      "id": "m23",
+      "name": "Test Failures & Spec Alignment",
+      "status": "completed",
+      "completedAt": "2026-04-08T00:00:00.000Z",
+      "tasks": [
+        "task-1775578579568",
+        "task-1775586432548",
+        "task-1775586435525"
+      ],
+      "created": "2026-04-08T00:00:00.000Z",
+      "targetCompletion": "2027-01-24T00:00:00.000Z"
+    },
+    {
+      "id": "m24",
+      "name": "PRD Test Coverage & Error Format Fixes",
+      "status": "completed",
+      "completedAt": "2026-04-08T15:30:00.000Z",
+      "tasks": [
+        "task-1775587049925",
+        "task-1775587050073",
+        "task-1775587050164",
+        "task-1775587050240",
+        "task-1775587050322",
+        "task-1775587050399",
+        "task-1775588110381",
+        "task-1775607159811"
+      ],
+      "created": "2026-04-08T00:00:00.000Z",
+      "targetCompletion": "2027-02-07T00:00:00.000Z"
+    },
+    {
+      "id": "m25",
+      "name": "PRD Feature Gaps: Env Vars, Glob & cp Fix",
+      "status": "completed",
+      "completedAt": "2026-04-08T15:30:00.000Z",
+      "tasks": [
+        "task-1775587579648",
+        "task-1775587579782",
+        "task-1775587579874"
+      ],
+      "created": "2026-04-08T00:00:00.000Z",
+      "targetCompletion": "2027-02-21T00:00:00.000Z"
+    },
+    {
+      "id": "m26",
+      "name": "PRD Bug Fixes & Performance Gates",
+      "status": "completed",
+      "completedAt": "2026-04-08T15:30:00.000Z",
+      "tasks": [
+        "task-1775588109786",
+        "task-1775588110203",
+        "task-1775588110569",
+        "task-1775607159849"
+      ],
+      "created": "2026-04-08T00:00:00.000Z",
+      "targetCompletion": "2027-03-07T00:00:00.000Z"
+    },
+    {
+      "id": "m27",
+      "name": "Command Substitution & Remaining Vision Gaps",
+      "status": "completed",
+      "completedAt": "2026-04-08T15:30:00.000Z",
+      "tasks": [
+        "task-1775588562205",
+        "task-1775588570863",
+        "task-1775588571054",
+        "task-1775588571270",
+        "task-1775609032081"
+      ],
+      "created": "2026-04-08T03:05:00.000Z",
+      "targetCompletion": "2027-03-21T00:00:00.000Z"
+    },
+    {
+      "id": "m28",
+      "name": "Final Gap Closure & Verification",
+      "status": "completed",
+      "completedAt": "2026-04-08T16:00:00.000Z",
+      "tasks": [
+        "task-1775614258365",
+        "task-1775614258408",
+        "task-1775614258455",
+        "task-1775614258494",
+        "task-1775616024082",
+        "task-1775618266610",
+        "task-1775619582652"
+      ],
+      "created": "2026-04-08T15:00:00.000Z",
+      "targetCompletion": "2027-04-04T00:00:00.000Z"
+    },
+    {
+      "id": "m29",
+      "name": "Vision Gap Closure — 70% → ≥90%",
+      "status": "completed",
+      "completedAt": "2026-04-08T20:00:00.000Z",
+      "tasks": [
+        "task-1775623204028",
+        "task-1775623225684",
+        "task-1775623225723",
+        "task-1775623225762",
+        "task-1775625344957"
+      ],
+      "created": "2026-04-08T16:40:00.000Z",
+      "targetCompletion": "2026-04-09T00:00:00.000Z"
+    }
+  ]
+}

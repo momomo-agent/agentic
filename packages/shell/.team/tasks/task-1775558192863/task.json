@@ -1,0 +1,14 @@
+{
+  "id": "task-1775558192863",
+  "title": "创建 EXPECTED_DBB.md",
+  "description": "编写正式的 Done-By-Definition 标准文档，覆盖所有命令的验收标准、边界用例和质量门槛。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T10:36:32.863Z",
+  "updated": "2026-04-07T11:06:46.831Z",
+  "milestoneId": "m5"
+}

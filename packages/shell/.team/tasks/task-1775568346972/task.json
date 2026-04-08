@@ -1,0 +1,13 @@
+{
+  "id": "task-1775568346972",
+  "title": "Exit codes for all commands",
+  "description": "Change exec() return type to { output: string; exitCode: number }. Exit 0 on success, 1 on error. Update all callers and tests to use .output.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-07T13:25:46.972Z",
+  "updated": "2026-04-07T13:53:03.366Z"
+}

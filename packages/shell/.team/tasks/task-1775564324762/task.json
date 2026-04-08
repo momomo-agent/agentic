@@ -1,0 +1,13 @@
+{
+  "id": "task-1775564324762",
+  "title": "Pipe failure propagation fix",
+  "description": "When the left side of a pipe fails (e.g. cat /nonexistent | grep foo), the error output from cat should propagate as stdin to grep rather than silently passing empty string. Fix exec() pipe handling to surface left-command errors.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-07T12:18:44.762Z",
+  "updated": "2026-04-07T12:31:31.626Z"
+}

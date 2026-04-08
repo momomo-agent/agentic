@@ -1,0 +1,13 @@
+{
+  "id": "task-1775574415352",
+  "title": "Fix cp without -r on directory",
+  "description": "cp dir/ dest should return 'cp: dir/: is a directory' error instead of falling through to read(). Add test for this case.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T15:06:55.352Z",
+  "updated": "2026-04-07T16:14:42.595Z"
+}

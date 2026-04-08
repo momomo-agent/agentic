@@ -1,0 +1,14 @@
+{
+  "id": "task-1775607159811",
+  "title": "Add test coverage quality gate measurement",
+  "description": "Implement automated test coverage measurement: ≥80% statement coverage and ≥75% branch coverage. PRD gap: 'Test coverage quality gate: coverage not measured; 148+ tests threshold not verified'. Run coverage tool, verify thresholds pass, report results. Acceptance: coverage report generated showing statement ≥80%, branch ≥75%, total tests ≥148.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-08T00:12:39.811Z",
+  "updated": "2026-04-08T00:56:04.320Z",
+  "milestoneId": "m24"
+}

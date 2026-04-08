@@ -1,0 +1,14 @@
+{
+  "id": "task-1775573395861",
+  "title": "Fix grep -i in non-streaming path",
+  "description": "grep -i has no effect when called directly via fs.grep() (non-streaming, non-pipe). Fix the grep implementation to apply case-insensitive matching in all code paths. Add tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T14:49:55.861Z",
+  "updated": "2026-04-07T15:15:56.921Z",
+  "milestoneId": "m16"
+}

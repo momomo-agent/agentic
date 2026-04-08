@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587050240",
+  "title": "Add cd-to-file boundary test",
+  "description": "cd to a file path returns 'Not a directory' error — implemented but no test coverage. Add test verifying cd /some/file returns proper error. PRD gap: 'implemented but no test coverage'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-07T18:37:30.240Z",
+  "updated": "2026-04-08T01:44:58.847Z",
+  "milestoneId": "m24"
+}

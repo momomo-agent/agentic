@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531687871",
+  "title": "ls -a 隐藏文件支持",
+  "description": "实现 ls -a flag，正确过滤和显示隐藏文件（以 . 开头的文件）。当前 flag 已解析但未实现过滤逻辑。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-07T03:14:47.871Z",
+  "updated": "2026-04-07T04:01:22.906Z",
+  "milestoneId": "m1"
+}

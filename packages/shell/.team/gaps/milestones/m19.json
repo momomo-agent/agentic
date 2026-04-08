@@ -1,0 +1,11 @@
+{
+  "milestoneId": "m19",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m19-001: Pipe error propagation — left command fails, right receives empty stdin, exitCode reflects error (execPipeline lines 168-175: execSingleWithError checks hadError, clears output, sets exitCode)", "status": "pass" },
+    { "criterion": "DBB-m19-002: grep -l stdin returns '(stdin)' identifier (execWithStdin line 324: `return lines.length ? '(stdin)' : ''`)", "status": "pass" },
+    { "criterion": "DBB-m19-003: rm -r deep nesting 15+ levels — rmRecursive() uses iterative stack-based traversal (lines 782-801) with visited set for cycle prevention. Tested in rm-deep-nesting.test.ts.", "status": "pass" },
+    { "criterion": "DBB-m19-004: Coverage gate enforced in vitest.config.ts — thresholds: { statements: 80, branches: 75 }", "status": "pass" }
+  ]
+}

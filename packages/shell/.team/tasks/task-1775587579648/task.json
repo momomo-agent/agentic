@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587579648",
+  "title": "Implement environment variable substitution ($VAR)",
+  "description": "Implement $VAR and ${VAR} substitution in command parsing. Before executing a command, replace environment variable references with their values. Support basic built-in vars (HOME, PATH, PWD) and a setVar/getVar API for user-defined vars. PRD gap: 'Environment variables not implemented — limits shell scripting capabilities'. Acceptance: echo $HOME returns value, VAR=hello && echo $VAR works, undefined vars expand to empty string.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-07T18:46:19.648Z",
+  "updated": "2026-04-07T19:09:27.854Z",
+  "milestoneId": "m25"
+}

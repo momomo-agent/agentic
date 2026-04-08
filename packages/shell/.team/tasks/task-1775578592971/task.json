@@ -1,0 +1,13 @@
+{
+  "id": "task-1775578592971",
+  "title": "Fix rm -r deep nesting stack overflow",
+  "description": "rmRecursive uses recursion with no depth guard — may stack overflow on 10+ level trees. Replace with iterative approach or add depth limit. Covers DBB-rm-007, DBB-boundary-003.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T16:16:32.971Z",
+  "updated": "2026-04-07T18:18:51.895Z"
+}

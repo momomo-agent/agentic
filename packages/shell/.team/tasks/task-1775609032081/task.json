@@ -1,0 +1,14 @@
+{
+  "id": "task-1775609032081",
+  "title": "Add background jobs (&, fg, bg, jobs) test coverage",
+  "description": "Background job support is implemented in src/index.ts (isBackground, jobs_cmd, fg, bg) but has zero test coverage. Add comprehensive tests for: 1) trailing & spawns background job and returns job ID, 2) jobs command lists running/completed jobs, 3) fg brings background job to foreground and returns output, 4) fg with %N syntax, 5) bg validates job exists, 6) job cleanup after fg. Acceptance: ≥6 test cases covering all background job code paths.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-08T00:43:52.081Z",
+  "updated": "2026-04-08T02:54:08.285Z",
+  "milestoneId": "m27"
+}

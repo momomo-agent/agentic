@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775531700001",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "EXPECTED_DBB.md",
+  "reason": "No EXPECTED_DBB.md exists. DBB match is only 45% because there are no formal DBB criteria defined. This blocks quality gate definition for milestone completion. Need formal definition of: test coverage requirements, performance benchmarks, error handling standards, and cross-backend consistency criteria.",
+  "proposedChange": "Create EXPECTED_DBB.md documenting: (1) Test coverage requirements (unit tests for all commands, edge cases, cross-backend tests), (2) Performance benchmarks (ls pagination threshold, grep streaming threshold), (3) Error message format standards (UNIX-compliant), (4) Permission handling requirements, (5) Quality gate criteria for milestone completion",
+  "status": "resolved",
+  "createdAt": "2026-04-07T11:15:00.001Z",
+  "reviewedAt": "2026-04-08T01:41:51.693Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

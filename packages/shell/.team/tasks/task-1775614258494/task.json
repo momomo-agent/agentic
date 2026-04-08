@@ -1,0 +1,16 @@
+{
+  "id": "task-1775614258494",
+  "title": "Verify architecture alignment score",
+  "description": "Consolidated ARCHITECTURE.md update task. Verify and update ARCHITECTURE.md to reflect current implementation: (1) exec() returns {output, exitCode} - update error handling section, (2) Move implemented features (glob, env vars, command substitution, redirection, background jobs) from Future Enhancements to documented sections, (3) Remove trailing auto-merged CR text, (4) Re-run architecture gap analysis. Target: architecture match increase from 85%. Update .team/gaps/architecture.json.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [
+    "task-1775618266610"
+  ],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T02:10:58.494Z",
+  "updated": "2026-04-08T04:17:03.565Z",
+  "milestoneId": "m28"
+}

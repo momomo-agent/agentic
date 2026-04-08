@@ -1,0 +1,14 @@
+{
+  "id": "task-1775565786926",
+  "title": "Coverage threshold enforcement",
+  "description": "Configure vitest coverage threshold (≥80%) in vitest.config. Run vitest --coverage to verify current coverage meets threshold. Fix config so CI fails if coverage drops below 80%.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m9",
+  "hasDesign": true,
+  "created": "2026-04-07T12:43:06.927Z",
+  "updated": "2026-04-07T13:01:00.715Z",
+  "milestoneId": "m10"
+}

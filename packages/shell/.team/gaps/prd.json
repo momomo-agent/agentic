@@ -1,0 +1,21 @@
+{
+  "match": 91,
+  "timestamp": "2026-04-08T14:00:00.000Z",
+  "gaps": [
+    {
+      "description": "PRD §1.5 grep streaming: grepStream implemented with readStream for single non-recursive files. Multi-file streaming added when readStream available. Recursive (-r) path still bypasses streaming and falls back to fs.read()/manual iteration.",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "PRD §5.4 Test coverage quality gate: coverage measurement exists and coverage is high, but CI-enforced quality gate thresholds (≥80% statement / ≥75% branch) are not yet configured.",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "PRD §5.3 Performance benchmarks: benchmark test cases exist in index.test.ts for grep <500ms (1MB), find <1s (1000 files), ls pagination <100ms. Pass with mock FS but no real filesystem benchmarks are configured.",
+      "status": "partial",
+      "severity": "minor"
+    }
+  ]
+}

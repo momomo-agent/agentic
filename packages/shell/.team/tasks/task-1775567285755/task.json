@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567285755",
+  "title": "mv directory support",
+  "description": "Fix mv to handle directory moves. Currently mv reads file content which fails for directories.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T13:08:05.756Z",
+  "updated": "2026-04-07T13:19:48.615Z"
+}

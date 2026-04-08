@@ -1,0 +1,13 @@
+{
+  "id": "task-1775572452545",
+  "title": "Resolve vitest OOM — run excluded tests with --pool=forks",
+  "description": "src/index.test.ts and test/mkdir-find-cd.test.ts are excluded due to OOM. Run them in isolation using vitest --pool=forks or --pool=threads with reduced worker count instead of removing exclusions. Goal: cross-env tests execute without crashing CI.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-07T14:34:12.545Z",
+  "updated": "2026-04-07T14:53:20.167Z"
+}

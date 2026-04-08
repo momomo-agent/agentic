@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587050164",
+  "title": "Add rm -r root safety test",
+  "description": "rm -r refuses to delete root '/' (resolved === '/') but has no test coverage. Add test verifying rm -r / returns error and does not attempt deletion. PRD gap: 'implemented but no test coverage'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-07T18:37:30.164Z",
+  "updated": "2026-04-08T01:43:19.742Z",
+  "milestoneId": "m24"
+}

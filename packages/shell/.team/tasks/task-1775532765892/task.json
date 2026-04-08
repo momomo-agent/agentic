@@ -1,0 +1,16 @@
+{
+  "id": "task-1775532765892",
+  "title": "grep 流式处理大文件",
+  "description": "实现 grep 命令流式读取大文件，避免将完整内容加载到内存。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [
+    "task-1775531782004"
+  ],
+  "groupId": "m3",
+  "hasDesign": true,
+  "created": "2026-04-07T03:32:45.892Z",
+  "updated": "2026-04-07T05:08:30.065Z",
+  "milestoneId": "m3"
+}

@@ -1,0 +1,27 @@
+{
+  "milestoneId": "m8",
+  "match": 88,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-m8-001: cp -r copies directory recursively", "status": "pass" },
+    { "criterion": "DBB-m8-002: cp -r on non-existent source returns error", "status": "pass" },
+    { "criterion": "DBB-m8-003: cp -r deeply nested directory (10+ levels)", "status": "pass" },
+    { "criterion": "DBB-m8-004: echo > overwrites file", "status": "pass" },
+    { "criterion": "DBB-m8-005: echo > creates new file", "status": "pass" },
+    { "criterion": "DBB-m8-006: echo >> appends to file", "status": "pass" },
+    { "criterion": "DBB-m8-007: echo >> creates file if missing", "status": "pass" },
+    { "criterion": "DBB-m8-008: echo > in readOnly mode returns Permission denied", "status": "pass" },
+    { "criterion": "DBB-m8-009: mv directory to new location", "status": "pass" },
+    { "criterion": "DBB-m8-010: mv rename directory", "status": "pass" },
+    { "criterion": "DBB-m8-011: mv directory to existing directory", "status": "pass" },
+    { "criterion": "DBB-m8-012: mv non-existent directory returns error", "status": "pass" },
+    { "criterion": "DBB-m8-013: ls -a shows dotfiles", "status": "pass" },
+    { "criterion": "DBB-m8-014: ls without -a hides dotfiles", "status": "pass" },
+    { "criterion": "DBB-m8-015: ls -a includes . and ..", "status": "pass" },
+    { "criterion": "DBB-m8-016: pagination test coverage with named tests", "status": "pass" },
+    { "criterion": "DBB-m8-017: streaming test coverage with named tests", "status": "pass" },
+    { "criterion": "DBB-m8-018: ARCHITECTURE.md exists at repo root", "status": "pass" },
+    { "criterion": "DBB-m8-019: ARCHITECTURE.md documents design decisions", "status": "partial" },
+    { "criterion": "DBB-m8-020: ARCHITECTURE.md is readable", "status": "partial" }
+  ]
+}

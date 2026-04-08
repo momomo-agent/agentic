@@ -1,0 +1,13 @@
+{
+  "id": "task-1775571401881",
+  "title": "Output redirection with error source",
+  "description": "cat /missing > /out.txt should return exitCode 1 and NOT create /out.txt. Fix exec() to skip write when source command fails. Add test.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T14:16:41.882Z",
+  "updated": "2026-04-07T14:39:16.082Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775616024082",
+  "title": "Update PRD.md with implemented features status",
+  "description": "Review all PRD gaps in prd.json and update PRD.md to accurately reflect implemented status. Mark features as implemented where code exists: grep -i, wc -l, touch existing file, ls pagination, find -type, rm -r safety, cd-to-file, mkdir error format, rm -r deep nesting. This directly closes the 75%→90% PRD match gap.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": false,
+  "created": "2026-04-08T02:40:24.082Z",
+  "updated": "2026-04-08T02:40:36.158Z"
+}

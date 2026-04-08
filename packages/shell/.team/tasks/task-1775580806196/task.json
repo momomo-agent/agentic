@@ -1,0 +1,13 @@
+{
+  "id": "task-1775580806196",
+  "title": "Enforce vitest coverage gate",
+  "description": "Verify vitest.config.ts has coverage thresholds (≥80% statement, ≥75% branch) and that CI gate is enforced. Confirm 148+ test threshold. DBB-M10-001, DBB-m13-012/013, DBB-m16-004.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T16:53:26.197Z",
+  "updated": "2026-04-07T18:23:49.594Z"
+}

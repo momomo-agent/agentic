@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576245522",
+  "title": "Fix unknown command exit code",
+  "description": "Unknown commands should return exitCode 2, not 127. Fix exitCodeFor() and update exit-codes.test.ts expectation.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-07T15:37:25.522Z",
+  "updated": "2026-04-07T18:10:54.891Z"
+}

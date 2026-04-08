@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576241453",
+  "title": "Fix wc tab-separated output",
+  "description": "wc output must use tabs not spaces: '2\\t3\\t10\\t/file'. Fix wc() formatter and update tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-07T15:37:21.453Z",
+  "updated": "2026-04-07T16:24:52.238Z"
+}

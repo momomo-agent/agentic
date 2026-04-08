@@ -1,0 +1,14 @@
+{
+  "id": "task-1775588562205",
+  "title": "Implement command substitution $(cmd)",
+  "description": "Add support for  and  syntax in command parsing. Before executing a command, recursively evaluate command substitutions and replace with their output. Support nested substitutions up to depth 3. Undefined/failed commands should expand to empty string with error logged. Vision gap: 'Command substitution not implemented — prevents nested command execution'. Acceptance: echo $(pwd) returns cwd, cat $(echo hello) returns hello, nesting up to depth 3 works.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-07T19:02:42.205Z",
+  "updated": "2026-04-08T00:24:16.604Z",
+  "milestoneId": "m27"
+}

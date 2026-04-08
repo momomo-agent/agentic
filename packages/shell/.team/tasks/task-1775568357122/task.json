@@ -1,0 +1,13 @@
+{
+  "id": "task-1775568357122",
+  "title": "Glob pattern support in ls and grep",
+  "description": "Extend glob matching (currently only in find -name) to ls and grep. 'ls *.ts' lists matching files in cwd. 'grep pattern *.ts' searches matching files.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-07T13:25:57.122Z",
+  "updated": "2026-04-07T13:56:33.836Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775538700000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "DBB-003 requires grep -r on a nonexistent path to return an error message. The current AgenticFileSystem.ls() swallows all errors and returns an empty array, making it impossible to distinguish a nonexistent path from an empty directory. This blocks task-1775531299796 (grep enhancement) from passing its quality gate.",
+  "proposedChange": "Define in ARCHITECTURE.md that AgenticFileSystem.ls() must propagate a 'not found' error (or return null) when the path does not exist, so callers can emit UNIX-standard 'No such file or directory' messages. Alternatively, specify an fs.exists() method in the filesystem abstraction interface.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T05:11:00.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.684Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

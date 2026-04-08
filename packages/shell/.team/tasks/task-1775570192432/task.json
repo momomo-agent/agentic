@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570192432",
+  "title": "Verify test coverage gates",
+  "description": "Run coverage report and verify: >=80% statement coverage, >=75% branch coverage, >=148 tests passing. Document results in test-result.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T13:56:32.432Z",
+  "updated": "2026-04-07T14:43:15.708Z",
+  "milestoneId": "m13"
+}

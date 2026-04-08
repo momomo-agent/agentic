@@ -1,0 +1,14 @@
+{
+  "id": "task-1775588110203",
+  "title": "Add rm -r deep nesting safety test",
+  "description": "rmRecursive already uses iterative approach with explicit stack (not recursive). Add test case to verify DBB-rm-007 and DBB-boundary-003: rm -r on 10+ level deep directory tree completes without stack overflow. Acceptance: test case deleting a deeply nested directory structure succeeds.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-07T18:55:10.203Z",
+  "updated": "2026-04-08T00:48:56.437Z",
+  "milestoneId": "m26"
+}

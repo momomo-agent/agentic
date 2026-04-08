@@ -1,0 +1,14 @@
+{
+  "id": "task-1775607159849",
+  "title": "Fix grep streaming for large files consistency",
+  "description": "grepStream is implemented with readStream fallback but only triggered for single non-recursive file; depends on optional fs.readStream interface. PRD gap: 'grep streaming for large files (DBB-boundary-004) — implemented but inconsistent'. Ensure streaming grep works reliably across file-based grep paths and integrates with -i, -l, -c flags. Add test for grep on large simulated file using streaming path. Acceptance: grep on large files uses streaming path, -i/-l/-c flags work with streaming, test passes.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-08T00:12:39.849Z",
+  "updated": "2026-04-08T02:57:26.531Z",
+  "milestoneId": "m26"
+}

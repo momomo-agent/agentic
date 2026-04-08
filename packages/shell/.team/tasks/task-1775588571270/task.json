@@ -1,0 +1,14 @@
+{
+  "id": "task-1775588571270",
+  "title": "Architecture mkdir fallback workaround",
+  "description": "Implement the mkdir .keep fallback workaround documented in ARCHITECTURE.md: when fs.mkdir is not available, use fs.write(path + '/.keep', '') to create directories. Currently mkdirOne() throws 'not supported' instead. Architecture gap: 'missing'. This enables mkdir on filesystems that only support read/write/delete.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-07T19:02:51.270Z",
+  "updated": "2026-04-08T02:14:29.276Z",
+  "milestoneId": "m27"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775558192784",
+  "title": "修复 4 个失败测试",
+  "description": "修复当前测试套件中的 4 个失败测试，包括 DBB-017 resolve() 更新。确保所有 148+ 测试通过。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T10:36:32.784Z",
+  "updated": "2026-04-07T11:11:05.882Z",
+  "milestoneId": "m5"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775588110381",
+  "title": "Add cross-environment consistency tests",
+  "description": "Create test suite verifying shell behavior across browser/Electron/Node environments — covers fs backend differences, path resolution, error format consistency (PRD gap: 'no browser/Electron/Node cross-env test suite')",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-07T18:55:10.381Z",
+  "updated": "2026-04-08T03:01:45.574Z",
+  "milestoneId": "m24"
+}

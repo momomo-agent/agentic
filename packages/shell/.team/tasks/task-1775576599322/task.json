@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576599322",
+  "title": "Fix mkdir error message format",
+  "description": "mkdir without -p when parent missing should return 'mkdir: X: No such file or directory' (UNIX standard). Currently returns non-standard format. Covers DBB-mkdir-003.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-07T15:43:19.322Z",
+  "updated": "2026-04-07T16:24:52.326Z"
+}

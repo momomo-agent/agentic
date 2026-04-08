@@ -1,0 +1,25 @@
+{
+  "milestoneId": "m24",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m24-001: ls pagination page 1 returns first N entries (ls() lines 498-503)", "status": "pass" },
+    { "criterion": "DBB-m24-002: ls pagination page 2 returns next slice (offset calculation: (page-1)*pageSize)", "status": "pass" },
+    { "criterion": "DBB-m24-003: ls --page-size controls entries per page", "status": "pass" },
+    { "criterion": "DBB-m24-004: ls pagination out-of-range returns empty", "status": "pass" },
+    { "criterion": "DBB-m24-005: ls -l with pagination works (long format + pagination)", "status": "pass" },
+    { "criterion": "DBB-m24-006: ls default page size is 20 (line 470)", "status": "pass" },
+    { "criterion": "DBB-m24-007: find -type f returns only files (findRecursive line 707)", "status": "pass" },
+    { "criterion": "DBB-m24-008: find -type d returns only directories", "status": "pass" },
+    { "criterion": "DBB-m24-009: find -type combined with -name works", "status": "pass" },
+    { "criterion": "DBB-m24-010: rm -r refuses root '/' (line 812: `return \"rm: refusing to remove '/'\"`)", "status": "pass" },
+    { "criterion": "DBB-m24-011: rm -r root returns exitCode 1 (error format matches exitCodeFor regex)", "status": "pass" },
+    { "criterion": "DBB-m24-012: cd to file returns 'Not a directory' error (cd() line 733)", "status": "pass" },
+    { "criterion": "DBB-m24-013: Path resolution .. escape prevention — normalizePath stops at root (line 350: `if (stack.length) stack.pop()`)", "status": "pass" },
+    { "criterion": "DBB-m24-014: Path resolution ../ chains work correctly", "status": "pass" },
+    { "criterion": "DBB-m24-015: Path resolution absolute vs relative paths", "status": "pass" },
+    { "criterion": "DBB-m24-016: Path resolution trailing slashes handled", "status": "pass" },
+    { "criterion": "DBB-m24-017: Path resolution dot segments (./) handled", "status": "pass" },
+    { "criterion": "DBB-m24-018: mkdir error format is UNIX-standard (lines 769, 774-776)", "status": "pass" }
+  ]
+}

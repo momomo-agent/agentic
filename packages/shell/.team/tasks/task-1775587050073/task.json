@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587050073",
+  "title": "Add find -type test coverage",
+  "description": "find -type f and -type d filtering is implemented via typeFilter in findRecursive but has zero test coverage. Add tests verifying: -type f returns only files, -type d returns only directories, combined with -name pattern. PRD gap: 'no test coverage'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-07T18:37:30.073Z",
+  "updated": "2026-04-08T01:48:00.637Z",
+  "milestoneId": "m24"
+}

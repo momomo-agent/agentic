@@ -1,0 +1,21 @@
+{
+  "milestoneId": "m12",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m12-001: Exit code 0 on success (cat existing file)", "status": "pass" },
+    { "criterion": "DBB-m12-002: Exit code 1 on error (cat nonexistent file)", "status": "pass" },
+    { "criterion": "DBB-m12-003: Exit code 2 on misuse (unknown command)", "status": "pass" },
+    { "criterion": "DBB-m12-004: Exit code propagated through pipes", "status": "pass" },
+    { "criterion": "DBB-m12-005: Exit code always present in output object", "status": "pass" },
+    { "criterion": "DBB-m12-006: Input redirection grep < file works", "status": "pass" },
+    { "criterion": "DBB-m12-007: Input redirection file not found returns error", "status": "pass" },
+    { "criterion": "DBB-m12-008: Input redirection no match returns empty", "status": "pass" },
+    { "criterion": "DBB-m12-009: Input redirection combined with > output redirect", "status": "pass" },
+    { "criterion": "DBB-m12-010: Glob expansion ls *.ts matches files", "status": "pass" },
+    { "criterion": "DBB-m12-011: Glob expansion no match returns error", "status": "pass" },
+    { "criterion": "DBB-m12-012: Glob expansion with grep command", "status": "pass" },
+    { "criterion": "DBB-m12-013: Glob ? wildcard support", "status": "pass" },
+    { "criterion": "DBB-m12-014: All m12 tests pass (exit-codes-m12, input-redirection-m12, glob-pattern-m12 — 20/20 tests)", "status": "pass" }
+  ]
+}

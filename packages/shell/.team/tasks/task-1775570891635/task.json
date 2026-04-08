@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570891635",
+  "title": "Fix wc output format and empty file count",
+  "description": "wc output uses tabs not spaces (DBB-wc-001). wc on empty file returns '1 0 0' not '0 0 0' (DBB-wc-003). Fix both and add tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-07T14:08:11.635Z",
+  "updated": "2026-04-07T14:28:22.230Z",
+  "milestoneId": "m14"
+}

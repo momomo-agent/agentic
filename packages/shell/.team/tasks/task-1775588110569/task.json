@@ -1,0 +1,14 @@
+{
+  "id": "task-1775588110569",
+  "title": "Add performance benchmarks",
+  "description": "Create automated perf tests: grep <500ms on 1MB file, find <1s on 1000 files, ls <100ms pagination. Gate on test pass (PRD gap: 'no automated perf tests')",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-07T18:55:10.569Z",
+  "updated": "2026-04-08T03:05:27.807Z",
+  "milestoneId": "m26"
+}
