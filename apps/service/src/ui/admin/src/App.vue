@@ -103,6 +103,25 @@
         </div>
       </section>
 
+      <!-- Devices -->
+      <section class="section">
+        <h3 class="section-title">Connected Devices</h3>
+        <div v-if="devices.length === 0" class="empty-state">
+          <div class="empty-icon">📱</div>
+          <p>No devices connected</p>
+          <p class="empty-hint">Connect via companion app to enable remote access</p>
+        </div>
+        <div v-else class="device-list">
+          <div v-for="d in devices" :key="d.id" class="device-card">
+            <div class="device-icon">{{ getDeviceIcon(d.type) }}</div>
+            <div class="device-info">
+              <div class="device-name">{{ d.name || d.id }}</div>
+              <div class="device-meta">{{ d.type }} • {{ d.status }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Examples -->
       <section class="section cta">
         <div class="cta-content">
@@ -123,6 +142,7 @@ const hardware = ref({})
 const ollama = ref({ running: false, models: [] })
 const download = ref({ inProgress: false, model: '', status: '', progress: 0, total: 0 })
 const progress = ref({})
+const devices = ref([])
 
 const recommended = [
   { name: 'gemma2:2b', desc: 'Google, lightweight' },
@@ -159,6 +179,7 @@ async function fetchData() {
     hardware.value = res.hardware || {}
     ollama.value = res.ollama || { running: false, models: [] }
     download.value = res.download || { inProgress: false, model: '', status: '', progress: 0, total: 0 }
+    devices.value = res.devices || []
   } catch {}
 }
 
@@ -233,6 +254,14 @@ function getModelIcon(name) {
   if (name.includes('phi')) return '🧠'
   if (name.includes('mistral')) return '🌊'
   return '🤖'
+}
+
+function getDeviceIcon(type) {
+  if (type === 'ios') return '📱'
+  if (type === 'android') return '🤖'
+  if (type === 'macos') return '💻'
+  if (type === 'windows') return '🖥️'
+  return '📱'
 }
 
 onMounted(() => {
@@ -589,6 +618,73 @@ body {
   line-height: 1.14;
   letter-spacing: 0.196px;
   color: #ffffff;
+}
+
+/* Devices */
+.empty-state {
+  text-align: center;
+  padding: 64px 32px;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.empty-state p {
+  font-size: 17px;
+  color: #86868b;
+  margin: 8px 0;
+}
+
+.empty-hint {
+  font-size: 14px !important;
+  color: #a3a3a3 !important;
+}
+
+.device-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.device-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s;
+}
+
+.device-card:hover {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.device-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.device-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.device-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.374px;
+  color: #1d1d1f;
+  margin-bottom: 4px;
+}
+
+.device-meta {
+  font-size: 13px;
+  color: #86868b;
 }
 
 /* CTA */
