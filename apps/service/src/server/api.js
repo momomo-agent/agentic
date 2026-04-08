@@ -12,7 +12,7 @@ import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
 import { errorHandler } from './middleware.js';
 import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession } from './hub.js';
-import { startWakeWordPipeline } from '../runtime/sense.js';
+// import { startWakeWordPipeline } from '../runtime/sense.js'; // Not needed for basic demos
 
 function getLanIp() {
   for (const ifaces of Object.values(os.networkInterfaces())) {
