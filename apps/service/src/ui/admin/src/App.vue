@@ -122,6 +122,32 @@
         </div>
       </section>
 
+      <!-- Configuration -->
+      <section class="section">
+        <h3 class="section-title">Configuration</h3>
+        <div class="config-card">
+          <form @submit.prevent="saveConfig">
+            <div class="config-group">
+              <label class="config-label">LLM Provider</label>
+              <select v-model="config.llm.provider" class="config-input">
+                <option value="ollama">Ollama (Local)</option>
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+              </select>
+            </div>
+            <div v-if="config.llm.provider !== 'ollama'" class="config-group">
+              <label class="config-label">API Key</label>
+              <input v-model="config.llm.apiKey" type="password" class="config-input" placeholder="sk-...">
+            </div>
+            <div v-if="config.llm.provider !== 'ollama'" class="config-group">
+              <label class="config-label">Base URL</label>
+              <input v-model="config.llm.baseUrl" type="text" class="config-input" placeholder="https://api.openai.com/v1">
+            </div>
+            <button type="submit" class="btn-save">Save Configuration</button>
+          </form>
+        </div>
+      </section>
+
       <!-- Examples -->
       <section class="section cta">
         <div class="cta-content">
@@ -143,6 +169,7 @@ const ollama = ref({ running: false, models: [] })
 const download = ref({ inProgress: false, model: '', status: '', progress: 0, total: 0 })
 const progress = ref({})
 const devices = ref([])
+const config = ref({ llm: { provider: 'ollama', apiKey: '', baseUrl: '' } })
 
 const recommended = [
   { name: 'gemma2:2b', desc: 'Google, lightweight' },
@@ -186,6 +213,26 @@ async function fetchData() {
     download.value = res.download || { inProgress: false, model: '', status: '', progress: 0, total: 0 }
     devices.value = res.devices || []
   } catch {}
+}
+
+async function loadConfig() {
+  try {
+    const res = await fetch('/api/config').then(r => r.json())
+    config.value = res
+  } catch {}
+}
+
+async function saveConfig() {
+  try {
+    await fetch('/api/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config.value)
+    })
+    alert('Configuration saved!')
+  } catch (e) {
+    alert('Failed to save: ' + e.message)
+  }
 }
 
 async function downloadModel(name) {
@@ -272,6 +319,7 @@ function getDeviceIcon(type) {
 onMounted(() => {
   check()
   fetchData()
+  loadConfig()
   timer = setInterval(() => {
     check()
     fetchData()
@@ -690,6 +738,60 @@ body {
 .device-meta {
   font-size: 13px;
   color: #86868b;
+}
+
+/* Configuration */
+.config-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  max-width: 600px;
+}
+
+.config-group {
+  margin-bottom: 24px;
+}
+
+.config-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+}
+
+.config-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.config-input:focus {
+  outline: none;
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+}
+
+.btn-save {
+  width: 100%;
+  padding: 12px 24px;
+  background: #0071e3;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-save:hover {
+  background: #0077ed;
 }
 
 /* CTA */
