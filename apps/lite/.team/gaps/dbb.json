@@ -1,0 +1,15 @@
+{
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "gaps": [
+    { "description": "Multi-round agent loop terminates when stopReason !== 'tool_use'", "status": "implemented", "severity": "critical" },
+    { "description": "file_read/file_write use AgenticFileSystem (browser-compatible, no Node fs)", "status": "implemented", "severity": "critical" },
+    { "description": "code_exec uses quickjs-emscripten (browser-compatible, no new Function with Node deps)", "status": "implemented", "severity": "critical" },
+    { "description": "AgenticResult.images is populated from tool results (not silently dropped)", "status": "implemented", "severity": "critical" },
+    { "description": "systemPrompt is passed to provider system field when provided", "status": "implemented", "severity": "critical" },
+    { "description": "provider='custom' invokes customProvider hook, skips apiKey validation", "status": "implemented", "severity": "critical" },
+    { "description": "Missing or empty apiKey throws before any network call for anthropic/openai providers", "status": "implemented", "severity": "critical" },
+    { "description": "package.json contains publishConfig: { access: 'public' }", "status": "implemented", "severity": "major" },
+    { "description": "README.md contains 'npm install agentic-lite'", "status": "implemented", "severity": "major" }
+  ]
+}

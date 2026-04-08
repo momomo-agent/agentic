@@ -1,0 +1,16 @@
+{
+  "milestoneId": "m25",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "task-1775581632597: ask() with file tools but no config.filesystem does NOT throw", "status": "pass" },
+    { "criterion": "task-1775581632597: file_read and file_write work zero-config", "status": "pass" },
+    { "criterion": "task-1775581632597: Existing tests pass", "status": "pass" },
+    { "criterion": "task-1775581637037: executeShell() in browser returns descriptive error instead of crashing", "status": "pass" },
+    { "criterion": "task-1775581637037: README documents shell_exec as Node.js-only", "status": "pass" },
+    { "criterion": "task-1775581637037: All existing shell tests pass in Node", "status": "pass" },
+    { "criterion": "task-1775581761671: executeSearch() with no apiKey returns graceful error instead of throwing", "status": "pass" },
+    { "criterion": "task-1775581761671: No unhandled rejections from search tool", "status": "pass" },
+    { "criterion": "task-1775581761671: All existing tests pass", "status": "pass" }
+  ]
+}

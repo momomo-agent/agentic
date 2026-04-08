@@ -1,0 +1,14 @@
+{
+  "id": "task-1775615888978",
+  "title": "Create agentic-core package structure",
+  "description": "Create packages/agentic-core/ with package.json, tsconfig, tsup.config. Export core types: Provider, ProviderMessage, ToolDefinition, ProviderToolCall. Set up build pipeline. Acceptance: package builds, types exported.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-08T02:38:08.978Z",
+  "updated": "2026-04-08T03:30:13.478Z",
+  "milestoneId": "m27"
+}

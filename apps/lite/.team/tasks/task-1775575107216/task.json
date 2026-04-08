@@ -1,0 +1,14 @@
+{
+  "id": "task-1775575107216",
+  "title": "Sync PRD.md with actual implementation",
+  "description": "Update PRD.md to accurately describe: code_exec uses quickjs-emscripten sandbox (not AsyncFunction), Python support, shell_exec tool, shellResults in AgenticResult. Addresses PRD gaps (93% match).",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T15:18:27.216Z",
+  "updated": "2026-04-07T15:29:42.685Z",
+  "milestoneId": "m19"
+}

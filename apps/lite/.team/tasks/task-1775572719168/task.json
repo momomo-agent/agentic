@@ -1,0 +1,14 @@
+{
+  "id": "task-1775572719168",
+  "title": "Export shell tool defs from tools/index.ts",
+  "description": "tools/index.ts does not export shellToolDef or executeShell, inconsistent with other tool exports. Add these exports to match the pattern.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T14:38:39.168Z",
+  "updated": "2026-04-07T14:47:34.956Z",
+  "milestoneId": "m16"
+}

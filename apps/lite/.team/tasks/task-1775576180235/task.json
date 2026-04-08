@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576180235",
+  "title": "Provide default in-memory AgenticFileSystem for zero-config usage",
+  "description": "ask() requires users to manually pass a filesystem config, violating the zero-config promise. Provide a default in-memory AgenticFileSystem so ask() works without any filesystem config. Addresses vision gap: no default browser filesystem out of the box.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T15:36:20.235Z",
+  "updated": "2026-04-07T15:50:16.187Z"
+}

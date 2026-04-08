@@ -1,0 +1,14 @@
+{
+  "milestoneId": "m22",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: shell_exec browser stub — no crash", "status": "pass" },
+    { "criterion": "DBB-002: shell_exec browser stub — result shape", "status": "pass" },
+    { "criterion": "DBB-003: shell_exec Node.js — unaffected", "status": "pass" },
+    { "criterion": "DBB-004: Pyodide load failure — graceful error", "status": "pass" },
+    { "criterion": "DBB-005: Pyodide load failure — result shape", "status": "pass" },
+    { "criterion": "DBB-006: Pyodide success path — unaffected", "status": "pass" },
+    { "criterion": "DBB-007: Existing test suite passes", "status": "pass" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570164944",
+  "title": "Export ShellResult from src/index.ts",
+  "description": "ShellResult type is defined in types.ts but not exported from the public API surface (src/index.ts). Add it to the exports.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-07T13:56:04.944Z",
+  "updated": "2026-04-07T14:11:00.608Z",
+  "milestoneId": "m14"
+}

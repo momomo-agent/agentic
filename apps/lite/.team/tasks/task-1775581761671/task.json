@@ -1,0 +1,13 @@
+{
+  "id": "task-1775581761671",
+  "title": "Search tool graceful degradation without API key",
+  "description": "Vision gap (partial): search tool throws when no Tavily/Serper API key is provided. Fix: return a graceful error message instead of throwing, enabling zero-config browser use. Acceptance: search without API key returns descriptive error, all existing tests pass.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-07T17:09:21.672Z",
+  "updated": "2026-04-07T17:21:05.949Z"
+}

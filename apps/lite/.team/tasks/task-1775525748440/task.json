@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525748440",
+  "title": "添加 system prompt 支持",
+  "description": "ask() 接受可选 systemPrompt 参数，传给 provider API 的 system 字段",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-07T01:35:48.440Z",
+  "updated": "2026-04-07T01:52:54.300Z"
+}

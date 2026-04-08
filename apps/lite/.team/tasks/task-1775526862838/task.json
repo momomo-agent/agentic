@@ -1,0 +1,13 @@
+{
+  "id": "task-1775526862838",
+  "title": "修复 provider apiKey 校验",
+  "description": "detectProvider() 在 apiKey 缺失或无效时抛出明确错误，而不是静默 fallthrough",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-07T01:54:22.838Z",
+  "updated": "2026-04-07T02:07:44.240Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775568150743",
+  "title": "Fix AgenticResult.usage type to required",
+  "description": "AgenticResult.usage is typed as optional (usage?) but is always returned. Change to required in types.ts.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T13:22:30.743Z",
+  "updated": "2026-04-07T13:39:38.316Z"
+}

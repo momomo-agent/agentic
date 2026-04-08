@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m6",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: images field populated in AgenticResult", "status": "pass" },
+    { "criterion": "DBB-002: images field is empty array when no images collected", "status": "pass" },
+    { "criterion": "DBB-003: detectProvider throws on missing apiKey", "status": "pass" },
+    { "criterion": "DBB-004: detectProvider throws on invalid apiKey format", "status": "pass" },
+    { "criterion": "DBB-005: All existing tests continue to pass", "status": "pass" }
+  ]
+}

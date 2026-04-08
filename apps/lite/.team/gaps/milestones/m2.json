@@ -1,0 +1,14 @@
+{
+  "milestoneId": "m2",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-014: detectProvider throws on missing apiKey", "status": "pass" },
+    { "criterion": "DBB-015: detectProvider throws on empty string apiKey", "status": "pass" },
+    { "criterion": "DBB-016: detectProvider succeeds with valid apiKey", "status": "pass" },
+    { "criterion": "DBB-017: package.json has publishConfig", "status": "pass" },
+    { "criterion": "DBB-018: README contains npm install instructions", "status": "pass" },
+    { "criterion": "DBB-019: PRD.md exists and covers core features", "status": "pass" },
+    { "criterion": "DBB-020: EXPECTED_DBB.md exists with global criteria", "status": "pass" }
+  ]
+}

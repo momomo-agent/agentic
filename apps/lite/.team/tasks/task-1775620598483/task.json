@@ -1,0 +1,14 @@
+{
+  "id": "task-1775620598483",
+  "title": "Update ARCHITECTURE.md for streaming API",
+  "description": "Update ARCHITECTURE.md to document the new streaming interface in agentic-core and the streaming entry point in agentic-lite. Include Provider.stream() method signature, runAgentLoopStream() behavior, and askStream() usage.",
+  "status": "in_progress",
+  "priority": "P1",
+  "assignee": "architect",
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T03:56:38.483Z",
+  "updated": "2026-04-08T04:49:08.111Z",
+  "milestoneId": "m28"
+}

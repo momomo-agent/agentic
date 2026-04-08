@@ -1,0 +1,13 @@
+{
+  "id": "task-1775526867192",
+  "title": "npm 发布配置与 README 安装说明",
+  "description": "package.json 添加 publishConfig，README 补充 npm install agentic-lite 安装说明",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-07T01:54:27.192Z",
+  "updated": "2026-04-07T02:07:44.271Z"
+}

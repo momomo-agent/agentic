@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m21",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: apiKey optional for custom provider", "status": "pass" },
+    { "criterion": "DBB-002: apiKey still required for anthropic provider", "status": "pass" },
+    { "criterion": "DBB-003: apiKey still required for openai provider", "status": "pass" },
+    { "criterion": "DBB-004: README documents images as required field", "status": "pass" },
+    { "criterion": "DBB-005: All existing tests pass", "status": "pass" }
+  ]
+}

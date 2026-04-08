@@ -1,0 +1,13 @@
+{
+  "id": "task-1775528295380",
+  "title": "修复多轮工具循环",
+  "description": "修复 ask.ts 中工具循环逻辑，支持最多 MAX_TOOL_ROUNDS 轮工具调用，而非强制在第一轮后返回",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T02:18:15.381Z",
+  "updated": "2026-04-07T02:35:52.713Z"
+}

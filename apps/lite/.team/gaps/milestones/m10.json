@@ -1,0 +1,11 @@
+{
+  "milestoneId": "m10",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "provider='custom' with only baseUrl set (no apiKey, no customProvider) does not throw", "status": "pass" },
+    { "criterion": "provider='custom' with customProvider hook still works as before", "status": "pass" },
+    { "criterion": "PRD.md documents code_exec sandbox as quickjs-emscripten (not AsyncFunction eval)", "status": "pass" },
+    { "criterion": "All existing tests pass (107/107)", "status": "pass" }
+  ]
+}

@@ -1,0 +1,288 @@
+{
+  "milestones": [
+    {
+      "id": "m1",
+      "name": "Core Agentic Loop & Correctness",
+      "status": "completed",
+      "tasks": [
+        "task-1775525637055",
+        "task-1775525637091",
+        "task-1775525637125",
+        "task-1775525744093",
+        "task-1775525748440",
+        "task-1775525816399"
+      ]
+    },
+    {
+      "id": "m2",
+      "name": "Provider Robustness & Package Release",
+      "status": "completed",
+      "tasks": [
+        "task-1775526862838",
+        "task-1775526867192",
+        "task-1775526873714",
+        "task-1775526877132"
+      ]
+    },
+    {
+      "id": "m3",
+      "name": "Code Sandbox & Quality Gates",
+      "status": "completed",
+      "tasks": [
+        "task-1775527461751",
+        "task-1775527727136"
+      ]
+    },
+    {
+      "id": "m4",
+      "name": "Agentic Loop Correctness & System Prompt",
+      "status": "completed",
+      "tasks": [
+        "task-1775528295380",
+        "task-1775528302103",
+        "task-1775528309091",
+        "task-1775528309123"
+      ]
+    },
+    {
+      "id": "m5",
+      "name": "Test Coverage & Integration Verification",
+      "status": "completed",
+      "tasks": [
+        "task-1775529644164",
+        "task-1775529723367"
+      ]
+    },
+    {
+      "id": "m6",
+      "name": "Custom Provider Bug Fix & Test Suite Recovery",
+      "status": "completed",
+      "tasks": [
+        "task-1775530933189",
+        "task-1775530596867",
+        "task-1775530614268"
+      ]
+    },
+    {
+      "id": "m7",
+      "name": "Multi-Round Tool Loop & Code Sandbox Upgrade",
+      "status": "completed",
+      "tasks": [
+        "task-1775530939117",
+        "task-1775532498831"
+      ]
+    },
+    {
+      "id": "m8",
+      "name": "Code Execution Expansion & Shell Tool",
+      "status": "completed",
+      "tasks": [
+        "task-1775534038627",
+        "task-1775534038662",
+        "task-1775534038696",
+        "task-1775537901346"
+      ]
+    },
+    {
+      "id": "m9",
+      "name": "README Fix, PRD Sync & DBB Verification",
+      "status": "completed",
+      "tasks": [
+        "task-1775539588263",
+        "task-1775539719830",
+        "task-1775539726284"
+      ]
+    },
+    {
+      "id": "m10",
+      "name": "PRD Compliance — code_exec & Custom Provider",
+      "status": "completed",
+      "tasks": [
+        "task-1775559019099",
+        "task-1775559026329",
+        "task-1775562222342"
+      ]
+    },
+    {
+      "id": "m11",
+      "name": "README Expansion & Type Completeness",
+      "status": "completed",
+      "tasks": [
+        "task-1775564683082",
+        "task-1775564688602"
+      ]
+    },
+    {
+      "id": "m12",
+      "name": "Public API Surface & Architecture Spec",
+      "status": "completed",
+      "tasks": [
+        "task-1775565504597",
+        "task-1775565517510",
+        "task-1775565533987",
+        "task-1775566483597"
+      ]
+    },
+    {
+      "id": "m13",
+      "name": "Type Correctness & README API Docs",
+      "status": "completed",
+      "tasks": [
+        "task-1775568150743",
+        "task-1775568160405",
+        "task-1775568160446",
+        "task-1775568160484"
+      ]
+    },
+    {
+      "id": "m14",
+      "name": "Public API Completeness & Type Correctness",
+      "status": "completed",
+      "tasks": [
+        "task-1775570146832",
+        "task-1775570164944",
+        "task-1775570164983",
+        "task-1775570165055"
+      ]
+    },
+    {
+      "id": "m15",
+      "name": "ARCHITECTURE.md & Type Correctness",
+      "status": "completed",
+      "tasks": [
+        "task-1775571287973",
+        "task-1775571299863",
+        "task-1775571299895"
+      ]
+    },
+    {
+      "id": "m16",
+      "name": "Public API Exports & Provider Docs",
+      "status": "completed",
+      "tasks": [
+        "task-1775572706464",
+        "task-1775572719168",
+        "task-1775572728626"
+      ]
+    },
+    {
+      "id": "m17",
+      "name": "PRD CR Resolution & Final Sync",
+      "status": "completed",
+      "tasks": [
+        "task-1775573582938"
+      ]
+    },
+    {
+      "id": "m18",
+      "name": "README Docs & PRD Final Sync",
+      "status": "completed",
+      "tasks": [
+        "task-1775574241209",
+        "task-1775574256272",
+        "task-1775574256304"
+      ]
+    },
+    {
+      "id": "m19",
+      "name": "README API Docs & PRD Final Sync",
+      "status": "completed",
+      "tasks": [
+        "task-1775575092194",
+        "task-1775575107216"
+      ]
+    },
+    {
+      "id": "m20",
+      "name": "Browser Compatibility & Zero-Config Filesystem",
+      "status": "completed",
+      "tasks": [
+        "task-1775576173074",
+        "task-1775576180235",
+        "task-1775576186964"
+      ]
+    },
+    {
+      "id": "m21",
+      "name": "Final Type & Docs Polish",
+      "status": "completed",
+      "tasks": [
+        "task-1775577227989",
+        "task-1775577233513"
+      ]
+    },
+    {
+      "id": "m22",
+      "name": "Vision Gap Closure — Browser Shell & Pyodide Resilience",
+      "status": "completed",
+      "tasks": [
+        "task-1775578831381",
+        "task-1775578836813"
+      ]
+    },
+    {
+      "id": "m23",
+      "name": "Zero-Config Default Browser Filesystem",
+      "status": "completed",
+      "tasks": [
+        "task-1775579577117",
+        "task-1775579679306",
+        "task-1775580346381"
+      ]
+    },
+    {
+      "id": "m24",
+      "name": "README Type Accuracy & Final Gap Closure",
+      "status": "completed",
+      "tasks": [
+        "task-1775581032171"
+      ]
+    },
+    {
+      "id": "m25",
+      "name": "Vision Gap Closure — Final 18%",
+      "status": "completed",
+      "tasks": [
+        "task-1775581632597",
+        "task-1775581637037",
+        "task-1775581761671"
+      ]
+    },
+    {
+      "id": "m26",
+      "name": "Final Gap Verification & README Type Fix",
+      "status": "completed",
+      "tasks": [
+        "task-1775583094060"
+      ]
+    },
+    {
+      "id": "m27",
+      "name": "agentic-core Extraction — Close Critical Vision Gap",
+      "status": "completed",
+      "tasks": [
+        "task-1775615888978",
+        "task-1775615923116",
+        "task-1775613090477",
+        "task-1775615948444",
+        "task-1775615948484",
+        "task-1775619047998",
+        "task-1775619570532",
+        "task-1775619938776"
+      ]
+    },
+    {
+      "id": "m28",
+      "name": "Streaming & Timeout Enforcement — Final Vision Gaps",
+      "status": "active",
+      "tasks": [
+        "task-1775620573568",
+        "task-1775620587853",
+        "task-1775620592995",
+        "task-1775620598483",
+        "task-1775620603459",
+        "task-1775622465587"
+      ]
+    }
+  ]
+}

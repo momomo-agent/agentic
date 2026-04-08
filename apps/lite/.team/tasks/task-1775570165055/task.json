@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570165055",
+  "title": "Document custom provider silent fallback behavior",
+  "description": "When provider='custom' and customProvider is absent but baseUrl is set, code silently falls back to createOpenAIProvider. Document this behavior in README or JSDoc.",
+  "status": "done",
+  "priority": "P2",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-07T13:56:05.055Z",
+  "updated": "2026-04-07T14:11:00.669Z",
+  "milestoneId": "m14"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525816399",
+  "title": "实现 custom provider 支持",
+  "description": "createProvider() 对 provider='custom' 时调用用户传入的 customProvider hook，而不是 fallthrough 到 openai。AgenticConfig 已声明该字段，需补全实现。",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-07T01:36:56.399Z",
+  "updated": "2026-04-07T01:53:03.614Z"
+}

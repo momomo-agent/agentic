@@ -1,0 +1,14 @@
+{
+  "id": "task-1775572706464",
+  "title": "Export ShellResult from public API",
+  "description": "src/index.ts is missing ShellResult export. Add it to the public API surface so consumers can import it from the package root.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T14:38:26.464Z",
+  "updated": "2026-04-07T14:47:34.924Z",
+  "milestoneId": "m16"
+}

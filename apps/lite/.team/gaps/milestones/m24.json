@@ -1,0 +1,9 @@
+{
+  "milestoneId": "m24",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: AgenticResult.images documented as required in README", "status": "pass" },
+    { "criterion": "DBB-002: No regression on existing tests", "status": "pass" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775572900000",
+  "from": "tech_lead",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Custom provider fallback behavior (baseUrl without customProvider falls back to OpenAI-compatible adapter) is undocumented. Consumers need to know this to use the feature correctly.",
+  "proposedChange": "In the 'Provider Resolution / Custom Provider Fallback' section, add: when customProvider is absent but baseUrl is set, createProvider falls back to createOpenAIProvider(baseUrl, apiKey, model). Also update README.md with a usage example showing this pattern.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T14:41:36.614Z",
+  "reviewedAt": "2026-04-08T01:41:51.597Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

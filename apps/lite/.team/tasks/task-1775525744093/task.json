@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525744093",
+  "title": "修复 images 字段丢失",
+  "description": "ask.ts final-response 分支里把 allImages 加入返回值，修复 AgenticResult.images 静默丢失",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-07T01:35:44.093Z",
+  "updated": "2026-04-07T01:52:44.901Z"
+}

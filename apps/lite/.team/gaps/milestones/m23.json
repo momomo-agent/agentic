@@ -1,0 +1,13 @@
+{
+  "milestoneId": "m23",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: Zero-config file_read/file_write works", "status": "pass" },
+    { "criterion": "DBB-002: Default filesystem is in-memory and browser-compatible", "status": "pass" },
+    { "criterion": "DBB-003: Explicit filesystem still works", "status": "pass" },
+    { "criterion": "DBB-004: README documents filesystem as optional", "status": "pass" },
+    { "criterion": "DBB-005: provider='custom' skips apiKey validation", "status": "pass" },
+    { "criterion": "DBB-006: Missing apiKey throws for anthropic/openai before network call", "status": "pass" }
+  ]
+}

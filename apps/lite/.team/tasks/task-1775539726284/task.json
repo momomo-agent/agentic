@@ -1,0 +1,13 @@
+{
+  "id": "task-1775539726284",
+  "title": "Verify all EXPECTED_DBB.md criteria pass",
+  "description": "Run full test suite and manually verify each criterion in EXPECTED_DBB.md passes. Fix any failing criteria. Criteria include: multi-round loop, filesystem tools, images field, systemPrompt, custom provider, apiKey validation, publishConfig, README install instructions.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m9",
+  "hasDesign": true,
+  "created": "2026-04-07T05:28:46.284Z",
+  "updated": "2026-04-07T11:30:53.705Z"
+}

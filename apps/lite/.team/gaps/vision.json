@@ -1,0 +1,76 @@
+{
+  "match": 100,
+  "timestamp": "2026-04-08T19:00:00.000Z",
+  "gaps": [
+    {
+      "description": "Streaming support: vision lists streaming as part of agentic-core's responsibility. askStream() async generator fully implemented in ask.ts, exported from index.ts, delegates to runAgentLoopStream from agentic-core.",
+      "status": "implemented",
+      "severity": "major"
+    },
+    {
+      "description": "toolConfig.code.timeout enforced in code.ts executeCode — timeout passed through from ask.ts handleToolCall to executeCode via config.toolConfig?.code?.timeout.",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Vision mandates agentic-lite = agentic-core (LLM loop) + agentic-filesystem + agentic-shell. agentic-core dependency now exists via packages/agentic-core (link:). All providers and agent loop delegated to agentic-core.",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "ask.ts is now 99 lines (薄层 design principle met: < 100 lines). Acts as integration layer connecting agentic-core loop with tool implementations.",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Provider layer fully delegated to agentic-core. src/providers/ deleted. All imports (createProvider, Provider, ToolDefinition) come from agentic-core package.",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Browser-side AI agent SDK — single ask() function with tool-use loop fully implemented",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "file_read / file_write via agentic-filesystem — zero-config MemoryStorage default, browser virtual filesystem support",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "code_exec in browser sandbox — QuickJS async sandbox with fs injection for JavaScript, auto-detects language, Python via Pyodide (browser) and python3 (Node)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "True multi-round agent loop — MAX_TOOL_ROUNDS=10 loop, agent can continuously call tools until task completion",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "shell_exec (Node-only) with browser guard — adds Node capability without breaking browser users, uses agentic-shell",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "web_search tool supports Tavily and Serper providers with image results",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Browser compatibility — no Node.js static dependencies, all platform-specific code uses dynamic import with guards",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Public API exports complete: ask, AgenticConfig, AgenticResult, Provider, ToolName, Source, CodeResult, FileResult, ShellResult, ToolCall from src/index.ts",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "No heavy frameworks — no chain/graph/memory abstractions, no deploy platform, no heavy runtime dependency",
+      "status": "implemented",
+      "severity": "minor"
+    }
+  ]
+}

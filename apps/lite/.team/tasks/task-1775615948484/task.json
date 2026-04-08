@@ -1,0 +1,15 @@
+{
+  "id": "task-1775615948484",
+  "title": "Verify all tests pass after agentic-core extraction",
+  "description": "After refactoring, run the full test suite to verify nothing broke. All 107 tests must pass. If any tests fail, fix them. Acceptance: vitest reports 107/107 passing.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [
+    "task-1775619047998"
+  ],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-08T02:39:08.485Z",
+  "updated": "2026-04-08T03:39:26.144Z"
+}

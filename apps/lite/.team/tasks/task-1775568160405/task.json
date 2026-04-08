@@ -1,0 +1,13 @@
+{
+  "id": "task-1775568160405",
+  "title": "Fix ask() systemPrompt positional param",
+  "description": "Architecture spec shows systemPrompt as 3rd positional param but implementation places it differently. Align signature to match spec.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T13:22:40.405Z",
+  "updated": "2026-04-07T13:40:23.502Z"
+}

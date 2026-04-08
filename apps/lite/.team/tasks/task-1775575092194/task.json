@@ -1,0 +1,14 @@
+{
+  "id": "task-1775575092194",
+  "title": "Expand README with API docs and usage examples",
+  "description": "Add quick start guide, full API reference (ask(), AgenticConfig, AgenticResult), and tool descriptions to README.md. Addresses vision gap: README missing API documentation.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tech_lead-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T15:18:12.195Z",
+  "updated": "2026-04-07T15:29:42.644Z",
+  "milestoneId": "m19"
+}

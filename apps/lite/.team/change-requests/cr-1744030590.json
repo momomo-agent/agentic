@@ -1,0 +1,14 @@
+{
+  "id": "cr-1744030590",
+  "from": "tech_lead",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "The custom provider fallback path (provider='custom' + baseUrl → createOpenAIProvider) is undocumented, causing confusion for users and developers.",
+  "proposedChange": "Add a 'Custom Provider Fallback' subsection documenting the three-step resolution: (1) customProvider set → use directly, (2) baseUrl set → fall back to OpenAI-compatible adapter, (3) neither → throw error.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T12:56:30.160Z",
+  "reviewedAt": "2026-04-08T01:41:51.595Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

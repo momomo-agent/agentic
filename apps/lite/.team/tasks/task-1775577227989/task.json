@@ -1,0 +1,13 @@
+{
+  "id": "task-1775577227989",
+  "title": "Make apiKey optional for custom provider in AgenticConfig",
+  "description": "AgenticConfig.apiKey is typed as required string, forcing custom provider callers to pass a dummy value. Change apiKey to optional (apiKey?: string) in types.ts. Addresses PRD partial gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T15:53:47.990Z",
+  "updated": "2026-04-07T16:18:10.192Z"
+}

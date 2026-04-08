@@ -1,0 +1,13 @@
+{
+  "id": "task-1775619938776",
+  "title": "Trim ask.ts to under 100 lines",
+  "description": "ask.ts is currently 115 lines. The vision mandates < 100 lines as an integration layer. Reduce by: (1) Remove the Accumulators interface — inline the type directly into handleToolCall's parameter, (2) Remove unnecessary blank lines, (3) Keep all functionality intact. Target: ≤ 99 lines. Acceptance: wc -l src/ask.ts reports ≤ 99, all 174 tests still pass.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-08T03:45:38.776Z",
+  "updated": "2026-04-08T03:53:21.085Z"
+}

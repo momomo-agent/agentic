@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m16",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "ShellResult importable from package root", "status": "pass" },
+    { "criterion": "shellToolDef and executeShell exported from src/tools/index.ts", "status": "pass" },
+    { "criterion": "ARCHITECTURE.md documents custom provider fallback", "status": "pass" },
+    { "criterion": "README documents custom provider fallback with usage example", "status": "pass" },
+    { "criterion": "npm test passes with no regressions", "status": "pass" }
+  ]
+}

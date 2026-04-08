@@ -1,0 +1,13 @@
+{
+  "id": "task-1775619570532",
+  "title": "Remove src/providers/ dead code — switch imports to agentic-core",
+  "description": "After agentic-core integration, src/providers/ is dead code. Must clean up:\n1. src/index.ts: change createProvider and Provider exports from './providers/index.js' to 'agentic-core'\n2. src/types.ts: change Provider import from './providers/index.js' to 'agentic-core'\n3. src/tools/shell.ts, code.ts, file.ts, search.ts: change ToolDefinition import from '../providers/provider.js' to 'agentic-core'\n4. Delete src/providers/ directory entirely\n5. Run full test suite — all 174 tests must pass\nAcceptance: src/providers/ deleted, all imports point to agentic-core, tests pass",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-08T03:39:30.532Z",
+  "updated": "2026-04-08T03:47:49.559Z"
+}

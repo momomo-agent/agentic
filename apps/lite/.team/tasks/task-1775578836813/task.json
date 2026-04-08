@@ -1,0 +1,13 @@
+{
+  "id": "task-1775578836813",
+  "title": "Pyodide CDN load failure graceful handling",
+  "description": "Pyodide is dynamically imported from CDN. If the CDN load fails (offline/CSP), the error is unhandled. Wrap the dynamic import in try/catch and throw a descriptive AgenticError. Addresses vision partial gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m22",
+  "hasDesign": true,
+  "created": "2026-04-07T16:20:36.813Z",
+  "updated": "2026-04-07T16:30:13.138Z"
+}

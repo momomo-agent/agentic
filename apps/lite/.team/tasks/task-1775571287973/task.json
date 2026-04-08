@@ -1,0 +1,14 @@
+{
+  "id": "task-1775571287973",
+  "title": "Create ARCHITECTURE.md",
+  "description": "Document module structure, interfaces, and data flow. Cover: ask.ts agentic loop, provider abstraction layer, tool system (search/code/file/shell), types, multi-round loop, rawContent replay. This is a P0 gap — no ARCHITECTURE.md exists.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T14:14:47.973Z",
+  "updated": "2026-04-07T14:34:09.869Z",
+  "milestoneId": "m15"
+}

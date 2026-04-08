@@ -1,0 +1,19 @@
+{
+  "id": "task-1775620603459",
+  "title": "Add tests for streaming and timeout",
+  "description": "Write tests for the new streaming API (runAgentLoopStream, askStream) and timeout enforcement (Promise.race in executeCode). Ensure streaming yields chunks correctly, timeout throws descriptive error, and backward compatibility of non-streaming ask() is maintained.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [
+    "task-1775620573568",
+    "task-1775620587853",
+    "task-1775620592995",
+    "task-1775624807693"
+  ],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T03:56:43.459Z",
+  "updated": "2026-04-08T05:21:25.774Z",
+  "milestoneId": "m28"
+}

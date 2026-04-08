@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527461751",
+  "title": "升级 code_exec 沙箱",
+  "description": "用 quickjs-emscripten 替换 new Function() eval，实现浏览器兼容的隔离沙箱",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m3",
+  "hasDesign": true,
+  "created": "2026-04-07T02:04:21.751Z",
+  "updated": "2026-04-07T02:27:23.910Z"
+}

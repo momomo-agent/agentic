@@ -1,0 +1,16 @@
+{
+  "milestoneId": "m11",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "README.md contains ask() function signature with all parameters documented", "status": "pass" },
+    { "criterion": "All tools documented: code_exec, shell_exec, file_read, file_write, search", "status": "pass" },
+    { "criterion": "Provider config table covers all AgenticConfig fields", "status": "pass" },
+    { "criterion": "At least one working usage example per tool", "status": "pass" },
+    { "criterion": "Installation and quick-start sections present", "status": "pass" },
+    { "criterion": "AgenticResult.shellResults field exists in src/types.ts", "status": "pass" },
+    { "criterion": "Type is ShellResult[] matching ShellResult interface in src/tools/shell.ts", "status": "pass" },
+    { "criterion": "ShellResult fields: command: string, output: string, error?: string, exitCode: number", "status": "pass" },
+    { "criterion": "No duplicate ShellResult definition (types.ts and shell.ts consistent)", "status": "pass" }
+  ]
+}

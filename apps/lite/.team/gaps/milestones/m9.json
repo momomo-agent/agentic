@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m9",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "README.md contains 'npm install agentic-lite' (not agentic-core)", "status": "pass" },
+    { "criterion": "README.md does not contain rename notice pointing to agentic-core", "status": "pass" },
+    { "criterion": "PRD.md documents shell_exec tool", "status": "pass" },
+    { "criterion": "PRD.md documents Python support in code_exec", "status": "pass" },
+    { "criterion": "All criteria in EXPECTED_DBB.md pass (test suite green)", "status": "pass" }
+  ]
+}

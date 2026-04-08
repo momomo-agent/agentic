@@ -1,0 +1,14 @@
+{
+  "id": "task-1775532498831",
+  "title": "Upgrade code_exec to quickjs-emscripten sandbox",
+  "description": "Replace new Function() eval in code.ts with quickjs-emscripten for true browser-compatible isolated sandbox. Architecture gap: code_exec uses eval-equivalent with no real isolation.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-07T03:28:18.831Z",
+  "updated": "2026-04-07T03:53:48.256Z",
+  "milestoneId": "m7"
+}

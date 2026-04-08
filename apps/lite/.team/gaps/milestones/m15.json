@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m15",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "ARCHITECTURE.md exists covering module structure, interfaces, data flow, provider resolution, tool system, multi-round loop", "status": "pass" },
+    { "criterion": "src/types.ts AgenticResult.usage is required (no ?)", "status": "pass" },
+    { "criterion": "src/types.ts AgenticResult.images is string[] (no undefined union)", "status": "pass" },
+    { "criterion": "PRD.md AgenticResult section includes shellResults field", "status": "pass" },
+    { "criterion": "All existing tests pass", "status": "pass" }
+  ]
+}

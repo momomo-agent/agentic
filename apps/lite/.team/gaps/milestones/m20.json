@@ -1,0 +1,13 @@
+{
+  "milestoneId": "m20",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: shell_exec excluded in browser environments", "status": "pass" },
+    { "criterion": "DBB-002: shell_exec works normally in Node.js", "status": "pass" },
+    { "criterion": "DBB-003: ask() works without filesystem config (zero-config)", "status": "pass" },
+    { "criterion": "DBB-004: Explicit filesystem config still works", "status": "pass" },
+    { "criterion": "DBB-005: README documents Pyodide CDN requirement", "status": "pass" },
+    { "criterion": "DBB-006: README provides offline/CSP workaround guidance", "status": "pass" }
+  ]
+}

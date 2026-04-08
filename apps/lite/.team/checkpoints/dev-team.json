@@ -1,0 +1,29 @@
+{
+  "workflowId": "dev-team",
+  "nodeId": "work_loop",
+  "stepIndex": 3,
+  "visitedNodes": [
+    "startup",
+    "monitor",
+    "pm_decide",
+    "work_loop",
+    "work_loop",
+    "work_loop"
+  ],
+  "loopIterations": {
+    "work_loop": 9
+  },
+  "transitionDepth": 6,
+  "nodeVisitCounts": {
+    "startup": 1,
+    "monitor": 1,
+    "pm_decide": 1,
+    "work_loop": 3
+  },
+  "contextOverrides": {
+    "lastAgentSignal": "blocked",
+    "agentEscalated": 0,
+    "agentBlocked": 1
+  },
+  "timestamp": "2026-04-08T05:47:01.297Z"
+}

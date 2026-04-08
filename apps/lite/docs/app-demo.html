@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>agentic-lite + agentic-render demo</title>
+  <script type="importmap">
+  {
+    "imports": {
+      "agentic-core": "/agentic-core/agentic-core.js",
+      "agentic-shell": "/agentic-shell/dist/index.js"
+    }
+  }
+  </script>
+  <script src="./agentic-render.js"></script>
+  <style>
+    body { font-family: system-ui; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #0d0d0d; color: #e0e0e0; }
+    h1 { font-size: 18px; font-weight: 600; margin-bottom: 24px; }
+    .row { display: flex; gap: 8px; margin-bottom: 16px; }
+    input { flex: 1; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; padding: 8px 12px; font-size: 13px; border-radius: 4px; }
+    textarea { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #e0e0e0; padding: 8px 12px; font-size: 13px; border-radius: 4px; resize: vertical; box-sizing: border-box; }
+    button { background: #fbbf24; color: #000; border: none; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 4px; cursor: pointer; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    #output { margin-top: 24px; min-height: 100px; }
+    .tool-call { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 8px 12px; margin: 8px 0; font-size: 12px; font-family: monospace; color: #888; }
+    .tool-call .name { color: #fbbf24; }
+    .tool-call .result { color: #34d399; }
+  </style>
+</head>
+<body>
+  <h1>⚡ agentic-lite + agentic-render <span id="pyodide-status" style="font-size: 12px; color: #888;">Python ⏳</span></h1>
+  <div class="row">
+    <input id="key" placeholder="API key" />
+  </div>
+  <div class="row">
+    <input id="baseurl" placeholder="Base URL (e.g. https://api.xiaomimimo.com/anthropic)" value="https://api.xiaomimimo.com/anthropic" />
+  </div>
+  <div class="row">
+    <input id="model" placeholder="Model (e.g. mimo-v2-pro)" value="mimo-v2-pro" />
+  </div>
+  <div class="row">
+    <textarea id="prompt" rows="3" placeholder="输入任务，例如：写一首关于代码的诗，然后统计字数">写一首关于代码的诗，然后用 code_exec 统计字数</textarea>
+  </div>
+  <div class="row">
+    <button id="run">运行</button>
+  </div>
+  <div id="tool-calls"></div>
+  <div id="output"></div>
+
+  <script type="module">
+    import { AgenticFileSystem, MemoryStorage, askStream } from './dist/index.js'
+
+    // Preload Pyodide in background
+    const pyodideStatus = document.getElementById('pyodide-status')
+    ;(async () => {
+      try {
+        const script = document.createElement('script')
+        script.src = 'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js'
+        document.head.appendChild(script)
+        await new Promise((resolve, reject) => { script.onload = resolve; script.onerror = reject })
+        const py = await window.loadPyodide()
+        await py.loadPackage('micropip')
+        await py.pyimport('micropip').install(['numpy', 'matplotlib'])
+        window.__pyodideInstance = py
+        pyodideStatus.textContent = 'Python ✅'
+      } catch { pyodideStatus.textContent = 'Python ❌' }
+    })()
+
+    const btn = document.getElementById('run')
+    const toolCallsEl = document.getElementById('tool-calls')
+
+    btn.addEventListener('click', async () => {
+      const apiKey = document.getElementById('key').value.trim()
+      const baseUrl = document.getElementById('baseurl').value.trim()
+      const model = document.getElementById('model').value.trim()
+      const prompt = document.getElementById('prompt').value.trim()
+      if (!apiKey || !prompt) return
+
+      btn.disabled = true
+      toolCallsEl.innerHTML = ''
+
+      const outputEl = document.getElementById('output')
+      outputEl.innerHTML = ''
+      const renderer = AgenticRender.create(outputEl)
+
+      const filesystem = new AgenticFileSystem({ storage: new MemoryStorage() })
+
+      try {
+        for await (const chunk of askStream(prompt, {
+          apiKey,
+          baseUrl: baseUrl || 'https://api.xiaomimimo.com/anthropic',
+          model: model || 'mimo-v2-pro',
+          provider: 'anthropic',
+          tools: ['file', 'code'],
+          filesystem,
+        })) {
+          if (chunk.type === 'text') {
+            renderer.append(chunk.text)
+          } else if (chunk.type === 'tool_call') {
+            const div = document.createElement('div')
+            div.className = 'tool-call'
+            div.innerHTML = `<span class="name">${chunk.name}</span>(${JSON.stringify(chunk.input).slice(0, 80)})`
+            toolCallsEl.appendChild(div)
+          } else if (chunk.type === 'tool_result') {
+            const last = toolCallsEl.lastElementChild
+            if (last) last.innerHTML += ` → <span class="result">${String(chunk.output).slice(0, 100)}</span>`
+          }
+        }
+      } catch (err) {
+        outputEl.textContent = `Error: ${err.message}`
+      } finally {
+        btn.disabled = false
+      }
+    })
+  </script>
+</body>
+</html>

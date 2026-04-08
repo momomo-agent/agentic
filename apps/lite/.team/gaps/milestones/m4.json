@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m4",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "ask.ts loops up to MAX_TOOL_ROUNDS before throwing", "status": "pass" },
+    { "criterion": "AgenticResult.images populated in all code paths including final-response branch", "status": "pass" },
+    { "criterion": "AgenticConfig.systemPrompt passed to provider.chat() as system argument", "status": "pass" },
+    { "criterion": "createProvider with provider='custom' uses config.customProvider", "status": "pass" },
+    { "criterion": "All four tasks have passing tests", "status": "pass" }
+  ]
+}

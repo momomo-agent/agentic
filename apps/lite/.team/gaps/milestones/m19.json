@@ -1,0 +1,18 @@
+{
+  "milestoneId": "m19",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: README contains 'npm install agentic-lite'", "status": "pass" },
+    { "criterion": "DBB-002: README quick start example with ask() usage", "status": "pass" },
+    { "criterion": "DBB-003: README API reference — ask(prompt, config) signature", "status": "pass" },
+    { "criterion": "DBB-004: README AgenticConfig interface — all fields documented", "status": "pass" },
+    { "criterion": "DBB-005: README AgenticResult interface — all fields documented", "status": "pass" },
+    { "criterion": "DBB-006: README tool descriptions — all 4 tools", "status": "pass" },
+    { "criterion": "DBB-007: PRD describes code_exec sandbox accurately (quickjs-emscripten, browser-compatible)", "status": "pass" },
+    { "criterion": "DBB-008: PRD describes shell_exec tool", "status": "pass" },
+    { "criterion": "DBB-009: PRD describes Python support", "status": "pass" },
+    { "criterion": "DBB-010: PRD documents shellResults in AgenticResult", "status": "pass" },
+    { "criterion": "DBB-011: Global criteria — README contains 'npm install agentic-lite'", "status": "pass" }
+  ]
+}

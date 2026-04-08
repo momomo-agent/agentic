@@ -1,0 +1,14 @@
+{
+  "milestoneId": "m17",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "cr-1775560282316 status is approved", "status": "pass" },
+    { "criterion": "cr-1775571299895 status is approved", "status": "pass" },
+    { "criterion": "PRD.md Tools section includes shell_exec entry", "status": "pass" },
+    { "criterion": "PRD.md code_exec entry references quickjs-emscripten sandbox and Python/Pyodide support", "status": "pass" },
+    { "criterion": "PRD.md AgenticResult schema includes shellResults?: ShellResult[]", "status": "pass" },
+    { "criterion": "Tasks unblocked (no pending CR dependencies)", "status": "pass" },
+    { "criterion": "PRD match score >= 95%", "status": "pass" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775620592995",
+  "title": "Enforce toolConfig.code.timeout in executeCode",
+  "description": "Wire toolConfig.code.timeout into executeCode in src/tools/code.ts. Currently the timeout field is declared in types.ts but never enforced. Use Promise.race() or AbortController to enforce timeout for QuickJS (browser), Pyodide (browser), and python3 subprocess (Node). Throw descriptive error on timeout.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T03:56:32.995Z",
+  "updated": "2026-04-08T04:23:33.271Z",
+  "milestoneId": "m28"
+}

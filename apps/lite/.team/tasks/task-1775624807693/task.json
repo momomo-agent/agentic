@@ -1,0 +1,13 @@
+{
+  "id": "task-1775624807693",
+  "title": "Fix askStream() to use runAgentLoopStream instead of legacy agenticAsk",
+  "description": "askStream() in src/ask.ts delegates to legacy agenticAsk which doesn't support customProvider or runAgentLoopStream. Need to rewrite askStream() to use runAgentLoopStream from agentic-core. Also fix agentic-core build to export runAgentLoopStream properly. Tester found 10/12 ask-stream tests fail because mock providers are ignored.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T05:06:47.693Z",
+  "updated": "2026-04-08T05:22:31.630Z"
+}

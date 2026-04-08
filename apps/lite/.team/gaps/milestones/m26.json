@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m26",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: AgenticResult.images type in README is required (not optional)", "status": "pass" },
+    { "criterion": "DBB-002: shell_exec Node-only constraint is documented", "status": "pass" },
+    { "criterion": "DBB-003: Zero-config default filesystem is documented", "status": "pass" },
+    { "criterion": "DBB-004: AgenticResult.images is populated from tool results", "status": "pass" },
+    { "criterion": "DBB-005: All existing tests pass (107/107)", "status": "pass" }
+  ]
+}
