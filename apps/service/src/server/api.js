@@ -211,23 +211,28 @@ function addRoutes(r) {
   // ─── End Anthropic-compatible API ──────────────────────────
 
   r.post('/api/chat', async (req, res) => {
-    const { message, history = [], tools, sessionId } = req.body;
-    if (!message || typeof message !== 'string') {
-      return res.status(400).json({ error: 'Invalid message' });
+    const { message, messages: rawMessages, history = [], tools, sessionId } = req.body;
+    // Support both { message: string } and { messages: [...] } formats
+    let chatMessages;
+    if (rawMessages?.length) {
+      chatMessages = rawMessages;
+    } else if (message) {
+      chatMessages = [...history, { role: 'user', content: message }];
+    } else {
+      return res.status(400).json({ error: 'message or messages required' });
     }
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     const assistantChunks = [];
     try {
-      for await (const chunk of chat(message, { history, tools })) {
+      for await (const chunk of chat(chatMessages, { tools })) {
         res.write(`data: ${JSON.stringify(chunk)}\n\n`);
         if (chunk.type === 'content') assistantChunks.push(chunk.content ?? chunk.text);
       }
       res.write('data: [DONE]\n\n');
       if (sessionId) {
-        const messages = [...history, { role: 'user', content: message }];
-        const updatedHistory = [...messages, { role: 'assistant', content: assistantChunks.join('') }];
+        const updatedHistory = [...chatMessages, { role: 'assistant', content: assistantChunks.join('') }];
         setSessionData(sessionId, 'history', updatedHistory);
         broadcastSession(sessionId);
       }

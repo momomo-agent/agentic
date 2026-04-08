@@ -109,7 +109,11 @@ async function* chatWithTools(messages, tools) {
   }
 }
 
-export async function* chat(messages, options = {}) {
+export async function* chat(input, options = {}) {
+  // Accept both string (legacy) and messages array
+  const messages = typeof input === 'string'
+    ? [...(options.history || []), { role: 'user', content: input }]
+    : input;
   const registeredTools = [...tools.entries()].map(([name, fn]) => ({ name, fn }));
   const mergedTools = [...(options.tools || []), ...registeredTools];
   startMark('llm');

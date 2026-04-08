@@ -417,6 +417,47 @@
       resetPlaybackState()
     }
 
+    async function speakStream(textIterator, opts = {}) {
+      const gen = ++generation
+      stop()
+      
+      let buffer = ''
+      const sentenceEnd = /[.!?。！？]\s*/
+      
+      for await (const chunk of textIterator) {
+        if (generation !== gen) break // interrupted
+        
+        buffer += chunk
+        const sentences = buffer.split(sentenceEnd)
+        
+        // Keep last incomplete sentence in buffer
+        buffer = sentences.pop() || ''
+        
+        // Speak complete sentences
+        for (const sentence of sentences) {
+          if (!sentence.trim()) continue
+          if (generation !== gen) break
+          
+          await speak(sentence.trim(), opts)
+          
+          // Wait for current sentence to finish
+          await new Promise(resolve => {
+            const check = setInterval(() => {
+              if (!currentSource || generation !== gen) {
+                clearInterval(check)
+                resolve()
+              }
+            }, 50)
+          })
+        }
+      }
+      
+      // Speak remaining buffer
+      if (buffer.trim() && generation === gen) {
+        await speak(buffer.trim(), opts)
+      }
+    }
+
     function unlock() {
       const ctx = getAudioCtx()
       if (ctx.state === 'suspended') ctx.resume()
@@ -430,6 +471,7 @@
 
     return {
       speak,
+      speakStream,
       fetchAudio,
       playBuffer,
       timestamps,
