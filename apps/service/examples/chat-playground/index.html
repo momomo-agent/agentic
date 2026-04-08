@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Playground</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    .header {
+      padding: 20px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .model-selector {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .model-selector label {
+      font-size: 14px;
+      color: #888;
+    }
+    
+    .model-selector select {
+      padding: 8px 12px;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+    
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .message {
+      padding: 16px;
+      border-radius: 8px;
+      max-width: 80%;
+      word-wrap: break-word;
+      line-height: 1.6;
+    }
+    
+    .message.user {
+      background: #3b82f6;
+      align-self: flex-end;
+    }
+    
+    .message.assistant {
+      background: #374151;
+      align-self: flex-start;
+    }
+    
+    .message.system {
+      background: #1f2937;
+      align-self: center;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+      max-width: 100%;
+    }
+    
+    .input-area {
+      display: flex;
+      gap: 12px;
+      padding: 20px;
+      background: #1a1a1a;
+      border-radius: 8px;
+    }
+    
+    .input-area textarea {
+      flex: 1;
+      padding: 12px;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      min-height: 60px;
+    }
+    
+    .input-area textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:disabled {
+      background: #374151;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: #374151;
+      color: #e0e0e0;
+    }
+    
+    .btn-secondary:hover { background: #4b5563; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💬 Chat Playground</h1>
+    <div class="model-selector">
+      <label>模型:</label>
+      <select id="modelSelect">
+        <option value="gemma4:e4b">Gemma 4 E2B</option>
+        <option value="qwen3.5:4b">Qwen 3.5 4B</option>
+        <option value="llama3.2:3b">Llama 3.2 3B</option>
+      </select>
+      <button class="btn btn-secondary" id="clearBtn">清空对话</button>
+    </div>
+  </div>
+  
+  <div class="chat-container">
+    <div class="messages" id="messages"></div>
+    
+    <div class="input-area">
+      <textarea id="input" placeholder="输入消息... (Shift+Enter 换行，Enter 发送)"></textarea>
+      <button class="btn btn-primary" id="sendBtn">发送</button>
+    </div>
+  </div>
+  
+  <script src="./chat-playground.js"></script>
+</body>
+</html>

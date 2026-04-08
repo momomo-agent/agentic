@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTS Lab</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    
+    .header {
+      padding: 20px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      color: #888;
+      font-size: 14px;
+    }
+    
+    .main {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .input-section {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 24px;
+    }
+    
+    .input-section h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 16px;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 15px;
+      font-family: inherit;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+    
+    .voice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .voice-card {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .voice-card:hover {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.05);
+    }
+    
+    .voice-card.selected {
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.1);
+    }
+    
+    .voice-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .voice-card p {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 12px;
+    }
+    
+    .voice-card audio {
+      width: 100%;
+      height: 32px;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:disabled {
+      background: #374151;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background: #374151;
+      color: #e0e0e0;
+    }
+    
+    .btn-secondary:hover { background: #4b5563; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔊 TTS Lab</h1>
+    <p>语音合成实验室 - 多声音对比</p>
+  </div>
+  
+  <div class="main">
+    <div class="input-section">
+      <h2>输入文本</h2>
+      <textarea id="textInput" placeholder="输入要合成的文字...">你好，我是 AI 语音助手。今天天气不错，适合出门散步。</textarea>
+    </div>
+    
+    <div class="input-section">
+      <h2>选择声音</h2>
+      <div class="voice-grid" id="voiceGrid"></div>
+    </div>
+    
+    <div class="actions">
+      <button class="btn btn-primary" id="synthesizeBtn">合成语音</button>
+      <button class="btn btn-secondary" id="downloadBtn" disabled>下载音频</button>
+    </div>
+  </div>
+  
+  <script src="./tts-lab.js"></script>
+</body>
+</html>
