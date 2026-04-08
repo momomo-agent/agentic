@@ -257,6 +257,67 @@ function addRoutes(r) {
     }
   });
 
+  r.post('/api/models/pull', async (req, res) => {
+    const { model } = req.body;
+    if (!model) return res.status(400).json({ error: 'model required' });
+    
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    try {
+      const response = await fetch('http://localhost:11434/api/pull', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: model, stream: true })
+      });
+
+      if (!response.ok) {
+        res.write(`data: ${JSON.stringify({ error: 'Ollama not running' })}\n\n`);
+        return res.end();
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(l => l.trim());
+        
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+          } catch {}
+        }
+      }
+      
+      res.write(`data: ${JSON.stringify({ status: 'success' })}\n\n`);
+      res.end();
+    } catch (e) {
+      res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
+      res.end();
+    }
+  });
+
+  r.delete('/api/models/:name', async (req, res) => {
+    const { name } = req.params;
+    try {
+      const response = await fetch('http://localhost:11434/api/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!response.ok) throw new Error('Delete failed');
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   r.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'audio required' });
     if (!detectVoiceActivity(req.file.buffer)) return res.json({ text: '', skipped: true });

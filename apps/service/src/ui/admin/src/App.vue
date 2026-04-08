@@ -1,39 +1,41 @@
 <template>
-  <div>
-    <nav>
-      <router-link to="/admin">状态</router-link>
-      <router-link to="/admin/devices">设备</router-link>
-      <router-link to="/admin/config">配置</router-link>
+  <div class="layout">
+    <nav class="nav">
+      <div class="nav-brand">⚡ Agentic Service</div>
+      <div class="nav-status" :class="online ? 'online' : 'offline'">
+        {{ online ? '运行中' : '离线' }}
+      </div>
     </nav>
-    <DeviceList :devices="devices" />
-    <HardwarePanel :hardware="hardware" />
-    <LogViewer />
-    <router-view />
+    <main class="main">
+      <DashboardView />
+    </main>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import DeviceList from './components/DeviceList.vue'
-import LogViewer from './components/LogViewer.vue'
-import HardwarePanel from './components/HardwarePanel.vue'
+import DashboardView from './views/DashboardView.vue'
 
-const devices = ref([])
-const hardware = ref({})
+const online = ref(false)
 let timer = null
-
-async function fetchStatus() {
-  try {
-    const res = await fetch('/api/status')
-    const data = await res.json()
-    devices.value = data.devices ?? []
-    hardware.value = data.hardware ?? {}
-  } catch (e) {}
+async function check() {
+  try { online.value = (await fetch('/health')).ok } catch { online.value = false }
 }
-
-onMounted(() => {
-  fetchStatus()
-  timer = setInterval(fetchStatus, 5000)
-})
+onMounted(() => { check(); timer = setInterval(check, 5000) })
 onUnmounted(() => clearInterval(timer))
 </script>
+
+<style scoped>
+.layout { display: flex; flex-direction: column; min-height: 100vh; }
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 56px;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+.nav-brand { font-weight: 700; font-size: 15px; }
+.nav-status { font-size: 12px; padding: 4px 10px; border-radius: 99px; font-weight: 500; }
+.online { background: rgba(16,185,129,0.15); color: var(--success); }
+.offline { background: rgba(239,68,68,0.15); color: var(--error); }
+.main { flex: 1; padding: 32px; }
+</style>
