@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import { spawn, execSync } from 'child_process';
+import http from 'http';
 import { detect } from '../detector/hardware.js';
 import { getProfile } from '../detector/profiles.js';
 import { ensureSox } from '../detector/sox.js';
@@ -25,12 +26,16 @@ async function isModelPulled(model) {
 }
 
 async function isOllamaRunning() {
-  try {
-    const response = await fetch('http://localhost:11434/api/version');
-    return response.ok;
-  } catch {
-    return false;
-  }
+  return new Promise((resolve) => {
+    const req = http.get('http://localhost:11434/api/version', (res) => {
+      resolve(res.statusCode === 200);
+    });
+    req.on('error', () => resolve(false));
+    req.setTimeout(2000, () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
 }
 
 async function startOllama() {
@@ -114,6 +119,11 @@ export async function ensureModel() {
       spinner.fail('Failed to start Ollama');
       throw err;
     }
+  }
+
+  // Double-check Ollama is accessible before pulling
+  if (!await isOllamaRunning()) {
+    throw new Error('Ollama is not running. Please run "ollama serve" manually.');
   }
 
   if (!await isModelPulled(profile.llm.model)) {
