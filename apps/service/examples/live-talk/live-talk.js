@@ -76,6 +76,10 @@ async function sendToLLM(text, includeImage = true) {
   content.push({ type: 'text', text })
   
   const messages = [
+    {
+      role: 'system',
+      content: 'You are a friendly, conversational AI assistant. The user is talking to you through a microphone and showing you their camera. Keep responses to 1-3 short sentences. Be natural and concise.'
+    },
     ...conversationHistory,
     { role: 'user', content }
   ]
@@ -155,7 +159,8 @@ async function start() {
   // 初始化 VAD
   audio = new window.AgenticAudio({
     wakeWords: [],  // 不使用唤醒词，持续监听
-    silenceThreshold: 500,  // 500ms 静音后结束
+    silenceThreshold: 800,  // 800ms 静音后结束（Parlor 风格）
+    speechThreshold: 0.5,   // 降低阈值，更灵敏
   })
   
   // 初始化 TTS
@@ -169,17 +174,33 @@ async function start() {
   })
   
   // VAD 回调
+  let isProcessing = false
+  let lastSpeechTime = 0
+  
   audio.onResult = async (text, isFinal) => {
+    const now = Date.now()
+    
+    // 检测到说话（非 final 也会触发）
+    if (now - lastSpeechTime > 1000) {
+      // 新的说话开始，打断当前播放
+      if (isProcessing || voice.isSpeaking) {
+        voice.stop()
+        isProcessing = false
+        setStatus('listening', '聆听中...')
+      }
+    }
+    lastSpeechTime = now
+    
     if (!isFinal || !text.trim()) return
     
     addMessage('user', text)
     setStatus('active', '思考中...')
     
-    // 打断当前播放
-    voice.stop()
+    isProcessing = true
     
     // 发送到 LLM
     await sendToLLM(text, true)
+    isProcessing = false
   }
   
   await audio.start()
