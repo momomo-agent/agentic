@@ -1,0 +1,13 @@
+{
+  "id": "task-1775571390938",
+  "title": "grep stdin no-match exitCode 1",
+  "description": "grep via stdin with no match must return exitCode 1. execWithStdin currently returns plain string — fix exitCode propagation for no-match case. Add tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T14:16:30.939Z",
+  "updated": "2026-04-07T14:43:15.740Z"
+}

@@ -1,0 +1,11 @@
+{
+  "milestoneId": "m16",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m16-001: grep -i in all paths — file, pipe stdin, recursive, glob (grep-i-nonstreaming-m16.test.ts: 3/3 pass)", "status": "pass" },
+    { "criterion": "DBB-m16-002: wc -l returns `<count>\\t<filename>` format (src/index.ts line 966: `${lines}\\t${path}`)", "status": "pass" },
+    { "criterion": "DBB-m16-003: touch on existing empty file does not overwrite (touch-empty-file.test.ts: passes)", "status": "pass" },
+    { "criterion": "DBB-m16-004: Coverage gate enforced — vitest.config.ts thresholds: { statements: 80, branches: 75 } (lines 22-25)", "status": "pass" }
+  ]
+}

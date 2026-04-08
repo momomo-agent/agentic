@@ -1,0 +1,13 @@
+{
+  "id": "task-1775574408103",
+  "title": "Glob pattern expansion in command args",
+  "description": "Implement glob expansion (*, ?, []) for path arguments in ls, cat, cp, rm. When a path arg contains glob chars, expand against the filesystem before passing to the command.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T15:06:48.103Z",
+  "updated": "2026-04-07T18:10:53.944Z"
+}

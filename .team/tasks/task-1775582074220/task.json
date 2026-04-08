@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582074220",
+  "title": "Implement $VAR environment variable substitution",
+  "description": "Add $VAR and ${VAR} substitution in exec() before command parsing. Vision gap: missing. Store env vars on AgenticShell instance, substitute in command string pre-parse.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T17:14:34.220Z",
+  "updated": "2026-04-07T18:20:25.123Z"
+}

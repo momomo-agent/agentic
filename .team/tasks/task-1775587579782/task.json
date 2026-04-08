@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587579782",
+  "title": "Implement recursive glob and bracket expressions",
+  "description": "Extend glob to support recursive **/*.ts patterns. Bracket expressions [abc] already implemented in m27. Only recursive ** remains. Acceptance: **/*.ts matches files in subdirectories, works with ls, find, and path arguments.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-07T18:46:19.782Z",
+  "updated": "2026-04-08T02:24:27.402Z",
+  "milestoneId": "m25"
+}

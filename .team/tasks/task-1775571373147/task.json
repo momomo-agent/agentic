@@ -1,0 +1,13 @@
+{
+  "id": "task-1775571373147",
+  "title": "exitCode 2 vs 127 distinction",
+  "description": "Commands with missing operands return exitCode 2. Unknown commands return exitCode 127. Add tests for both.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T14:16:13.147Z",
+  "updated": "2026-04-07T15:01:50.756Z"
+}

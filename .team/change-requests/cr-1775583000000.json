@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775583000000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Glob pattern support and input/output redirection are fully implemented but still listed under 'Future Enhancements' in ARCHITECTURE.md. This causes architecture gap score to remain at 85% and confuses team on what's actually built. Implementation is ahead of documented spec.",
+  "proposedChange": "1. Move 'Glob pattern support (*, ?, [])' from 'Future Enhancements' to a new 'Implemented Features' subsection or integrate into existing sections (path resolution, command pattern). Document matchGlob/expandGlob/expandPathArgs. 2. Move 'Redirection (>, >>, <)' from 'Future Enhancements' to documented feature with description of how exec() handles > and >> output redirection and < input redirection. 3. Update 'Extension Points' section to note that glob expansion happens automatically in path args before command execution.",
+  "status": "resolved",
+  "createdAt": "2026-04-08T10:00:00.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.691Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

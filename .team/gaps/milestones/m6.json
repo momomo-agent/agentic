@@ -1,0 +1,19 @@
+{
+  "milestoneId": "m6",
+  "match": 90,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-005: mv directory support — moves dir and contents", "status": "pass" },
+    { "criterion": "DBB-005: mv /nonexistent /dst returns error", "status": "pass" },
+    { "criterion": "DBB-006: cp -r copies directory tree recursively", "status": "pass" },
+    { "criterion": "DBB-006: cp -r handles deep nesting (3+ levels)", "status": "pass" },
+    { "criterion": "DBB-006: cp -r /nonexistent returns error", "status": "pass" },
+    { "criterion": "DBB-006: cp without -r still works for single file", "status": "pass" },
+    { "criterion": "DBB-007: ls -a shows real dotfiles from fs", "status": "pass" },
+    { "criterion": "DBB-007: ls without -a filters dotfiles", "status": "pass" },
+    { "criterion": "DBB-008: echo > creates/overwrites file", "status": "pass" },
+    { "criterion": "DBB-008: echo >> appends to file", "status": "pass" },
+    { "criterion": "DBB-008: echo > in readOnly mode returns Permission denied", "status": "pass" },
+    { "criterion": "DBB-006: cp without -r on directory returns error", "status": "fail" }
+  ]
+}

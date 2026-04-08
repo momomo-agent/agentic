@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m15",
+  "match": 94,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m15-001: Exit code 2 for missing operand (cat/rm/grep without args — exitCodeFor() line 223: /command not found/ returns 2)", "status": "pass" },
+    { "criterion": "DBB-m15-002: Exit code 127 vs 2: unknown command returns exitCode 2 (line 257: `${cmd}: command not found` → exitCodeFor matches /command not found/ → 2)", "status": "pass" },
+    { "criterion": "DBB-m15-003: grep stdin no-match returns exitCode 1 (execPipeline line 180: `if (segCmd === 'grep' && output === '') exitCode = 1`)", "status": "pass" },
+    { "criterion": "DBB-m15-004: Output redirection with error source (cat /missing > out.txt): implementation writes error content to file instead of suppressing. exitCode is 1 (correct) but file is created with error text.", "status": "partial" },
+    { "criterion": "DBB-m15-005: 3+ stage pipe exit code propagation (execPipeline lines 164-186: exitCode tracks through all segments)", "status": "pass" }
+  ]
+}

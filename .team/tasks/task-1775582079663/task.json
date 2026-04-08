@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582079663",
+  "title": "Implement $(cmd) command substitution",
+  "description": "Add $(cmd) substitution in exec(): detect $(...) patterns, recursively execute inner command, splice result into outer command string. Vision gap: missing.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T17:14:39.663Z",
+  "updated": "2026-04-07T18:20:59.312Z"
+}

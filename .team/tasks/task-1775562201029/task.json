@@ -1,0 +1,13 @@
+{
+  "id": "task-1775562201029",
+  "title": "fs adapter contract validation at shell init",
+  "description": "Add lightweight validation in AgenticShell constructor to verify the injected fs implements required methods (read, write, ls, delete, grep). Fail fast with clear error rather than runtime surprises.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-07T11:43:21.029Z",
+  "updated": "2026-04-07T12:02:59.102Z"
+}

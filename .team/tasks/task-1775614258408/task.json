@@ -1,0 +1,14 @@
+{
+  "id": "task-1775614258408",
+  "title": "Re-run vision gap analysis",
+  "description": "Re-run vision gap analysis against current codebase to update vision.json match score. Since last scan (2026-04-07), env vars, command substitution, and cp fix have been implemented. PRD.md has been comprehensively updated. VISION.md creation should also be completed. Expected: vision match should increase from 88% toward 90%+. Update .team/gaps/vision.json with current status.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T02:10:58.408Z",
+  "updated": "2026-04-08T02:45:23.009Z",
+  "milestoneId": "m28"
+}

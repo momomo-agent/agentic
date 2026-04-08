@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587579874",
+  "title": "Fix cp without -r on directory error message",
+  "description": "cp of a directory without -r flag should return a clear, consistent error message matching UNIX convention. DBB-m11-004 is failing. PRD gap: 'cp without -r on directory returns error — minor correctness gap'. Acceptance: cp /dir /dest returns 'cp: -r not specified; omitting directory /dir' or equivalent UNIX-standard message, with corresponding test.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-07T18:46:19.874Z",
+  "updated": "2026-04-08T00:15:20.098Z",
+  "milestoneId": "m25"
+}

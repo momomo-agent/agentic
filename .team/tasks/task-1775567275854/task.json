@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567275854",
+  "title": "cp -r recursive directory copy",
+  "description": "Implement cp -r flag to recursively copy directory trees. Currently cp only supports single file copy.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T13:07:55.854Z",
+  "updated": "2026-04-07T13:19:42.870Z"
+}

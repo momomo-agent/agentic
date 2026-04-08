@@ -1,0 +1,13 @@
+{
+  "id": "task-1775558780631",
+  "title": "创建 ARCHITECTURE.md 文档",
+  "description": "编写正式的架构文档，记录单文件架构决策、命令模式、扩展点、AgenticFileSystem 接口契约。这是架构 gap 中的 P0 缺失项。",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T10:46:20.631Z",
+  "updated": "2026-04-07T11:06:46.865Z"
+}

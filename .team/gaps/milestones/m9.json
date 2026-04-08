@@ -1,0 +1,21 @@
+{
+  "milestoneId": "m9",
+  "match": 88,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-m9-001: cp -r recursive directory copy", "status": "pass" },
+    { "criterion": "DBB-m9-002: cp -r on non-existent source returns error", "status": "pass" },
+    { "criterion": "DBB-m9-003: cp without -r on directory returns error", "status": "fail" },
+    { "criterion": "DBB-m9-004: echo > creates file with content", "status": "pass" },
+    { "criterion": "DBB-m9-005: echo > overwrites existing file", "status": "pass" },
+    { "criterion": "DBB-m9-006: echo >> appends to file", "status": "pass" },
+    { "criterion": "DBB-m9-007: echo >> creates file if not exists", "status": "pass" },
+    { "criterion": "DBB-m9-008: echo > in readOnly mode returns Permission denied", "status": "pass" },
+    { "criterion": "DBB-m9-009: mv directory to new location", "status": "pass" },
+    { "criterion": "DBB-m9-010: mv directory to existing destination", "status": "pass" },
+    { "criterion": "DBB-m9-011: mv non-existent directory returns error", "status": "pass" },
+    { "criterion": "DBB-m9-012: ls -a shows real dotfiles", "status": "pass" },
+    { "criterion": "DBB-m9-013: ls -a on directory with no dotfiles includes . and ..", "status": "pass" },
+    { "criterion": "DBB-m9-014: ls without -a does not show dotfiles", "status": "pass" }
+  ]
+}

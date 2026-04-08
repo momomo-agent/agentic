@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531299796",
+  "title": "增强 grep 命令",
+  "description": "支持 -r 递归搜索，-l 只显示文件名，-c 计数",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": null,
+  "hasDesign": true,
+  "created": "2026-04-07T03:08:19.796Z",
+  "updated": "2026-04-07T11:05:45.308Z",
+  "milestoneId": "m1"
+}

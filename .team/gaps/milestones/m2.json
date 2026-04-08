@@ -1,0 +1,22 @@
+{
+  "milestoneId": "m2",
+  "match": 93,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-001: rm -r deletes directory recursively", "status": "pass" },
+    { "criterion": "DBB-002: rm -r refuses to remove root /", "status": "pass" },
+    { "criterion": "DBB-003: rm without -r on directory returns error", "status": "pass" },
+    { "criterion": "DBB-004: readOnly blocks touch", "status": "pass" },
+    { "criterion": "DBB-005: readOnly blocks all write commands", "status": "pass" },
+    { "criterion": "DBB-006: readOnly allows read commands", "status": "pass" },
+    { "criterion": "DBB-007: cd to non-existent directory returns error", "status": "pass" },
+    { "criterion": "DBB-008: cd to a file returns Not a directory error", "status": "pass" },
+    { "criterion": "DBB-009: cd to valid directory updates cwd", "status": "pass" },
+    { "criterion": "DBB-010: mkdir creates directory natively (no .keep workaround)", "status": "pass" },
+    { "criterion": "DBB-011: mkdir -p creates nested directories", "status": "pass" },
+    { "criterion": "DBB-012: mkdir without -p fails if parent missing", "status": "pass" },
+    { "criterion": "DBB-013: find -type f returns only files", "status": "pass" },
+    { "criterion": "DBB-014: find -type d returns only directories", "status": "pass" },
+    { "criterion": "DBB-015: find without -type returns all entries", "status": "pass" }
+  ]
+}

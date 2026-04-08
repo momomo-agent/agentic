@@ -1,0 +1,13 @@
+{
+  "id": "task-1775563842095",
+  "title": "Explicit pagination and streaming unit tests",
+  "description": "Add dedicated test cases for --page/--page-size flags and grepStream() to satisfy DBB-007 compliance.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-07T12:10:42.095Z",
+  "updated": "2026-04-07T12:24:48.459Z"
+}

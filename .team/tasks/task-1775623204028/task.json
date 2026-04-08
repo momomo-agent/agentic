@@ -1,0 +1,14 @@
+{
+  "id": "task-1775623204028",
+  "title": "Update ARCHITECTURE.md to reflect current implementation",
+  "description": "Fix 7 ARCHITECTURE.md discrepancies: (1) Line 9: update ~400 lines to ~970 lines; (2) Line 147: document {output, exitCode} return type with 0/1/2 codes instead of \"not currently implemented\"; (3) Lines 207-212: move 5 implemented features (glob, env vars, cmd substitution, redirection, bg jobs) from Future Enhancements to documented sections; (4) Lines 221-228: remove trailing auto-merged CR text; (5) Document pipe error short-circuit behavior; (6) Document readOnly read from fs.readOnly; (7) Update Future Enhancements to only list genuinely unimplemented features. This resolves 7 test failures and 3 major vision gaps.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m29",
+  "hasDesign": true,
+  "created": "2026-04-08T04:40:04.029Z",
+  "updated": "2026-04-08T05:41:08.983Z",
+  "milestoneId": "m29"
+}

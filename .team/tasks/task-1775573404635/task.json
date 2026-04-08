@@ -1,0 +1,14 @@
+{
+  "id": "task-1775573404635",
+  "title": "Enforce vitest coverage gate",
+  "description": "Coverage thresholds (>=80% statement, >=75% branch) are defined in vitest.config.ts but not enforced in CI. Verify thresholds gate the build and add a test count assertion (>=148 tests). Document in README.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T14:50:04.635Z",
+  "updated": "2026-04-07T15:15:57.014Z",
+  "milestoneId": "m16"
+}

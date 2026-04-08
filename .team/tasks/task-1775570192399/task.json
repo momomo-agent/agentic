@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570192399",
+  "title": "Fix touch on empty file",
+  "description": "touch checks !r.content which is falsy for empty string, may overwrite empty files. Fix to check r.content !== undefined. Add test: touch on existing empty file preserves content.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T13:56:32.399Z",
+  "updated": "2026-04-07T14:26:46.497Z",
+  "milestoneId": "m13"
+}

@@ -1,0 +1,11 @@
+{
+  "milestoneId": "m14",
+  "match": 88,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m14-001: cp on directory without -r returns error (cp-error.test.ts confirms '-r not specified; omitting directory')", "status": "pass" },
+    { "criterion": "DBB-m14-002: cp -r still works after error format change (cp-error.test.ts confirms exitCode 0)", "status": "pass" },
+    { "criterion": "DBB-m14-003: wc default output uses tab separators (verified in src/index.ts lines 966-969: `${lines}\\t${words}\\t${chars}\\t${path}`)", "status": "pass" },
+    { "criterion": "DBB-m14-004: All test files execute in vitest run — src/index.test.ts is excluded from default vitest.config.ts (line 15: exclude array). test/mkdir-find-cd.test.ts also excluded (line 16). mkdir-find-cd runs separately via vitest.excluded.config.ts.", "status": "partial" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587050322",
+  "title": "Add path resolution unit tests",
+  "description": "normalizePath and resolve are implemented correctly but no dedicated test cases for ../ boundary behavior. Add tests for: ../ escaping root boundary, multiple ../ chains, mixed absolute/relative paths, trailing slashes. PRD gap: 'no dedicated test cases for ../ boundary behavior'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-07T18:37:30.323Z",
+  "updated": "2026-04-08T01:42:15.453Z",
+  "milestoneId": "m24"
+}

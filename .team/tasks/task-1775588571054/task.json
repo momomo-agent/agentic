@@ -1,0 +1,16 @@
+{
+  "id": "task-1775588571054",
+  "title": "Add command substitution tests",
+  "description": "Comprehensive test suite for command substitution feature: basic substitution, nested substitution (depth 2-3), error propagation from failed inner command, undefined variable in substitution, mixed substitution + env vars, edge cases (empty output, whitespace, special chars). Target: 10+ test cases.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [
+    "task-1775588562205"
+  ],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-07T19:02:51.054Z",
+  "updated": "2026-04-08T01:54:08.815Z",
+  "milestoneId": "m27"
+}

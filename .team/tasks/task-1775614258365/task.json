@@ -1,0 +1,14 @@
+{
+  "id": "task-1775614258365",
+  "title": "Create VISION.md",
+  "description": "VISION.md does not exist. Create it to capture the product vision for AgenticShell: a deterministic Unix-like shell for AI agents running in sandboxed environments. This directly closes the vision gap 'VISION.md does not exist -- product vision only implicitly defined via ARCHITECTURE.md'. Acceptance: VISION.md exists with product vision, target users (AI agents), key differentiators (deterministic, sandboxed, cross-env), and roadmap.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T02:10:58.365Z",
+  "updated": "2026-04-08T02:44:45.397Z",
+  "milestoneId": "m28"
+}

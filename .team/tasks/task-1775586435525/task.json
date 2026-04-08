@@ -1,0 +1,14 @@
+{
+  "id": "task-1775586435525",
+  "title": "Fix cp without -r error message format",
+  "description": "cp dir/ dest without -r flag returns error message format mismatch — with/without '(use -r)' suffix. Standardize error message to match UNIX convention and DBB spec. Add/update test.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-07T18:27:15.545Z",
+  "updated": "2026-04-07T18:53:15.594Z",
+  "milestoneId": "m23"
+}

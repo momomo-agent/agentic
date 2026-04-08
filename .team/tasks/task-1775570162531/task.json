@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570162531",
+  "title": "Fix grep -i case-insensitive in all paths",
+  "description": "grep -i works in pipe/streaming but not in main fs.grep() path. Fix so -i flag applies case-insensitive matching in all code paths. Add tests for -i combined with -l and -c flags.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T13:56:02.531Z",
+  "updated": "2026-04-07T14:21:50.663Z",
+  "milestoneId": "m13"
+}

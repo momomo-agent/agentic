@@ -1,0 +1,16 @@
+{
+  "milestoneId": "m23",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m23-001: Pipe error propagation — multi-line error shows first line only (execSingleWithError returns hadError flag; execPipeline clears output on error)", "status": "pass" },
+    { "criterion": "DBB-m23-002: Pipe error propagation — legitimate output not treated as error (isErrorOutput regex /^\w[\w-]*: .+: .+/ checks first line only)", "status": "pass" },
+    { "criterion": "DBB-m23-003: Pipe 3-stage works correctly (pipe-3stage-exitcode-m15.test.ts passes)", "status": "pass" },
+    { "criterion": "DBB-m23-004: Pipe whitespace-prefixed output not treated as error (isErrorOutput requires first char to be \\w)", "status": "pass" },
+    { "criterion": "DBB-m23-005: cp directory without -r returns standard UNIX error format (cp-error.test.ts: '-r not specified; omitting directory')", "status": "pass" },
+    { "criterion": "DBB-m23-006: cp directory without -r does NOT contain '(use -r)' suffix (cp-error.test.ts: `expect(output).not.toContain('is a directory')`)", "status": "pass" },
+    { "criterion": "DBB-m23-007: wc -l returns count<TAB>filename (src/index.ts line 966)", "status": "pass" },
+    { "criterion": "DBB-m23-008: wc -w returns count<TAB>filename (src/index.ts line 967)", "status": "pass" },
+    { "criterion": "DBB-m23-009: wc -c returns count<TAB>filename (src/index.ts line 968)", "status": "pass" }
+  ]
+}

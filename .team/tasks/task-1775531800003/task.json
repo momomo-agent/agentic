@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531800003",
+  "title": "mkdir 原生实现 + -p 支持",
+  "description": "用 fs.mkdir() 替换 .keep 文件 workaround，实现 -p flag 支持递归创建父目录。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "milestoneId": "m2",
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-07T03:18:00.000Z",
+  "updated": "2026-04-07T04:47:18.377Z"
+}

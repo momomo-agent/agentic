@@ -1,0 +1,13 @@
+{
+  "id": "task-1775580794745",
+  "title": "Add path resolution unit tests",
+  "description": "Add dedicated tests for normalizePath/resolve edge cases: DBB-path-001 to DBB-path-005. Cover ../ boundary behavior, root escape prevention, and relative-to-absolute resolution.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T16:53:14.745Z",
+  "updated": "2026-04-07T18:23:49.509Z"
+}

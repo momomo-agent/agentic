@@ -1,0 +1,14 @@
+{
+  "id": "task-1775588570863",
+  "title": "Implement glob bracket expressions [abc]",
+  "description": "Extend existing matchGlob/expandGlob to support bracket expressions like [abc], [a-z], [0-9]. Currently glob supports * and ? but not character class patterns. Vision gap: 'Glob expansion only covers single-directory patterns — no bracket expressions'. Acceptance: ls [abc]* matches files starting with a/b/c, grep 'test[0-9]' finds test1/test2 patterns, negated brackets [\\!abc] also work.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-07T19:02:50.863Z",
+  "updated": "2026-04-08T00:32:23.692Z",
+  "milestoneId": "m27"
+}

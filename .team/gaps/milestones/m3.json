@@ -1,0 +1,14 @@
+{
+  "milestoneId": "m3",
+  "match": 95,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-001: ls paginates large directory with --page --page-size", "status": "pass" },
+    { "criterion": "DBB-002: ls page 2 returns next slice", "status": "pass" },
+    { "criterion": "DBB-003: ls last page returns remainder", "status": "pass" },
+    { "criterion": "DBB-004: ls without pagination is backward-compatible", "status": "pass" },
+    { "criterion": "DBB-005: grep streaming returns correct matches", "status": "pass" },
+    { "criterion": "DBB-006: grep streaming no match returns empty", "status": "pass" },
+    { "criterion": "DBB-007: dedicated unit tests for ls pagination and grep streaming exist (test/ls-pagination.test.ts, test/grep-streaming.test.ts)", "status": "pass" }
+  ]
+}

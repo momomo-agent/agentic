@@ -1,0 +1,13 @@
+{
+  "id": "task-1775562196095",
+  "title": "AgenticFileSystem streaming interface type safety",
+  "description": "Replace duck-typed cast for readStream with a proper optional TypeScript interface definition. Eliminates the unsafe cast at line 185.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-07T11:43:16.095Z",
+  "updated": "2026-04-07T12:02:59.026Z"
+}

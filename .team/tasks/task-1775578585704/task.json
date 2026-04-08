@@ -1,0 +1,13 @@
+{
+  "id": "task-1775578585704",
+  "title": "Fix grep -l stdin identifier",
+  "description": "grep -l in stdin mode (execWithStdin) returns empty string instead of a meaningful source identifier. Should return '(stdin)' to match UNIX convention. Covers architecture gap: grep -l stdin mode.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T16:16:25.704Z",
+  "updated": "2026-04-07T18:13:10.701Z"
+}

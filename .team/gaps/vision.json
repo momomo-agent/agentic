@@ -1,0 +1,46 @@
+{
+  "match": 92,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "gaps": [
+    {
+      "description": "Cross-environment consistency tests use mock backends only — no real browser/Electron/Node.js filesystem integration tests exist (node-fs-integration.test.ts exists with 21 passing tests for Node.js, but browser and Electron integration tests are missing)",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "Race condition: fg called before background job completes will await the promise correctly but job status transitions are not atomic",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "grep -i with streaming multi-file has inconsistent behavior — single-file uses grepStream, multi-file falls back to manual read loop depending on readStream availability",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "All 17 core commands (ls, cd, pwd, cat, grep, find, echo, mkdir, rm, mv, cp, touch, head, tail, wc, export, jobs/fg/bg) are fully implemented with tests",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "All 12 shell features (piping, redirection, glob, env vars, command substitution, background execution, quoting, exit codes, path resolution, read-only guard, pagination, streaming) are implemented",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Vision and PRD documentation are well-aligned with implementation — all PRD sections marked Implemented or Partially implemented",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Test coverage quality gate: thresholds ≥80% statement / ≥75% branch ARE configured in vitest.config.ts",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "rm -r / returns proper exit code 1 — exitCodeFor() regex matches 'rm: refusing to remove' error format",
+      "status": "implemented",
+      "severity": "minor"
+    }
+  ]
+}

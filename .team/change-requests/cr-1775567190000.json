@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775567190000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "PRD.md",
+  "reason": "PRD gap analysis shows 45% match with 10 features marked as 'missing' or 'partial' that are actually fully implemented and tested. This data inconsistency blocks effective milestone planning. Examples: grep -r (implemented in m1), pipe support (implemented in m1), test coverage (comprehensive suite added in m1/m5), ls pagination (implemented in m3), grep streaming (implemented in m3), permission checks (implemented in m2), ls -a (implemented in m6). The architecture gap analysis correctly shows 92% match with most features marked 'implemented', but PRD gaps are stale.",
+  "proposedChange": "Re-run PRD gap analysis against current codebase (src/index.ts, src/index.test.ts) to reflect actual implementation state. Update .team/gaps/prd.json with accurate status for all 10 gap items. Expected result: PRD match should increase from 45% to 85%+ to align with architecture match of 92%.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T13:06:30.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.697Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

@@ -1,0 +1,22 @@
+{
+  "milestoneId": "m28",
+  "match": 72,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m28-001: VISION.md exists at project root", "status": "pass" },
+    { "criterion": "DBB-m28-002: VISION.md contains product vision, target users, differentiators, roadmap", "status": "pass" },
+    { "criterion": "DBB-m28-003: Vision gap score match >= 90%", "status": "partial" },
+    { "criterion": "DBB-m28-004: VISION.md gap removed from vision.json", "status": "partial" },
+    { "criterion": "DBB-m28-005: Env var gap resolved — $VAR, ${VAR}, export implemented in code", "status": "pass" },
+    { "criterion": "DBB-m28-006: Command substitution gap resolved — $(cmd) and backticks implemented", "status": "pass" },
+    { "criterion": "DBB-m28-007: PRD gap score match >= 90%", "status": "partial" },
+    { "criterion": "DBB-m28-008: Test coverage gaps resolved — 515 tests pass, coverage thresholds configured", "status": "pass" },
+    { "criterion": "DBB-m28-009: Architecture alignment match > 85% (architecture.json shows 78%)", "status": "fail" },
+    { "criterion": "DBB-m28-010: Exit code documentation resolved — ARCHITECTURE.md still says 'not currently implemented'", "status": "fail" },
+    { "criterion": "DBB-m28-011: Glob/redirection/env vars/command sub/background jobs moved to Implemented in ARCHITECTURE.md", "status": "fail" },
+    { "criterion": "DBB-m28-012: No implemented features in ARCHITECTURE.md Future Enhancements section", "status": "fail" },
+    { "criterion": "DBB-m28-013: Cross-milestone P0 tasks from m22-m27 completed or deprioritized", "status": "partial" },
+    { "criterion": "DBB-m28-014: architecture-alignment-m28.test.ts passes (7 of 9 tests fail due to stale ARCHITECTURE.md)", "status": "fail" },
+    { "criterion": "DBB-m28-015: All other test files pass (62/63 test files, 508/515 tests)", "status": "pass" }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "vision_monitor": {
+    "status": "idle",
+    "lastRun": "2026-04-08T04:29:00.708Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "prd_monitor": {
+    "status": "idle",
+    "lastRun": "2026-04-08T04:28:23.973Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "dbb_monitor": {
+    "status": "idle",
+    "lastRun": "2026-04-08T04:36:32.592Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "arch_monitor": {
+    "status": "idle",
+    "lastRun": "2026-04-08T04:28:26.785Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "pm": {
+    "status": "idle",
+    "lastRun": "2026-04-08T05:47:15.339Z",
+    "currentTask": null,
+    "retryCount": 2
+  },
+  "qa_lead": {
+    "status": "idle",
+    "lastRun": "2026-04-08T04:42:54.885Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "tech_lead-1": {
+    "status": "idle",
+    "lastRun": "2026-04-08T04:47:54.356Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "tech_lead-2": {
+    "status": "idle",
+    "lastRun": "2026-04-08T04:47:47.533Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "tech_lead-3": {
+    "status": "idle",
+    "lastRun": "2026-04-08T02:16:25.217Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "developer": {
+    "status": "idle",
+    "lastRun": "2026-04-08T05:43:03.506Z",
+    "currentTask": null,
+    "retryCount": 2
+  },
+  "tester-1": {
+    "status": "idle",
+    "lastRun": "2026-04-08T02:54:52.747Z",
+    "currentTask": null,
+    "retryCount": 2
+  },
+  "tester-2": {
+    "status": "idle",
+    "lastRun": "2026-04-08T02:59:19.218Z",
+    "currentTask": null,
+    "retryCount": 2
+  },
+  "tech_lead": {
+    "status": "idle",
+    "lastRun": "2026-04-08T05:17:40.753Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "tester": {
+    "status": "idle",
+    "lastRun": "2026-04-08T05:47:15.252Z",
+    "currentTask": null,
+    "retryCount": 2
+  }
+}

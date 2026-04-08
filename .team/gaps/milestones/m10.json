@@ -1,0 +1,19 @@
+{
+  "milestoneId": "m10",
+  "match": 85,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-M10-001: coverage thresholds in vitest.config.ts (statements 80%, branches 75%)", "status": "pass" },
+    { "criterion": "DBB-M10-001: coverage thresholds enforced in CI", "status": "partial" },
+    { "criterion": "DBB-M10-002: coverage report shows per-file and overall percentages", "status": "partial" },
+    { "criterion": "DBB-M10-003: mkdir without fs.mkdir returns error, no .keep created", "status": "pass" },
+    { "criterion": "DBB-M10-004: mkdir with fs.mkdir creates directory normally", "status": "pass" },
+    { "criterion": "DBB-M10-005: grep -r on non-existent directory returns UNIX error", "status": "pass" },
+    { "criterion": "DBB-M10-006: grep -r zero matches returns empty output", "status": "pass" },
+    { "criterion": "DBB-M10-006: grep -r zero matches exit code 1", "status": "fail" },
+    { "criterion": "DBB-M10-007: grep -r with matches returns matching lines", "status": "pass" },
+    { "criterion": "DBB-M10-008: all 167+ tests pass with 0 failures", "status": "partial" },
+    { "criterion": "DBB-M10-009: mkdir -p without fs.mkdir returns error, no dirs created", "status": "pass" },
+    { "criterion": "DBB-M10-010: grep error vs no-match distinction", "status": "partial" }
+  ]
+}

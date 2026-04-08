@@ -1,0 +1,13 @@
+{
+  "id": "task-1775560668155",
+  "title": "echo 输出重定向支持",
+  "description": "实现 echo 的 > 和 >> 重定向操作符，支持写入和追加文件。",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m6",
+  "hasDesign": true,
+  "created": "2026-04-07T11:17:48.155Z",
+  "updated": "2026-04-07T11:46:18.731Z"
+}

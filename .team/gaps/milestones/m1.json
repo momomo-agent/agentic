@@ -1,0 +1,24 @@
+{
+  "milestoneId": "m1",
+  "match": 88,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-001: grep -r recursive search returns all matching lines", "status": "pass" },
+    { "criterion": "DBB-002: grep -r no match returns empty output, exit code 1", "status": "partial" },
+    { "criterion": "DBB-003: grep -r on non-existent directory returns error", "status": "pass" },
+    { "criterion": "DBB-004: pipe cat file | grep pattern returns matching lines", "status": "pass" },
+    { "criterion": "DBB-005: pipe echo | grep returns correct output", "status": "pass" },
+    { "criterion": "DBB-006: pipe left command fails — error propagates, grep skipped", "status": "pass" },
+    { "criterion": "DBB-007: error message file not found in UNIX format", "status": "pass" },
+    { "criterion": "DBB-008: error message directory operation failure", "status": "pass" },
+    { "criterion": "DBB-009: error message rm non-existent path", "status": "pass" },
+    { "criterion": "DBB-010: ls -a shows hidden files", "status": "pass" },
+    { "criterion": "DBB-011: ls -a includes . and ..", "status": "pass" },
+    { "criterion": "DBB-012: test suite exists and passes", "status": "pass" },
+    { "criterion": "DBB-013: test coverage >= 80% (thresholds in vitest.config.ts, not CI-enforced)", "status": "partial" },
+    { "criterion": "DBB-014: each command has at least one test", "status": "pass" },
+    { "criterion": "DBB-015: boundary empty file returns empty output", "status": "pass" },
+    { "criterion": "DBB-016: boundary special characters in filename", "status": "pass" },
+    { "criterion": "DBB-017: boundary path resolution with ../", "status": "pass" }
+  ]
+}

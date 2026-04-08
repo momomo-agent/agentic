@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775580000000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "PRD.md",
+  "reason": "task-1775574408103 (glob expansion) is blocked: when a glob pattern like '*.xyz' matches no files, the current implementation returns empty string instead of an error. PRD does not specify the expected behavior for zero-match globs. This blocks the task from having a clear acceptance criterion.",
+  "proposedChange": "Add to PRD.md: when a glob pattern in a command argument matches no files, the command should return an error in the format '<cmd>: <pattern>: No such file or directory' (UNIX standard). This applies to ls, cat, cp, rm with glob args.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T16:26:29.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.697Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

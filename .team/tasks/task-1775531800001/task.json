@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531800001",
+  "title": "权限/readOnly 检查",
+  "description": "实现 readOnly 文件系统权限检查，写操作（write, mkdir, rm, mv, cp, touch）在 readOnly 模式下返回 UNIX 标准权限错误。",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "milestoneId": "m2",
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-07T03:18:00.000Z",
+  "updated": "2026-04-07T04:39:16.572Z"
+}

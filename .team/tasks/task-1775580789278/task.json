@@ -1,0 +1,13 @@
+{
+  "id": "task-1775580789278",
+  "title": "Fix grep -i with -l/-c in multi-file mode",
+  "description": "grep -i case-insensitive flag is inconsistent when combined with -l or -c in multi-file/recursive mode — passes empty string to fs.grep() and post-filters. Fix to pass pattern correctly and handle -i in all code paths. DBB-grep-004/005/006.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T16:53:09.278Z",
+  "updated": "2026-04-07T18:19:40.761Z"
+}

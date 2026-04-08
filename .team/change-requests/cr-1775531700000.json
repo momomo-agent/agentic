@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775531700000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "No ARCHITECTURE.md exists. Architecture match is only 62% because structural intent is inferred from PRD. This blocks effective milestone planning as acceptance criteria cannot reference formal architecture specs. Need formal documentation of: system layers (shell → filesystem abstraction), command execution flow, error handling patterns, testing strategy, and cross-backend consistency requirements.",
+  "proposedChange": "Create ARCHITECTURE.md documenting: (1) System architecture with layers diagram, (2) Command execution pipeline, (3) Error handling standards, (4) Testing requirements per component, (5) Cross-backend (browser/Electron/Node) consistency strategy, (6) Performance optimization patterns for large files/directories",
+  "status": "resolved",
+  "createdAt": "2026-04-07T11:15:00.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.681Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

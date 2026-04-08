@@ -1,0 +1,19 @@
+{
+  "milestoneId": "m26",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m26-001: grep -i multi-file with -l (case-insensitive bypass path lines 593-639 handles -l flag at line 637)", "status": "pass" },
+    { "criterion": "DBB-m26-002: grep -i multi-file with -c (line 627: `if (flags.includes('-c')) return String(ciResults.length)`)", "status": "pass" },
+    { "criterion": "DBB-m26-003: grep -i recursive (expandRecursiveGlob + case-insensitive matching in findRecursive)", "status": "pass" },
+    { "criterion": "DBB-m26-004: grep -i -l combined flag (expandCombinedFlags handles -il)", "status": "pass" },
+    { "criterion": "DBB-m26-005: grep -i -c combined flag (expandCombinedFlags handles -ic)", "status": "pass" },
+    { "criterion": "DBB-m26-006: rm -r 20+ levels deep (iterative stack-based rmRecursive with visited set)", "status": "pass" },
+    { "criterion": "DBB-m26-007: rm -r wide directory (100 files/50 dirs) handles breadth", "status": "pass" },
+    { "criterion": "DBB-m26-008: rm -r cycle prevention via visited set (line 785-788)", "status": "pass" },
+    { "criterion": "DBB-m26-009: Performance: grep 1MB < 500ms (perf.test.ts passes)", "status": "pass" },
+    { "criterion": "DBB-m26-010: Performance: find 1000 files < 1s (perf.test.ts passes)", "status": "pass" },
+    { "criterion": "DBB-m26-011: Performance: ls pagination < 100ms (perf.test.ts passes)", "status": "pass" },
+    { "criterion": "DBB-m26-012: All m26 tests pass (grep-i-consistency-fix, rm-deep-nesting, perf)", "status": "pass" }
+  ]
+}

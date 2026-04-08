@@ -1,0 +1,14 @@
+{
+  "id": "task-1775623225762",
+  "title": "Re-run vision gap analysis",
+  "description": "After ARCHITECTURE.md and VISION.md updates are complete, re-run gap analyses: (1) Vision gap analysis — update .team/gaps/vision.json, target ≥90%; (2) Architecture gap analysis — update .team/gaps/architecture.json, fix stale match score (currently 78, needs >85) and update gap statuses for exit codes, Future Enhancements, file size, and other resolved items; (3) Test coverage gap analysis — update .team/gaps/test-coverage.json if stale. All three gap files feed into architecture-alignment-m28.test.ts and vision verification.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m29",
+  "hasDesign": true,
+  "created": "2026-04-08T04:40:25.762Z",
+  "updated": "2026-04-08T05:43:59.599Z",
+  "milestoneId": "m29"
+}

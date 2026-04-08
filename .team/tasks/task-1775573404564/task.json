@@ -1,0 +1,14 @@
+{
+  "id": "task-1775573404564",
+  "title": "Implement wc -l flag",
+  "description": "wc -l should return line count only (e.g. '5 filename'). Currently wc always returns full line/word/char output. Fix wc() to handle -l flag. Add tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T14:50:04.564Z",
+  "updated": "2026-04-07T15:15:56.954Z",
+  "milestoneId": "m16"
+}

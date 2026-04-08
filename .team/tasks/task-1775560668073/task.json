@@ -1,0 +1,13 @@
+{
+  "id": "task-1775560668073",
+  "title": "cp -r 递归目录复制",
+  "description": "实现 cp -r flag，支持递归复制目录树。当前只支持单文件复制。",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m6",
+  "hasDesign": true,
+  "created": "2026-04-07T11:17:48.073Z",
+  "updated": "2026-04-07T11:33:30.956Z"
+}

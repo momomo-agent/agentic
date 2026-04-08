@@ -1,0 +1,13 @@
+{
+  "id": "task-1775580800582",
+  "title": "Add performance benchmark suite",
+  "description": "Add automated perf tests: grep <500ms on 1MB file, find <1s on 1000 files, ls <100ms pagination. DBB quality gate requirement.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T16:53:20.582Z",
+  "updated": "2026-04-07T18:23:49.551Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775560660291",
+  "title": "mv 目录支持",
+  "description": "修复 mv 命令，支持目录移动。当前只处理文件，目录移动会失败。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m6",
+  "hasDesign": true,
+  "created": "2026-04-07T11:17:40.291Z",
+  "updated": "2026-04-07T11:37:19.838Z"
+}

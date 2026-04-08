@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538654925",
+  "title": "resolve() 路径规范化 ../ 支持",
+  "description": "修复 resolve() 方法，正确规范化包含 ../ 的路径，防止路径解析错误。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:10:54.925Z",
+  "updated": "2026-04-07T10:54:46.158Z",
+  "milestoneId": "m4"
+}

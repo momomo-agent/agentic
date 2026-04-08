@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775535844000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "No ARCHITECTURE.md exists in the project. Architecture gaps analysis flags this as 'missing', and without it the team cannot validate implementation decisions against a structural spec. Milestone planning is hampered because acceptance criteria must be inferred from PRD alone.",
+  "proposedChange": "Create ARCHITECTURE.md documenting: (1) shell execution model and command dispatch, (2) filesystem abstraction layer and backend interfaces (browser/Electron/Node), (3) pipe/stream data flow, (4) error handling contract, (5) permission model.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T05:04:04.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.684Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

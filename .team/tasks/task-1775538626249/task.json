@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538626249",
+  "title": "grep -i 大小写不敏感搜索",
+  "description": "实现 grep -i flag，支持大小写不敏感的模式匹配。当前 grep 只支持精确大小写匹配。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:10:26.249Z",
+  "updated": "2026-04-07T05:36:46.528Z",
+  "milestoneId": "m4"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582402878",
+  "title": "Implement background jobs (&) and job control",
+  "description": "Add support for background job execution via trailing & in exec(). Implement jobs, fg, bg built-in commands. Vision gap: missing. Store job list on AgenticShell instance with pid-like IDs.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T17:20:02.878Z",
+  "updated": "2026-04-07T18:22:14.129Z"
+}

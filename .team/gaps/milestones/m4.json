@@ -1,0 +1,20 @@
+{
+  "milestoneId": "m4",
+  "match": 100,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "DBB-001: grep -i case-insensitive matching", "status": "pass" },
+    { "criterion": "DBB-001: grep -i works with -l, -c, -r flags", "status": "pass" },
+    { "criterion": "DBB-001: grep -i works in pipe stdin mode (execWithStdin)", "status": "pass" },
+    { "criterion": "DBB-001: without -i matching is case-sensitive", "status": "pass" },
+    { "criterion": "DBB-002: find /dir returns entries from all subdirectories recursively", "status": "pass" },
+    { "criterion": "DBB-002: find -name glob matches files in nested subdirs", "status": "pass" },
+    { "criterion": "DBB-002: find -type f and -type d filters apply recursively", "status": "pass" },
+    { "criterion": "DBB-002: find results include full paths", "status": "pass" },
+    { "criterion": "DBB-003: rm file.txt calls fs.delete", "status": "pass" },
+    { "criterion": "DBB-003: rm -r dir/ recursively deletes directory and contents", "status": "pass" },
+    { "criterion": "DBB-003: rm nonexistent returns No such file or directory", "status": "pass" },
+    { "criterion": "DBB-004: resolve() normalizes ../ paths correctly", "status": "pass" },
+    { "criterion": "DBB-004: resolve does not escape above root", "status": "pass" }
+  ]
+}

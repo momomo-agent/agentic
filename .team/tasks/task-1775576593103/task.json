@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576593103",
+  "title": "Add missing test coverage: ls pagination, find -type, rm -r root guard, cd-to-file",
+  "description": "Add tests for: ls --page/--page-size flags (DBB-ls-003/004/005), find -type f/d (DBB-find-003/004), rm -r refusing root deletion (DBB-rm-005), cd to a file returns 'Not a directory' (DBB-cd-003).",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-07T15:43:13.103Z",
+  "updated": "2026-04-07T16:24:52.296Z"
+}

@@ -1,0 +1,21 @@
+{
+  "milestoneId": "m13",
+  "match": 93,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m13-001: grep -i multi-file mode works (grep-case-insensitive, grep-i-multifile-m20)", "status": "pass" },
+    { "criterion": "DBB-m13-002: grep -i -l returns file list only", "status": "pass" },
+    { "criterion": "DBB-m13-003: grep -i -c returns count", "status": "pass" },
+    { "criterion": "DBB-m13-004: grep -i no-match returns empty", "status": "pass" },
+    { "criterion": "DBB-m13-005: wc -l returns line count with tab separator", "status": "pass" },
+    { "criterion": "DBB-m13-006: wc -w returns word count with tab separator", "status": "pass" },
+    { "criterion": "DBB-m13-007: wc -c returns char count with tab separator", "status": "pass" },
+    { "criterion": "DBB-m13-008: wc no flags returns full output (lines/words/chars path)", "status": "pass" },
+    { "criterion": "DBB-m13-009: touch on existing empty file works", "status": "pass" },
+    { "criterion": "DBB-m13-010: touch on non-existent file creates empty file", "status": "pass" },
+    { "criterion": "DBB-m13-011: touch on existing non-empty file does not overwrite content", "status": "pass" },
+    { "criterion": "DBB-m13-012: Coverage gate statement >= 80% enforced in vitest.config.ts", "status": "pass" },
+    { "criterion": "DBB-m13-013: Coverage gate branch >= 75% enforced in vitest.config.ts", "status": "pass" },
+    { "criterion": "DBB-m13-014: Test count >= 148 (actual: 515 passing across 62 test files)", "status": "pass" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775623225684",
+  "title": "Fix standalone grep no-match exit code",
+  "description": "Bug: In execPipeline() line 188-189, standalone grep with empty output (no matches) gets exitCode 0 via exitCodeFor(''). The pipe case (lines 113, 180) already handles this correctly: (cmd === 'grep' && output === '') ? 1. Apply same logic to standalone path. Fix: extract command name from trimmed input before execSingle(), then apply grep no-match check for exitCode.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m29",
+  "hasDesign": true,
+  "created": "2026-04-08T04:40:25.684Z",
+  "updated": "2026-04-08T04:54:49.337Z",
+  "milestoneId": "m29"
+}

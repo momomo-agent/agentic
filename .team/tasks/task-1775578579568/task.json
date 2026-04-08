@@ -1,0 +1,14 @@
+{
+  "id": "task-1775578579568",
+  "title": "Fix pipe error propagation",
+  "description": "Failed left command should pass empty stdin to right command instead of short-circuiting. Architecture spec: failed left segment passes empty string as stdin.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T16:16:19.568Z",
+  "updated": "2026-04-07T18:51:55.592Z",
+  "milestoneId": "m23"
+}

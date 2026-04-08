@@ -1,0 +1,13 @@
+{
+  "id": "task-1775571406334",
+  "title": "3+ stage pipe exit code propagation",
+  "description": "In a 3+ stage pipe, if a middle stage fails, the final exitCode should reflect the failure. Add test: cat file | grep match | grep nomatch returns exitCode 1.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T14:16:46.334Z",
+  "updated": "2026-04-07T14:39:16.115Z"
+}

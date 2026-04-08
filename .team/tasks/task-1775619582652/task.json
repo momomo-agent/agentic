@@ -1,0 +1,13 @@
+{
+  "id": "task-1775619582652",
+  "title": "Re-run PRD gap analysis after PRD.md fixes",
+  "description": "Re-run the PRD gap analysis after PM updates to PRD.md (§5.2 cross-env test description, §5.3 benchmark description). Target: verify if PRD match reaches ≥90%.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T03:39:42.652Z",
+  "updated": "2026-04-08T03:57:32.577Z"
+}

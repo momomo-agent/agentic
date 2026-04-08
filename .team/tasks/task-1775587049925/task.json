@@ -1,0 +1,18 @@
+{
+  "id": "task-1775587049925",
+  "title": "Add ls pagination test coverage",
+  "description": "ls --page and --page-size flags are implemented but have zero test coverage. Add tests verifying: page 1 vs page 2 returns different entries, page-size controls items per page, out-of-range page returns empty. PRD gap: 'no test coverage for pagination behavior'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [
+    "task-1775578579568",
+    "task-1775586432548",
+    "task-1775586435525"
+  ],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-07T18:37:29.925Z",
+  "updated": "2026-04-08T02:00:20.057Z",
+  "milestoneId": "m24"
+}

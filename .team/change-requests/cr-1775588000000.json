@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775588000000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "PRD.md",
+  "reason": "PRD target is ≥90% match but current is 75%. Three major features are completely missing: environment variables ($VAR), command substitution ($(cmd)), and background jobs (&, fg, bg, jobs). These are substantial features requiring significant implementation effort. Even after completing all planned partial-gap tasks (m24: 6 tasks, m25: 3 tasks), estimated PRD match would be ~87%. Reaching 90% requires implementing at least one of the three missing major features, which exceeds current milestone planning capacity.",
+  "proposedChange": "Option A: Add m26 milestone for 'Environment Variables & Command Substitution' (the two most impactful missing features) — estimated 2-3 weeks of dev work. Option B: Re-scope PRD to mark background jobs as 'future' and accept current trajectory with m24+m25 as sufficient for a revised 90% target. Option C: Accept that PRD ≥90% requires env vars implementation and add it to m25 scope.",
+  "status": "resolved",
+  "createdAt": "2026-04-08T00:00:00.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.697Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

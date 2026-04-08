@@ -1,0 +1,14 @@
+{
+  "id": "task-1775618266610",
+  "title": "Update ARCHITECTURE.md to reflect current implementation",
+  "description": "ARCHITECTURE.md has 7 discrepancies vs actual code: (1) Line 9: claims ~400 lines, actual is ~970 lines. (2) Line 147: exit codes 'not implemented' but exec() returns {output, exitCode}. (3-7) Lines 208-212: glob, env vars, command substitution, redirection, background jobs all fully implemented but listed as Future Enhancements. Move implemented features to documented sections. Remove trailing auto-merged CR text. This unblocks task-1775614258494 (architecture gap re-run).",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "architect",
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T03:17:46.610Z",
+  "updated": "2026-04-08T04:17:03.622Z",
+  "milestoneId": "m28"
+}

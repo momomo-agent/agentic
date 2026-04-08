@@ -1,0 +1,28 @@
+{
+  "milestoneId": "m27",
+  "match": 96,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m27-001: $(cmd) basic substitution (substituteCommands() lines 26-53)", "status": "pass" },
+    { "criterion": "DBB-m27-002: $(cmd) with cat (inner exec calls cat correctly)", "status": "pass" },
+    { "criterion": "DBB-m27-003: Nested $(cmd) depth 2-3 (depth parameter + maxDepth=3 at line 27)", "status": "pass" },
+    { "criterion": "DBB-m27-004: Failed inner command substitutes empty string (line 41: `r.exitCode === 0 ? r.output.trim() : ''`)", "status": "pass" },
+    { "criterion": "DBB-m27-005: Env vars inside command substitution (substituteEnv runs before substituteCommands)", "status": "pass" },
+    { "criterion": "DBB-m27-006: Multiple $(cmd) in single line (while loop at line 30 processes all occurrences)", "status": "pass" },
+    { "criterion": "DBB-m27-007: $(cmd) with pipe inside (inner exec handles pipe parsing)", "status": "pass" },
+    { "criterion": "DBB-m27-008: Empty command substitution $( ) handled gracefully", "status": "pass" },
+    { "criterion": "DBB-m27-009: $(cmd) with surrounding text (result concatenation at line 41)", "status": "pass" },
+    { "criterion": "DBB-m27-010: Glob bracket [abc] character set (matchGlob lines 380-392)", "status": "pass" },
+    { "criterion": "DBB-m27-011: Glob bracket [a-z] range (passes through to regex)", "status": "pass" },
+    { "criterion": "DBB-m27-012: Glob bracket [0-9] range", "status": "pass" },
+    { "criterion": "DBB-m27-013: Glob bracket [!abc] negation (line 385: converts to [^abc])", "status": "pass" },
+    { "criterion": "DBB-m27-014: Glob bracket combined with *", "status": "pass" },
+    { "criterion": "DBB-m27-015: Glob bracket in ls command", "status": "pass" },
+    { "criterion": "DBB-m27-016: Glob bracket empty result", "status": "pass" },
+    { "criterion": "DBB-m27-017: mkdir .keep fallback when fs.mkdir undefined (mkdirOne line 749)", "status": "pass" },
+    { "criterion": "DBB-m27-018: mkdir -p without fs.mkdir falls back to .keep", "status": "pass" },
+    { "criterion": "DBB-m27-019: mkdir with fs.mkdir no regression (mkdirOne line 747)", "status": "pass" },
+    { "criterion": "DBB-m27-020: mkdir readOnly permission denied (checkWritable in mkdir line 756-757)", "status": "pass" },
+    { "criterion": "DBB-m27-021: All m27 tests pass (cmd-substitution-m21, bracket-glob-m21, mkdir-no-keep-fallback)", "status": "pass" }
+  ]
+}

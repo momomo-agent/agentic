@@ -1,0 +1,14 @@
+{
+  "id": "task-1775565806215",
+  "title": "mkdir .keep fallback removal",
+  "description": "Remove the .keep file workaround in mkdir. When fs.mkdir is unavailable, return a clear error instead of silently creating a .keep file. Update tests accordingly. NOTE: Previously blocked — reassigned from tester to developer for implementation.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T12:43:26.215Z",
+  "updated": "2026-04-07T13:04:38.388Z",
+  "milestoneId": "m10"
+}

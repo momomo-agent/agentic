@@ -1,0 +1,13 @@
+{
+  "id": "task-1775588932916",
+  "title": "Implement background jobs (&) and job control",
+  "description": "Implement & suffix for background command execution, jobs command to list running jobs, fg to bring to foreground. Vision gap: 'Background jobs (&) and job control (fg, bg, jobs) not implemented'. Acceptance: sleep 10 & returns job ID, jobs lists running jobs, fg %1 brings job to foreground.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": false,
+  "created": "2026-04-07T19:08:52.916Z",
+  "updated": "2026-04-07T19:09:17.992Z"
+}

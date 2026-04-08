@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570185511",
+  "title": "Fix wc -l/-w/-c flag support",
+  "description": "wc always returns full line/word/char output. Fix so -l returns only line count, -w word count, -c char count. Add tests for each flag.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T13:56:25.511Z",
+  "updated": "2026-04-07T14:21:50.697Z",
+  "milestoneId": "m13"
+}

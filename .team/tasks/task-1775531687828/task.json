@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531687828",
+  "title": "标准化错误处理",
+  "description": "实现 UNIX 标准错误消息格式：文件不存在、目录操作失败、权限检查。确保所有命令返回一致的错误格式。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-07T03:14:47.828Z",
+  "updated": "2026-04-07T04:00:33.920Z",
+  "milestoneId": "m1"
+}

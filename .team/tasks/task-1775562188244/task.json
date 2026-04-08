@@ -1,0 +1,13 @@
+{
+  "id": "task-1775562188244",
+  "title": "grep streaming fallback indication",
+  "description": "Surface a warning/note in grep output when falling back from readStream to read() due to missing fs.readStream. Currently degrades silently.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-07T11:43:08.244Z",
+  "updated": "2026-04-07T12:02:58.949Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775614258455",
+  "title": "Re-run PRD gap analysis",
+  "description": "Re-run PRD gap analysis against current codebase to update prd.json match score. PRD.md has been comprehensively rewritten with all implemented features documented. Since last scan (2026-04-07), multiple test coverage tasks completed (ls pagination, find -type, rm -r safety, cd-to-file, path resolution, mkdir error format, test coverage quality gate). Expected: PRD match should increase significantly from 75% toward 90%+. Update .team/gaps/prd.json with current status.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T02:10:58.455Z",
+  "updated": "2026-04-08T02:45:23.105Z",
+  "milestoneId": "m28"
+}

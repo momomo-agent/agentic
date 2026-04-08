@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582087197",
+  "title": "Add bracket glob expressions [abc] support",
+  "description": "Extend matchGlob/expandGlob to handle bracket expressions [abc] and [a-z]. Vision gap: partial. DBB test-coverage edge case: bracket pattern not tested.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T17:14:47.197Z",
+  "updated": "2026-04-07T18:22:13.301Z"
+}

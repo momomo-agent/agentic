@@ -1,0 +1,11 @@
+{
+  "totalTests": 541,
+  "passed": 539,
+  "failed": 2,
+  "edgeCases": [
+    "architecture.json gap file not regenerated after ARCHITECTURE.md updates — match score stale at 78 (needs >85)",
+    "Exit code gap entry in architecture.json still has status 'partial' despite being documented in ARCHITECTURE.md",
+    "Vision gap score at 70% (needs ≥90%) — blocked on gap file regeneration (T4 responsibility)"
+  ],
+  "coverage": "99.6%"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775623225723",
+  "title": "Add Node.js filesystem integration tests",
+  "description": "Vision gap: cross-environment consistency tests use mock backends only. Create test/node-fs-integration.test.ts using real Node.js fs module wrapped in AgenticFileSystem interface. Test core commands (ls, cat, grep, mkdir, rm, cp, mv) against real filesystem with temp directory. Use os.tmpdir() + unique prefix, clean up in afterAll. This resolves the major vision gap for missing real integration tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m29",
+  "hasDesign": true,
+  "created": "2026-04-08T04:40:25.723Z",
+  "updated": "2026-04-08T05:03:25.067Z",
+  "milestoneId": "m29"
+}

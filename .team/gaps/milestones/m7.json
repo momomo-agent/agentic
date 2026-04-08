@@ -1,0 +1,14 @@
+{
+  "milestoneId": "m7",
+  "match": 85,
+  "timestamp": "2026-04-07T13:24:15.300Z",
+  "criteria": [
+    { "criterion": "grep streaming fallback warning included when readStream absent", "status": "pass" },
+    { "criterion": "grep streaming no fallback note when readStream present", "status": "pass" },
+    { "criterion": "StreamableFS interface declares readStream as optional typed method", "status": "partial" },
+    { "criterion": "fs as any cast removed from grepStream", "status": "fail" },
+    { "criterion": "constructor throws listing missing methods when required methods absent", "status": "pass" },
+    { "criterion": "valid adapters construct without error", "status": "pass" },
+    { "criterion": "all pre-existing tests pass", "status": "pass" }
+  ]
+}

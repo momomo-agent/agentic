@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775571806000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "task-1775570891676 (include excluded test files) is blocked: removing vitest exclusions for src/index.test.ts and test/mkdir-find-cd.test.ts causes OOM during test run. DBB-env-001 cross-environment consistency tests cannot execute under current config. This is a recurring blocker across m14.",
+  "proposedChange": "Document the OOM constraint in ARCHITECTURE.md testing strategy section. Either: (a) split the excluded test files into smaller suites to avoid memory pressure, or (b) formally accept that cross-env tests run in a separate CI step outside vitest. Clarify which approach is intended so task-1775570891676 can be unblocked.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T14:31:26.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.690Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570891676",
+  "title": "Include excluded test files in vitest run",
+  "description": "Superseded by task-1775572452545 which addresses the same OOM issue via --pool=forks approach",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-07T14:08:11.676Z",
+  "updated": "2026-04-07T14:44:44.749Z",
+  "milestoneId": "m14"
+}

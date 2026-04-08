@@ -1,0 +1,11 @@
+{
+  "milestoneId": "m20",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m20-001: grep -i consistency in multi-file mode — case-insensitive bypass path (lines 593-639) reads each file and applies regex with 'i' flag. Tested in grep-i-multifile-m20.test.ts and grep-i-consistency.test.ts.", "status": "pass" },
+    { "criterion": "DBB-m20-002: Path resolution edge cases — normalizePath() (lines 346-354) handles '.', '..', root escape. resolve() (lines 356-360) prepends cwd. Tested in resolve-path-normalization.test.ts and path-resolution-dbb.test.ts.", "status": "pass" },
+    { "criterion": "DBB-m20-003: Performance gates — grep 1MB < 500ms, find 1000 files < 1s, ls pagination < 100ms. Tested in perf.test.ts (3/3 pass).", "status": "pass" },
+    { "criterion": "DBB-m20-004: Coverage gate enforced in vitest.config.ts — thresholds: { statements: 80, branches: 75 }", "status": "pass" }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "milestoneId": "m25",
+  "match": 100,
+  "timestamp": "2026-04-08T20:00:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m25-001: $VAR substitution works (substituteEnv() line 23)", "status": "pass" },
+    { "criterion": "DBB-m25-002: ${VAR} substitution works (substituteEnv() line 22)", "status": "pass" },
+    { "criterion": "DBB-m25-003: Undefined variable substitutes to empty string (line 22-23: `?? ''`)", "status": "pass" },
+    { "criterion": "DBB-m25-004: PWD variable tracked on cd (line 735: `this.env.set('PWD', resolved)`)", "status": "pass" },
+    { "criterion": "DBB-m25-005: VAR=value assignment works (execPipeline lines 95-98)", "status": "pass" },
+    { "criterion": "DBB-m25-006: Env vars work in pipe context (substituteEnv runs before pipe parsing)", "status": "pass" },
+    { "criterion": "DBB-m25-007: Multiple vars in single command substituted", "status": "pass" },
+    { "criterion": "DBB-m25-008: Recursive glob **/*.ts works (expandGlob lines 436-443 calls expandRecursiveGlob)", "status": "pass" },
+    { "criterion": "DBB-m25-009: Bracket glob [abc] works (matchGlob lines 380-392)", "status": "pass" },
+    { "criterion": "DBB-m25-010: Combined **/[abc]*.ts pattern works", "status": "pass" },
+    { "criterion": "DBB-m25-011: **/* matches all files recursively", "status": "pass" },
+    { "criterion": "DBB-m25-012: Glob no regression — existing single-dir glob still works", "status": "pass" },
+    { "criterion": "DBB-m25-013: Glob empty result returns error for ls", "status": "pass" },
+    { "criterion": "DBB-m25-014: cp without -r on directory returns UNIX-standard error (line 894)", "status": "pass" },
+    { "criterion": "DBB-m25-015: cp -r no regression (copyRecursive lines 901-923)", "status": "pass" },
+    { "criterion": "DBB-m25-016: cp file no regression", "status": "pass" }
+  ]
+}

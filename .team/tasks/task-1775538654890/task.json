@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538654890",
+  "title": "rm 修复 fs.delete 调用",
+  "description": "rm 命令未正确调用 fs.delete，导致文件未实际删除。修复实现使其调用正确的文件系统 API。",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:10:54.891Z",
+  "updated": "2026-04-07T05:28:48.687Z",
+  "milestoneId": "m4"
+}

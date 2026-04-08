@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538654857",
+  "title": "find 递归目录遍历",
+  "description": "实现 find 命令递归遍历子目录，当前只搜索一层。需支持完整目录树遍历。",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:10:54.857Z",
+  "updated": "2026-04-07T11:56:48.569Z",
+  "milestoneId": "m4"
+}

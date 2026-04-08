@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587050399",
+  "title": "Add mkdir error format verification test",
+  "description": "mkdir error format is already UNIX-standard in source code (line 708: mkdir: ${p}: No such file or directory). Add test case to verify DBB-mkdir-003 passes: mkdir on path with missing parent returns correct error format. Acceptance: test case verifying mkdir error output matches UNIX convention.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-07T18:37:30.399Z",
+  "updated": "2026-04-08T01:43:28.753Z",
+  "milestoneId": "m24"
+}

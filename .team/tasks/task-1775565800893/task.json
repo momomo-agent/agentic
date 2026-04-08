@@ -1,0 +1,14 @@
+{
+  "id": "task-1775565800893",
+  "title": "ls fs.ls() error field handling",
+  "description": "ls command ignores error field returned by fs.ls(). Add error check and return UNIX-style error message when fs.ls() returns an error.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T12:43:20.902Z",
+  "updated": "2026-04-07T12:54:27.264Z",
+  "milestoneId": "m10"
+}

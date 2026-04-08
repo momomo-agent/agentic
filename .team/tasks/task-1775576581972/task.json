@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576581972",
+  "title": "Fix wc tab-separated output",
+  "description": "wc output must use tabs not spaces: '2\\t3\\t10\\t/file'. Fix wc() formatter to join counts with tab character. Covers DBB-wc-001, DBB-m14-wc-001, DBB-m13-008.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m18-dup",
+  "hasDesign": true,
+  "created": "2026-04-07T15:43:01.973Z",
+  "updated": "2026-04-07T15:48:14.995Z"
+}

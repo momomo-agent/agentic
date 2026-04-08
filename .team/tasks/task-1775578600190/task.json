@@ -1,0 +1,13 @@
+{
+  "id": "task-1775578600190",
+  "title": "Verify coverage gate and test count threshold",
+  "description": "Confirm vitest --coverage reports ≥80% statement / ≥75% branch coverage and test count ≥148. Fix vitest.config.ts thresholds if not enforced. Covers DBB-M10-001, DBB-m13-012/013, DBB-m16-004.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T16:16:40.190Z",
+  "updated": "2026-04-07T17:02:37.074Z"
+}
