@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElevenLabs Voice Test</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 12px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.3); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+    .btn-secondary:hover { background: #e0e0e0; }
+    .btn-secondary.recording {
+      background: #ef4444;
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .status {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f8f9fa;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
+    .status.success { background: #d1fae5; color: #065f46; }
+    .status.error { background: #fee2e2; color: #991b1b; }
+    .status.loading { background: #dbeafe; color: #1e40af; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎙️ ElevenLabs Voice</h1>
+    <p class="subtitle">Test TTS & STT with Lucy voice</p>
+    
+    <button id="testTTS" class="btn btn-primary">
+      🔊 Test Text-to-Speech
+    </button>
+    
+    <button id="testSTT" class="btn btn-secondary">
+      🎤 Start Recording
+    </button>
+    
+    <div id="status" class="status">
+      Ready to test
+    </div>
+  </div>
+
+  <script type="module">
+    import { createVoice } from './agentic-voice.js'
+
+    const statusEl = document.getElementById('status')
+    const ttsBtn = document.getElementById('testTTS')
+    const sttBtn = document.getElementById('testSTT')
+
+    function setStatus(text, type = '') {
+      statusEl.textContent = text
+      statusEl.className = 'status ' + type
+    }
+
+    const voice = createVoice({
+      tts: {
+        provider: 'elevenlabs',
+        apiKey: 'sk_b0f355a25dea64a975f9aef7ad791a19c4f5e266143caecc',
+        voice: 'jsCqWAovK2LkecY7zXl4',
+        model: 'eleven_turbo_v2_5',
+      },
+      stt: {
+        provider: 'elevenlabs',
+        apiKey: 'sk_b0f355a25dea64a975f9aef7ad791a19c4f5e266143caecc',
+        model: 'scribe_v2',
+      }
+    })
+
+    voice.on('transcript', text => {
+      setStatus('📝 ' + text, 'success')
+    })
+
+    voice.on('error', err => {
+      setStatus('❌ ' + err.message, 'error')
+    })
+
+    // 页面加载时申请麦克风权限
+    ;(async () => {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true })
+        setStatus('✅ Microphone ready', 'success')
+        setTimeout(() => setStatus('Ready to test'), 2000)
+      } catch (e) {
+        setStatus('⚠️ Microphone permission denied', 'error')
+      }
+    })()
+
+    // TTS
+    ttsBtn.onclick = async () => {
+      try {
+        ttsBtn.disabled = true
+        voice.unlock()
+        setStatus('🎵 Generating speech...', 'loading')
+        
+        const success = await voice.speak('Hello, this is Lucy speaking from ElevenLabs.')
+        
+        if (success) {
+          setStatus('✅ Playback complete!', 'success')
+        } else {
+          setStatus('❌ Playback failed', 'error')
+        }
+      } catch (e) {
+        setStatus('❌ ' + e.message, 'error')
+      } finally {
+        ttsBtn.disabled = false
+      }
+    }
+
+    // STT
+    let isRecording = false
+    
+    sttBtn.onclick = () => {
+      if (isRecording) {
+        // 停止录音
+        sttBtn.classList.remove('recording')
+        sttBtn.textContent = '🎤 Start Recording'
+        setStatus('⏳ Processing...', 'loading')
+        voice.stopListening()
+        isRecording = false
+      } else {
+        // 开始录音
+        sttBtn.classList.add('recording')
+        sttBtn.textContent = '⏹️ Stop Recording'
+        setStatus('🎤 Recording...', 'loading')
+        voice.startListening()
+        isRecording = true
+      }
+    }
+  </script>
+</body>
+</html>
