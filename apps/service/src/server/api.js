@@ -244,9 +244,11 @@ function addRoutes(r) {
 
   r.get('/api/status', async (req, res) => {
     const { detect } = await import('../detector/hardware.js');
+    const { getDownloadState } = await import('../cli/download-state.js');
     const hardware = await detect();
     const ollama = await getOllamaStatus();
-    res.json({ hardware, profile: {}, ollama, devices: getDevices() });
+    const download = getDownloadState();
+    res.json({ hardware, profile: {}, ollama, devices: getDevices(), download });
   });
 
   r.get('/api/devices', (req, res) => res.json(getDevices()));

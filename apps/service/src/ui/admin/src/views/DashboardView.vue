@@ -2,6 +2,20 @@
   <div class="dashboard">
     <h1 class="page-title">⚡ Agentic Service</h1>
 
+    <!-- 后台下载进度 -->
+    <div v-if="backgroundDownload.inProgress" class="download-banner">
+      <div class="download-info">
+        <div class="download-title">📥 正在下载模型: {{ backgroundDownload.model }}</div>
+        <div class="download-status">{{ backgroundDownload.status }}</div>
+      </div>
+      <div v-if="backgroundDownload.total > 0" class="download-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" :style="{ width: (backgroundDownload.progress / backgroundDownload.total * 100) + '%' }"></div>
+        </div>
+        <div class="progress-text">{{ formatBytes(backgroundDownload.progress) }} / {{ formatBytes(backgroundDownload.total) }}</div>
+      </div>
+    </div>
+
     <!-- 系统状态 -->
     <section class="section">
       <h2 class="section-title">系统状态</h2>
@@ -242,6 +256,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 const hardware = ref({})
 const ollama = ref({ running: false, models: [] })
 const logs = ref([])
+const backgroundDownload = ref({ inProgress: false, model: '', status: '', progress: 0, total: 0 })
 
 const recommended = [
   { name: 'gemma2:2b', desc: '轻量级，快速响应，适合低内存' },
@@ -287,6 +302,7 @@ async function fetchData() {
     ])
     hardware.value = statusRes.hardware || {}
     ollama.value = statusRes.ollama || { running: false, models: [] }
+    backgroundDownload.value = statusRes.download || { inProgress: false, model: '', status: '', progress: 0, total: 0 }
     logs.value = logsRes
   } catch (e) {
     console.error('fetch failed:', e)
@@ -477,6 +493,14 @@ function formatLogTime(ts) {
   return d.toLocaleTimeString('zh-CN', { hour12: false })
 }
 
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+}
+
 onMounted(() => {
   fetchData()
   loadConfig()
@@ -488,6 +512,30 @@ onUnmounted(() => clearInterval(timer))
 <style scoped>
 .dashboard { max-width: 1400px; margin: 0 auto; }
 .page-title { font-size: 32px; font-weight: 700; margin-bottom: 32px; }
+.download-banner {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.download-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.download-title { font-weight: 600; font-size: 15px; }
+.download-status { font-size: 13px; color: var(--text-dim); }
+.download-progress { display: flex; align-items: center; gap: 12px; }
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 0.3s ease;
+}
+.progress-text { font-size: 13px; color: var(--text-dim); white-space: nowrap; }
 .section { margin-bottom: 48px; }
 .section-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: var(--text-dim); }
 .grid { display: grid; gap: 24px; }

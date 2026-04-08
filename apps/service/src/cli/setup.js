@@ -8,6 +8,7 @@ import http from 'http';
 import { detect } from '../detector/hardware.js';
 import { getProfile } from '../detector/profiles.js';
 import { ensureSox } from '../detector/sox.js';
+import { setDownloadState, clearDownloadState } from './download-state.js';
 
 async function isOllamaInstalled() {
   try { execSync('which ollama', { stdio: 'ignore' }); return true; } catch { return false; }
@@ -74,14 +75,48 @@ async function installOllama(cmd) {
 }
 
 async function pullModel(model) {
+  setDownloadState({ inProgress: true, model, status: 'Starting...', progress: 0, total: 0 })
   const spinner = ora(`Pulling model ${model}...`).start();
-  await new Promise((resolve, reject) => {
-    const child = spawn('ollama', ['pull', model], { stdio: 'inherit' });
-    child.on('close', code => {
-      code === 0 ? spinner.succeed(`Model ${model} ready`) : reject(new Error(`pull failed: ${code}`));
-      if (code === 0) resolve();
+  
+  try {
+    await new Promise((resolve, reject) => {
+      const child = spawn('ollama', ['pull', model], { stdio: ['ignore', 'pipe', 'pipe'] });
+      
+      let buffer = '';
+      child.stdout.on('data', (data) => {
+        buffer += data.toString();
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          try {
+            const json = JSON.parse(line);
+            if (json.status) {
+              spinner.text = `Pulling ${model}: ${json.status}`;
+              setDownloadState({ 
+                status: json.status,
+                progress: json.completed || 0,
+                total: json.total || 0
+              });
+            }
+          } catch {}
+        }
+      });
+      
+      child.on('close', code => {
+        if (code === 0) {
+          spinner.succeed(`Model ${model} ready`);
+          clearDownloadState();
+          resolve();
+        } else {
+          reject(new Error(`pull failed: ${code}`));
+        }
+      });
     });
-  });
+  } catch (err) {
+    clearDownloadState();
+    throw err;
+  }
 }
 
 const CONFIG_PATH = path.join(os.homedir(), '.agentic-service', 'config.json');
