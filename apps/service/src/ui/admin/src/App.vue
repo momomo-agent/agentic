@@ -1,121 +1,111 @@
 <template>
-  <div class="admin">
+  <div class="app">
+    <!-- Header -->
     <header class="header">
       <div class="header-content">
-        <h1 class="logo">⚡ Agentic Service</h1>
-        <div class="status-pill" :class="online ? 'online' : 'offline'">
-          <span class="status-dot"></span>
+        <h1 class="logo">Agentic Service</h1>
+        <div class="status" :class="{ online }">
+          <span class="dot"></span>
           {{ online ? 'Running' : 'Offline' }}
         </div>
       </div>
     </header>
 
-    <main class="content">
-      <!-- Models Section -->
+    <!-- Main -->
+    <main class="main">
+      <!-- Hero -->
+      <section class="hero">
+        <h2 class="hero-title">Local AI Infrastructure</h2>
+        <p class="hero-desc">Zero-config deployment. Hardware-optimized models. Production-ready.</p>
+      </section>
+
+      <!-- Download Progress (if active) -->
+      <div v-if="download.inProgress" class="download">
+        <div class="download-header">
+          <div class="download-label">Downloading</div>
+          <div class="download-model">{{ download.model }}</div>
+        </div>
+        <div v-if="download.total > 0" class="download-bar">
+          <div class="download-fill" :style="{ width: downloadPercent + '%' }"></div>
+        </div>
+        <div class="download-meta">
+          <span>{{ download.status }}</span>
+          <span v-if="download.total > 0">{{ downloadPercent }}%</span>
+        </div>
+      </div>
+
+      <!-- Models -->
       <section class="section">
-        <div class="section-header">
-          <h2>Models</h2>
-          <p class="section-desc">Manage your local AI models</p>
-        </div>
-
-        <!-- Background Download Progress -->
-        <div v-if="backgroundDownload.inProgress" class="download-card">
-          <div class="download-header">
-            <div class="download-icon">📦</div>
-            <div class="download-info">
-              <div class="download-model">{{ backgroundDownload.model }}</div>
-              <div class="download-status">{{ backgroundDownload.status }}</div>
+        <h3 class="section-title">Models</h3>
+        
+        <div class="models">
+          <!-- Installed -->
+          <div class="panel">
+            <div class="panel-header">
+              <h4>Installed</h4>
+              <span class="count">{{ ollama.models.length }}</span>
             </div>
-          </div>
-          <div v-if="backgroundDownload.total > 0" class="download-progress">
-            <div class="progress-track">
-              <div class="progress-bar" :style="{ width: progressPercent + '%' }"></div>
-            </div>
-            <div class="progress-label">
-              {{ formatBytes(backgroundDownload.progress) }} / {{ formatBytes(backgroundDownload.total) }}
-              <span class="progress-percent">{{ progressPercent }}%</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="models-grid">
-          <!-- Installed Models -->
-          <div class="models-panel">
-            <h3 class="panel-title">Installed</h3>
-            <div v-if="!ollama.running" class="empty-state">
-              <div class="empty-icon">⚠️</div>
-              <p>Ollama not running</p>
-            </div>
-            <div v-else-if="ollama.models.length === 0" class="empty-state">
-              <div class="empty-icon">📦</div>
-              <p>No models installed</p>
-            </div>
-            <div v-else class="model-list">
-              <div v-for="m in ollama.models" :key="m" class="model-card installed">
-                <div class="model-name">{{ m }}</div>
-                <button class="btn-delete" @click="deleteModel(m)">Delete</button>
+            <div v-if="!ollama.running" class="empty">Ollama not running</div>
+            <div v-else-if="ollama.models.length === 0" class="empty">No models</div>
+            <div v-else class="list">
+              <div v-for="m in ollama.models" :key="m" class="item installed">
+                <span class="name">{{ m }}</span>
+                <button class="delete" @click="deleteModel(m)">Delete</button>
               </div>
             </div>
           </div>
 
-          <!-- Recommended Models -->
-          <div class="models-panel">
-            <h3 class="panel-title">Recommended</h3>
-            <div class="model-list">
-              <div v-for="m in recommended" :key="m.name" class="model-card">
-                <div class="model-info">
-                  <div class="model-name">{{ m.name }}</div>
-                  <div class="model-desc">{{ m.desc }}</div>
+          <!-- Recommended -->
+          <div class="panel">
+            <div class="panel-header">
+              <h4>Recommended</h4>
+            </div>
+            <div class="list">
+              <div v-for="m in recommended" :key="m.name" class="item">
+                <div class="info">
+                  <span class="name">{{ m.name }}</span>
+                  <span class="desc">{{ m.desc }}</span>
                 </div>
-                <div class="model-action">
-                  <div v-if="downloadProgress[m.name]" class="downloading">
-                    {{ downloadProgress[m.name] }}
-                  </div>
-                  <button v-else class="btn-download" @click="downloadModel(m.name)" :disabled="!ollama.running">
-                    Download
-                  </button>
-                </div>
+                <div v-if="progress[m.name]" class="progress">{{ progress[m.name] }}</div>
+                <button v-else class="download" @click="downloadModel(m.name)" :disabled="!ollama.running">
+                  Download
+                </button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- System Info -->
-      <section class="section">
-        <div class="section-header">
-          <h2>System</h2>
-          <p class="section-desc">Hardware and runtime status</p>
-        </div>
-        <div class="info-grid">
-          <div class="info-card">
-            <div class="info-label">Platform</div>
-            <div class="info-value">{{ hardware.platform || '—' }}</div>
+      <!-- System -->
+      <section class="section dark">
+        <h3 class="section-title">System</h3>
+        <div class="system">
+          <div class="metric">
+            <div class="label">Platform</div>
+            <div class="value">{{ hardware.platform || '—' }}</div>
           </div>
-          <div class="info-card">
-            <div class="info-label">Architecture</div>
-            <div class="info-value">{{ hardware.arch || '—' }}</div>
+          <div class="metric">
+            <div class="label">Architecture</div>
+            <div class="value">{{ hardware.arch || '—' }}</div>
           </div>
-          <div class="info-card">
-            <div class="info-label">Memory</div>
-            <div class="info-value">{{ hardware.memory || '—' }} GB</div>
+          <div class="metric">
+            <div class="label">Memory</div>
+            <div class="value">{{ hardware.memory || '—' }} GB</div>
           </div>
-          <div class="info-card">
-            <div class="info-label">GPU</div>
-            <div class="info-value">{{ formatGPU(hardware.gpu) }}</div>
+          <div class="metric">
+            <div class="label">GPU</div>
+            <div class="value">{{ formatGPU(hardware.gpu) }}</div>
           </div>
         </div>
       </section>
 
-      <!-- Examples Link -->
-      <section class="section">
-        <div class="examples-card">
-          <div class="examples-content">
-            <h3>Ready to try?</h3>
-            <p>Explore 7 interactive demos showcasing voice, vision, and chat capabilities</p>
-          </div>
-          <a href="/examples/" class="btn-examples">View Examples →</a>
+      <!-- Examples -->
+      <section class="section cta">
+        <div class="cta-content">
+          <h3>Ready to explore?</h3>
+          <p>7 interactive demos showcasing voice, vision, and chat</p>
         </div>
+        <a href="/examples/" class="cta-button">View Examples</a>
       </section>
     </main>
   </div>
@@ -127,21 +117,20 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 const online = ref(false)
 const hardware = ref({})
 const ollama = ref({ running: false, models: [] })
-const backgroundDownload = ref({ inProgress: false, model: '', status: '', progress: 0, total: 0 })
+const download = ref({ inProgress: false, model: '', status: '', progress: 0, total: 0 })
+const progress = ref({})
 
 const recommended = [
-  { name: 'gemma2:2b', desc: 'Lightweight, fast, low memory' },
-  { name: 'qwen2.5:3b', desc: 'Chinese optimized, balanced' },
-  { name: 'llama3.2:3b', desc: 'Meta open source, versatile' },
-  { name: 'phi3.5:3.8b', desc: 'Microsoft, code & reasoning' },
-  { name: 'mistral:7b', desc: 'High quality, needs 8GB+ RAM' },
+  { name: 'gemma2:2b', desc: 'Lightweight, fast' },
+  { name: 'qwen2.5:3b', desc: 'Chinese optimized' },
+  { name: 'llama3.2:3b', desc: 'Meta, versatile' },
+  { name: 'phi3.5:3.8b', desc: 'Code & reasoning' },
+  { name: 'mistral:7b', desc: 'High quality' },
 ]
 
-const downloadProgress = ref({})
-
-const progressPercent = computed(() => {
-  if (!backgroundDownload.value.total) return 0
-  return Math.round((backgroundDownload.value.progress / backgroundDownload.value.total) * 100)
+const downloadPercent = computed(() => {
+  if (!download.value.total) return 0
+  return Math.round((download.value.progress / download.value.total) * 100)
 })
 
 let timer = null
@@ -155,14 +144,12 @@ async function fetchData() {
     const res = await fetch('/api/status').then(r => r.json())
     hardware.value = res.hardware || {}
     ollama.value = res.ollama || { running: false, models: [] }
-    backgroundDownload.value = res.download || { inProgress: false, model: '', status: '', progress: 0, total: 0 }
-  } catch (e) {
-    console.error('fetch failed:', e)
-  }
+    download.value = res.download || { inProgress: false, model: '', status: '', progress: 0, total: 0 }
+  } catch {}
 }
 
 async function downloadModel(name) {
-  downloadProgress.value[name] = 'Starting...'
+  progress.value[name] = 'Starting...'
   try {
     const res = await fetch('/api/models/pull', {
       method: 'POST',
@@ -184,14 +171,14 @@ async function downloadModel(name) {
         try {
           const data = JSON.parse(line.slice(5))
           if (data.error) {
-            downloadProgress.value[name] = 'Error'
-            setTimeout(() => delete downloadProgress.value[name], 3000)
+            progress.value[name] = 'Error'
+            setTimeout(() => delete progress.value[name], 3000)
             return
           }
           if (data.status === 'success') {
-            downloadProgress.value[name] = '✓ Done'
+            progress.value[name] = '✓'
             setTimeout(() => {
-              delete downloadProgress.value[name]
+              delete progress.value[name]
               fetchData()
             }, 2000)
             return
@@ -200,14 +187,14 @@ async function downloadModel(name) {
             const pct = data.completed && data.total ? 
               Math.round((data.completed / data.total) * 100) + '%' : 
               data.status
-            downloadProgress.value[name] = pct
+            progress.value[name] = pct
           }
         } catch {}
       }
     }
-  } catch (e) {
-    downloadProgress.value[name] = 'Error'
-    setTimeout(() => delete downloadProgress.value[name], 3000)
+  } catch {
+    progress.value[name] = 'Error'
+    setTimeout(() => delete progress.value[name], 3000)
   }
 }
 
@@ -216,17 +203,7 @@ async function deleteModel(name) {
   try {
     await fetch(`/api/models/${encodeURIComponent(name)}`, { method: 'DELETE' })
     fetchData()
-  } catch (e) {
-    alert('Delete failed: ' + e.message)
-  }
-}
-
-function formatBytes(bytes) {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+  } catch {}
 }
 
 function formatGPU(gpu) {
@@ -245,334 +222,366 @@ onMounted(() => {
 onUnmounted(() => clearInterval(timer))
 </script>
 
-<style scoped>
-.admin {
-  min-height: 100vh;
-  background: #0a0a0a;
-  color: #e5e5e5;
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* Header */
 .header {
-  border-bottom: 1px solid #1a1a1a;
-  background: #000;
   position: sticky;
   top: 0;
   z-index: 10;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .header-content {
-  max-width: 1200px;
+  max-width: 980px;
   margin: 0 auto;
-  padding: 20px 32px;
+  padding: 16px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .logo {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  margin: 0;
+  letter-spacing: -0.374px;
+  color: #1d1d1f;
 }
 
-.status-pill {
+.status {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #86868b;
 }
 
-.status-pill.online {
-  background: rgba(34, 197, 94, 0.1);
-  color: #22c55e;
+.status.online {
+  color: #10b981;
 }
 
-.status-pill.offline {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-}
-
-.status-dot {
+.dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
 
-.content {
-  max-width: 1200px;
+/* Main */
+.main {
+  max-width: 980px;
   margin: 0 auto;
-  padding: 48px 32px;
+  padding: 0 32px 120px;
 }
 
-.section {
-  margin-bottom: 64px;
+/* Hero */
+.hero {
+  padding: 80px 0 64px;
+  text-align: center;
 }
 
-.section-header {
-  margin-bottom: 24px;
-}
-
-.section-header h2 {
-  font-size: 24px;
+.hero-title {
+  font-size: 56px;
   font-weight: 600;
-  margin: 0 0 4px 0;
+  line-height: 1.07;
+  letter-spacing: -0.28px;
+  color: #1d1d1f;
+  margin-bottom: 12px;
 }
 
-.section-desc {
-  font-size: 14px;
-  color: #737373;
-  margin: 0;
+.hero-desc {
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1.19;
+  letter-spacing: 0.231px;
+  color: #86868b;
 }
 
-.download-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
-  border: 1px solid rgba(99, 102, 241, 0.2);
+/* Download Progress */
+.download {
+  background: linear-gradient(135deg, rgba(0, 113, 227, 0.05), rgba(0, 113, 227, 0.02));
+  border: 1px solid rgba(0, 113, 227, 0.15);
   border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 24px;
+  padding: 24px;
+  margin-bottom: 64px;
 }
 
 .download-header {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: baseline;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
-.download-icon {
-  font-size: 32px;
-}
-
-.download-info {
-  flex: 1;
+.download-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0071e3;
 }
 
 .download-model {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
-  margin-bottom: 4px;
+  letter-spacing: -0.374px;
+  color: #1d1d1f;
 }
 
-.download-status {
-  font-size: 13px;
-  color: #a3a3a3;
-}
-
-.download-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.progress-track {
-  height: 6px;
-  background: #1a1a1a;
-  border-radius: 3px;
+.download-bar {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
   overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #6366f1, #a855f7);
-  transition: width 0.3s ease;
-}
-
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #a3a3a3;
-}
-
-.progress-percent {
-  color: #6366f1;
-  font-weight: 500;
-}
-
-.models-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 24px;
-}
-
-.models-panel {
-  background: #0f0f0f;
-  border: 1px solid #1a1a1a;
-  border-radius: 12px;
-  padding: 24px;
-}
-
-.panel-title {
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #737373;
-  margin: 0 0 16px 0;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  color: #525252;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-}
-
-.model-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.model-card {
-  background: #1a1a1a;
-  border: 1px solid #262626;
-  border-radius: 8px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  transition: border-color 0.2s;
-}
-
-.model-card:hover {
-  border-color: #404040;
-}
-
-.model-card.installed {
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.model-info {
-  flex: 1;
-}
-
-.model-name {
-  font-size: 15px;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.model-desc {
-  font-size: 13px;
-  color: #737373;
-}
-
-.model-action {
-  flex-shrink: 0;
-}
-
-.downloading {
-  font-size: 13px;
-  color: #6366f1;
-  font-weight: 500;
-}
-
-.btn-download, .btn-delete {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-download {
-  background: #6366f1;
-  color: white;
-}
-
-.btn-download:hover:not(:disabled) {
-  background: #5558e3;
-}
-
-.btn-download:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-delete {
-  background: transparent;
-  color: #ef4444;
-  border: 1px solid #ef4444;
-}
-
-.btn-delete:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.info-card {
-  background: #0f0f0f;
-  border: 1px solid #1a1a1a;
-  border-radius: 8px;
-  padding: 20px;
-}
-
-.info-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #737373;
   margin-bottom: 8px;
 }
 
-.info-value {
-  font-size: 18px;
-  font-weight: 600;
+.download-fill {
+  height: 100%;
+  background: #0071e3;
+  transition: width 0.3s ease;
 }
 
-.examples-card {
-  background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-  border: 1px solid #262626;
-  border-radius: 12px;
-  padding: 32px;
+.download-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #86868b;
+}
+
+/* Section */
+.section {
+  padding: 64px 0;
+}
+
+.section.dark {
+  margin: 0 -32px;
+  padding: 64px 32px;
+  background: #000000;
+  color: #ffffff;
+}
+
+.section.cta {
+  background: #f5f5f7;
+  margin: 0 -32px;
+  padding: 48px 32px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 32px;
 }
 
-.examples-content h3 {
-  font-size: 20px;
+.section-title {
+  font-size: 40px;
   font-weight: 600;
-  margin: 0 0 8px 0;
+  line-height: 1.10;
+  letter-spacing: normal;
+  color: #1d1d1f;
+  margin-bottom: 32px;
 }
 
-.examples-content p {
+.section.dark .section-title {
+  color: #ffffff;
+}
+
+/* Models */
+.models {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 32px;
+}
+
+.panel {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.panel-header h4 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.374px;
+  color: #1d1d1f;
+}
+
+.count {
   font-size: 14px;
-  color: #a3a3a3;
-  margin: 0;
+  color: #86868b;
 }
 
-.btn-examples {
-  padding: 12px 24px;
-  background: white;
-  color: #0a0a0a;
+.empty {
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #86868b;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #f5f5f7;
   border-radius: 8px;
+}
+
+.item.installed {
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.item .info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item .name {
   font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.item .desc {
+  font-size: 12px;
+  color: #86868b;
+}
+
+.item .progress {
+  font-size: 12px;
+  font-weight: 500;
+  color: #0071e3;
+}
+
+.item button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.item .download {
+  background: #0071e3;
+  color: #ffffff;
+}
+
+.item .download:hover:not(:disabled) {
+  background: #0077ed;
+}
+
+.item .download:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.item .delete {
+  background: transparent;
+  color: #ef4444;
+}
+
+.item .delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* System */
+.system {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric .label {
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.metric .value {
+  font-size: 28px;
   font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: 0.196px;
+  color: #ffffff;
+}
+
+/* CTA */
+.cta-content h3 {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: 0.196px;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+}
+
+.cta-content p {
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.47;
+  letter-spacing: -0.374px;
+  color: #86868b;
+}
+
+.cta-button {
+  padding: 12px 24px;
+  background: #0071e3;
+  color: #ffffff;
+  border-radius: 980px;
+  font-size: 17px;
+  font-weight: 400;
   text-decoration: none;
   white-space: nowrap;
-  transition: transform 0.2s;
+  transition: background 0.2s;
 }
 
-.btn-examples:hover {
-  transform: translateY(-2px);
+.cta-button:hover {
+  background: #0077ed;
 }
 </style>
