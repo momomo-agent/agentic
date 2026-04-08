@@ -178,54 +178,101 @@ async function start() {
   // 初始化摄像头
   if (!await initCamera()) return
   
-  // 初始化 VAD
-  audio = new window.AgenticAudio({
-    wakeWords: [],  // 不使用唤醒词，持续监听
-    silenceThreshold: 800,  // 800ms 静音后结束（Parlor 风格）
-    speechThreshold: 0.5,   // 降低阈值，更灵敏
-  })
+  // 初始化 VAD + 录音
+  let mediaRecorder = null
+  let audioChunks = []
+  let silenceTimer = null
+  const SILENCE_THRESHOLD = 800 // ms
+  
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+  mediaRecorder = new MediaRecorder(stream)
+  
+  mediaRecorder.ondataavailable = e => {
+    if (e.data.size > 0) audioChunks.push(e.data)
+  }
+  
+  mediaRecorder.onstop = async () => {
+    if (audioChunks.length === 0) return
+    
+    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
+    audioChunks = []
+    
+    // STT
+    setStatus('active', '识别中...')
+    try {
+      const form = new FormData()
+      form.append('audio', audioBlob)
+      const res = await fetch(`${API_BASE}/api/transcribe`, { method: 'POST', body: form })
+      const { text } = await res.json()
+      
+      if (!text?.trim()) {
+        setStatus('listening', '聆听中...')
+        return
+      }
+      
+      addMessage('user', text)
+      setStatus('active', '思考中...')
+      isProcessing = true
+      
+      await sendToLLM(text, null, true)
+      isProcessing = false
+      
+    } catch (e) {
+      console.error('STT failed:', e)
+      setStatus('listening', '聆听中...')
+    }
+  }
+  
+  // 简单 VAD：检测音量
+  const audioContext = new AudioContext()
+  const source = audioContext.createMediaStreamSource(stream)
+  const analyser = audioContext.createAnalyser()
+  analyser.fftSize = 2048
+  source.connect(analyser)
+  
+  const dataArray = new Uint8Array(analyser.frequencyBinCount)
+  let isSpeaking = false
+  
+  function detectVoice() {
+    if (!isActive) return
+    
+    analyser.getByteFrequencyData(dataArray)
+    const average = dataArray.reduce((a, b) => a + b) / dataArray.length
+    
+    if (average > 30) { // 说话
+      if (!isSpeaking) {
+        isSpeaking = true
+        audioChunks = []
+        mediaRecorder.start()
+        setStatus('listening', '录音中...')
+        
+        // 打断当前播放
+        if (voice.isSpeaking) voice.stop()
+      }
+      
+      clearTimeout(silenceTimer)
+      silenceTimer = setTimeout(() => {
+        if (isSpeaking && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop()
+          isSpeaking = false
+        }
+      }, SILENCE_THRESHOLD)
+    }
+    
+    requestAnimationFrame(detectVoice)
+  }
+  
+  detectVoice()
   
   // 初始化 TTS
   voice = window.AgenticVoice.createVoice({
     tts: { 
       provider: 'openai',
       baseUrl: API_BASE,
-      apiKey: 'dummy',  // service 不需要真实 key
+      apiKey: 'dummy',
       voice: 'alloy'
     }
   })
-  
-  // VAD 回调
-  let isProcessing = false
-  let lastSpeechTime = 0
-  
-  audio.onResult = async (text, isFinal) => {
-    const now = Date.now()
-    
-    // 检测到说话（非 final 也会触发）
-    if (now - lastSpeechTime > 1000) {
-      // 新的说话开始，打断当前播放
-      if (isProcessing || voice.isSpeaking) {
-        voice.stop()
-        isProcessing = false
-        setStatus('listening', '聆听中...')
-      }
-    }
-    lastSpeechTime = now
-    
-    if (!isFinal || !text.trim()) return
-    
-    addMessage('user', text)
-    setStatus('active', '思考中...')
-    
-    isProcessing = true
-    
-    // 发送到 LLM
-    await sendToLLM(text, true)
-    isProcessing = false
-  }
-  
-  await audio.start()
   
   isActive = true
   startBtn.disabled = true
@@ -238,9 +285,12 @@ async function start() {
 function stop() {
   if (!isActive) return
   
-  if (audio) {
-    audio.stop()
-    audio = null
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop()
+  }
+  
+  if (mediaRecorder?.stream) {
+    mediaRecorder.stream.getTracks().forEach(t => t.stop())
   }
   
   if (voice) {
