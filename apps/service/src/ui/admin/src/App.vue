@@ -1,206 +1,138 @@
 <template>
   <div class="app">
-    <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <h1 class="logo">Agentic Service</h1>
-        <div class="status" :class="{ online }">
-          <span class="dot"></span>
-          {{ online ? 'Running' : 'Offline' }}
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">⚡ Agentic</div>
+      </div>
+      
+      <nav class="nav">
+        <a href="#overview" class="nav-item active">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Overview</span>
+        </a>
+        <a href="#models" class="nav-item">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">Models</span>
+        </a>
+        <a href="#devices" class="nav-item">
+          <span class="nav-icon">📱</span>
+          <span class="nav-label">Devices</span>
+        </a>
+        <a href="#config" class="nav-item">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">Settings</span>
+        </a>
+        <a href="#tests" class="nav-item">
+          <span class="nav-icon">🧪</span>
+          <span class="nav-label">Tests</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="status-indicator" :class="{ online }">
+          <span class="status-dot"></span>
+          <span class="status-text">{{ online ? 'Running' : 'Offline' }}</span>
         </div>
       </div>
-    </header>
+    </aside>
 
-    <!-- Main -->
+    <!-- Main Content -->
     <main class="main">
-      <!-- Hero -->
-      <section class="hero">
-        <h2 class="hero-title">Local AI Infrastructure</h2>
-        <p class="hero-desc">Zero-config deployment. Hardware-optimized models. Production-ready.</p>
-      </section>
+      <div class="content">
+        <!-- Hero -->
+        <section class="hero">
+          <h1 class="hero-title">Local AI Infrastructure</h1>
+          <p class="hero-subtitle">Zero-config deployment. Hardware-optimized models. Production-ready.</p>
+        </section>
 
-      <!-- Download Progress (if active) -->
-      <div v-if="download.inProgress" class="download">
-        <div class="download-header">
-          <div class="download-label">Downloading</div>
-          <div class="download-model">{{ download.model }}</div>
+        <!-- Download Progress -->
+        <div v-if="download.inProgress" class="alert alert-info">
+          <div class="alert-header">
+            <span class="alert-icon">📦</span>
+            <span class="alert-title">Downloading {{ download.model }}</span>
+          </div>
+          <div v-if="download.total > 0" class="progress-bar">
+            <div class="progress-fill" :style="{ width: downloadPercent + '%' }"></div>
+          </div>
+          <div class="alert-meta">
+            <span>{{ download.status }}</span>
+            <span v-if="download.total > 0">{{ downloadPercent }}%</span>
+          </div>
         </div>
-        <div v-if="download.total > 0" class="download-bar">
-          <div class="download-fill" :style="{ width: downloadPercent + '%' }"></div>
-        </div>
-        <div class="download-meta">
-          <span>{{ download.status }}</span>
-          <span v-if="download.total > 0">{{ downloadPercent }}%</span>
-        </div>
+
+        <!-- System Overview -->
+        <section class="section">
+          <h2 class="section-title">System</h2>
+          <div class="cards-grid">
+            <div class="card">
+              <div class="card-label">Platform</div>
+              <div class="card-value">{{ hardware.platform || '—' }}</div>
+            </div>
+            <div class="card">
+              <div class="card-label">Architecture</div>
+              <div class="card-value">{{ hardware.arch || '—' }}</div>
+            </div>
+            <div class="card">
+              <div class="card-label">Memory</div>
+              <div class="card-value">{{ hardware.memory || '—' }} GB</div>
+            </div>
+            <div class="card">
+              <div class="card-label">GPU</div>
+              <div class="card-value">{{ formatGPU(hardware.gpu) }}</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Models -->
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">Models</h2>
+            <span class="section-badge">{{ ollama.models.length }} installed</span>
+          </div>
+          
+          <!-- Installed -->
+          <div v-if="ollama.models.length > 0" class="subsection">
+            <h3 class="subsection-title">Installed</h3>
+            <div class="model-list">
+              <div v-for="m in ollama.models" :key="m" class="model-row installed">
+                <span class="model-icon">✓</span>
+                <span class="model-name">{{ m }}</span>
+                <button class="btn-text danger" @click="deleteModel(m)">Delete</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available -->
+          <div class="subsection">
+            <h3 class="subsection-title">Available</h3>
+            <div class="model-list">
+              <div v-for="m in recommended" :key="m.name" class="model-row">
+                <span class="model-icon">{{ getModelIcon(m.name) }}</span>
+                <div class="model-info">
+                  <span class="model-name">{{ m.name }}</span>
+                  <span class="model-desc">{{ m.desc }}</span>
+                </div>
+                <div v-if="progress[m.name]" class="model-progress">{{ progress[m.name] }}</div>
+                <button v-else class="btn-primary" @click="downloadModel(m.name)" :disabled="!ollama.running">
+                  Download
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick Links -->
+        <section class="section">
+          <div class="callout">
+            <div class="callout-content">
+              <h3 class="callout-title">Ready to explore?</h3>
+              <p class="callout-text">Try 7 interactive demos showcasing voice, vision, and chat capabilities</p>
+            </div>
+            <a href="/examples/" class="btn-primary">View Examples →</a>
+          </div>
+        </section>
       </div>
-
-      <!-- Models -->
-      <section class="section">
-        <h3 class="section-title">Models</h3>
-        
-        <!-- Installed -->
-        <div v-if="ollama.running && ollama.models.length > 0" class="model-group">
-          <div class="group-header">
-            <h4>Installed</h4>
-            <span class="badge">{{ ollama.models.length }}</span>
-          </div>
-          <div class="model-grid">
-            <div v-for="m in ollama.models" :key="m" class="model-card installed">
-              <div class="card-content">
-                <div class="model-icon">✓</div>
-                <div class="model-info">
-                  <div class="model-name">{{ m }}</div>
-                </div>
-              </div>
-              <button class="btn-delete" @click="deleteModel(m)">Delete</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recommended -->
-        <div class="model-group">
-          <div class="group-header">
-            <h4>Available Models</h4>
-          </div>
-          <div class="model-grid">
-            <div v-for="m in recommended" :key="m.name" class="model-card">
-              <div class="card-content">
-                <div class="model-icon">{{ getModelIcon(m.name) }}</div>
-                <div class="model-info">
-                  <div class="model-name">{{ m.name }}</div>
-                  <div class="model-desc">{{ m.desc }}</div>
-                </div>
-              </div>
-              <div v-if="progress[m.name]" class="model-progress">{{ progress[m.name] }}</div>
-              <button v-else class="btn-download" @click="downloadModel(m.name)" :disabled="!ollama.running">
-                Download
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- System -->
-      <section class="section dark">
-        <h3 class="section-title">System</h3>
-        <div class="system">
-          <div class="metric">
-            <div class="label">Platform</div>
-            <div class="value">{{ hardware.platform || '—' }}</div>
-          </div>
-          <div class="metric">
-            <div class="label">Architecture</div>
-            <div class="value">{{ hardware.arch || '—' }}</div>
-          </div>
-          <div class="metric">
-            <div class="label">Memory</div>
-            <div class="value">{{ hardware.memory || '—' }} GB</div>
-          </div>
-          <div class="metric">
-            <div class="label">GPU</div>
-            <div class="value">{{ formatGPU(hardware.gpu) }}</div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Devices -->
-      <section class="section">
-        <h3 class="section-title">Connected Devices</h3>
-        <div v-if="devices.length === 0" class="empty-state">
-          <div class="empty-icon">📱</div>
-          <p>No devices connected</p>
-          <p class="empty-hint">Connect via companion app to enable remote access</p>
-        </div>
-        <div v-else class="device-list">
-          <div v-for="d in devices" :key="d.id" class="device-card">
-            <div class="device-icon">{{ getDeviceIcon(d.type) }}</div>
-            <div class="device-info">
-              <div class="device-name">{{ d.name || d.id }}</div>
-              <div class="device-meta">{{ d.type }} • {{ d.status }}</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Configuration -->
-      <section class="section">
-        <h3 class="section-title">Configuration</h3>
-        <div class="config-card">
-          <form @submit.prevent="saveConfig">
-            <div class="config-group">
-              <label class="config-label">LLM Provider</label>
-              <select v-model="config.llm.provider" class="config-input">
-                <option value="ollama">Ollama (Local)</option>
-                <option value="openai">OpenAI</option>
-                <option value="anthropic">Anthropic</option>
-              </select>
-            </div>
-            <div v-if="config.llm.provider !== 'ollama'" class="config-group">
-              <label class="config-label">API Key</label>
-              <input v-model="config.llm.apiKey" type="password" class="config-input" placeholder="sk-...">
-            </div>
-            <div v-if="config.llm.provider !== 'ollama'" class="config-group">
-              <label class="config-label">Base URL</label>
-              <input v-model="config.llm.baseUrl" type="text" class="config-input" placeholder="https://api.openai.com/v1">
-            </div>
-            <button type="submit" class="btn-save">Save Configuration</button>
-          </form>
-        </div>
-      </section>
-
-      <!-- Tests -->
-      <section class="section">
-        <h3 class="section-title">Function Tests</h3>
-        <div class="tests-grid">
-          <div class="test-card">
-            <div class="test-header">
-              <h4>Chat</h4>
-              <span class="test-badge">POST /api/chat</span>
-            </div>
-            <button @click="testChat" class="btn-test" :disabled="testing.chat">
-              {{ testing.chat ? 'Testing...' : 'Test' }}
-            </button>
-            <div v-if="testResults.chat" class="test-result" :class="testResults.chat.success ? 'success' : 'error'">
-              {{ testResults.chat.message }}
-            </div>
-          </div>
-          
-          <div class="test-card">
-            <div class="test-header">
-              <h4>Transcription</h4>
-              <span class="test-badge">POST /api/transcribe</span>
-            </div>
-            <button @click="testTranscribe" class="btn-test" :disabled="testing.transcribe">
-              {{ testing.transcribe ? 'Testing...' : 'Test' }}
-            </button>
-            <div v-if="testResults.transcribe" class="test-result" :class="testResults.transcribe.success ? 'success' : 'error'">
-              {{ testResults.transcribe.message }}
-            </div>
-          </div>
-          
-          <div class="test-card">
-            <div class="test-header">
-              <h4>TTS</h4>
-              <span class="test-badge">POST /api/tts</span>
-            </div>
-            <button @click="testTTS" class="btn-test" :disabled="testing.tts">
-              {{ testing.tts ? 'Testing...' : 'Test' }}
-            </button>
-            <div v-if="testResults.tts" class="test-result" :class="testResults.tts.success ? 'success' : 'error'">
-              {{ testResults.tts.message }}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Examples -->
-      <section class="section cta">
-        <div class="cta-content">
-          <h3>Ready to explore?</h3>
-          <p>7 interactive demos showcasing voice, vision, and chat</p>
-        </div>
-        <a href="/examples/" class="cta-button">View Examples</a>
-      </section>
     </main>
   </div>
 </template>
@@ -213,10 +145,6 @@ const hardware = ref({})
 const ollama = ref({ running: false, models: [] })
 const download = ref({ inProgress: false, model: '', status: '', progress: 0, total: 0 })
 const progress = ref({})
-const devices = ref([])
-const config = ref({ llm: { provider: 'ollama', apiKey: '', baseUrl: '' } })
-const testing = ref({ chat: false, transcribe: false, tts: false })
-const testResults = ref({ chat: null, transcribe: null, tts: null })
 
 const recommended = [
   { name: 'gemma2:2b', desc: 'Google, lightweight' },
@@ -258,101 +186,7 @@ async function fetchData() {
     hardware.value = res.hardware || {}
     ollama.value = res.ollama || { running: false, models: [] }
     download.value = res.download || { inProgress: false, model: '', status: '', progress: 0, total: 0 }
-    devices.value = res.devices || []
   } catch {}
-}
-
-async function loadConfig() {
-  try {
-    const res = await fetch('/api/config').then(r => r.json())
-    if (res && res.llm) {
-      config.value = res
-    } else {
-      config.value = { llm: { provider: 'ollama', apiKey: '', baseUrl: '' } }
-    }
-  } catch {
-    config.value = { llm: { provider: 'ollama', apiKey: '', baseUrl: '' } }
-  }
-}
-
-async function saveConfig() {
-  try {
-    await fetch('/api/config', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(config.value)
-    })
-    alert('Configuration saved!')
-  } catch (e) {
-    alert('Failed to save: ' + e.message)
-  }
-}
-
-async function testChat() {
-  testing.value.chat = true
-  testResults.value.chat = null
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'Hello, test!' })
-    })
-    if (res.ok) {
-      testResults.value.chat = { success: true, message: '✓ Chat API working' }
-    } else {
-      testResults.value.chat = { success: false, message: `✗ Failed: ${res.status}` }
-    }
-  } catch (e) {
-    testResults.value.chat = { success: false, message: `✗ Error: ${e.message}` }
-  } finally {
-    testing.value.chat = false
-  }
-}
-
-async function testTranscribe() {
-  testing.value.transcribe = true
-  testResults.value.transcribe = null
-  try {
-    // Create a minimal audio blob for testing
-    const blob = new Blob([new Uint8Array(100)], { type: 'audio/wav' })
-    const formData = new FormData()
-    formData.append('audio', blob, 'test.wav')
-    
-    const res = await fetch('/api/transcribe', {
-      method: 'POST',
-      body: formData
-    })
-    if (res.ok) {
-      testResults.value.transcribe = { success: true, message: '✓ Transcription API working' }
-    } else {
-      testResults.value.transcribe = { success: false, message: `✗ Failed: ${res.status}` }
-    }
-  } catch (e) {
-    testResults.value.transcribe = { success: false, message: `✗ Error: ${e.message}` }
-  } finally {
-    testing.value.transcribe = false
-  }
-}
-
-async function testTTS() {
-  testing.value.tts = true
-  testResults.value.tts = null
-  try {
-    const res = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'Test', voice: 'alloy' })
-    })
-    if (res.ok) {
-      testResults.value.tts = { success: true, message: '✓ TTS API working' }
-    } else {
-      testResults.value.tts = { success: false, message: `✗ Failed: ${res.status}` }
-    }
-  } catch (e) {
-    testResults.value.tts = { success: false, message: `✗ Error: ${e.message}` }
-  } finally {
-    testing.value.tts = false
-  }
 }
 
 async function downloadModel(name) {
@@ -428,18 +262,9 @@ function getModelIcon(name) {
   return '🤖'
 }
 
-function getDeviceIcon(type) {
-  if (type === 'ios') return '📱'
-  if (type === 'android') return '🤖'
-  if (type === 'macos') return '💻'
-  if (type === 'windows') return '🖥️'
-  return '📱'
-}
-
 onMounted(() => {
   check()
   fetchData()
-  loadConfig()
   timer = setInterval(() => {
     check()
     fetchData()
@@ -456,59 +281,93 @@ onUnmounted(() => clearInterval(timer))
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 .app {
+  display: flex;
   min-height: 100vh;
   background: #ffffff;
 }
 
-/* Header */
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background: #f7f6f5;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.sidebar-header {
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .logo {
   font-size: 16px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.95);
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
 }
 
-.status {
+.nav {
+  flex: 1;
+  padding: 12px 8px;
+}
+
+.nav-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
   font-weight: 500;
-  color: #615d59;
-  padding: 4px 12px;
-  background: #f6f5f4;
-  border-radius: 6px;
+  transition: all 0.15s;
+  margin-bottom: 2px;
 }
 
-.status.online {
+.nav-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.nav-item.active {
+  background: rgba(0, 117, 222, 0.08);
+  color: #0075de;
+}
+
+.nav-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 6px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.status-indicator.online {
   background: rgba(26, 174, 57, 0.1);
   color: #1aae39;
 }
 
-.dot {
+.status-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -517,523 +376,282 @@ body {
 
 /* Main */
 .main {
-  max-width: 1200px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.content {
+  max-width: 900px;
   margin: 0 auto;
-  padding: 0 40px 80px;
+  padding: 60px 40px 100px;
 }
 
 /* Hero */
 .hero {
-  padding: 64px 0 48px;
-  text-align: center;
-}
-
-.hero-title {
-  font-size: 48px;
-  font-weight: 700;
-  line-height: 1.0;
-  letter-spacing: -1.5px;
-  color: rgba(0, 0, 0, 0.95);
-  margin-bottom: 12px;
-}
-
-.hero-desc {
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 1.4;
-  color: #615d59;
-}
-
-/* Download Progress */
-.download {
-  background: #f2f9ff;
-  border: 1px solid rgba(0, 117, 222, 0.2);
-  border-radius: 12px;
-  padding: 20px 24px;
   margin-bottom: 48px;
 }
 
-.download-header {
+.hero-title {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  color: rgba(0, 0, 0, 0.9);
+  margin-bottom: 8px;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.5;
+}
+
+/* Alert */
+.alert {
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 32px;
+}
+
+.alert-info {
+  background: #f2f9ff;
+  border: 1px solid rgba(0, 117, 222, 0.15);
+}
+
+.alert-header {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
-.download-label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #0075de;
+.alert-icon {
+  font-size: 20px;
 }
 
-.download-model {
-  font-size: 16px;
+.alert-title {
+  font-size: 15px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.95);
+  color: rgba(0, 0, 0, 0.9);
 }
 
-.download-bar {
-  height: 6px;
+.progress-bar {
+  height: 4px;
   background: rgba(0, 0, 0, 0.08);
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden;
   margin-bottom: 8px;
 }
 
-.download-fill {
+.progress-fill {
   height: 100%;
   background: #0075de;
-  transition: width 0.3s ease;
+  transition: width 0.3s;
 }
 
-.download-meta {
+.alert-meta {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #615d59;
+  color: rgba(0, 0, 0, 0.5);
 }
 
 /* Section */
 .section {
-  padding: 48px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 48px;
 }
 
-.section:last-child {
-  border-bottom: none;
-}
-
-.section.dark {
-  margin: 0 -40px;
-  padding: 48px 40px;
-  background: #31302e;
-  color: #ffffff;
-  border-bottom: none;
-}
-
-.section.cta {
-  background: #f6f5f4;
-  margin: 0 -40px;
-  padding: 40px 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 32px;
-  border-bottom: none;
-}
-
-.section-title {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.25;
-  color: rgba(0, 0, 0, 0.95);
-  margin-bottom: 24px;
-}
-
-.section.dark .section-title {
-  color: #ffffff;
-}
-
-/* Models */
-.model-group {
-  margin-bottom: 40px;
-}
-
-.model-group:last-child {
-  margin-bottom: 0;
-}
-
-.group-header {
+.section-header {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 20px;
 }
 
-.group-header h4 {
-  font-size: 18px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.95);
+.section-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
 }
 
-.badge {
+.section-badge {
   padding: 4px 10px;
-  background: #f2f9ff;
-  color: #0075de;
-  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
 }
 
-.model-grid {
+.subsection {
+  margin-bottom: 32px;
+}
+
+.subsection-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.4);
+  margin-bottom: 12px;
+}
+
+/* Cards Grid */
+.cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
 }
 
-.model-card {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  padding: 20px;
+.card {
+  padding: 16px;
+  background: #f7f6f5;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.card-label {
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.4);
+  margin-bottom: 6px;
+}
+
+.card-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
+}
+
+/* Model List */
+.model-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  transition: all 0.2s;
-  box-shadow: rgba(0,0,0,0.01) 0px 1px 3px, rgba(0,0,0,0.02) 0px 3px 7px;
+  gap: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  overflow: hidden;
 }
 
-.model-card:hover {
-  border-color: rgba(0, 0, 0, 0.15);
-  box-shadow: rgba(0,0,0,0.02) 0px 3px 7px, rgba(0,0,0,0.04) 0px 7px 15px;
-  transform: translateY(-2px);
-}
-
-.model-card.installed {
-  background: rgba(26, 174, 57, 0.05);
-  border-color: rgba(26, 174, 57, 0.3);
-}
-
-.card-content {
+.model-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
-  flex: 1;
+  padding: 12px 16px;
+  background: #ffffff;
+  transition: background 0.15s;
+}
+
+.model-row:hover {
+  background: #f7f6f5;
+}
+
+.model-row.installed {
+  background: rgba(26, 174, 57, 0.05);
 }
 
 .model-icon {
-  font-size: 32px;
+  font-size: 20px;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .model-info {
   flex: 1;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .model-name {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.95);
-  margin-bottom: 4px;
+  color: rgba(0, 0, 0, 0.9);
 }
 
 .model-desc {
   font-size: 13px;
-  color: #615d59;
-  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .model-progress {
   font-size: 13px;
   font-weight: 500;
   color: #0075de;
-  text-align: center;
 }
 
-.model-card button {
-  width: 100%;
-  padding: 10px 16px;
-  border-radius: 6px;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-download {
+/* Buttons */
+.btn-primary {
+  padding: 6px 14px;
   background: #0075de;
   color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.btn-download:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled) {
   background: #005bab;
 }
 
-.btn-download:disabled {
-  opacity: 0.5;
+.btn-primary:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.btn-delete {
+.btn-text {
+  padding: 4px 8px;
   background: transparent;
-  color: #dd5b00;
-  border: 1px solid rgba(221, 91, 0, 0.3) !important;
-}
-
-.btn-delete:hover {
-  background: rgba(221, 91, 0, 0.1);
-  border-color: rgba(221, 91, 0, 0.5) !important;
-}
-
-/* System */
-.system {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 24px;
-}
-
-.metric {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.metric .label {
-  font-size: 12px;
+  border: none;
+  font-size: 13px;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.5);
+  transition: color 0.15s;
 }
 
-.metric .value {
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: #ffffff;
+.btn-text:hover {
+  color: rgba(0, 0, 0, 0.9);
 }
 
-/* Devices */
-.empty-state {
-  text-align: center;
-  padding: 64px 32px;
+.btn-text.danger {
+  color: #dd5b00;
 }
 
-.empty-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+.btn-text.danger:hover {
+  color: #c04f00;
 }
 
-.empty-state p {
-  font-size: 16px;
-  color: #615d59;
-  margin: 8px 0;
-}
-
-.empty-hint {
-  font-size: 14px !important;
-  color: #a39e98 !important;
-}
-
-.device-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.device-card {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  padding: 20px;
+/* Callout */
+.callout {
   display: flex;
   align-items: center;
-  gap: 16px;
-  transition: all 0.2s;
-  box-shadow: rgba(0,0,0,0.01) 0px 1px 3px, rgba(0,0,0,0.02) 0px 3px 7px;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px;
+  background: #f7f6f5;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.device-card:hover {
-  border-color: rgba(0, 0, 0, 0.15);
-  box-shadow: rgba(0,0,0,0.02) 0px 3px 7px, rgba(0,0,0,0.04) 0px 7px 15px;
-  transform: translateY(-2px);
-}
-
-.device-icon {
-  font-size: 32px;
-  line-height: 1;
-}
-
-.device-info {
+.callout-content {
   flex: 1;
-  min-width: 0;
 }
 
-.device-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.95);
+.callout-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.9);
   margin-bottom: 4px;
 }
 
-.device-meta {
-  font-size: 13px;
-  color: #615d59;
-}
-
-/* Configuration */
-.config-card {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  padding: 32px;
-  max-width: 600px;
-  box-shadow: rgba(0,0,0,0.01) 0px 1px 3px, rgba(0,0,0,0.02) 0px 3px 7px;
-}
-
-.config-group {
-  margin-bottom: 20px;
-}
-
-.config-label {
-  display: block;
+.callout-text {
   font-size: 14px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.95);
-  margin-bottom: 8px;
-}
-
-.config-input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  font-size: 15px;
-  font-family: inherit;
-  color: rgba(0, 0, 0, 0.95);
-  transition: all 0.2s;
-}
-
-.config-input:focus {
-  outline: none;
-  border-color: #0075de;
-  box-shadow: 0 0 0 3px rgba(0, 117, 222, 0.1);
-}
-
-.btn-save {
-  width: 100%;
-  padding: 10px 20px;
-  background: #0075de;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-save:hover {
-  background: #005bab;
-  transform: scale(1.02);
-}
-
-.btn-save:active {
-  transform: scale(0.98);
-}
-
-/* Tests */
-.tests-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-.test-card {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: rgba(0,0,0,0.01) 0px 1px 3px, rgba(0,0,0,0.02) 0px 3px 7px;
-}
-
-.test-header h4 {
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.95);
-  margin-bottom: 6px;
-}
-
-.test-badge {
-  font-size: 12px;
-  font-family: 'SF Mono', 'Menlo', monospace;
-  color: #615d59;
-  background: #f6f5f4;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.btn-test {
-  width: 100%;
-  padding: 10px 16px;
-  background: #0075de;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-test:hover:not(:disabled) {
-  background: #005bab;
-}
-
-.btn-test:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.test-result {
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.test-result.success {
-  background: rgba(26, 174, 57, 0.1);
-  color: #1aae39;
-  border: 1px solid rgba(26, 174, 57, 0.2);
-}
-
-.test-result.error {
-  background: rgba(221, 91, 0, 0.1);
-  color: #dd5b00;
-  border: 1px solid rgba(221, 91, 0, 0.2);
-}
-
-/* CTA */
-.cta-content h3 {
-  font-size: 22px;
-  font-weight: 700;
-  color: rgba(0, 0, 0, 0.95);
-  margin-bottom: 6px;
-}
-
-.cta-content p {
-  font-size: 16px;
-  color: #615d59;
-}
-
-.cta-button {
-  padding: 12px 24px;
-  background: #0075de;
-  color: #ffffff;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: all 0.2s;
-}
-
-.cta-button:hover {
-  background: #005bab;
-  transform: scale(1.05);
-}
-
-.cta-button:active {
-  transform: scale(0.95);
+  color: rgba(0, 0, 0, 0.5);
 }
 </style>
