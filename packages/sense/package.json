@@ -4,7 +4,16 @@
   "description": "Human perception for AI agents — face, hands, pose, objects. Zero dependencies, browser-first.",
   "main": "agentic-sense.js",
   "browser": "agentic-sense.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "files": ["agentic-sense.js", "README.md"],
+  "devDependencies": {
+    "vitest": "^2.1.9",
+    "jsdom": "^29.0.2",
+    "@vitest/coverage-v8": "^2.1.9"
+  },
   "keywords": ["mediapipe", "face-detection", "pose-estimation", "hand-tracking", "perception", "computer-vision", "browser", "zero-dependency", "ai", "agent"],
   "license": "MIT",
   "repository": {
