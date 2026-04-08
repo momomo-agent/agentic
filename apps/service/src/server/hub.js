@@ -1,6 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { randomUUID } from 'node:crypto';
-import * as sense from '../runtime/sense.js';
+// import * as sense from '../runtime/sense.js'; // Not needed for basic demos
 import { chat as brainChat } from './brain.js';
 import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
@@ -20,22 +20,10 @@ function isSilent(buffer) {
 }
 
 export async function init() {
-  const emitter = await sense.startHeadless();
-  emitter.on('wakeword', async () => {
-    const chunks = [];
-    for await (const chunk of brainChat([])) {
-      if (chunk.type === 'content') chunks.push(chunk.text);
-    }
-    const text = chunks.join('');
-    for (const device of registry.values()) {
-      try { device.ws.send(JSON.stringify({ type: 'wakeword_response', text })); } catch { /* ignore */ }
-    }
-  });
-
-  emitter.on('audio', (chunk) => {
-    if (isSilent(chunk)) return; // drop silent frame
-    // TODO: forward to STT pipeline when audio streaming is implemented
-  });
+  // Sense/wakeword detection disabled for basic demos
+  // const emitter = await sense.startHeadless();
+  // emitter.on('wakeword', async () => { ... });
+  // emitter.on('audio', (chunk) => { ... });
 }
 
 export function joinSession(sessionId, deviceId) {
