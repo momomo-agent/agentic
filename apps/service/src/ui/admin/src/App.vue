@@ -148,6 +148,51 @@
         </div>
       </section>
 
+      <!-- Tests -->
+      <section class="section">
+        <h3 class="section-title">Function Tests</h3>
+        <div class="tests-grid">
+          <div class="test-card">
+            <div class="test-header">
+              <h4>Chat</h4>
+              <span class="test-badge">POST /api/chat</span>
+            </div>
+            <button @click="testChat" class="btn-test" :disabled="testing.chat">
+              {{ testing.chat ? 'Testing...' : 'Test' }}
+            </button>
+            <div v-if="testResults.chat" class="test-result" :class="testResults.chat.success ? 'success' : 'error'">
+              {{ testResults.chat.message }}
+            </div>
+          </div>
+          
+          <div class="test-card">
+            <div class="test-header">
+              <h4>Transcription</h4>
+              <span class="test-badge">POST /api/transcribe</span>
+            </div>
+            <button @click="testTranscribe" class="btn-test" :disabled="testing.transcribe">
+              {{ testing.transcribe ? 'Testing...' : 'Test' }}
+            </button>
+            <div v-if="testResults.transcribe" class="test-result" :class="testResults.transcribe.success ? 'success' : 'error'">
+              {{ testResults.transcribe.message }}
+            </div>
+          </div>
+          
+          <div class="test-card">
+            <div class="test-header">
+              <h4>TTS</h4>
+              <span class="test-badge">POST /api/tts</span>
+            </div>
+            <button @click="testTTS" class="btn-test" :disabled="testing.tts">
+              {{ testing.tts ? 'Testing...' : 'Test' }}
+            </button>
+            <div v-if="testResults.tts" class="test-result" :class="testResults.tts.success ? 'success' : 'error'">
+              {{ testResults.tts.message }}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Examples -->
       <section class="section cta">
         <div class="cta-content">
@@ -170,6 +215,8 @@ const download = ref({ inProgress: false, model: '', status: '', progress: 0, to
 const progress = ref({})
 const devices = ref([])
 const config = ref({ llm: { provider: 'ollama', apiKey: '', baseUrl: '' } })
+const testing = ref({ chat: false, transcribe: false, tts: false })
+const testResults = ref({ chat: null, transcribe: null, tts: null })
 
 const recommended = [
   { name: 'gemma2:2b', desc: 'Google, lightweight' },
@@ -232,6 +279,73 @@ async function saveConfig() {
     alert('Configuration saved!')
   } catch (e) {
     alert('Failed to save: ' + e.message)
+  }
+}
+
+async function testChat() {
+  testing.value.chat = true
+  testResults.value.chat = null
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Hello, test!' })
+    })
+    if (res.ok) {
+      testResults.value.chat = { success: true, message: '✓ Chat API working' }
+    } else {
+      testResults.value.chat = { success: false, message: `✗ Failed: ${res.status}` }
+    }
+  } catch (e) {
+    testResults.value.chat = { success: false, message: `✗ Error: ${e.message}` }
+  } finally {
+    testing.value.chat = false
+  }
+}
+
+async function testTranscribe() {
+  testing.value.transcribe = true
+  testResults.value.transcribe = null
+  try {
+    // Create a minimal audio blob for testing
+    const blob = new Blob([new Uint8Array(100)], { type: 'audio/wav' })
+    const formData = new FormData()
+    formData.append('audio', blob, 'test.wav')
+    
+    const res = await fetch('/api/transcribe', {
+      method: 'POST',
+      body: formData
+    })
+    if (res.ok) {
+      testResults.value.transcribe = { success: true, message: '✓ Transcription API working' }
+    } else {
+      testResults.value.transcribe = { success: false, message: `✗ Failed: ${res.status}` }
+    }
+  } catch (e) {
+    testResults.value.transcribe = { success: false, message: `✗ Error: ${e.message}` }
+  } finally {
+    testing.value.transcribe = false
+  }
+}
+
+async function testTTS() {
+  testing.value.tts = true
+  testResults.value.tts = null
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'Test', voice: 'alloy' })
+    })
+    if (res.ok) {
+      testResults.value.tts = { success: true, message: '✓ TTS API working' }
+    } else {
+      testResults.value.tts = { success: false, message: `✗ Failed: ${res.status}` }
+    }
+  } catch (e) {
+    testResults.value.tts = { success: false, message: `✗ Error: ${e.message}` }
+  } finally {
+    testing.value.tts = false
   }
 }
 
@@ -792,6 +906,78 @@ body {
 
 .btn-save:hover {
   background: #0077ed;
+}
+
+/* Tests */
+.tests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.test-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.test-header h4 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 4px;
+}
+
+.test-badge {
+  font-size: 12px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  color: #86868b;
+  background: #f5f5f7;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.btn-test {
+  width: 100%;
+  padding: 10px 16px;
+  background: #0071e3;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-test:hover:not(:disabled) {
+  background: #0077ed;
+}
+
+.btn-test:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.test-result {
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.test-result.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.test-result.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 /* CTA */
