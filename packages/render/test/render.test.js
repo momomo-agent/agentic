@@ -1,150 +1,279 @@
-// agentic-render unit tests — mock DOM for Node.js
-import { describe, it, beforeEach } from 'node:test'
-import assert from 'node:assert/strict'
-import { createRequire } from 'node:module'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { JSDOM } from 'jsdom'
 
-// ── Mock DOM ──
-// render.js needs document.createElement, document.head, document.querySelector, etc.
-// We create a minimal mock.
+// Setup DOM environment
+const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>')
+global.document = dom.window.document
+global.window = dom.window
+global.requestAnimationFrame = vi.fn((fn) => { fn(); return 1 })
+global.cancelAnimationFrame = vi.fn()
 
-class MockElement {
-  constructor(tag) {
-    this.tagName = tag.toUpperCase()
-    this.className = ''
-    this.id = ''
-    this.textContent = ''
-    this.innerHTML = ''
-    this.children = []
-    this.style = new Proxy({}, {
-      set(target, prop, value) { target[prop] = value; return true },
-      get(target, prop) {
-        if (prop === 'setProperty') return (k, v) => { target[k] = v }
-        return target[prop]
-      },
-    })
-    this.parentElement = null
-  }
-  appendChild(child) {
-    child.parentElement = this
-    this.children.push(child)
-    return child
-  }
-  remove() {
-    if (this.parentElement) {
-      const idx = this.parentElement.children.indexOf(this)
-      if (idx >= 0) this.parentElement.children.splice(idx, 1)
+// Import after DOM setup
+const AgenticRender = await import('../agentic-render.js').then(m => m.default || m)
+
+describe('AgenticRender', () => {
+  let container
+
+  beforeEach(() => {
+    container = document.createElement('div')
+    container.id = 'test-container'
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container)
     }
-  }
-  querySelector(sel) {
-    // Simple: just return a new element (enough for create())
-    return new MockElement('div')
-  }
-}
-
-const mockHead = new MockElement('head')
-const mockBody = new MockElement('body')
-
-globalThis.document = {
-  createElement(tag) { return new MockElement(tag) },
-  head: mockHead,
-  querySelector(sel) {
-    if (sel === 'head') return mockHead
-    // Return a container element for create()
-    return new MockElement('div')
-  },
-}
-
-globalThis.requestAnimationFrame = (fn) => { fn(); return 1 }
-globalThis.cancelAnimationFrame = () => {}
-
-const require = createRequire(import.meta.url)
-const AgenticRender = require('../render.js')
-
-describe('agentic-render', () => {
-  it('1. AgenticRender exports exist', () => {
-    assert.ok(AgenticRender, 'AgenticRender should be exported')
-    assert.equal(typeof AgenticRender.create, 'function', 'should have create')
-    assert.equal(typeof AgenticRender.render, 'function', 'should have render')
-    assert.equal(typeof AgenticRender.getCSS, 'function', 'should have getCSS')
+    vi.clearAllMocks()
   })
 
-  it('2. createHighlighter — highlights code snippets', () => {
-    // highlightCode is internal, but render() uses it for code blocks.
-    // We test via render() with a code block.
-    const html = AgenticRender.render('```js\nconst x = 42\n```')
-    assert.ok(html.includes('ar-code'), 'should have code class')
-    assert.ok(html.includes('ar-kw') || html.includes('ar-num'), 'should have syntax highlighting classes')
+  describe('exports', () => {
+    it('should export required functions', () => {
+      expect(AgenticRender).toBeDefined()
+      expect(typeof AgenticRender.create).toBe('function')
+      expect(typeof AgenticRender.render).toBe('function')
+      expect(typeof AgenticRender.getCSS).toBe('function')
+    })
+
+    it('should export theme constants', () => {
+      expect(AgenticRender.THEME_DARK).toBeDefined()
+      expect(AgenticRender.THEME_LIGHT).toBeDefined()
+    })
   })
 
-  it('3. createRenderer — creates a renderer instance', () => {
-    const container = new MockElement('div')
-    const renderer = AgenticRender.create(container)
-    assert.ok(renderer, 'should return a renderer')
-    assert.equal(typeof renderer.append, 'function')
-    assert.equal(typeof renderer.set, 'function')
-    assert.equal(typeof renderer.getContent, 'function')
-    assert.equal(typeof renderer.destroy, 'function')
+  describe('create', () => {
+    it('should create renderer instance', () => {
+      const renderer = AgenticRender.create(container)
+      expect(renderer).toBeDefined()
+      expect(typeof renderer.append).toBe('function')
+      expect(typeof renderer.set).toBe('function')
+      expect(typeof renderer.getContent).toBe('function')
+      expect(typeof renderer.destroy).toBe('function')
+    })
+
+    it('should accept selector string', () => {
+      const renderer = AgenticRender.create('#test-container')
+      expect(renderer).toBeDefined()
+    })
+
+    it('should throw on invalid target', () => {
+      expect(() => AgenticRender.create('#non-existent')).toThrow()
+    })
+
+    it('should accept theme option', () => {
+      const renderer = AgenticRender.create(container, { theme: 'light' })
+      expect(renderer).toBeDefined()
+    })
+
+    it('should accept custom className', () => {
+      const renderer = AgenticRender.create(container, { className: 'custom-class' })
+      expect(renderer).toBeDefined()
+      const root = container.querySelector('.ar-root')
+      expect(root.className).toContain('custom-class')
+    })
   })
 
-  it('4. render markdown → HTML conversion', () => {
-    const html = AgenticRender.render('Hello world')
-    assert.ok(html.includes('Hello world'))
-    assert.ok(html.includes('<p'), 'should wrap in paragraph')
+  describe('render - static', () => {
+    it('should render plain text', () => {
+      const html = AgenticRender.render('Hello world')
+      expect(html).toContain('Hello world')
+      expect(html).toContain('<p')
+    })
+
+    it('should render inline code', () => {
+      const html = AgenticRender.render('Use `console.log` here')
+      expect(html).toContain('<code class="ar-inline-code">')
+      expect(html).toContain('console.log')
+    })
+
+    it('should render bold text', () => {
+      const html = AgenticRender.render('This is **bold** text')
+      expect(html).toContain('<strong')
+      expect(html).toContain('bold')
+    })
+
+    it('should render italic text', () => {
+      const html = AgenticRender.render('This is *italic* text')
+      expect(html).toContain('<em')
+      expect(html).toContain('italic')
+    })
+
+    it('should render code blocks', () => {
+      const md = '```python\nprint("hello")\n```'
+      const html = AgenticRender.render(md)
+      expect(html).toContain('ar-code-wrap')
+      expect(html).toContain('ar-pre')
+      expect(html).toContain('print')
+      expect(html).toContain('python')
+    })
+
+    it('should render unordered lists with dash', () => {
+      const md = '- item one\n- item two'
+      const html = AgenticRender.render(md)
+      expect(html).toContain('<ul')
+      expect(html).toContain('<li')
+      expect(html).toContain('item one')
+      expect(html).toContain('item two')
+    })
+
+    it('should render unordered lists with asterisk', () => {
+      const md = '* alpha\n* beta'
+      const html = AgenticRender.render(md)
+      expect(html).toContain('<ul')
+      expect(html).toContain('alpha')
+      expect(html).toContain('beta')
+    })
+
+    it('should render headings', () => {
+      const h1 = AgenticRender.render('# Heading One')
+      expect(h1).toContain('<h1')
+      expect(h1).toContain('Heading One')
+
+      const h2 = AgenticRender.render('## Heading Two')
+      expect(h2).toContain('<h2')
+      expect(h2).toContain('Heading Two')
+
+      const h3 = AgenticRender.render('### Heading Three')
+      expect(h3).toContain('<h3')
+      expect(h3).toContain('Heading Three')
+    })
+
+    it('should render links', () => {
+      const html = AgenticRender.render('[OpenAI](https://openai.com)')
+      expect(html).toContain('<a')
+      expect(html).toContain('href="https://openai.com"')
+      expect(html).toContain('OpenAI')
+    })
+
+    it('should escape HTML entities', () => {
+      const html = AgenticRender.render('<script>alert("xss")</script>')
+      expect(html).not.toContain('<script>')
+      expect(html).toContain('&lt;script&gt;')
+    })
   })
 
-  it('5. inline code `...` handling', () => {
-    const html = AgenticRender.render('Use `console.log` here')
-    assert.ok(html.includes('<code class="ar-inline-code">'), 'should have inline code')
-    assert.ok(html.includes('console.log'), 'should contain the code text')
+  describe('renderer instance', () => {
+    let renderer
+
+    beforeEach(() => {
+      renderer = AgenticRender.create(container)
+    })
+
+    afterEach(() => {
+      renderer?.destroy()
+    })
+
+    it('should append content', () => {
+      renderer.append('Hello')
+      renderer.append(' world')
+      const content = renderer.getContent()
+      expect(content).toBe('Hello world')
+    })
+
+    it('should set content (replace)', () => {
+      renderer.append('Old content')
+      renderer.set('New content')
+      const content = renderer.getContent()
+      expect(content).toBe('New content')
+    })
+
+    it('should get current content', () => {
+      renderer.append('Test content')
+      expect(renderer.getContent()).toBe('Test content')
+    })
+
+    it('should handle streaming code blocks', () => {
+      renderer.append('```js\n')
+      renderer.append('console.log')
+      renderer.append('("hi")\n')
+      renderer.append('```')
+      const content = renderer.getContent()
+      expect(content).toContain('```js')
+      expect(content).toContain('console.log')
+    })
+
+    it('should schedule render with requestAnimationFrame', () => {
+      renderer.append('Test')
+      expect(global.requestAnimationFrame).toHaveBeenCalled()
+    })
+
+    it('should cleanup on destroy', () => {
+      const root = container.querySelector('.ar-root')
+      expect(root).toBeDefined()
+      renderer.destroy()
+      const afterDestroy = container.querySelector('.ar-root')
+      expect(afterDestroy).toBeNull()
+    })
   })
 
-  it('6. bold **...** handling', () => {
-    const html = AgenticRender.render('This is **bold** text')
-    assert.ok(html.includes('<strong'), 'should have strong tag')
-    assert.ok(html.includes('bold'), 'should contain bold text')
+  describe('syntax highlighting', () => {
+    it('should highlight keywords', () => {
+      const html = AgenticRender.render('```js\nconst x = 42\n```')
+      expect(html).toContain('ar-kw')
+    })
+
+    it('should highlight strings', () => {
+      const html = AgenticRender.render('```js\nconst s = "hello"\n```')
+      expect(html).toContain('ar-str')
+    })
+
+    it('should highlight numbers', () => {
+      const html = AgenticRender.render('```js\nconst n = 123\n```')
+      expect(html).toContain('ar-num')
+    })
+
+    it('should highlight comments', () => {
+      const html = AgenticRender.render('```js\n// comment\n```')
+      expect(html).toContain('ar-cmt')
+    })
+
+    it('should handle Python syntax', () => {
+      const html = AgenticRender.render('```python\ndef hello():\n    pass\n```')
+      expect(html).toContain('ar-kw')
+    })
   })
 
-  it('7. italic *...* handling', () => {
-    const html = AgenticRender.render('This is *italic* text')
-    assert.ok(html.includes('<em'), 'should have em tag')
-    assert.ok(html.includes('italic'), 'should contain italic text')
+  describe('getCSS', () => {
+    it('should return CSS string', () => {
+      const css = AgenticRender.getCSS()
+      expect(typeof css).toBe('string')
+      expect(css.length).toBeGreaterThan(0)
+      expect(css).toContain('.ar-root')
+    })
+
+    it('should include theme variables', () => {
+      const css = AgenticRender.getCSS()
+      expect(css).toContain('--ar-')
+    })
   })
 
-  it('8. code block ```...``` handling', () => {
-    const md = '```python\nprint("hello")\n```'
-    const html = AgenticRender.render(md)
-    assert.ok(html.includes('ar-code-wrap'), 'should have code wrap')
-    assert.ok(html.includes('ar-pre'), 'should have pre tag')
-    assert.ok(html.includes('print'), 'should contain the code')
-    assert.ok(html.includes('python'), 'should show language label')
-  })
+  describe('edge cases', () => {
+    it('should handle empty string', () => {
+      const html = AgenticRender.render('')
+      expect(html).toBeDefined()
+    })
 
-  it('9. list handling (- and *)', () => {
-    const mdDash = '- item one\n- item two'
-    const htmlDash = AgenticRender.render(mdDash)
-    assert.ok(htmlDash.includes('<ul'), 'should create ul for dash lists')
-    assert.ok(htmlDash.includes('<li'), 'should create li items')
-    assert.ok(htmlDash.includes('item one'))
-    assert.ok(htmlDash.includes('item two'))
+    it('should throw on null/undefined', () => {
+      expect(() => AgenticRender.render(null)).toThrow()
+      expect(() => AgenticRender.render(undefined)).toThrow()
+    })
 
-    const mdStar = '* alpha\n* beta'
-    const htmlStar = AgenticRender.render(mdStar)
-    assert.ok(htmlStar.includes('<ul'), 'should create ul for star lists')
-    assert.ok(htmlStar.includes('alpha'))
-    assert.ok(htmlStar.includes('beta'))
-  })
+    it('should handle mixed markdown', () => {
+      const md = '# Title\n\nSome **bold** and *italic* text.\n\n- List item\n- Another item\n\n```js\ncode()\n```'
+      const html = AgenticRender.render(md)
+      expect(html).toContain('<h1')
+      expect(html).toContain('<strong')
+      expect(html).toContain('<em')
+      expect(html).toContain('<ul')
+      expect(html).toContain('ar-code-wrap')
+    })
 
-  it('10. heading # ## ### handling', () => {
-    const h1 = AgenticRender.render('# Heading One')
-    assert.ok(h1.includes('<h1'), 'should create h1')
-    assert.ok(h1.includes('Heading One'))
-
-    const h2 = AgenticRender.render('## Heading Two')
-    assert.ok(h2.includes('<h2'), 'should create h2')
-    assert.ok(h2.includes('Heading Two'))
-
-    const h3 = AgenticRender.render('### Heading Three')
-    assert.ok(h3.includes('<h3'), 'should create h3')
-    assert.ok(h3.includes('Heading Three'))
+    it('should handle incomplete code blocks gracefully', () => {
+      const renderer = AgenticRender.create(container)
+      renderer.append('```js\nconst x = ')
+      const content = renderer.getContent()
+      expect(content).toContain('```js')
+      renderer.destroy()
+    })
   })
 })
