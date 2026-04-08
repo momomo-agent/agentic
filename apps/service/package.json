@@ -44,10 +44,10 @@
     "#agentic-voice": "./src/runtime/adapters/voice/openai-tts.js"
   },
   "dependencies": {
-    "agentic-embed": "file:./vendor/agentic-embed.tgz",
-    "agentic-sense": "file:./vendor/agentic-sense.tgz",
-    "agentic-store": "file:./vendor/agentic-store.tgz",
-    "agentic-voice": "file:./vendor/agentic-voice.tgz",
+    "agentic-embed": "workspace:*",
+    "agentic-sense": "workspace:*",
+    "agentic-store": "workspace:*",
+    "agentic-voice": "workspace:*",
     "chalk": "^5.6.2",
     "commander": "^12.1.0",
     "cors": "^2.8.6",

@@ -10,7 +10,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "agentic-filesystem": "file:../agentic-filesystem"
+    "agentic-filesystem": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

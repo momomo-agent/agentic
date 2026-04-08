@@ -1,7 +1,7 @@
 {
   "name": "agentic-lite",
   "version": "0.1.0",
-  "description": "Lightweight agent API \u2014 one function call with built-in search, code execution, and file processing",
+  "description": "Lightweight agent API — one function call with built-in search, code execution, and file processing",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,9 +38,9 @@
     "vitest": "^2.0.0"
   },
   "dependencies": {
-    "agentic-core": "file:../agentic-core",
-    "agentic-filesystem": "link:../agentic-filesystem",
-    "agentic-shell": "link:../agentic-shell",
+    "agentic-core": "workspace:*",
+    "agentic-filesystem": "workspace:*",
+    "agentic-shell": "workspace:*",
     "pyodide": "^0.25.0",
     "quickjs-emscripten": "^0.29.0"
   }
