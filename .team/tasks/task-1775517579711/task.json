@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517579711",
+  "title": "profiles/default.json — 内置默认硬件profile",
+  "description": "创建profiles/default.json，包含CPU-only/NVIDIA GPU/Apple Silicon三种默认配置",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": false,
+  "created": "2026-04-06T23:19:39.711Z",
+  "updated": "2026-04-06T23:26:16.803Z",
+  "milestoneId": "m31"
+}

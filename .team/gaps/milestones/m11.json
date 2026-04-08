@@ -1,0 +1,22 @@
+{
+  "milestoneId": "m11",
+  "match": 85,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "registerDevice(id,meta) returns {id,registeredAt}", "status": "pass" },
+    { "criterion": "heartbeat(id) updates lastSeen, >30s marks offline", "status": "pass" },
+    { "criterion": "getDevices() returns all devices with status", "status": "pass" },
+    { "criterion": "brain.chat() returns async generator yielding {type,content}", "status": "pass" },
+    { "criterion": "tool call yields {type:'tool_call',name,args}", "status": "pass" },
+    { "criterion": "brain.chat() failure auto-fallbacks to cloud", "status": "pass" },
+    { "criterion": "POST /api/chat SSE stream", "status": "pass" },
+    { "criterion": "POST /api/transcribe returns {text}", "status": "pass" },
+    { "criterion": "POST /api/synthesize returns audio buffer", "status": "pass" },
+    { "criterion": "GET /api/status returns {hardware,profile,devices}", "status": "pass" },
+    { "criterion": "GET/PUT /api/config read/write", "status": "pass" },
+    { "criterion": "/admin device list shows id, status, lastSeen", "status": "partial" },
+    { "criterion": "/admin config panel read/write with immediate effect", "status": "partial" },
+    { "criterion": "profiles/default.json has apple-silicon, nvidia, cpu-only profiles", "status": "partial" },
+    { "criterion": "Each profile has llm, stt, tts, fallback fields", "status": "pass" }
+  ]
+}

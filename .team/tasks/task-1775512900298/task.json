@@ -1,0 +1,13 @@
+{
+  "id": "task-1775512900298",
+  "title": "提升测试覆盖率至98%",
+  "description": "配置vitest覆盖率阈值>=98%，补充缺失测试：POST /api/transcribe无效格式、PUT /api/config磁盘写失败、profiles.js空数组边界、SIGINT优雅关闭",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-06T22:01:40.298Z",
+  "updated": "2026-04-06T22:14:01.754Z"
+}

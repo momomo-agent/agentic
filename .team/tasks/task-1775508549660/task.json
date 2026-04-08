@@ -1,0 +1,13 @@
+{
+  "id": "task-1775508549660",
+  "title": "CDN URL修正为cdn.example.com",
+  "description": "profiles.js中将jsdelivr.net替换为cdn.example.com，符合M1 DBB规范",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-06T20:49:09.660Z",
+  "updated": "2026-04-06T20:59:19.113Z"
+}

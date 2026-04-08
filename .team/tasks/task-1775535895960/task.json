@@ -1,0 +1,14 @@
+{
+  "id": "task-1775535895960",
+  "title": "Fix mocked module initialization across failing test files",
+  "description": "Multiple test files fail due to initialization issues in mocked modules. Audit and fix mock setup patterns to reach >=90% coverage.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m83",
+  "hasDesign": true,
+  "created": "2026-04-07T04:24:55.960Z",
+  "updated": "2026-04-07T13:20:33.524Z",
+  "milestoneId": "m83"
+}

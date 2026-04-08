@@ -1,0 +1,15 @@
+{
+  "milestoneId": "m42",
+  "match": 62,
+  "timestamp": "2026-04-07T01:42:09.774Z",
+  "criteria": [
+    { "criterion": "DBB-001: Admin panel at /admin returns HTTP 200", "status": "pass" },
+    { "criterion": "DBB-002: Admin panel includes device/model/status pages", "status": "pass" },
+    { "criterion": "DBB-003: GPU detection via hardware.js, exposed in /api/status", "status": "pass" },
+    { "criterion": "DBB-004: gpu-detector.js not referenced anywhere in src/", "status": "pass" },
+    { "criterion": "DBB-005: VAD detects voice activity on server side", "status": "fail" },
+    { "criterion": "DBB-006: VAD silence does not trigger LLM inference", "status": "fail" },
+    { "criterion": "DBB-007: README covers npx, Docker, and API usage", "status": "pass" },
+    { "criterion": "DBB-008: optimizer.js returns non-empty config for all hardware types", "status": "fail" }
+  ]
+}

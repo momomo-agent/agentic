@@ -1,0 +1,13 @@
+{
+  "id": "task-1775523423948",
+  "title": "profiles/default.json — 内置默认硬件Profile",
+  "description": "Create profiles/default.json with built-in fallback profile for unknown hardware. Must include llm/stt/tts/fallback fields per ARCHITECTURE.md spec",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:57:03.948Z",
+  "updated": "2026-04-07T00:57:35.936Z"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "task-1775519293612",
+  "title": "实现src/server/api.js — REST API端点",
+  "description": "实现api.js: POST /api/chat, GET /api/status, GET /api/devices, POST /api/tts, GET /api/health",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775519282587",
+    "task-1775519286378"
+  ],
+  "groupId": "m32",
+  "hasDesign": false,
+  "created": "2026-04-06T23:48:13.612Z",
+  "updated": "2026-04-06T23:48:48.536Z"
+}

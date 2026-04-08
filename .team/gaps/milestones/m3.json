@@ -1,0 +1,21 @@
+{
+  "milestoneId": "m3",
+  "match": 75,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "src/runtime/stt.js exports transcribe(audioBuffer) -> Promise<string>", "status": "pass" },
+    { "criterion": "POST /api/transcribe accepts multipart audio, returns {text: string}", "status": "pass" },
+    { "criterion": "Empty/unsupported audio returns 400", "status": "pass" },
+    { "criterion": "agentic-voice unavailable throws clear error", "status": "pass" },
+    { "criterion": "src/runtime/tts.js exports synthesize(text) -> Promise<Buffer>", "status": "pass" },
+    { "criterion": "POST /api/synthesize accepts {text}, returns audio/wav binary", "status": "pass" },
+    { "criterion": "Empty text returns 400", "status": "pass" },
+    { "criterion": "agentic-voice unavailable throws clear error", "status": "pass" },
+    { "criterion": "/admin shows hardware info (platform, arch, gpu, memory)", "status": "partial" },
+    { "criterion": "/admin shows current profile (llm, stt, tts)", "status": "partial" },
+    { "criterion": "/admin shows service logs (last 50)", "status": "partial" },
+    { "criterion": "Data from GET /api/status and GET /api/config", "status": "pass" },
+    { "criterion": "STT/TTS unit tests with mocked agentic-voice", "status": "pass" },
+    { "criterion": "/api/transcribe and /api/synthesize integration tests", "status": "pass" }
+  ]
+}

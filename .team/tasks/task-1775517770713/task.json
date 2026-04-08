@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517770713",
+  "title": "实现src/server/api.js",
+  "description": "实现REST API端点，暴露brain/hub/runtime接口",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m32",
+  "hasDesign": true,
+  "created": "2026-04-06T23:22:50.713Z",
+  "updated": "2026-04-06T23:42:29.114Z",
+  "milestoneId": "m32"
+}

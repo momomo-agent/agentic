@@ -1,0 +1,13 @@
+{
+  "id": "task-1775508549624",
+  "title": "SIGINT优雅关闭处理",
+  "description": "在server/CLI入口添加process.on('SIGINT')处理器，确保服务正确关闭",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-06T20:49:09.624Z",
+  "updated": "2026-04-06T20:59:19.078Z"
+}

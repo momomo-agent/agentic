@@ -1,0 +1,14 @@
+{
+  "id": "task-1775523899911",
+  "title": "src/detector/optimizer.js — full optimization logic",
+  "description": "Complete optimizer.js to cover all optimization logic not handled by matcher.js — CPU/GPU model selection, memory constraints",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m47",
+  "hasDesign": true,
+  "created": "2026-04-07T01:04:59.911Z",
+  "updated": "2026-04-07T02:09:32.973Z",
+  "milestoneId": "m47"
+}

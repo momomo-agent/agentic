@@ -1,0 +1,14 @@
+{
+  "id": "task-1775525410073",
+  "title": "profiles/default.json — built-in default hardware profile",
+  "description": "Create profiles/default.json with built-in default hardware profile for CPU-only fallback. Must be valid JSON matching the profile schema used by getProfile(hardware) in profiles.js.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m55",
+  "hasDesign": false,
+  "created": "2026-04-07T01:30:10.073Z",
+  "updated": "2026-04-07T01:33:12.900Z",
+  "milestoneId": "m55"
+}

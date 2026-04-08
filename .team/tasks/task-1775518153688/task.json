@@ -1,0 +1,13 @@
+{
+  "id": "task-1775518153688",
+  "title": "实现src/server/api.js",
+  "description": "实现REST API端点：/api/chat, /api/status, /api/devices",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m35",
+  "hasDesign": false,
+  "created": "2026-04-06T23:29:13.689Z",
+  "updated": "2026-04-06T23:32:14.125Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775509421126",
+  "title": "heartbeat超时修正为60s",
+  "description": "hub.js中设备心跳超时从40s改为60s，符合DBB M7-005规范",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-06T21:03:41.126Z",
+  "updated": "2026-04-06T21:12:50.293Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517334300",
+  "title": "多设备脑状态深度共享",
+  "description": "实现跨设备AI brain状态同步，包括对话历史、记忆上下文的多设备共享",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m30",
+  "hasDesign": true,
+  "created": "2026-04-06T23:15:34.301Z",
+  "updated": "2026-04-07T00:50:35.533Z",
+  "milestoneId": "m30"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "task-1775520092677",
+  "title": "src/server/api.js — REST API endpoints实现",
+  "description": "实现api.js REST API端点，符合架构规定接口",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-3",
+  "blockedBy": [
+    "task-1775520092615",
+    "task-1775520092648"
+  ],
+  "groupId": "m41",
+  "hasDesign": true,
+  "created": "2026-04-07T00:01:32.678Z",
+  "updated": "2026-04-07T00:53:11.538Z",
+  "milestoneId": "m41"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775499138612",
+  "title": "npx 一键安装流程完善",
+  "description": "完整实现 bin/ 入口：Ollama检查→模型拉取(显示进度%)→启动服务→打开浏览器，Vision gap",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m9",
+  "hasDesign": true,
+  "created": "2026-04-06T18:12:18.612Z",
+  "updated": "2026-04-06T18:24:06.236Z",
+  "milestoneId": "m9"
+}

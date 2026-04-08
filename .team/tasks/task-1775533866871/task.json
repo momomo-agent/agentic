@@ -1,0 +1,14 @@
+{
+  "id": "task-1775533866871",
+  "title": "Refactor optimizer.js: hardware-adaptive config logic",
+  "description": "Replace Ollama setup code in optimizer.js with true hardware optimization logic that outputs adaptive config based on detected hardware (GPU type, VRAM, CPU cores). Should return optimized model selection, quantization level, and runtime parameters. DBB gap: optimizer.js missing hardware-adaptive config output",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m76",
+  "hasDesign": false,
+  "created": "2026-04-07T03:51:06.871Z",
+  "updated": "2026-04-07T03:54:28.882Z",
+  "milestoneId": "m76"
+}

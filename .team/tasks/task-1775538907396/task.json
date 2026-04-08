@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538907396",
+  "title": "Add agentic-store to package.json dependencies",
+  "description": "Add \"agentic-store\": \"*\" to package.json dependencies section. Code already imports from 'agentic-store' but package not declared. This unblocks task-1775536619023 test verification.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m84",
+  "hasDesign": true,
+  "created": "2026-04-07T05:15:07.396Z",
+  "updated": "2026-04-07T11:24:34.510Z",
+  "milestoneId": "m84"
+}

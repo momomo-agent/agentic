@@ -1,0 +1,14 @@
+{
+  "id": "task-1775534863944",
+  "title": "Voice latency <2s benchmark and enforcement",
+  "description": "Add timing instrumentation across STT+LLM+TTS pipeline. Log per-request latency. Add test assertion that fails if p95 exceeds 2000ms. Instrument runtime/stt.js, runtime/llm.js, runtime/tts.js.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m80",
+  "hasDesign": true,
+  "created": "2026-04-07T04:07:43.944Z",
+  "updated": "2026-04-07T11:47:57.314Z",
+  "milestoneId": "m80"
+}

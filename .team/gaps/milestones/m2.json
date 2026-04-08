@@ -1,0 +1,18 @@
+{
+  "milestoneId": "m2",
+  "match": 90,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "GET /api/status ollama.running reflects real process state", "status": "pass" },
+    { "criterion": "Ollama not running: ollama.running=false", "status": "pass" },
+    { "criterion": "Ollama running: ollama.running=true, models=real list", "status": "pass" },
+    { "criterion": "HTTP ping timeout >2s treated as not running, no exception", "status": "pass" },
+    { "criterion": "GET /api/config returns last PUT-saved config", "status": "pass" },
+    { "criterion": "PUT /api/config writes config to disk (JSON file)", "status": "pass" },
+    { "criterion": "First start with no config file returns empty object {}", "status": "pass" },
+    { "criterion": "Write failure returns 500, no silent data loss", "status": "pass" },
+    { "criterion": "Port occupied: startServer() rejects with 'Port X is already in use'", "status": "pass" },
+    { "criterion": "Multiple startServer() calls don't cause port conflict via singleton", "status": "pass" },
+    { "criterion": "Tests can independently start/stop server instances without state leak", "status": "partial" }
+  ]
+}

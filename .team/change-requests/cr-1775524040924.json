@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775524040924",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "architecture.json gap file shows 18% match but PRD and DBB analysis confirm most modules (llm.js, stt.js, tts.js, memory.js, hub.js, brain.js, api.js, profiles.js, ui/admin/) are already implemented. The gap file is stale and causing incorrect milestone planning.",
+  "proposedChange": "Re-run architecture gap analysis against actual source files to produce an accurate match score. Update architecture.json to reflect implemented status for modules confirmed present by PRD/DBB analysis.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T01:08:13.293Z",
+  "reviewedAt": "2026-04-08T01:41:31.415Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

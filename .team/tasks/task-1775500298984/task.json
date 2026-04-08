@@ -1,0 +1,16 @@
+{
+  "id": "task-1775500298984",
+  "title": "server/brain.js LLM推理",
+  "description": "LLM 推理 + tool call 处理器",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [
+    "task-1775500291531"
+  ],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-06T18:31:38.984Z",
+  "updated": "2026-04-06T18:42:43.519Z",
+  "milestoneId": "m11"
+}

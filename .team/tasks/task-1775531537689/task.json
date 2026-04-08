@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531537689",
+  "title": "Fix setup.sh Node.js detection and idempotency",
+  "description": "Ensure setup.sh detects existing Node.js installation and skips reinstall. Verify script is safe to run multiple times without side effects.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m80",
+  "hasDesign": false,
+  "created": "2026-04-07T03:12:17.689Z",
+  "updated": "2026-04-07T03:23:01.001Z",
+  "milestoneId": "m80"
+}

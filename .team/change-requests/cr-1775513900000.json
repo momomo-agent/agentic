@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775513900000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Architecture gap file (timestamp 2026-04-06T21:02:56Z) shows 14 gaps as 'missing' for files that were implemented in m18-m22 (src/runtime/llm.js, stt.js, tts.js, sense.js, memory.js, src/server/hub.js, brain.js, api.js, src/ui/admin/, profiles/default.json, src/detector/profiles.js, optimizer.js). The architecture match score of 18% is stale and does not reflect current codebase state. This prevents accurate milestone planning.",
+  "proposedChange": "Re-run architecture gap analysis against current codebase to update match score and gap statuses. Expected match should be ~75-85% after m18-m22 implementations.",
+  "status": "resolved",
+  "createdAt": "2026-04-06T22:18:28.857Z",
+  "reviewedAt": "2026-04-08T01:41:31.414Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

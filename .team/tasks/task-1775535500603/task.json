@@ -1,0 +1,13 @@
+{
+  "id": "task-1775535500603",
+  "title": "Configure vitest coverage threshold >=98%",
+  "description": "Set coverage thresholds in vitest.config.js to enforce >=98% across all modules. Verify it fails below threshold. DBB gap: partial",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m82",
+  "hasDesign": false,
+  "created": "2026-04-07T04:18:20.603Z",
+  "updated": "2026-04-07T04:20:38.776Z"
+}

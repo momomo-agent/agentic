@@ -1,0 +1,16 @@
+{
+  "id": "task-1775524843426",
+  "title": "Server layer — hub.js + brain.js + api.js + profiles/default.json",
+  "description": "Implement src/server/hub.js (device mgmt), brain.js (LLM inference+tool calling), api.js (REST endpoints), profiles/default.json (default hardware profile)",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775524839429"
+  ],
+  "groupId": "m52",
+  "hasDesign": false,
+  "created": "2026-04-07T01:20:43.426Z",
+  "updated": "2026-04-07T01:33:12.349Z",
+  "milestoneId": "m52"
+}

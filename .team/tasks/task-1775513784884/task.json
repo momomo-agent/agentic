@@ -1,0 +1,13 @@
+{
+  "id": "task-1775513784884",
+  "title": "sense.js服务端无头模式: 支持Node.js帧输入路径",
+  "description": "为sense.js添加服务端无头摄像头路径，移除对videoElement/requestAnimationFrame的依赖，支持Buffer帧输入",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-06T22:16:24.884Z",
+  "updated": "2026-04-06T22:28:56.349Z"
+}

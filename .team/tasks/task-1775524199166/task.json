@@ -1,0 +1,14 @@
+{
+  "id": "task-1775524199166",
+  "title": "src/runtime/stt.js + tts.js",
+  "description": "Implement transcribe(audioBuffer)→text and synthesize(text)→audioBuffer",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m49",
+  "hasDesign": false,
+  "created": "2026-04-07T01:09:59.166Z",
+  "updated": "2026-04-07T01:20:48.241Z",
+  "milestoneId": "m49"
+}

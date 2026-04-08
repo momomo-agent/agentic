@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527932807",
+  "title": "CDN profiles.json cache staleness check (7-day refresh)",
+  "description": "Implement 7-day staleness check for CDN-fetched profiles.json; refresh cache if stale",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m68",
+  "hasDesign": true,
+  "created": "2026-04-07T02:12:12.808Z",
+  "updated": "2026-04-07T02:38:47.053Z"
+}

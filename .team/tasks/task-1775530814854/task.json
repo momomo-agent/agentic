@@ -1,0 +1,14 @@
+{
+  "id": "task-1775530814854",
+  "title": "Confirm agentic-voice wrapping in stt.js and tts.js",
+  "description": "Verify runtime/stt.js and tts.js wrap agentic-voice package methods. If they are local stubs, wire them to the actual package.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m77",
+  "hasDesign": true,
+  "created": "2026-04-07T03:00:14.854Z",
+  "updated": "2026-04-07T03:37:45.088Z",
+  "milestoneId": "m77"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775515085107",
+  "title": "CDN profiles.json 7天缓存刷新",
+  "description": "在profiles.js中实现缓存超7天自动刷新机制，确保CDN配置不过期",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-06T22:38:05.107Z",
+  "updated": "2026-04-06T22:48:57.105Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775588280002",
+  "title": "Run fresh DBB/PRD/Vision gap evaluation",
+  "description": "Gap files are stale (last updated Apr 7). All architecture docs (CR merge + agentic-embed) and CPU profiling instrumentation must be completed first (see blockedBy). Run fresh gap evaluation after all dev tasks are done. Target: Vision >=90%, PRD >=90%, DBB >=90%. Report final scores.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m95",
+  "hasDesign": true,
+  "created": "2026-04-07T18:58:00.002Z",
+  "updated": "2026-04-08T03:03:50.351Z",
+  "milestoneId": "m95"
+}

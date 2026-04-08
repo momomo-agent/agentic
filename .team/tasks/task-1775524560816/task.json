@@ -1,0 +1,14 @@
+{
+  "id": "task-1775524560816",
+  "title": "src/detector/gpu-detector.js — merge into hardware.js",
+  "description": "Merge gpu-detector.js logic into hardware.js per architecture spec — gpu-detector.js is not in the architecture and its functionality should be absorbed into hardware.js",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m47",
+  "hasDesign": true,
+  "created": "2026-04-07T01:16:00.816Z",
+  "updated": "2026-04-07T02:08:03.605Z",
+  "milestoneId": "m47"
+}

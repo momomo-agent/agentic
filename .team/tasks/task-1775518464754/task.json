@@ -1,0 +1,14 @@
+{
+  "id": "task-1775518464754",
+  "title": "实现src/runtime/memory.js",
+  "description": "实现记忆运行时：持久化对话历史，支持跨设备上下文共享",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": true,
+  "created": "2026-04-06T23:34:24.754Z",
+  "updated": "2026-04-06T23:42:29.177Z",
+  "milestoneId": "m31"
+}

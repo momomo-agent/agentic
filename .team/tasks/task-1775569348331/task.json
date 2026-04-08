@@ -1,0 +1,13 @@
+{
+  "id": "task-1775569348331",
+  "title": "Wire agentic-sense as external package dependency",
+  "description": "Add agentic-sense to package.json dependencies and update import map so '#agentic-sense' resolves to the external package. DBB gaps: agentic-sense missing from deps, still using import map stub.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m86",
+  "hasDesign": true,
+  "created": "2026-04-07T13:42:28.331Z",
+  "updated": "2026-04-07T13:58:09.366Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530582785",
+  "title": "Server-side VAD silence suppression",
+  "description": "Implement server-side voice activity detection in hub.js wakeword pipeline. Filter silent audio frames before forwarding to STT/LLM. Prevents silence from reaching brain pipeline.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m77",
+  "hasDesign": true,
+  "created": "2026-04-07T02:56:22.785Z",
+  "updated": "2026-04-07T02:59:21.870Z"
+}

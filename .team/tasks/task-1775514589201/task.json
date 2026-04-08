@@ -1,0 +1,13 @@
+{
+  "id": "task-1775514589201",
+  "title": "Admin UI + Docker + setup.sh端到端验收",
+  "description": "验证/admin面板设备列表/日志/硬件面板正常加载；docker-compose端到端构建运行；setup.sh Node.js检测幂等性",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": false,
+  "created": "2026-04-06T22:29:49.201Z",
+  "updated": "2026-04-06T22:37:46.109Z"
+}

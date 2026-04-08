@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530955188",
+  "title": "Submit CR for unspecified detector files",
+  "description": "Submit a Change Request to ARCHITECTURE.md for src/detector/matcher.js and src/detector/ollama.js which exist in codebase but are not specified in architecture.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m78",
+  "hasDesign": false,
+  "created": "2026-04-07T03:02:35.188Z",
+  "updated": "2026-04-07T03:03:36.197Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775501737286",
+  "title": "Docker部署: Dockerfile + docker-compose.yml",
+  "description": "在install/目录创建Dockerfile和docker-compose.yml，支持docker-compose up一键启动服务",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-06T18:55:37.286Z",
+  "updated": "2026-04-06T19:14:09.628Z",
+  "milestoneId": "m13"
+}

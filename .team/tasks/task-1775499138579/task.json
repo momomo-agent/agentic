@@ -1,0 +1,14 @@
+{
+  "id": "task-1775499138579",
+  "title": "SIGINT 优雅关闭",
+  "description": "CLI 入口点显式处理 SIGINT 信号，优雅关闭服务，DBB-012 gap",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m9",
+  "hasDesign": true,
+  "created": "2026-04-06T18:12:18.579Z",
+  "updated": "2026-04-06T18:24:06.207Z",
+  "milestoneId": "m9"
+}

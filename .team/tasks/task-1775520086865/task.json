@@ -1,0 +1,16 @@
+{
+  "id": "task-1775520086865",
+  "title": "src/runtime/sense.js — MediaPipe headless实现",
+  "description": "实现sense.js服务端路径，支持无浏览器videoElement的headless camera，符合架构规定接口",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "tech_lead-2",
+  "blockedBy": [
+    "task-1775520048129"
+  ],
+  "groupId": "m41",
+  "hasDesign": true,
+  "created": "2026-04-07T00:01:26.866Z",
+  "updated": "2026-04-07T00:53:11.414Z",
+  "milestoneId": "m41"
+}

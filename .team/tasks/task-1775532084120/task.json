@@ -1,0 +1,14 @@
+{
+  "id": "task-1775532084120",
+  "title": "Set vitest coverage threshold to 98% and verify",
+  "description": "Add coverageThreshold config to vitest.config.js requiring 98% lines/branches/functions. Run vitest --coverage and confirm threshold passes.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m82",
+  "hasDesign": true,
+  "created": "2026-04-07T03:21:24.121Z",
+  "updated": "2026-04-07T03:25:48.282Z",
+  "milestoneId": "m82"
+}

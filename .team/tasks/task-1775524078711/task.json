@@ -1,0 +1,14 @@
+{
+  "id": "task-1775524078711",
+  "title": "Test coverage >=98% threshold enforcement",
+  "description": "Configure test coverage threshold at >=98% in test runner config and verify current coverage meets it",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer-2",
+  "blockedBy": [],
+  "groupId": "m48",
+  "hasDesign": true,
+  "created": "2026-04-07T01:07:58.712Z",
+  "updated": "2026-04-07T02:09:04.894Z",
+  "milestoneId": "m48"
+}

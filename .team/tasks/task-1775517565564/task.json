@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517565564",
+  "title": "profiles.js实现 — getProfile(hardware)",
+  "description": "实现src/detector/profiles.js，提供getProfile(hardware)函数，根据硬件返回匹配的profile配置",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": false,
+  "created": "2026-04-06T23:19:25.565Z",
+  "updated": "2026-04-06T23:26:16.711Z",
+  "milestoneId": "m31"
+}

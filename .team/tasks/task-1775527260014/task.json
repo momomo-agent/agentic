@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527260014",
+  "title": "README completeness audit",
+  "description": "Verify README.md covers all required sections: install, usage, API reference, Docker, and environment variables",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m64",
+  "hasDesign": true,
+  "created": "2026-04-07T02:01:00.014Z",
+  "updated": "2026-04-07T02:36:48.429Z"
+}

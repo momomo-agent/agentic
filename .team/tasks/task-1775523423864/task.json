@@ -1,0 +1,13 @@
+{
+  "id": "task-1775523423864",
+  "title": "src/detector/profiles.js — getProfile(hardware)实现",
+  "description": "Implement detector/profiles.js: fetch profiles.json from remote, cache locally, match hardware to optimal profile. Returns {llm, stt, tts, fallback}",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:57:03.864Z",
+  "updated": "2026-04-07T00:57:35.874Z"
+}

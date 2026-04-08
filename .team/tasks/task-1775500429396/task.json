@@ -1,0 +1,14 @@
+{
+  "id": "task-1775500429396",
+  "title": "Ollama 自动安装执行",
+  "description": "setup.js 中自动执行 Ollama 安装命令，而非仅打印，首次启动完成模型拉取并显示进度",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-06T18:33:49.396Z",
+  "updated": "2026-04-06T18:50:06.036Z",
+  "milestoneId": "m12"
+}

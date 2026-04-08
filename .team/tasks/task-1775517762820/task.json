@@ -1,0 +1,13 @@
+{
+  "id": "task-1775517762820",
+  "title": "语音延迟基准测试",
+  "description": "实现STT+LLM+TTS端到端延迟基准测试，验收标准：<2s",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m32",
+  "hasDesign": false,
+  "created": "2026-04-06T23:22:42.820Z",
+  "updated": "2026-04-06T23:23:10.238Z"
+}

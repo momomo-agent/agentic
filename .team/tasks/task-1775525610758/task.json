@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525610758",
+  "title": "src/runtime/llm.js — chat() stream with Ollama + cloud fallback",
+  "description": "Implement src/runtime/llm.js: chat(messages, options) → stream. Must support Ollama local inference and cloud LLM fallback per architecture spec.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m56",
+  "hasDesign": false,
+  "created": "2026-04-07T01:33:30.759Z",
+  "updated": "2026-04-07T01:34:21.817Z"
+}

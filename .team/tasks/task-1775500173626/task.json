@@ -1,0 +1,13 @@
+{
+  "id": "task-1775500173626",
+  "title": "optimizer → llm.js 硬件自适应接线",
+  "description": "将 llm.js loadConfig() 中硬编码的 gemma4:26b 替换为调用 detector/optimizer.js 输出，实现真正的硬件自适应模型选择",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-06T18:29:33.626Z",
+  "updated": "2026-04-06T18:45:16.660Z"
+}

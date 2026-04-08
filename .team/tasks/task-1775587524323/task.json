@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587524323",
+  "title": "Verify voice latency <2s end-to-end benchmark",
+  "description": "Verify STT+LLM+TTS pipeline latency is <2s end-to-end. Run latency benchmark on target hardware configuration. If not met, profile bottleneck and document findings. Vision gap: 'Voice latency <2s end-to-end not benchmarked or enforced in code'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m94",
+  "hasDesign": true,
+  "created": "2026-04-07T18:45:24.323Z",
+  "updated": "2026-04-07T18:54:28.142Z",
+  "milestoneId": "m94"
+}

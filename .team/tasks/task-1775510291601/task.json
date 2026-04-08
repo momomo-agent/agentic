@@ -1,0 +1,15 @@
+{
+  "id": "task-1775510291601",
+  "title": "实现 src/ui/admin/ 管理面板",
+  "description": "Admin UI：设备列表、系统状态、运行时配置页面，路由 /admin",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [
+    "task-1775510288171"
+  ],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-06T21:18:11.601Z",
+  "updated": "2026-04-06T22:02:46.937Z"
+}

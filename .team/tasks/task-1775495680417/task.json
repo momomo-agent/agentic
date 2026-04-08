@@ -1,0 +1,14 @@
+{
+  "id": "task-1775495680417",
+  "title": "DBB 规范修复",
+  "description": "del()→delete(), tool_use响应格式, SIGINT优雅关闭, CDN URL修正, 模型下载进度显示",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-06T17:14:40.417Z",
+  "updated": "2026-04-06T17:31:20.099Z",
+  "milestoneId": "m7"
+}

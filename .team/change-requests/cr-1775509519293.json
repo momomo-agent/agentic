@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775509519293",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L1",
+  "targetFile": "PRD.md",
+  "reason": "Several gaps remain unaddressed in current implementation that require PRD clarification: (1) VAD auto-detection is missing — PRD M2 mentions it but no implementation exists, only manual push-to-talk; (2) CDN URL is placeholder (cdn.example.com) — PRD should specify real CDN endpoint or document that local fallback is the intended behavior; (3) Voice latency <2s end-to-end is not benchmarked or enforced — PRD should specify whether this is a hard requirement with test coverage or a soft target; (4) HTTPS/LAN tunneling for secure multi-device access is not implemented — PRD M3 implies multi-device but does not specify transport security requirements; (5) sense.js server-side headless camera path is missing — PRD M3 visual perception implies server-side operation but agentic-sense is browser-only; (6) heartbeat timeout discrepancy: code uses 40s but DBB-005 specifies 60s — PRD should be authoritative on this value.",
+  "proposedChange": "1. Add VAD (Voice Activity Detection) as explicit M2 requirement with adapter interface matching STT/TTS pattern. 2. Replace cdn.example.com placeholder with real CDN URL or explicitly document local-only fallback as acceptable. 3. Clarify voice latency <2s: add as testable acceptance criterion in M2 or downgrade to non-functional guideline. 4. Add HTTPS/mDNS/LAN tunnel requirement to M3 multi-device section. 5. Clarify sense.js scope: browser-only vs server-side headless — if server-side needed, add as M3/M4 requirement. 6. Confirm heartbeat timeout = 60s as canonical value in M3 DBB.",
+  "status": "resolved",
+  "createdAt": "2026-04-06T21:05:24.348Z",
+  "reviewedAt": "2026-04-08T01:41:31.419Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

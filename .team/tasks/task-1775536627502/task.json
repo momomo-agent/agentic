@@ -1,0 +1,14 @@
+{
+  "id": "task-1775536627502",
+  "title": "Verify npx bin entrypoint",
+  "description": "Confirm bin field in package.json points to correct entrypoint; test that npx agentic-service resolves and starts correctly",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m84",
+  "hasDesign": false,
+  "created": "2026-04-07T04:37:07.502Z",
+  "updated": "2026-04-07T04:40:43.483Z",
+  "milestoneId": "m84"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775520092708",
+  "title": "profiles/default.json — 内置默认硬件Profile",
+  "description": "创建profiles/default.json，内置默认硬件profile，无需外部CDN即可运行",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m41",
+  "hasDesign": true,
+  "created": "2026-04-07T00:01:32.708Z",
+  "updated": "2026-04-07T00:53:11.569Z",
+  "milestoneId": "m41"
+}

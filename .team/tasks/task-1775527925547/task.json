@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527925547",
+  "title": "Docker end-to-end build and run verification",
+  "description": "Build Docker image and run docker-compose up; verify /api/status responds and container exits cleanly",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m68",
+  "hasDesign": false,
+  "created": "2026-04-07T02:12:05.547Z",
+  "updated": "2026-04-07T02:13:31.378Z"
+}

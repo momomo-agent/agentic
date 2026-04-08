@@ -1,0 +1,14 @@
+{
+  "id": "task-1775506784289",
+  "title": "Ollama自动安装: setup.js执行安装命令",
+  "description": "setup.js检测到Ollama未安装时，自动执行安装命令（带用户确认提示），而不仅仅打印命令",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-06T20:19:44.289Z",
+  "updated": "2026-04-06T20:32:00.605Z",
+  "milestoneId": "m14"
+}

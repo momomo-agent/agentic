@@ -1,0 +1,14 @@
+{
+  "id": "task-1775525193162",
+  "title": "src/runtime/sense.js — MediaPipe sense runtime",
+  "description": "Implement sense.js runtime: MediaPipe-based vision/sense pipeline. Headless camera path for server-side operation per architecture spec.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m54",
+  "hasDesign": false,
+  "created": "2026-04-07T01:26:33.162Z",
+  "updated": "2026-04-07T01:33:12.867Z",
+  "milestoneId": "m54"
+}

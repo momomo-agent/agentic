@@ -1,0 +1,14 @@
+{
+  "id": "task-1775532073840",
+  "title": "Add cpu-only profile to profiles/default.json",
+  "description": "Add a cpu-only hardware profile entry to profiles/default.json alongside existing apple-silicon and nvidia profiles. Should specify conservative model and runtime settings for CPU-only machines.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m82",
+  "hasDesign": true,
+  "created": "2026-04-07T03:21:13.840Z",
+  "updated": "2026-04-07T03:25:48.177Z",
+  "milestoneId": "m82"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775570827000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Architecture gap analysis shows 5 implemented modules missing from ARCHITECTURE.md: tunnel (src/tunnel.js), CLI (src/cli/setup.js, browser.js), HTTPS/middleware (src/server/cert.js, httpsServer.js, middleware.js), VAD (src/runtime/vad.js), and embed/adapters (src/runtime/embed.js, adapters/). These are all 'missing' or 'partial' status in architecture.json gaps. Architecture match is 88% — documenting these would bring it to ~100%.",
+  "proposedChange": "Add module sections to ARCHITECTURE.md for: (1) tunnel.js — LAN tunnel capability, (2) src/cli/ — CLI module with setup.js and browser.js, (3) HTTPS/middleware layer — cert.js, httpsServer.js, middleware.js, (4) VAD — src/runtime/vad.js voice activity detection, (5) agentic-embed runtime — src/runtime/embed.js and adapters/",
+  "status": "resolved",
+  "createdAt": "2026-04-07T14:07:07.315Z",
+  "reviewedAt": "2026-04-08T01:41:31.417Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

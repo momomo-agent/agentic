@@ -1,0 +1,13 @@
+{
+  "id": "task-1775491387415",
+  "title": "修复 /api/status Ollama 真实检测",
+  "description": "替换 /api/status 中硬编码的 Ollama stub，改为真实检测 Ollama 运行状态（进程检查 + HTTP ping）",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-06T16:03:07.415Z",
+  "updated": "2026-04-06T16:11:43.362Z"
+}

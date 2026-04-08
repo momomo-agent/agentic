@@ -1,0 +1,14 @@
+{
+  "id": "task-1775516748230",
+  "title": "服务端唤醒词常驻pipeline",
+  "description": "server启动时激活wake word检测pipeline，支持always-on模式",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m29",
+  "hasDesign": true,
+  "created": "2026-04-06T23:05:48.230Z",
+  "updated": "2026-04-06T23:14:23.308Z",
+  "milestoneId": "m29"
+}

@@ -1,0 +1,17 @@
+{
+  "milestoneId": "m12",
+  "match": 80,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "setup.js auto-executes Ollama install (not just prints)", "status": "pass" },
+    { "criterion": "After install, auto-pulls recommended model with progress", "status": "pass" },
+    { "criterion": "Install failure outputs clear error and exits non-zero", "status": "pass" },
+    { "criterion": "stt.transcribe(audioBuffer) returns string", "status": "pass" },
+    { "criterion": "Local SenseVoice unavailable: auto-fallback to OpenAI Whisper", "status": "pass" },
+    { "criterion": "Fallback path error rejects Promise", "status": "pass" },
+    { "criterion": "tts.synthesize(text) returns Buffer", "status": "pass" },
+    { "criterion": "Local Kokoro unavailable: auto-fallback to OpenAI TTS", "status": "pass" },
+    { "criterion": "TTS fallback error rejects Promise", "status": "pass" },
+    { "criterion": "README has install (npx/global/Docker), config, API endpoints, Docker example", "status": "partial" }
+  ]
+}

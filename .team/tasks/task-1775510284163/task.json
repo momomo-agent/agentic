@@ -1,0 +1,13 @@
+{
+  "id": "task-1775510284163",
+  "title": "实现 src/server/brain.js",
+  "description": "LLM推理 + 工具调用：chat(messages, options) → stream，集成 runtime/llm.js，支持工具注册和调用",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-06T21:18:04.163Z",
+  "updated": "2026-04-06T21:31:36.542Z"
+}

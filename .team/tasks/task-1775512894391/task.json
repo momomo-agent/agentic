@@ -1,0 +1,13 @@
+{
+  "id": "task-1775512894391",
+  "title": "实现 VAD 自动语音检测",
+  "description": "在Web UI中实现VAD(Voice Activity Detection)，语音活动时自动开始录音，替代纯手动push-to-talk",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-06T22:01:34.392Z",
+  "updated": "2026-04-06T22:15:57.924Z"
+}

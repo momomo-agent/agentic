@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525193095",
+  "title": "src/runtime/stt.js — transcribe(audioBuffer) → text",
+  "description": "Implement stt.js runtime: transcribe(audioBuffer) returns text string. Must support Whisper local and cloud fallback per architecture spec.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m54",
+  "hasDesign": false,
+  "created": "2026-04-07T01:26:33.095Z",
+  "updated": "2026-04-07T01:28:34.459Z"
+}

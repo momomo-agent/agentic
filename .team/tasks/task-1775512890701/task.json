@@ -1,0 +1,13 @@
+{
+  "id": "task-1775512890701",
+  "title": "修复 App.vue 组件导入和状态轮询",
+  "description": "导入DeviceList/LogViewer/HardwarePanel，添加setInterval轮询/api/status，绑定:devices/:hardware props",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-06T22:01:30.701Z",
+  "updated": "2026-04-06T22:23:06.545Z"
+}

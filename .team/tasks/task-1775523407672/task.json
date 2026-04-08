@@ -1,0 +1,13 @@
+{
+  "id": "task-1775523407672",
+  "title": "src/server/hub.js — device management实现",
+  "description": "Implement server/hub.js for device registration and management. Must handle: device connect/disconnect, device list, device state broadcast via WebSocket",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:56:47.672Z",
+  "updated": "2026-04-07T00:57:35.782Z"
+}

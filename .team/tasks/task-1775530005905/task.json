@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530005905",
+  "title": "Server-side VAD wiring into hub.js wakeword pipeline",
+  "description": "Remove sense.js stub — wire real VAD so wakeword event fires through hub.js when speech detected",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m75",
+  "hasDesign": false,
+  "created": "2026-04-07T02:46:45.905Z",
+  "updated": "2026-04-07T02:48:46.842Z"
+}

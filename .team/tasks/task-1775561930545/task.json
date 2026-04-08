@@ -1,0 +1,14 @@
+{
+  "id": "task-1775561930545",
+  "title": "Document tunnel, CLI, VAD, HTTPS modules in ARCHITECTURE.md",
+  "description": "Add missing module documentation to ARCHITECTURE.md: tunnel.js (LAN tunnel), src/cli/ (setup.js, browser.js), runtime/vad.js, and HTTPS/middleware layer. Architecture gaps: missing/partial.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m85",
+  "hasDesign": true,
+  "created": "2026-04-07T11:38:50.545Z",
+  "updated": "2026-04-07T12:37:00.427Z",
+  "milestoneId": "m85"
+}

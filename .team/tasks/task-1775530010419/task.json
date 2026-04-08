@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530010419",
+  "title": "agentic-voice and agentic-sense package verification",
+  "description": "Verify packages resolve or throw clear error — no silent stubs in stt.js, tts.js, sense.js",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m75",
+  "hasDesign": false,
+  "created": "2026-04-07T02:46:50.419Z",
+  "updated": "2026-04-07T02:48:46.885Z"
+}

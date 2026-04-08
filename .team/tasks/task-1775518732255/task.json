@@ -1,0 +1,14 @@
+{
+  "id": "task-1775518732255",
+  "title": "补全src/detector/optimizer.js",
+  "description": "matcher.js未覆盖的优化逻辑迁移至optimizer.js，确保完整实现架构规范的优化接口",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": true,
+  "created": "2026-04-06T23:38:52.255Z",
+  "updated": "2026-04-06T23:41:46.750Z",
+  "milestoneId": "m31"
+}

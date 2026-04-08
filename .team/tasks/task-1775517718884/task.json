@@ -1,0 +1,13 @@
+{
+  "id": "task-1775517718884",
+  "title": "实现src/runtime/tts.js",
+  "description": "实现synthesize(text) → audioBuffer接口，对接语音合成服务",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": false,
+  "created": "2026-04-06T23:21:58.884Z",
+  "updated": "2026-04-06T23:28:50.127Z"
+}

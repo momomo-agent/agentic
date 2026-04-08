@@ -1,0 +1,66 @@
+{
+  "match": 75,
+  "timestamp": "2026-04-08T14:00:00.000Z",
+  "gaps": [
+    {
+      "description": "src/index.js missing — package.json 'main' points to src/index.js which does not exist on disk",
+      "status": "missing",
+      "severity": "critical"
+    },
+    {
+      "description": "README documents default port as 3000 but bin/agentic-service.js defaults to 1234",
+      "status": "partial",
+      "severity": "critical"
+    },
+    {
+      "description": "ARCHITECTURE.md lines 191-252 contain massive stale CR content (repeated add-section instructions from prior milestones, never cleaned up)",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "ARCHITECTURE.md directory tree lists only 14 src/ files; 20 additional source files exist (embed.js, vad.js, profiler.js, latency-log.js, store/index.js, adapters/*, cli/*, tunnel.js, cert.js, httpsServer.js, middleware.js)",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "Dead import maps #agentic-embed and #agentic-voice in package.json — no source file references them",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "Test pass rate ~94% (775/824) with ~49 failures across detector (16), server (18), CLI (2), milestones (6+7) — mostly stale mocks after refactoring",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "src/runtime/adapters/embed.js is a stub that throws 'not implemented' — actual embed uses vendor agentic-embed via src/runtime/embed.js, breaking the adapter pattern",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "M3: Visual perception — agentic-sense installed but sense adapter returns empty arrays (stub)",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "mDNS/Bonjour for .local hostname discovery — not implemented; only raw LAN IP display available",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "Docker deployment missing OLLAMA_HOST env var in docker-compose.yml — required for containerized Ollama connectivity",
+      "status": "missing",
+      "severity": "minor"
+    },
+    {
+      "description": "Docker deployment missing ./data volume mount in root docker-compose.yml",
+      "status": "missing",
+      "severity": "minor"
+    },
+    {
+      "description": "Server middleware (src/server/middleware.js) is a 4-line error handler — no request validation, rate limiting, or security middleware",
+      "status": "partial",
+      "severity": "minor"
+    }
+  ]
+}

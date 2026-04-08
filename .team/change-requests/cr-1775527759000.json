@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775527759000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Architecture gap scan flags src/detector/matcher.js, src/detector/ollama.js, src/server/cert.js, src/server/httpsServer.js, src/server/middleware.js, and src/cli/ as unspecified — but these files exist and appear to be legitimate implementation additions (HTTPS support, Ollama integration, CLI tooling). Without architecture sign-off, it is unclear whether to remove them or document them.",
+  "proposedChange": "Update ARCHITECTURE.md to either (a) formally include these modules with their roles and interfaces, or (b) explicitly mark them as out-of-scope so they can be removed. This will resolve the 22% architecture gap and unblock accurate compliance tracking.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T02:02:39.000Z",
+  "reviewedAt": "2026-04-08T01:41:31.415Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

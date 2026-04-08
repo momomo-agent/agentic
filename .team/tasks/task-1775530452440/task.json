@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530452440",
+  "title": "Wire agentic-embed as external package",
+  "description": "Replace local src/runtime/embed.js usage with agentic-embed package import. Add agentic-embed to package.json dependencies. Verify import resolves at runtime.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m76",
+  "hasDesign": false,
+  "created": "2026-04-07T02:54:12.440Z",
+  "updated": "2026-04-07T02:54:52.977Z"
+}

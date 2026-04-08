@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775535491176",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Architecture specifies agentic-store, agentic-embed, agentic-sense, and agentic-voice as external package dependencies, but they are currently implemented as local modules (src/store/index.js, src/runtime/embed.js, src/runtime/sense.js, src/runtime/stt.js, src/runtime/tts.js). This architectural deviation is causing 78% architecture match. Need clarification on whether to: (1) refactor into separate npm packages, (2) update ARCHITECTURE.md to reflect local module approach, or (3) maintain current hybrid approach with documentation update.",
+  "proposedChange": "Either: (A) Update ARCHITECTURE.md dependency diagram to show these as local modules instead of external packages, OR (B) Create milestone to extract these modules into separate publishable packages with proper versioning and dependency management.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T04:58:11.176Z",
+  "reviewedAt": "2026-04-08T01:41:31.416Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

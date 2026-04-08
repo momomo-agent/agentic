@@ -1,0 +1,14 @@
+{
+  "id": "task-1775581717200",
+  "title": "Add Dockerfile and docker-compose.yml to project root",
+  "description": "Create Dockerfile and docker-compose.yml in project root. PRD gap: 'Docker / docker-compose deployment \u2014 no docker files found in project root'. Reference install/ directory for existing Docker setup if present.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m92",
+  "hasDesign": true,
+  "created": "2026-04-07T17:08:37.200Z",
+  "updated": "2026-04-07T17:21:52.441Z",
+  "milestoneId": "m92"
+}

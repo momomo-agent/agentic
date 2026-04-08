@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525731570",
+  "title": "src/runtime/tts.js — synthesize(text) → audioBuffer",
+  "description": "Implement src/runtime/tts.js with synthesize(text) returning audioBuffer. Integrate with local TTS backend. Acceptance: returns valid audio buffer for test string.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m58",
+  "hasDesign": false,
+  "created": "2026-04-07T01:35:31.570Z",
+  "updated": "2026-04-07T01:36:50.464Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527799203",
+  "title": "Architecture compliance: src/cli/ and unspecified server files",
+  "description": "Document or remove src/cli/ directory and src/server/cert.js + httpsServer.js + middleware.js — these are not in ARCHITECTURE.md spec; submit CR if architecture update needed",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-2",
+  "blockedBy": [],
+  "groupId": "m67",
+  "hasDesign": false,
+  "created": "2026-04-07T02:09:59.203Z",
+  "updated": "2026-04-07T02:10:35.917Z"
+}

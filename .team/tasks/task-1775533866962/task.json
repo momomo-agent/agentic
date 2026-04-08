@@ -1,0 +1,14 @@
+{
+  "id": "task-1775533866962",
+  "title": "Migrate agentic-store to external package dependency",
+  "description": "Architecture specifies agentic-store as external package, but src/store/index.js is currently a local module. Either: (1) publish agentic-store as npm package and update imports, or (2) submit CR to update architecture to reflect local implementation. Architecture gap: agentic-store should be external package",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m77",
+  "hasDesign": false,
+  "created": "2026-04-07T03:51:06.962Z",
+  "updated": "2026-04-07T03:54:34.769Z",
+  "milestoneId": "m77"
+}

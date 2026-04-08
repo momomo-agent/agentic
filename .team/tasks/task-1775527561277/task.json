@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527561277",
+  "title": "CDN profiles 7-day cache staleness — profiles.js",
+  "description": "Implement 7-day cache expiry check in src/detector/profiles.js so stale CDN profiles are refreshed automatically",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m66",
+  "hasDesign": false,
+  "created": "2026-04-07T02:06:01.277Z",
+  "updated": "2026-04-07T02:07:26.512Z"
+}

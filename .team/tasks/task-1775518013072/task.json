@@ -1,0 +1,14 @@
+{
+  "id": "task-1775518013072",
+  "title": "服务端无头感知路径",
+  "description": "src/runtime/sense.js支持Node.js无头摄像头路径，不依赖浏览器videoElement，使用headless MediaPipe或OpenCV",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m33",
+  "hasDesign": false,
+  "created": "2026-04-06T23:26:53.072Z",
+  "updated": "2026-04-06T23:33:20.941Z",
+  "milestoneId": "m33"
+}

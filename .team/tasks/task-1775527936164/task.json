@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527936164",
+  "title": "Docker end-to-end build verification",
+  "description": "Verify docker build and docker-compose up succeed end-to-end; fix any issues found",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m68",
+  "hasDesign": false,
+  "created": "2026-04-07T02:12:16.164Z",
+  "updated": "2026-04-07T02:13:31.409Z"
+}

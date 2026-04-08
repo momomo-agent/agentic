@@ -1,0 +1,13 @@
+{
+  "id": "task-1775523859355",
+  "title": "Server layer: hub.js + brain.js + api.js",
+  "description": "Implement src/server/hub.js (device management), src/server/brain.js (LLM inference + tool calling), src/server/api.js (REST endpoints) per ARCHITECTURE.md",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m45",
+  "hasDesign": false,
+  "created": "2026-04-07T01:04:19.355Z",
+  "updated": "2026-04-07T01:04:52.454Z"
+}

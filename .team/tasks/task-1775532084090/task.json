@@ -1,0 +1,14 @@
+{
+  "id": "task-1775532084090",
+  "title": "Implement SIGINT graceful drain for in-flight requests",
+  "description": "Add SIGINT handler in server entry point that stops accepting new connections and waits for active requests to complete before exiting. Confirm no abrupt termination during active SSE stream.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m82",
+  "hasDesign": true,
+  "created": "2026-04-07T03:21:24.090Z",
+  "updated": "2026-04-07T03:25:48.246Z",
+  "milestoneId": "m82"
+}

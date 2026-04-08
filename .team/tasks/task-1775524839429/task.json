@@ -1,0 +1,14 @@
+{
+  "id": "task-1775524839429",
+  "title": "Runtime layer — llm.js + stt.js + tts.js + memory.js",
+  "description": "Implement src/runtime/llm.js (chat→stream), stt.js (transcribe), tts.js (synthesize), memory.js (store/retrieve context)",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m52",
+  "hasDesign": false,
+  "created": "2026-04-07T01:20:39.429Z",
+  "updated": "2026-04-07T01:33:12.317Z",
+  "milestoneId": "m52"
+}

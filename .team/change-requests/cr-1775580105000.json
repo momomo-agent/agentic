@@ -1,0 +1,16 @@
+{
+  "id": "cr-1775580105000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Several implemented modules are absent from ARCHITECTURE.md: tunnel.js (LAN tunnel), src/cli/ (setup.js, browser.js), HTTPS/middleware layer (cert.js, httpsServer.js, middleware.js), VAD (runtime/vad.js), and agentic-embed runtime integration (embed.js + adapters/). These are production code paths with no architectural documentation.",
+  "proposedChange": "Add sections to ARCHITECTURE.md for: (1) Tunnel module \u2014 LAN tunnel via tunnel.js; (2) CLI module \u2014 src/cli/setup.js and browser.js; (3) HTTPS/Middleware layer \u2014 cert.js, httpsServer.js, middleware.js; (4) VAD \u2014 runtime/vad.js server-side voice activity detection; (5) agentic-embed integration \u2014 embed.js and adapters/ for vector embedding runtime.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T16:41:45.971Z",
+  "reviewedAt": "2026-04-08T00:55:00.000Z",
+  "reviewedBy": "developer",
+  "resolvedAt": "2026-04-08T10:00:00.000Z",
+  "resolvedBy": "pm",
+  "resolution": "Covered by M97 tasks: task-1775612739548 and task-1775612739625 assigned to tech_lead for ARCHITECTURE.md updates addressing tunnel.js, CLI, HTTPS/middleware, VAD, and agentic-embed sections."
+}

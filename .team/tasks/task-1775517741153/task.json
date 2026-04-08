@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517741153",
+  "title": "语音延迟基准测试 <2s",
+  "description": "实现端到端语音延迟基准测试 (STT+LLM+TTS)，验证 <2s 目标，输出基准报告",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m36",
+  "hasDesign": true,
+  "created": "2026-04-06T23:22:21.153Z",
+  "updated": "2026-04-07T01:15:26.436Z",
+  "milestoneId": "m36"
+}

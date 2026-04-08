@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517761920",
+  "title": "实现src/runtime/stt.js",
+  "description": "实现STT运行时：transcribe(audioBuffer) → text，对接本地语音识别引擎",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": true,
+  "created": "2026-04-06T23:22:41.920Z",
+  "updated": "2026-04-06T23:42:28.990Z",
+  "milestoneId": "m31"
+}

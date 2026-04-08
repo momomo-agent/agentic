@@ -1,0 +1,14 @@
+{
+  "id": "task-1775527246423",
+  "title": "agentic-embed external package verification",
+  "description": "Confirm agentic-embed is in package.json dependencies and src/runtime/embed.js imports from the external package rather than being a local stub",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m64",
+  "hasDesign": false,
+  "created": "2026-04-07T02:00:46.423Z",
+  "updated": "2026-04-07T02:02:51.089Z",
+  "milestoneId": "m64"
+}

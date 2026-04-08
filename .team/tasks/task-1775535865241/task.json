@@ -1,0 +1,14 @@
+{
+  "id": "task-1775535865241",
+  "title": "Wire agentic-embed as external package dependency",
+  "description": "src/runtime/embed.js is a local module but architecture specifies agentic-embed as an external package. Verify package.json has agentic-embed in dependencies, update embed.js to import from 'agentic-embed' package, and confirm it is not a local stub.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m76",
+  "hasDesign": true,
+  "created": "2026-04-07T04:24:25.242Z",
+  "updated": "2026-04-07T05:35:25.839Z",
+  "milestoneId": "m76"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775569652492",
+  "title": "Document tunnel, CLI, HTTPS, VAD, embed in ARCHITECTURE.md",
+  "description": "Add missing module sections to ARCHITECTURE.md: tunnel (src/tunnel.js), CLI (src/cli/), HTTPS/middleware (src/server/cert.js, httpsServer.js, middleware.js), VAD (src/runtime/vad.js), embed (src/runtime/embed.js). Submit as CR since PM cannot edit ARCHITECTURE.md directly.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m87",
+  "hasDesign": true,
+  "created": "2026-04-07T13:47:32.492Z",
+  "updated": "2026-04-07T14:43:11.050Z",
+  "milestoneId": "m87"
+}

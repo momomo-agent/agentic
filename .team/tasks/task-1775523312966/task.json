@@ -1,0 +1,14 @@
+{
+  "id": "task-1775523312966",
+  "title": "Wake word server-side pipeline integration",
+  "description": "Integrate useWakeWord.js detection into server STT pipeline — wake word should trigger server-side transcription, not just UI composable",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": true,
+  "created": "2026-04-07T00:55:12.966Z",
+  "updated": "2026-04-07T02:23:20.767Z",
+  "milestoneId": "m42"
+}

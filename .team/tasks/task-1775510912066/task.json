@@ -1,0 +1,13 @@
+{
+  "id": "task-1775510912066",
+  "title": "修复 src/detector/optimizer.js",
+  "description": "对齐架构规范：确认 matcher.js 是否满足 optimizer 接口，或实现缺失的优化逻辑",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-06T21:28:32.066Z",
+  "updated": "2026-04-06T21:48:19.872Z"
+}

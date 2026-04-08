@@ -1,0 +1,13 @@
+{
+  "id": "task-1775446002723",
+  "title": "Ollama 集成",
+  "description": "自动检测/安装 Ollama，拉取推荐模型，显示进度",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "milestoneId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-06T03:26:42.724Z",
+  "updated": "2026-04-06T13:51:12.711Z"
+}

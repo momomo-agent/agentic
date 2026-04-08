@@ -1,0 +1,14 @@
+{
+  "id": "task-1775536918185",
+  "title": "Add matchProfile() unit tests",
+  "description": "Test coverage gap: matchProfile() logic in src/detector/matcher.js has no tests. Add unit tests covering: apple-silicon match, nvidia match, cpu-only fallback, and edge cases (missing fields, unknown GPU).",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m76",
+  "hasDesign": true,
+  "created": "2026-04-07T04:41:58.185Z",
+  "updated": "2026-04-07T04:53:33.476Z",
+  "milestoneId": "m76"
+}

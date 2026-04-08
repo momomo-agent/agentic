@@ -1,0 +1,14 @@
+{
+  "id": "task-1775530228066",
+  "title": "CDN profiles.json 7-day staleness check",
+  "description": "Re-fetch profiles.json from CDN if cached copy is older than 7 days — implement in src/detector/profiles.js",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m75",
+  "hasDesign": false,
+  "created": "2026-04-07T02:50:28.066Z",
+  "updated": "2026-04-07T02:51:32.472Z",
+  "milestoneId": "m75"
+}

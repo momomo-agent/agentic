@@ -1,0 +1,14 @@
+{
+  "id": "task-1775532084059",
+  "title": "Verify Docker end-to-end build and run",
+  "description": "Run docker-compose up from install/ directory and confirm /api/status returns 200. Document any build failures and fix Dockerfile or docker-compose.yml as needed.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m82",
+  "hasDesign": true,
+  "created": "2026-04-07T03:21:24.059Z",
+  "updated": "2026-04-07T03:25:48.212Z",
+  "milestoneId": "m82"
+}

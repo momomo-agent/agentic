@@ -1,0 +1,14 @@
+{
+  "id": "task-1775573229039",
+  "title": "Wire agentic-sense as external npm package",
+  "description": "Wire agentic-sense as external npm package. Add agentic-sense to package.json dependencies and replace '#agentic-sense' import map with direct npm package import. IMPORTANT: sense.js must NOT import 'createPipeline' — check actual exports from agentic-sense package and use the correct API.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m89",
+  "hasDesign": true,
+  "created": "2026-04-07T14:47:09.039Z",
+  "updated": "2026-04-07T16:49:55.107Z",
+  "milestoneId": "m89"
+}

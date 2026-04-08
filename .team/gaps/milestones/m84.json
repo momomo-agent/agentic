@@ -1,0 +1,75 @@
+{
+  "milestoneId": "m84",
+  "match": 80,
+  "timestamp": "2026-04-07T10:36:41Z",
+  "criteria": [
+    {
+      "criterion": "package.json has 'agentic-store' in dependencies",
+      "status": "pass"
+    },
+    {
+      "criterion": "src/store/index.js imports from 'agentic-store' (not a local stub)",
+      "status": "pass"
+    },
+    {
+      "criterion": "get(), set(), del() work via the external package",
+      "status": "pass"
+    },
+    {
+      "criterion": "package.json has 'agentic-voice' in dependencies",
+      "status": "pass"
+    },
+    {
+      "criterion": "src/runtime/stt.js imports adapters from 'agentic-voice/*'",
+      "status": "pass"
+    },
+    {
+      "criterion": "src/runtime/tts.js imports adapters from 'agentic-voice/*'",
+      "status": "pass"
+    },
+    {
+      "criterion": "No local voice stubs remain in use",
+      "status": "pass"
+    },
+    {
+      "criterion": "package.json has 'agentic-sense' in dependencies",
+      "status": "fail"
+    },
+    {
+      "criterion": "src/runtime/sense.js imports from 'agentic-sense' (not '#agentic-sense' import map)",
+      "status": "fail"
+    },
+    {
+      "criterion": "No local sense stubs remain in use",
+      "status": "partial"
+    },
+    {
+      "criterion": "package.json bin field points to bin/agentic-service.js",
+      "status": "pass"
+    },
+    {
+      "criterion": "bin/agentic-service.js has #!/usr/bin/env node shebang",
+      "status": "pass"
+    },
+    {
+      "criterion": "File is executable (chmod +x)",
+      "status": "pass"
+    },
+    {
+      "criterion": "node bin/agentic-service.js --help exits 0",
+      "status": "pass"
+    },
+    {
+      "criterion": "src/detector/profiles.js falls back to profiles/default.json when CDN fetch fails",
+      "status": "pass"
+    },
+    {
+      "criterion": "Fallback also triggers on timeout (5s)",
+      "status": "pass"
+    },
+    {
+      "criterion": "Test covers the fallback path and returns valid profile data",
+      "status": "pass"
+    }
+  ]
+}

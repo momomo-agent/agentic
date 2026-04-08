@@ -1,0 +1,86 @@
+{
+  "version": "1.0.0",
+  "profiles": [
+    {
+      "match": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "gpu": "apple-silicon",
+        "minMemory": 16
+      },
+      "config": {
+        "llm": {
+          "provider": "ollama",
+          "model": "gemma4:26b",
+          "quantization": "q8"
+        },
+        "stt": {
+          "provider": "sensevoice",
+          "model": "small"
+        },
+        "tts": {
+          "provider": "kokoro",
+          "voice": "default"
+        },
+        "fallback": {
+          "provider": "openai",
+          "model": "gpt-4o-mini"
+        }
+      }
+    },
+    {
+      "match": {
+        "platform": "linux",
+        "gpu": "nvidia",
+        "minMemory": 8
+      },
+      "config": {
+        "llm": {
+          "provider": "ollama",
+          "model": "gemma4:13b",
+          "quantization": "q4"
+        },
+        "stt": {
+          "provider": "sensevoice",
+          "model": "small"
+        },
+        "tts": {
+          "provider": "kokoro",
+          "voice": "default"
+        },
+        "fallback": {
+          "provider": "openai",
+          "model": "gpt-4o-mini"
+        }
+      }
+    },
+    {
+      "match": { "gpu": "cpu-only" },
+      "config": {
+        "llm": { "provider": "ollama", "model": "gemma2:2b", "quantization": "q4" },
+        "stt": { "provider": "sensevoice", "model": "small" },
+        "tts": { "provider": "kokoro", "voice": "default" },
+        "fallback": { "provider": "openai", "model": "gpt-4o-mini" }
+      }
+    },
+    {
+      "match": { "gpu": "none" },
+      "config": {
+        "llm": { "provider": "ollama", "model": "gemma2:2b", "quantization": "q4" },
+        "stt": { "provider": "sensevoice", "model": "small" },
+        "tts": { "provider": "kokoro", "voice": "default" },
+        "fallback": { "provider": "openai", "model": "gpt-4o-mini" }
+      }
+    },
+    {
+      "id": "default",
+      "match": {},
+      "config": {
+        "llm": { "provider": "ollama", "model": "gemma3:1b", "quantization": "q4" },
+        "stt": { "provider": "sensevoice", "model": "small" },
+        "tts": { "provider": "kokoro", "voice": "default" },
+        "fallback": { "provider": "openai", "model": "gpt-4o-mini" }
+      }
+    }
+  ]
+}

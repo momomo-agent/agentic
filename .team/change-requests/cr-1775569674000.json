@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775569674000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "5 implemented modules are undocumented: tunnel, CLI, HTTPS/middleware, VAD, embed. Architecture match is 88% but these gaps prevent reaching compliance.",
+  "proposedChange": "Add sections for: tunnel (src/tunnel.js - LAN tunnel), CLI (src/cli/ - setup.js, browser.js), HTTPS/middleware (src/server/cert.js, httpsServer.js, middleware.js), VAD (src/runtime/vad.js), embed runtime (src/runtime/embed.js and adapters/).",
+  "status": "resolved",
+  "createdAt": "2026-04-07T13:47:54.000Z",
+  "reviewedAt": "2026-04-08T01:41:31.417Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

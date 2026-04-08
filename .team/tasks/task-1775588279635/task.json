@@ -1,0 +1,13 @@
+{
+  "id": "task-1775588279635",
+  "title": "Run full test suite and fix remaining failures to >=90%",
+  "description": "Current DBB shows 81.7% (537/657) with 120 failing. M92 fixed stale mocks but verification is stuck in review. Run: npm test 2>&1 | tail -50. Identify remaining failures, fix the most impactful ones. Target: >=90% pass rate.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m95",
+  "hasDesign": true,
+  "created": "2026-04-07T18:57:59.635Z",
+  "updated": "2026-04-08T00:44:04.676Z"
+}

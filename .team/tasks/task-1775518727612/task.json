@@ -1,0 +1,14 @@
+{
+  "id": "task-1775518727612",
+  "title": "实现src/detector/profiles.js",
+  "description": "实现getProfile(hardware)函数，根据硬件检测结果返回推荐配置profile，覆盖GPU/CPU/内存场景",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": true,
+  "created": "2026-04-06T23:38:47.613Z",
+  "updated": "2026-04-06T23:41:46.720Z",
+  "milestoneId": "m31"
+}

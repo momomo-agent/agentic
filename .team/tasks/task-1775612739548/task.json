@@ -1,0 +1,14 @@
+{
+  "id": "task-1775612739548",
+  "title": "Complete ARCHITECTURE.md directory structure",
+  "description": "The directory structure section (lines 121-155) is missing many files that exist in the codebase. Add: runtime/embed.js, runtime/vad.js, runtime/profiler.js, runtime/latency-log.js, runtime/adapters/, store/, tunnel.js, cli/setup.js, cli/browser.js, server/cert.js, server/httpsServer.js, server/middleware.js. This closes architecture gaps for undocumented modules.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tech_lead",
+  "blockedBy": [],
+  "groupId": "m97",
+  "hasDesign": true,
+  "created": "2026-04-08T01:45:39.548Z",
+  "updated": "2026-04-08T03:25:33.371Z",
+  "milestoneId": "m97"
+}

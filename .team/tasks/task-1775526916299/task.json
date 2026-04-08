@@ -1,0 +1,14 @@
+{
+  "id": "task-1775526916299",
+  "title": "agentic-voice package integration — stt.js + tts.js",
+  "description": "Verify or stub agentic-voice package so stt.js and tts.js work without the external package — either add package to dependencies or implement local adapter that satisfies the interface",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m62",
+  "hasDesign": true,
+  "created": "2026-04-07T01:55:16.300Z",
+  "updated": "2026-04-07T02:28:28.660Z",
+  "milestoneId": "m62"
+}

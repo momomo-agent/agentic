@@ -1,0 +1,13 @@
+{
+  "id": "task-1775507813540",
+  "title": "hub.js: 唤醒词事件广播",
+  "description": "hub.js收到wakeword事件时，广播wakeword消息给所有已连接设备（补全useWakeWord.js期望的服务端行为）",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-06T20:36:53.540Z",
+  "updated": "2026-04-06T20:53:43.548Z"
+}

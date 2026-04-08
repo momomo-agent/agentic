@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775509724002",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Monitor gap analysis identified several architectural concerns not addressed in current ARCHITECTURE.md: (1) sense.js is browser-only (videoElement) with no server-side headless camera path; (2) wake word detection exists in UI composable but not integrated into server-side always-on pipeline; (3) voice latency <2s end-to-end not benchmarked or enforced; (4) HTTPS/LAN tunneling for secure multi-device access not specified; (5) CDN profiles.json 7-day cache staleness check not specified; (6) VAD auto-detection not specified (only push-to-talk); (7) cpu-only profile missing from profiles/default.json; (8) SIGINT graceful drain not specified; (9) multi-device cross-session AI brain state sharing is minimal.",
+  "proposedChange": "Add the following sections to ARCHITECTURE.md: (1) sense.js dual-path: browser MediaPipe + server-side headless (canvas/node-canvas) for Node.js compatibility; (2) always-on wake word pipeline: server-side VAD + wake word detection feeding STT, not just UI composable; (3) latency budget: STT≤500ms + LLM first-token≤1000ms + TTS≤500ms = <2s total, enforced via perf logging; (4) network security: HTTPS via self-signed cert + optional ngrok/cloudflared tunnel for LAN multi-device; (5) profiles CDN: 7-day TTL cache with ETag/Last-Modified staleness check; (6) VAD: WebRTC VAD or silero-vad for auto speech segmentation; (7) profiles/default.json: add cpu-only profile with smaller models; (8) SIGINT: drain in-flight requests with 5s timeout before exit; (9) brain state sync: hub.js broadcastSession to share memory/context across devices.",
+  "status": "resolved",
+  "createdAt": "2026-04-06T21:09:00.000Z",
+  "reviewedAt": "2026-04-08T01:41:31.414Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

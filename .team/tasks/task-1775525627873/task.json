@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525627873",
+  "title": "src/detector/profiles.js + profiles/default.json",
+  "description": "Implement src/detector/profiles.js: getProfile(hardware) returns hardware profile. Create profiles/default.json as CPU-only fallback profile.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m57",
+  "hasDesign": false,
+  "created": "2026-04-07T01:33:47.873Z",
+  "updated": "2026-04-07T01:34:22.016Z"
+}

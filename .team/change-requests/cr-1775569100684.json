@@ -1,0 +1,13 @@
+{
+  "id": "cr-1775569100684",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Docker build fails because agentic-embed, agentic-sense, agentic-store, agentic-voice are listed as npm dependencies in package.json but do not exist in the public npm registry. The architecture does not specify how these local/private packages should be distributed or bundled for Docker deployment.",
+  "proposedChange": "Add a 'Package Distribution' section to ARCHITECTURE.md specifying that agentic-* packages are local workspace packages and must be bundled via npm pack or path references in Docker builds. Include Dockerfile strategy for local package resolution.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T13:40:09.695Z",
+  "reviewedAt": "2026-04-08T00:50:43.553Z",
+  "reviewedBy": "developer"
+}

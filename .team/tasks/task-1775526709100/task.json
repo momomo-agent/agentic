@@ -1,0 +1,14 @@
+{
+  "id": "task-1775526709100",
+  "title": "CDN profiles.json 7-day cache staleness check",
+  "description": "Implement 7-day cache staleness check for remote profiles.json fetch — currently CDN URL is configured but staleness refresh logic is missing per DBB spec",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m61",
+  "hasDesign": true,
+  "created": "2026-04-07T01:51:49.100Z",
+  "updated": "2026-04-07T02:08:43.792Z",
+  "milestoneId": "m61"
+}

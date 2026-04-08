@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530001150",
+  "title": "Voice latency benchmark <2s enforcement",
+  "description": "Add npm run bench:voice script that measures p95 STT+LLM+TTS end-to-end latency and fails if above 2000ms",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m75",
+  "hasDesign": false,
+  "created": "2026-04-07T02:46:41.150Z",
+  "updated": "2026-04-07T02:48:46.810Z"
+}

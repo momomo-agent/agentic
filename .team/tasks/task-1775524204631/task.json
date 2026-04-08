@@ -1,0 +1,16 @@
+{
+  "id": "task-1775524204631",
+  "title": "src/server/hub.js — device management",
+  "description": "Implement device registration and session management",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775524194190"
+  ],
+  "groupId": "m50",
+  "hasDesign": false,
+  "created": "2026-04-07T01:10:04.631Z",
+  "updated": "2026-04-07T01:20:48.333Z",
+  "milestoneId": "m50"
+}

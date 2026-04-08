@@ -1,0 +1,14 @@
+{
+  "id": "task-1775524084623",
+  "title": "setup.sh Node.js detection and idempotency",
+  "description": "Verify setup.sh detects Node.js version, handles missing deps, and is safe to run multiple times (idempotent)",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m48",
+  "hasDesign": true,
+  "created": "2026-04-07T01:08:04.623Z",
+  "updated": "2026-04-07T02:06:55.281Z",
+  "milestoneId": "m48"
+}

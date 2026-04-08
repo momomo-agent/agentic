@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525735258",
+  "title": "src/runtime/memory.js — memory runtime",
+  "description": "Implement src/runtime/memory.js with store/retrieve interface for conversation memory. Acceptance: stores and retrieves context across turns.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m58",
+  "hasDesign": false,
+  "created": "2026-04-07T01:35:35.258Z",
+  "updated": "2026-04-07T01:36:50.524Z"
+}

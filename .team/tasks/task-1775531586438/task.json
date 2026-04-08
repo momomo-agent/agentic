@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531586438",
+  "title": "Verify npx agentic-service one-command startup",
+  "description": "Verify bin/agentic-service.js is correctly wired as the npx entrypoint in package.json bin field. Test that npx agentic-service starts the service without errors.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m81",
+  "hasDesign": true,
+  "created": "2026-04-07T03:13:06.438Z",
+  "updated": "2026-04-07T03:59:34.330Z",
+  "milestoneId": "m81"
+}

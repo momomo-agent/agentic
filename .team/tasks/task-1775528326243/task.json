@@ -1,0 +1,14 @@
+{
+  "id": "task-1775528326243",
+  "title": "Server-side VAD silence suppression",
+  "description": "Implement server-side voice activity detection to filter silence before audio reaches STT/LLM pipeline. Silence frames must be dropped server-side.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m71",
+  "hasDesign": true,
+  "created": "2026-04-07T02:18:46.243Z",
+  "updated": "2026-04-07T02:47:53.927Z",
+  "milestoneId": "m71"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775514581356",
+  "title": "profiles.js getProfile验证 + cpu-only profile补全",
+  "description": "验证profiles.js中getProfile(hardware)正确返回cpu-only配置；在profiles/default.json中补充cpu-only profile条目",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": false,
+  "created": "2026-04-06T22:29:41.356Z",
+  "updated": "2026-04-06T22:37:46.049Z"
+}

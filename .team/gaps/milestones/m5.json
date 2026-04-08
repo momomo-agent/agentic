@@ -1,0 +1,20 @@
+{
+  "milestoneId": "m5",
+  "match": 70,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "sense.detect(frame) returns faces array with position/confidence", "status": "pass" },
+    { "criterion": "sense.detect(frame) returns gestures array", "status": "pass" },
+    { "criterion": "sense.detect(frame) returns objects array", "status": "pass" },
+    { "criterion": "sense.detect(null/undefined) throws or returns empty, no crash", "status": "pass" },
+    { "criterion": "memory.search(query) returns semantically relevant fragments", "status": "pass" },
+    { "criterion": "memory.search returns [] when no match", "status": "pass" },
+    { "criterion": "memory.search('') returns [] or readable error, no crash", "status": "pass" },
+    { "criterion": "Concurrent memory writes don't lose data", "status": "pass" },
+    { "criterion": "Docker image builds successfully", "status": "partial" },
+    { "criterion": "Docker container starts, localhost:3000 returns HTTP 200", "status": "partial" },
+    { "criterion": "docker-compose up starts service on port 3000", "status": "partial" },
+    { "criterion": "SIGINT graceful exit within 5s, exit code 0 or 130", "status": "partial" },
+    { "criterion": "Test coverage >= 98%", "status": "partial" }
+  ]
+}

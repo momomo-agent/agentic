@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525719297",
+  "title": "src/runtime/llm.js — chat(messages, options) → stream",
+  "description": "Implement src/runtime/llm.js with chat(messages, options) returning an async stream. Must integrate with Ollama local inference. Acceptance: unit test passes, stream yields tokens.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m58",
+  "hasDesign": false,
+  "created": "2026-04-07T01:35:19.297Z",
+  "updated": "2026-04-07T01:36:50.404Z"
+}

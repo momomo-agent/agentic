@@ -1,0 +1,14 @@
+{
+  "id": "task-1775581712916",
+  "title": "Fix stale agentic-sense mocks and test bugs",
+  "description": "Fix 86 failing tests: update AgenticSense mocks in sense-pipeline, sense-m8, sense-detect-m10, sense-dbb001, sense.test.js to export correct named exports. Fix m87 async createPipeline() called synchronously. Fix m77 inverted assertion on #agentic-sense import map. Fix m84 mock missing init() method.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m92",
+  "hasDesign": true,
+  "created": "2026-04-07T17:08:32.916Z",
+  "updated": "2026-04-07T17:21:16.857Z",
+  "milestoneId": "m92"
+}

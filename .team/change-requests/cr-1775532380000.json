@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775532380000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Several source files exist in the codebase that are not listed in ARCHITECTURE.md's directory structure: src/detector/matcher.js, src/detector/ollama.js, src/server/cert.js, src/server/httpsServer.js, src/server/middleware.js, and the src/cli/ directory. These are flagged as 'partial' gaps in architecture.json (match: 78%). Without acknowledging these files in the architecture, gap analysis will continue to flag them as deviations, and developers lack authoritative guidance on their intended role.",
+  "proposedChange": "Add the following to ARCHITECTURE.md under the relevant sections: (1) detector/matcher.js and detector/ollama.js under the Detector module; (2) server/cert.js, server/httpsServer.js, server/middleware.js under the Server module; (3) src/cli/ directory under the directory structure. Alternatively, if these files are intentional extras not part of the core architecture, document them as 'implementation details' outside the spec boundary.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T03:26:20.261Z",
+  "reviewedAt": "2026-04-08T01:41:31.416Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

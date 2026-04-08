@@ -1,0 +1,13 @@
+{
+  "id": "task-1775513221598",
+  "title": "服务端常驻唤醒词检测",
+  "description": "将唤醒词检测集成到hub.js服务端，不依赖浏览器客户端，支持always-on语音激活",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-06T22:07:01.598Z",
+  "updated": "2026-04-06T22:26:35.447Z"
+}

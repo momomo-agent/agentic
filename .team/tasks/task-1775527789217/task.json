@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527789217",
+  "title": "Test coverage >=98% threshold enforcement",
+  "description": "Set vitest coverage threshold to 98% in vitest.config.js; ensure CI fails if coverage drops below threshold",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m67",
+  "hasDesign": false,
+  "created": "2026-04-07T02:09:49.218Z",
+  "updated": "2026-04-07T02:10:08.446Z"
+}

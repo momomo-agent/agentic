@@ -1,0 +1,14 @@
+{
+  "id": "task-1775526823973",
+  "title": "SIGINT graceful drain during in-flight requests",
+  "description": "Implement graceful shutdown on SIGINT — drain in-flight STT/LLM/TTS requests before exit, not confirmed currently",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m62",
+  "hasDesign": true,
+  "created": "2026-04-07T01:53:43.973Z",
+  "updated": "2026-04-07T01:57:42.241Z",
+  "milestoneId": "m62"
+}

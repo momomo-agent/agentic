@@ -1,0 +1,14 @@
+{
+  "id": "task-1775530801711",
+  "title": "Wire agentic-store external package",
+  "description": "Replace local src/store/index.js with import from agentic-store npm package. If package is unavailable in node_modules, submit a CR to architecture.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m77",
+  "hasDesign": true,
+  "created": "2026-04-07T03:00:01.711Z",
+  "updated": "2026-04-07T03:37:45.058Z",
+  "milestoneId": "m77"
+}

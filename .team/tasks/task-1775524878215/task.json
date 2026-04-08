@@ -1,0 +1,13 @@
+{
+  "id": "task-1775524878215",
+  "title": "src/runtime/llm.js — chat() stream with Ollama + cloud fallback",
+  "description": "Implement runtime/llm.js: chat(messages, options) → stream. Ollama-first, auto-fallback to cloud on timeout/failure. Wraps agentic-core.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m52",
+  "hasDesign": false,
+  "created": "2026-04-07T01:21:18.215Z",
+  "updated": "2026-04-07T01:33:12.382Z"
+}

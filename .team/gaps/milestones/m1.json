@@ -1,0 +1,32 @@
+{
+  "milestoneId": "m1",
+  "match": 72,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "hardware.js outputs correct JSON with all required fields", "status": "pass" },
+    { "criterion": "platform, arch, gpu.type, gpu.vram, memory, cpu.cores, cpu.model all present", "status": "pass" },
+    { "criterion": "M4 Mac mini: platform=darwin, arch=arm64, gpu.type=apple-silicon", "status": "pass" },
+    { "criterion": "Linux+NVIDIA: gpu.type=nvidia, gpu.vram correct via nvidia-smi", "status": "pass" },
+    { "criterion": "No GPU: gpu.type=none, gpu.vram=0", "status": "pass" },
+    { "criterion": "First run fetches profiles.json from CDN", "status": "partial" },
+    { "criterion": "profiles.json cached to ~/.agentic-service/profiles.json", "status": "partial" },
+    { "criterion": "Offline mode uses local cache without error", "status": "partial" },
+    { "criterion": "Cache >7 days triggers silent update attempt", "status": "partial" },
+    { "criterion": "getProfile(hardware) returns matching config", "status": "pass" },
+    { "criterion": "Detects Ollama installed via which ollama", "status": "pass" },
+    { "criterion": "Prompts user to install if not found", "status": "pass" },
+    { "criterion": "Checks recommended model exists via ollama list", "status": "pass" },
+    { "criterion": "Auto-pulls model if missing", "status": "pass" },
+    { "criterion": "Shows download progress", "status": "partial" },
+    { "criterion": "Download failure shows clear error", "status": "pass" },
+    { "criterion": "HTTP server listens on localhost:3000", "status": "pass" },
+    { "criterion": "POST /api/chat returns SSE stream", "status": "pass" },
+    { "criterion": "GET /api/status returns hardware/profile/ollama", "status": "pass" },
+    { "criterion": "npx agentic-service starts service", "status": "pass" },
+    { "criterion": "Auto-opens browser after start", "status": "pass" },
+    { "criterion": "Ctrl+C graceful shutdown", "status": "partial" },
+    { "criterion": "Port 3000 occupied: error and exit", "status": "pass" },
+    { "criterion": "Ollama not installed: no crash, shows install guide", "status": "pass" },
+    { "criterion": "Network failure: uses local cache profiles", "status": "partial" }
+  ]
+}

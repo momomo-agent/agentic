@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587524443",
+  "title": "Verify CDN fallback and agentic-store integration",
+  "description": "Verify remote profiles CDN fallback: when primary CDN URL is unreachable, system falls back to local default.json without errors. Verify agentic-store init() + query() work end-to-end. PRD/Architecture gaps: CDN fallback partial, agentic-store integration partial.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m94",
+  "hasDesign": true,
+  "created": "2026-04-07T18:45:24.443Z",
+  "updated": "2026-04-07T19:01:54.010Z",
+  "milestoneId": "m94"
+}

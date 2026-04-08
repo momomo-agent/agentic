@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775527933536",
+  "from": "tech_lead",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "src/cli/ and src/server/cert.js, httpsServer.js, middleware.js exist in codebase but are not documented in ARCHITECTURE.md",
+  "proposedChange": "Add to ARCHITECTURE.md under Server section: src/server/cert.js (generateCert), src/server/httpsServer.js (createServer), src/server/middleware.js (errorHandler). Add new CLI section: src/cli/setup.js (runSetup), src/cli/browser.js (openBrowser).",
+  "status": "resolved",
+  "createdAt": "2026-04-07T02:21:04.610Z",
+  "reviewedAt": "2026-04-08T01:41:31.416Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

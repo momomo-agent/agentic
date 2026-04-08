@@ -1,0 +1,14 @@
+{
+  "id": "task-1775561368213",
+  "title": "CPU profiling and voice latency instrumentation",
+  "description": "Add performance instrumentation to measure end-to-end voice latency (STT+LLM+TTS). Implement cpu-profile hooks and enforce <2s latency benchmark in tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m80",
+  "hasDesign": true,
+  "created": "2026-04-07T11:29:28.213Z",
+  "updated": "2026-04-07T11:41:48.177Z",
+  "milestoneId": "m80"
+}

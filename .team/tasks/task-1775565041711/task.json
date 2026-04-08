@@ -1,0 +1,13 @@
+{
+  "id": "task-1775565041711",
+  "title": "Wire agentic-sense as external package dependency",
+  "description": "Add agentic-sense to package.json dependencies and imports map. Verify sense.js can import from #agentic-sense/mediapipe. This closes the final DBB external package gap.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m85",
+  "hasDesign": false,
+  "created": "2026-04-07T12:30:41.711Z",
+  "updated": "2026-04-07T12:31:39.518Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775579881503",
+  "title": "Submit CR to document tunnel, CLI, HTTPS, VAD, embed in ARCHITECTURE.md",
+  "description": "Architecture gaps: tunnel.js, src/cli/, HTTPS/middleware, VAD, agentic-embed are all missing or partial in ARCHITECTURE.md. Submit a Change Request to L1 to add these modules to the architecture doc.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "pm",
+  "blockedBy": [],
+  "groupId": "m91",
+  "hasDesign": false,
+  "created": "2026-04-07T16:38:01.503Z",
+  "updated": "2026-04-07T16:41:45.646Z"
+}

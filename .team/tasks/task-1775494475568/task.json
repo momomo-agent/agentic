@@ -1,0 +1,13 @@
+{
+  "id": "task-1775494475568",
+  "title": "边缘用例测试覆盖",
+  "description": "补全 test-coverage.json 中列出的边缘用例：工具调用空参数、并发写、SIGINT、npx e2e、store DB失败等，覆盖率达 ≥98%",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-06T16:54:35.568Z",
+  "updated": "2026-04-06T18:42:55.024Z"
+}

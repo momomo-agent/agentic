@@ -1,0 +1,13 @@
+{
+  "id": "task-1775509421092",
+  "title": "brain.js tool_use响应补充text字段",
+  "description": "brain.js中tool_use类型响应需包含text字段，满足DBB M9规范",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-06T21:03:41.092Z",
+  "updated": "2026-04-06T21:12:50.257Z"
+}

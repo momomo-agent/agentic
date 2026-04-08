@@ -1,0 +1,13 @@
+{
+  "id": "task-1775523864382",
+  "title": "Admin UI + profiles/default.json",
+  "description": "Implement src/ui/admin/ panel (device mgmt, model config, system status pages) and create profiles/default.json built-in hardware profile",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m45",
+  "hasDesign": false,
+  "created": "2026-04-07T01:04:24.382Z",
+  "updated": "2026-04-07T01:04:52.484Z"
+}

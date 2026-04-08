@@ -1,0 +1,13 @@
+{
+  "id": "task-1775535500644",
+  "title": "Fix setup.sh Node.js detection and idempotency",
+  "description": "Ensure setup.sh detects existing Node.js and skips reinstall. Verify safe to run multiple times. DBB gap: partial",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m82",
+  "hasDesign": false,
+  "created": "2026-04-07T04:18:20.644Z",
+  "updated": "2026-04-07T04:20:23.982Z"
+}

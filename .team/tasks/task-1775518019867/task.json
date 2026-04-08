@@ -1,0 +1,14 @@
+{
+  "id": "task-1775518019867",
+  "title": "语音延迟<2s基准测试",
+  "description": "实现STT+LLM+TTS端到端延迟测量，记录到日志，超过2000ms时告警",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m33",
+  "hasDesign": false,
+  "created": "2026-04-06T23:26:59.867Z",
+  "updated": "2026-04-06T23:33:20.973Z",
+  "milestoneId": "m33"
+}
