@@ -1,0 +1,13 @@
+{
+  "id": "task-1775578831381",
+  "title": "Browser-safe shell_exec stub",
+  "description": "shell_exec uses Node.js child_process which crashes in browser environments. Add a browser environment check that returns a descriptive error message instead of throwing. Addresses vision partial gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m22",
+  "hasDesign": true,
+  "created": "2026-04-07T16:20:31.381Z",
+  "updated": "2026-04-07T16:30:13.104Z"
+}

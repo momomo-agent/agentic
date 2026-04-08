@@ -1,0 +1,16 @@
+{
+  "id": "task-1775613090477",
+  "title": "重构 ask.ts — 换用 agentic-core",
+  "description": "接入已有的 agentic-core 包（~/LOCAL/momo-agent/projects/agentic-core/）。agentic-core 已经存在，不需要创建。\n\n步骤：\n1. 在 package.json 里加 agentic-core 依赖（file: ../agentic-core）\n2. 重写 src/ask.ts，调用 agentic-core 的 agenticAsk()，删掉自己实现的 provider 层和 agent loop\n3. 删除 src/providers/ 目录（anthropic.ts、openai.ts、provider.ts 全删）\n4. 保留 src/tools/ 不变（file.ts、code.ts、shell.ts）\n5. 目标：ask.ts < 100 行\n6. npm run build 验证通过\n7. node 跑一次端到端测试验证 file_write + file_read + code_exec 跑通",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [
+    "task-1775615923116"
+  ],
+  "groupId": null,
+  "hasDesign": true,
+  "created": "2026-04-08T01:51:30.477Z",
+  "updated": "2026-04-08T04:00:26.609Z",
+  "milestoneId": "m27"
+}

@@ -1,0 +1,47 @@
+{
+  "name": "agentic-lite",
+  "version": "0.1.0",
+  "description": "Lightweight agent API \u2014 one function call with built-in search, code execution, and file processing",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest --run"
+  },
+  "keywords": [
+    "agent",
+    "ai",
+    "llm",
+    "search",
+    "tool-use",
+    "lightweight"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  },
+  "dependencies": {
+    "agentic-core": "file:../agentic-core",
+    "agentic-filesystem": "link:../agentic-filesystem",
+    "agentic-shell": "link:../agentic-shell",
+    "pyodide": "^0.25.0",
+    "quickjs-emscripten": "^0.29.0"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775528302103",
+  "title": "修复 images 字段丢失",
+  "description": "ask.ts:68 最终响应分支未返回 allImages，修复 AgenticResult.images 在所有代码路径中正确填充",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T02:18:22.103Z",
+  "updated": "2026-04-07T02:35:52.746Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775615948444",
+  "title": "Update ARCHITECTURE.md for agentic-core structure",
+  "description": "After agentic-core extraction, update ARCHITECTURE.md to document the new module structure: agentic-core (loop, providers, types), agentic-filesystem, agentic-shell, agentic-lite (integration layer). Update module structure, data flow, and dependency diagram. Acceptance: ARCHITECTURE.md reflects the actual code organization.",
+  "status": "testing",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-08T02:39:08.444Z",
+  "updated": "2026-04-08T05:47:24.519Z"
+}

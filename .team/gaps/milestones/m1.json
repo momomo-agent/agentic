@@ -1,0 +1,20 @@
+{
+  "milestoneId": "m1",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: Multi-round tool loop continues until completion", "status": "pass" },
+    { "criterion": "DBB-002: Multi-round loop respects MAX_TOOL_ROUNDS", "status": "pass" },
+    { "criterion": "DBB-003: images field populated from tool results", "status": "pass" },
+    { "criterion": "DBB-004: images field empty when no tool returns images", "status": "pass" },
+    { "criterion": "DBB-005: ask() accepts optional systemPrompt", "status": "pass" },
+    { "criterion": "DBB-006: ask() works without systemPrompt", "status": "pass" },
+    { "criterion": "DBB-007: file_read and file_write work in browser environment", "status": "pass" },
+    { "criterion": "DBB-008: file_read on non-existent file returns error", "status": "pass" },
+    { "criterion": "DBB-009: code_exec runs JavaScript and captures console output", "status": "pass" },
+    { "criterion": "DBB-010: code_exec supports async code", "status": "pass" },
+    { "criterion": "DBB-011: code_exec captures runtime errors", "status": "pass" },
+    { "criterion": "DBB-012: End-to-end agentic task: write -> read -> exec", "status": "pass" },
+    { "criterion": "DBB-013: Custom provider can be passed to ask()", "status": "pass" }
+  ]
+}

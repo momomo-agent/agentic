@@ -1,0 +1,14 @@
+{
+  "milestoneId": "m7",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "createProvider({provider:'custom',baseUrl:'...'}) creates OpenAI-compatible client", "status": "pass" },
+    { "criterion": "Unknown provider strings throw Error('Unknown provider: ...')", "status": "pass" },
+    { "criterion": "provider:'custom' without baseUrl throws clear error", "status": "pass" },
+    { "criterion": "ask() loops until stopReason !== 'tool_use' OR rounds exhausted", "status": "pass" },
+    { "criterion": "Exceeding MAX_TOOL_ROUNDS throws Error('Agent loop exceeded 10 rounds')", "status": "pass" },
+    { "criterion": "All existing tests pass", "status": "pass" },
+    { "criterion": "detectProvider still works for anthropic/openai key heuristics", "status": "pass" }
+  ]
+}

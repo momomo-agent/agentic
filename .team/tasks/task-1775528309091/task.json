@@ -1,0 +1,13 @@
+{
+  "id": "task-1775528309091",
+  "title": "添加 systemPrompt 支持",
+  "description": "在 AgenticConfig 中添加 systemPrompt 字段，并在 provider 消息中正确传递",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T02:18:29.091Z",
+  "updated": "2026-04-07T02:35:52.774Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775568160446",
+  "title": "Add shellResults to PRD AgenticResult",
+  "description": "PRD AgenticResult does not document shellResults field. Add it to match types.ts and actual implementation.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T13:22:40.446Z",
+  "updated": "2026-04-07T13:50:48.660Z"
+}

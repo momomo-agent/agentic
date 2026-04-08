@@ -1,0 +1,16 @@
+{
+  "id": "cr-1775560282316",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "PRD.md",
+  "reason": "Implementation has diverged from PRD spec in two areas: (1) shell_exec tool was added but not documented, (2) Python code execution support was added but not documented, (3) code_exec uses quickjs-emscripten sandbox instead of AsyncFunction eval as specified. All features are working and tested. PRD needs to be updated to reflect actual implementation to unblock m9 and m10 milestone completion.",
+  "proposedChange": "Update PRD.md Tools section:\n1. Add shell_exec tool entry: 'shell_exec — executes shell commands via agentic-shell (browser/Node compatible)'\n2. Update code_exec entry from 'executes JS via AsyncFunction' to 'executes JS/Python code via quickjs-emscripten sandbox (browser-compatible) with auto-language detection. Python uses Pyodide (browser) or python3 subprocess (Node).'\n3. Document that code_exec injects filesystem API (fs object for JS, open() for Python) backed by AgenticFileSystem",
+  "status": "resolved",
+  "createdAt": "2026-04-07T11:11:22.316Z",
+  "reviewedAt": "2026-04-07T14:55:46.813Z",
+  "reviewedBy": "tech_lead",
+  "resolvedAt": "2026-04-08T18:00:00.000Z",
+  "resolvedBy": "pm",
+  "resolution": "Changes already applied to PRD.md — shell_exec, code_exec quickjs-emscripten, and filesystem API all documented."
+}

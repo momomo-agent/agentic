@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775569979",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "PRD.md",
+  "reason": "Two milestone tasks (m9, m10) are blocked because PRD.md does not document shell_exec tool and describes code_exec as using AsyncFunction eval when the actual implementation uses quickjs-emscripten sandbox with Python support. These gaps prevent tasks from being completed and milestones from closing.",
+  "proposedChange": "1. Add shell_exec tool section to PRD.md documenting its interface and behavior. 2. Update code_exec section to reflect quickjs-emscripten sandbox implementation supporting both JS and Python, replacing the stale AsyncFunction eval description.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T13:52:59.829Z",
+  "reviewedAt": "2026-04-08T01:41:51.598Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

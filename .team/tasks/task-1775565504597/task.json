@@ -1,0 +1,14 @@
+{
+  "id": "task-1775565504597",
+  "title": "Fix public API exports — ShellResult and shell tools",
+  "description": "Export ShellResult from src/index.ts and shellToolDef/executeShell from tools/index.ts to complete the public API surface.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-07T12:38:24.598Z",
+  "updated": "2026-04-07T12:53:58.689Z",
+  "milestoneId": "m12"
+}

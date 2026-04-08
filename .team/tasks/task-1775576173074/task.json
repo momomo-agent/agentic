@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576173074",
+  "title": "Gate shell_exec behind environment detection for browser safety",
+  "description": "shell_exec currently imports Node.js child_process unconditionally, breaking browser builds. Add environment detection so shell_exec is excluded/no-ops in browser contexts. Addresses vision gap: shell_exec not browser-compatible.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T15:36:13.077Z",
+  "updated": "2026-04-07T15:52:01.666Z"
+}

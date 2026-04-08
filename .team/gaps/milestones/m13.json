@@ -1,0 +1,13 @@
+{
+  "milestoneId": "m13",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "AgenticResult.usage is typed as required (no ?) in src/types.ts", "status": "pass" },
+    { "criterion": "ask() signature matches ARCHITECTURE.md spec — systemPrompt handled via config object", "status": "pass" },
+    { "criterion": "PRD.md AgenticResult block includes shellResults field", "status": "pass" },
+    { "criterion": "README.md contains complete API reference for ask(), AgenticConfig, and AgenticResult", "status": "pass" },
+    { "criterion": "All existing tests pass", "status": "pass" },
+    { "criterion": "TypeScript compiles without errors", "status": "pass" }
+  ]
+}

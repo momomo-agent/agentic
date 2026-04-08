@@ -1,0 +1,13 @@
+{
+  "id": "task-1775581637037",
+  "title": "Shell exec browser safety — graceful error instead of crash",
+  "description": "Vision gap (partial): shell_exec uses Node.js child_process, not browser-compatible. Fix: detect browser environment and return descriptive error message instead of crashing. Document Node.js-only constraint in README. Acceptance: shell_exec in browser returns clear error, all existing tests pass.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-07T17:07:17.037Z",
+  "updated": "2026-04-07T17:21:05.918Z"
+}

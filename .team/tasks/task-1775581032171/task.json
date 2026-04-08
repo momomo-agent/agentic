@@ -1,0 +1,13 @@
+{
+  "id": "task-1775581032171",
+  "title": "Fix README AgenticResult.images type (required not optional)",
+  "description": "DBB gap: README documents 'images?: string[]' (optional) but actual AgenticResult.images type is 'images: string[]' (required). Update README to remove the '?' so docs match the implementation.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-07T16:57:12.171Z",
+  "updated": "2026-04-07T17:26:49.104Z"
+}

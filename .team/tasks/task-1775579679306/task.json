@@ -1,0 +1,13 @@
+{
+  "id": "task-1775579679306",
+  "title": "Make AgenticConfig.apiKey optional for custom provider",
+  "description": "PRD gap: AgenticConfig.apiKey is typed as required string even when provider='custom', forcing callers to pass a dummy value. Change the type to optional (string | undefined) and update validation to only require apiKey for anthropic/openai providers.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-07T16:34:39.306Z",
+  "updated": "2026-04-07T16:55:39.048Z"
+}

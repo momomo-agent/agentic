@@ -1,0 +1,13 @@
+{
+  "id": "task-1775583094060",
+  "title": "Fix README AgenticResult.images type annotation",
+  "description": "DBB gap (partial): README shows images as optional but actual type is required (images: string[]). Fix the README type annotation to match the actual TypeScript type. Acceptance: README shows 'images: string[]' not 'images?: string[]', all tests pass.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-07T17:31:34.060Z",
+  "updated": "2026-04-07T17:42:20.630Z"
+}

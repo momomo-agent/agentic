@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775571348476",
+  "from": "tech_lead",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "PRD.md",
+  "reason": "PRD AgenticResult schema is missing shellResults field, causing spec/implementation mismatch with types.ts",
+  "proposedChange": "Add `shellResults?: ShellResult[]` to the AgenticResult section in PRD.md",
+  "status": "resolved",
+  "createdAt": "2026-04-07T14:18:48.428Z",
+  "reviewedAt": "2026-04-08T01:41:51.599Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

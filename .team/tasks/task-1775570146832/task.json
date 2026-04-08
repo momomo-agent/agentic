@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570146832",
+  "title": "Fix AgenticResult.images type to string[]",
+  "description": "AgenticResult.images is typed as string[] | undefined in types.ts but architecture gap requires it to always be string[]. Change type to required string[].",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-07T13:55:46.832Z",
+  "updated": "2026-04-07T14:11:00.576Z",
+  "milestoneId": "m14"
+}

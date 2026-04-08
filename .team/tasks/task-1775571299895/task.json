@@ -1,0 +1,16 @@
+{
+  "id": "task-1775571299895",
+  "title": "Add shellResults to PRD AgenticResult schema",
+  "description": "PRD.md AgenticResult section is missing shellResults field. Add it to match types.ts definition.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [
+    "task-1775573582938"
+  ],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T14:14:59.895Z",
+  "updated": "2026-04-07T15:01:51.208Z",
+  "milestoneId": "m15"
+}

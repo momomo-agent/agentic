@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775530634000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "PRD.md",
+  "reason": "PRD.md and EXPECTED_DBB.md are missing. Gap analysis scores prd match at 0% and dbb match at 0%. Without these documents, milestone planning cannot verify feature coverage or global acceptance criteria.",
+  "proposedChange": "Create PRD.md defining feature requirements and EXPECTED_DBB.md defining global verification criteria for agentic-lite.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T02:57:14.385Z",
+  "reviewedAt": "2026-04-08T01:41:51.598Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775562222342",
+  "title": "Verify agentic-filesystem dependency weight",
+  "description": "Check that agentic-filesystem peer dependency does not violate the 'no heavy runtime' constraint from the vision. Measure install size, check if it pulls in Node-only deps, and confirm it is browser-compatible. Document findings in a comment or update gaps/vision.json.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T11:43:42.343Z",
+  "updated": "2026-04-07T11:50:49.000Z"
+}

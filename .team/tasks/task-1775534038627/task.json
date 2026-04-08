@@ -1,0 +1,14 @@
+{
+  "id": "task-1775534038627",
+  "title": "code_exec 加 Python 支持",
+  "description": "浏览器用 Pyodide WASM，Node/Electron 用 child_process.spawn('python3')。code tool 自动检测语言（JS/Python），执行对应引擎",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": null,
+  "hasDesign": true,
+  "created": "2026-04-07T03:53:58.627Z",
+  "updated": "2026-04-07T04:23:20.437Z",
+  "milestoneId": "m8"
+}

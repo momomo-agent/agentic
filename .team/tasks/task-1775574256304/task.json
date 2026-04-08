@@ -1,0 +1,14 @@
+{
+  "id": "task-1775574256304",
+  "title": "Verify PRD.md documents shell_exec, Python, quickjs, shellResults",
+  "description": "Confirm PRD.md (updated in m17) fully documents: shell_exec tool, Python support in code_exec, quickjs-emscripten sandbox, shellResults in AgenticResult. Fix any remaining gaps. Addresses DBB (89%) and arch (96%) gaps.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-07T15:04:16.304Z",
+  "updated": "2026-04-07T15:15:34.972Z",
+  "milestoneId": "m18"
+}

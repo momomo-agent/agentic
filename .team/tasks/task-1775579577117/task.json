@@ -1,0 +1,14 @@
+{
+  "id": "task-1775579577117",
+  "title": "Add default in-memory filesystem to AgenticConfig",
+  "description": "When no filesystem is passed in AgenticConfig, default to a built-in in-memory AgenticFileSystem instance so file_read/file_write work zero-config. Closes vision gap: 'No default browser filesystem provided out of the box'.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-07T16:32:57.117Z",
+  "updated": "2026-04-07T16:43:37.213Z",
+  "milestoneId": "m23"
+}

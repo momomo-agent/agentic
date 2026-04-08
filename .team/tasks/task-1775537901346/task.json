@@ -1,0 +1,13 @@
+{
+  "id": "task-1775537901346",
+  "title": "修复 Python filesystem 注入的 3 个 bug",
+  "description": "修复 code.ts 中 Python filesystem 注入的实现问题：\n1. Bug #1 (P0): Python read() 总是返回空字符串 - 需要实现 IPC 机制或使用临时文件桥接\n2. Bug #2 (P0): Python write 从未应用到 filesystem - 需要解析 stdout 中的 __FS_WRITES__ 标记并应用写入\n3. Bug #3 (P1): 相对路径不支持 - 更新路径检查支持 './' 前缀\n\n详细信息见 .team/tasks/task-1775534038662/test-result.md\n\n修复后移除 test/code-python-fs.test.ts 中的 .fails() 标记并验证所有测试通过",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-07T04:58:21.347Z",
+  "updated": "2026-04-07T05:18:21.946Z"
+}

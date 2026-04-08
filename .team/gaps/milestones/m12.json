@@ -1,0 +1,11 @@
+{
+  "milestoneId": "m12",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: ShellResult exported from src/index.ts", "status": "pass" },
+    { "criterion": "DBB-002: shellToolDef and executeShell exported from tools/index.ts", "status": "pass" },
+    { "criterion": "DBB-003: AgenticResult.images is string[] (never undefined)", "status": "pass" },
+    { "criterion": "DBB-004: ARCHITECTURE.md exists at project root", "status": "pass" }
+  ]
+}

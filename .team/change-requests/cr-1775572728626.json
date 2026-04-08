@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775572728626",
+  "from": "tech_lead",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Custom provider fallback behavior (baseUrl → createOpenAIProvider) is implemented in code but not documented in ARCHITECTURE.md",
+  "proposedChange": "Under 'Provider Resolution > Custom Provider Fallback', add: When provider='custom': 1) if config.customProvider is set → use it directly; 2) else if config.baseUrl is set → fall back to createOpenAIProvider; 3) else → throw Error('customProvider or baseUrl is required when provider=\"custom\"')",
+  "status": "resolved",
+  "createdAt": "2026-04-07T14:41:15.639Z",
+  "reviewedAt": "2026-04-08T01:41:51.597Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

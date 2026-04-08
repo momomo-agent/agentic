@@ -1,0 +1,14 @@
+{
+  "id": "task-1775565533987",
+  "title": "Create ARCHITECTURE.md",
+  "description": "Write ARCHITECTURE.md documenting module structure (ask.ts, provider.ts, tools/), data flow, and key interfaces. Addresses the missing architecture spec gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-07T12:38:53.987Z",
+  "updated": "2026-04-07T13:07:41.156Z",
+  "milestoneId": "m12"
+}

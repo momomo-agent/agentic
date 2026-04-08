@@ -1,0 +1,16 @@
+{
+  "id": "task-1775620587853",
+  "title": "Expose streaming API in agentic-lite",
+  "description": "Add askStream() function or streaming option to ask() in src/ask.ts that uses the new agentic-core streaming interface. Should yield partial results as the agent loop progresses. Must maintain backward compatibility with existing ask() API.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [
+    "task-1775620573568"
+  ],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T03:56:27.853Z",
+  "updated": "2026-04-08T04:30:57.110Z",
+  "milestoneId": "m28"
+}

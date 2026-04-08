@@ -1,0 +1,14 @@
+{
+  "id": "task-1775564683082",
+  "title": "Expand README.md with full API documentation",
+  "description": "Add to README.md: full ask() API reference, all tool descriptions (code_exec, shell_exec, file_read, file_write, search), provider config options, and usage examples",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T12:24:43.082Z",
+  "updated": "2026-04-07T12:36:49.298Z",
+  "milestoneId": "m11"
+}

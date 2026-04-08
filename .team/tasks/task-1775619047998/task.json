@@ -1,0 +1,13 @@
+{
+  "id": "task-1775619047998",
+  "title": "Fix agentic-core symlink and broken tests",
+  "description": "package.json agentic-core dependency points to link:../agentic-core (WRONG — resolves to standalone agentic-core project with different exports). Must change to link:./packages/agentic-core. Then fix 33 failing tests that import createProvider from old locations. Run pnpm install after fix. All 174 tests must pass.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m27",
+  "hasDesign": true,
+  "created": "2026-04-08T03:30:47.998Z",
+  "updated": "2026-04-08T03:37:52.442Z"
+}

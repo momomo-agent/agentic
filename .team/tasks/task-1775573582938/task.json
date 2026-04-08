@@ -1,0 +1,13 @@
+{
+  "id": "task-1775573582938",
+  "title": "Resolve pending CRs and sync PRD.md",
+  "description": "Approve cr-1775560282316 (shell_exec + Python + quickjs in PRD) and cr-1775571299895 (shellResults in AgenticResult). Update PRD.md accordingly to unblock task-1775539719830, task-1775559026329, task-1775571299895.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T14:53:02.938Z",
+  "updated": "2026-04-07T15:01:36.378Z"
+}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>agentic-lite — browser demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: monospace; background: #0d0d0d; color: #e0e0e0; padding: 24px; }
+    h1 { font-size: 16px; color: #fbbf24; margin-bottom: 16px; }
+    #log { background: #111; border: 1px solid #222; padding: 16px; height: 400px; overflow-y: auto; font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .tool { color: #60a5fa; }
+    .result { color: #34d399; }
+    .answer { color: #f0f0f0; white-space: pre-wrap; }
+    .error { color: #f87171; }
+    button { background: #fbbf24; color: #000; border: none; padding: 8px 20px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    input { background: #111; border: 1px solid #333; color: #e0e0e0; padding: 8px 12px; font-size: 13px; width: 400px; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <h1>⚡ agentic-lite browser demo — file + code</h1>
+  <div id="log"><span style="color:#555">waiting...</span></div>
+  <div>
+    <input id="key" placeholder="API key (Anthropic or OpenAI)" />
+    <button id="run">Run test</button>
+  </div>
+
+  <script type="module">
+    import { AgenticFileSystem, AgenticStoreBackend } from '/agentic-filesystem/dist/index.js'
+    import { ask } from '/agentic-lite/dist/index.js'
+
+    const log = document.getElementById('log')
+    const btn = document.getElementById('run')
+
+    function print(msg, cls = '') {
+      const el = document.createElement('div')
+      el.className = cls
+      el.textContent = msg
+      log.appendChild(el)
+      log.scrollTop = log.scrollHeight
+    }
+
+    btn.addEventListener('click', async () => {
+      const apiKey = document.getElementById('key').value.trim()
+      if (!apiKey) { print('需要 API key', 'error'); return }
+
+      btn.disabled = true
+      log.innerHTML = ''
+      print('初始化虚拟文件系统...')
+
+      const backend = new AgenticStoreBackend({ namespace: 'demo' })
+      const filesystem = new AgenticFileSystem({ storage: backend })
+
+      print('发送任务给 AI...')
+      print('任务: 写一个 hello.txt，然后读出来，再用 code 统计字符数')
+
+      try {
+        const result = await ask(
+          '请完成以下任务：\n1. 用 file_write 把 "Hello from the browser!" 写入 /hello.txt\n2. 用 file_read 读出 /hello.txt 的内容\n3. 用 code_exec 统计这段文字的字符数\n4. 告诉我结果',
+          {
+            apiKey,
+            baseUrl: 'https://code.newcli.com/claude/ultra',
+            provider: 'anthropic',
+            tools: ['file', 'code'],
+            filesystem,
+          }
+        )
+
+        if (result.toolCalls) {
+          print('')
+          print('── 工具调用 ──', 'tool')
+          for (const tc of result.toolCalls) {
+            print(`  ${tc.tool}(${JSON.stringify(tc.input)})`, 'tool')
+            print(`  → ${JSON.stringify(tc.output)}`, 'result')
+          }
+        }
+
+        print('')
+        print('── AI 回答 ──')
+        print(result.answer, 'answer')
+        print('')
+        print(`tokens: ${result.usage?.input} in / ${result.usage?.output} out`, 'result')
+      } catch (err) {
+        print(`Error: ${err}`, 'error')
+      }
+
+      btn.disabled = false
+    })
+  </script>
+</body>
+</html>

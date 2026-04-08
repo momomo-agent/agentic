@@ -1,0 +1,14 @@
+{
+  "id": "task-1775525637055",
+  "title": "修复 agent loop 支持多轮工具调用",
+  "description": "ask.ts 里执行完工具后立刻 final call，改成真正的多轮循环，直到 stopReason !== tool_use 才结束",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": null,
+  "hasDesign": true,
+  "created": "2026-04-07T01:33:57.055Z",
+  "updated": "2026-04-07T01:50:45.322Z",
+  "milestoneId": "m1"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775529723367",
+  "title": "Add systemPrompt multi-round test",
+  "description": "Add test verifying systemPrompt is passed correctly through multiple tool rounds",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T02:42:03.367Z",
+  "updated": "2026-04-07T02:54:53.392Z",
+  "milestoneId": "m5"
+}

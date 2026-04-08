@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775560123",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "PRD.md",
+  "reason": "Two tasks (task-1775539719830, task-1775559026329) are blocked because PRD.md does not reflect current implementation. shell_exec tool and Python code_exec support were added as enhancements, and code_exec implementation changed from AsyncFunction to quickjs-emscripten. These gaps prevent milestone m9 and m10 completion.",
+  "proposedChange": "Update PRD.md Tools section:\n1. Change 'code_exec — executes JS via AsyncFunction' to 'code_exec — executes JS/Python via quickjs-emscripten sandbox (browser-compatible)'\n2. Add 'shell_exec — executes shell commands via agentic-shell'\n3. Update code_exec description to mention Python support (Pyodide in browser, python3 in Node)",
+  "status": "resolved",
+  "createdAt": "2026-04-07T18:15:23.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.598Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

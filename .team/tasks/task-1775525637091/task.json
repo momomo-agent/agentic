@@ -1,0 +1,14 @@
+{
+  "id": "task-1775525637091",
+  "title": "file 工具换成 agentic-filesystem",
+  "description": "file.ts 里的 Node fs 换成 AgenticFileSystem，支持浏览器环境。AgenticFileSystem 在 agentic-filesystem 包里",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": null,
+  "hasDesign": true,
+  "created": "2026-04-07T01:33:57.091Z",
+  "updated": "2026-04-07T01:52:21.579Z",
+  "milestoneId": "m1"
+}

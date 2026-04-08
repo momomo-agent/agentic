@@ -1,0 +1,14 @@
+{
+  "id": "task-1775559019099",
+  "title": "Fix custom provider apiKey skip",
+  "description": "When provider='custom' and only baseUrl is set (no customProvider hook), apiKey validation should be skipped per PRD spec. Currently provider.ts line 65 still requires apiKey. Fix the condition to skip validation when provider==='custom'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T10:50:19.099Z",
+  "updated": "2026-04-07T11:06:25.029Z",
+  "milestoneId": "m10"
+}

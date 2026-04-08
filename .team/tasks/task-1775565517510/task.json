@@ -1,0 +1,14 @@
+{
+  "id": "task-1775565517510",
+  "title": "Fix AgenticResult.images type to string[]",
+  "description": "AgenticResult.images is typed as string[] | undefined but DBB-004 requires it always be string[]. Change the type in types.ts and ensure all code paths return [].",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-07T12:38:37.510Z",
+  "updated": "2026-04-07T13:00:29.441Z",
+  "milestoneId": "m12"
+}

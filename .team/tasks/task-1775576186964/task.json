@@ -1,0 +1,13 @@
+{
+  "id": "task-1775576186964",
+  "title": "Document Pyodide CDN dependency and offline/CSP workaround in README",
+  "description": "Pyodide is dynamically imported from CDN, which breaks in offline or CSP-restricted environments. Add a README section documenting this limitation and providing guidance (e.g. self-hosting Pyodide). Addresses vision gap: fragile browser Python support.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T15:36:26.965Z",
+  "updated": "2026-04-07T15:52:01.701Z"
+}

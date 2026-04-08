@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m14",
+  "match": 100,
+  "timestamp": "2026-04-08T10:27:00.000Z",
+  "criteria": [
+    { "criterion": "AgenticResult.images is typed as string[] (required) in src/types.ts", "status": "pass" },
+    { "criterion": "ShellResult is exported from src/index.ts", "status": "pass" },
+    { "criterion": "shellToolDef and executeShell are exported from src/tools/index.ts", "status": "pass" },
+    { "criterion": "Custom provider silent fallback documented in README or JSDoc", "status": "pass" },
+    { "criterion": "tsc --noEmit passes with zero errors", "status": "pass" }
+  ]
+}

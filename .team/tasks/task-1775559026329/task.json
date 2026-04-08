@@ -1,0 +1,16 @@
+{
+  "id": "task-1775559026329",
+  "title": "Align PRD code_exec sandbox spec",
+  "description": "PRD specifies AsyncFunction eval but implementation uses quickjs-emscripten. Update PRD.md to document the actual quickjs sandbox approach, or submit a CR if the spec should be kept as-is. Ensure the documented behavior matches tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [
+    "task-1775573582938"
+  ],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T10:50:26.329Z",
+  "updated": "2026-04-07T15:01:51.178Z",
+  "milestoneId": "m10"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775581632597",
+  "title": "Auto-instantiate default AgenticFileSystem for zero-config browser use",
+  "description": "Vision gap (missing): Users must currently pass AgenticFileSystem manually. Fix: when no fs option is provided to ask(), auto-create a default AgenticFileSystem instance so file_read/file_write work zero-config. Acceptance: ask() with file tools works without passing fs option.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-07T17:07:12.597Z",
+  "updated": "2026-04-07T17:21:05.885Z"
+}

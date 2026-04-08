@@ -1,0 +1,14 @@
+{
+  "totalTests": 6,
+  "passed": 2,
+  "failed": 4,
+  "edgeCases": [
+    "ask() without emit callback crashes agentic-core — emit('status', ...) called unconditionally at agentic-core.js:354",
+    "askStream() in browser simulation (process deleted) crashes vitest worker with unhandled ReferenceError",
+    "Search tool removed from buildTools() — no search integration tests possible with current code",
+    "AgenticResult.images field no longer returned by ask() — regression from previous version",
+    "Multi-round tool execution with new agenticAsk wrapper not tested",
+    "Tool call tracking via closure wrapping not verified for concurrent or error cases"
+  ],
+  "coverage": "33%"
+}

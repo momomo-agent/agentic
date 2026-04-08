@@ -1,0 +1,13 @@
+{
+  "id": "task-1775580346381",
+  "title": "Fix openai.ts apiKey validation for custom+baseUrl provider",
+  "description": "Bug: createOpenAIProvider (src/providers/openai.ts:7) unconditionally throws 'apiKey is required for openai provider' even when called from the provider='custom' + baseUrl path. Fix: make apiKey optional when baseUrl is provided so proxy/custom usage works without an apiKey. Acceptance: test DBB-005 (custom provider + baseUrl + no apiKey) passes without .fails() marker.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-07T16:45:46.382Z",
+  "updated": "2026-04-07T16:50:58.121Z"
+}

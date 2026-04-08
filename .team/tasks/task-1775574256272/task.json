@@ -1,0 +1,14 @@
+{
+  "id": "task-1775574256272",
+  "title": "Fix AgenticResult.usage to required type",
+  "description": "Change usage field in AgenticResult from optional (usage?) to required (usage) in types.ts. Addresses PRD gap: schema shows usage as required field.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-07T15:04:16.272Z",
+  "updated": "2026-04-07T15:15:34.941Z",
+  "milestoneId": "m18"
+}

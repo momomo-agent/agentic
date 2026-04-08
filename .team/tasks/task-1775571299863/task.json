@@ -1,0 +1,14 @@
+{
+  "id": "task-1775571299863",
+  "title": "Fix AgenticResult.usage and images types",
+  "description": "types.ts: change usage? to usage (required), change images to string[] (remove undefined). Both are partial architecture gaps.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T14:14:59.863Z",
+  "updated": "2026-04-07T14:34:09.901Z",
+  "milestoneId": "m15"
+}

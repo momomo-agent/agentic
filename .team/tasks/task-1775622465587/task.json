@@ -1,0 +1,16 @@
+{
+  "id": "task-1775622465587",
+  "title": "Clean ARCHITECTURE.md of leftover task instructions and fix accuracy gaps",
+  "description": "Update ARCHITECTURE.md to reflect agentic-core extraction and fix all accuracy gaps. Specific changes needed:\n1. MAJOR: Remove leftover task instructions from lines 55-75 — these are not architecture documentation\n2. Update Module Structure section for agentic-core/agentic-lite split (packages/agentic-core/ with loop.ts, types.ts, providers/; agentic-lite with ask.ts, tools/)\n3. Update Data Flow to show runAgentLoop call chain: ask() → buildToolDefs → buildToolExecutor → runAgentLoop → provider.chat → executeToolCall callback\n4. Add Dependencies section showing agentic-lite depends on agentic-core, agentic-filesystem, agentic-shell, quickjs-emscripten, pyodide; agentic-core has zero deps\n5. Fix Provider/ToolDefinition location: they're in agentic-core now (src/providers/ was deleted)\n6. Fix 'Provider Resolution fallback example' (line 51): shows createOpenAIProvider(baseUrl, apiKey, model) but actual code passes config object\n7. Fix overview: says 'single ask()' but also exports createProvider()\n8. Fix tools/index.ts description: says 'tool registry' but it's a barrel export; registration logic is in ask.ts\n9. Add toolConfig to AgenticConfig fields listing\n10. Update Key Interfaces to note agentic-core ownership of Provider, ToolDefinition, AgentLoopConfig, AgentLoopResult\nAcceptance: architecture match improves from 93% toward ≥95%",
+  "status": "todo",
+  "priority": "P1",
+  "assignee": "architect",
+  "blockedBy": [
+    "task-1775620598483"
+  ],
+  "groupId": "m28",
+  "hasDesign": true,
+  "created": "2026-04-08T04:27:45.587Z",
+  "updated": "2026-04-08T05:06:19.712Z",
+  "milestoneId": "m28"
+}
