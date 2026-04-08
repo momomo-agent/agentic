@@ -159,6 +159,19 @@ export async function runSetup() {
       await installOllama(getInstallCommand(hardware.platform));
       spinner.succeed('Ollama installed');
     }
+    
+    // Check if Ollama is running, start if not
+    if (!await isOllamaRunning()) {
+      const spinner = ora('Starting Ollama...').start();
+      try {
+        await startOllama();
+        spinner.succeed('Ollama started');
+      } catch (err) {
+        spinner.fail('Failed to start Ollama');
+        throw err;
+      }
+    }
+    
     if (!await isModelPulled(profile.llm.model)) {
       await pullModel(profile.llm.model);
     } else {
