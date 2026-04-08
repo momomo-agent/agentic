@@ -123,6 +123,7 @@ const progress = ref({})
 const recommended = [
   { name: 'gemma2:2b', desc: 'Lightweight, fast' },
   { name: 'qwen2.5:3b', desc: 'Chinese optimized' },
+  { name: 'qwen2.5-coder:3b', desc: 'Code generation' },
   { name: 'llama3.2:3b', desc: 'Meta, versatile' },
   { name: 'phi3.5:3.8b', desc: 'Code & reasoning' },
   { name: 'mistral:7b', desc: 'High quality' },
