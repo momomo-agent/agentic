@@ -8,7 +8,7 @@ import http from 'http';
 import { detect } from '../detector/hardware.js';
 import { getProfile } from '../detector/profiles.js';
 import { ensureSox } from '../detector/sox.js';
-import { setDownloadState, clearDownloadState } from './download-state.js';
+import { setDownloadState, clearDownloadState, getDownloadState } from './download-state.js';
 
 async function isOllamaInstalled() {
   try { execSync('which ollama', { stdio: 'ignore' }); return true; } catch { return false; }
@@ -93,11 +93,22 @@ async function pullModel(model) {
             const json = JSON.parse(line);
             if (json.status) {
               spinner.text = `Pulling ${model}: ${json.status}`;
-              setDownloadState({ 
-                status: json.status,
-                progress: json.completed || 0,
-                total: json.total || 0
-              });
+              
+              // Handle final stages without progress
+              if (json.status.includes('verifying') || json.status.includes('writing manifest')) {
+                const currentState = getDownloadState();
+                setDownloadState({ 
+                  status: 'Finalizing...',
+                  progress: json.total || currentState.total,
+                  total: json.total || currentState.total
+                });
+              } else {
+                setDownloadState({ 
+                  status: json.status,
+                  progress: json.completed || 0,
+                  total: json.total || 0
+                });
+              }
             }
           } catch {}
         }
