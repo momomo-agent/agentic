@@ -1,0 +1,14 @@
+{
+  "name": "agentic-store",
+  "version": "1.0.0",
+  "description": "Key-value persistence for agentic apps. Zero dependencies. IndexedDB → localStorage fallback.",
+  "main": "agentic-store.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/momomo-agent/agentic-store"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.8.0"
+  }
+}
