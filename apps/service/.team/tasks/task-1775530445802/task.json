@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530445802",
+  "title": "Replace local src/store/index.js with agentic-store package",
+  "description": "Remove local store/index.js stub and import from agentic-store package. Verify package.json lists agentic-store as dependency and import resolves at runtime.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m76",
+  "hasDesign": true,
+  "created": "2026-04-07T02:54:05.803Z",
+  "updated": "2026-04-07T02:56:40.022Z"
+}

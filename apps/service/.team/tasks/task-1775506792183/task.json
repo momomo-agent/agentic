@@ -1,0 +1,14 @@
+{
+  "id": "task-1775506792183",
+  "title": "llm.js硬件自适应: 接入optimizer输出",
+  "description": "llm.js的loadConfig()调用optimizer.getProfile(hardware)动态选择模型，替换硬编码的gemma4:26b",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-06T20:19:52.183Z",
+  "updated": "2026-04-06T20:32:00.670Z",
+  "milestoneId": "m14"
+}

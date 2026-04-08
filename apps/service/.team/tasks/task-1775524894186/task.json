@@ -1,0 +1,15 @@
+{
+  "id": "task-1775524894186",
+  "title": "src/server/api.js — REST API endpoints",
+  "description": "Implement server/api.js: POST /api/chat, /api/transcribe, /api/synthesize, GET /api/status, /api/config, PUT /api/config. Depends on brain.js.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775524889088"
+  ],
+  "groupId": "m53",
+  "hasDesign": false,
+  "created": "2026-04-07T01:21:34.186Z",
+  "updated": "2026-04-07T01:33:12.558Z"
+}

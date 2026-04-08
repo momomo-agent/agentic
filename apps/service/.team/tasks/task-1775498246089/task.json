@@ -1,0 +1,13 @@
+{
+  "id": "task-1775498246089",
+  "title": "agentic-sense 视觉感知",
+  "description": "浏览器端 MediaPipe 人脸/手势/物体检测，发送感知事件，PRD M3 gap",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-06T17:57:26.089Z",
+  "updated": "2026-04-06T18:09:44.644Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775500439158",
+  "title": "用户文档 README",
+  "description": "编写 README.md 涵盖安装、配置、API 使用、Docker 部署说明",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-06T18:33:59.158Z",
+  "updated": "2026-04-06T18:49:44.143Z",
+  "milestoneId": "m12"
+}

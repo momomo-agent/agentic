@@ -1,0 +1,16 @@
+{
+  "id": "task-1775520092648",
+  "title": "src/server/brain.js — LLM inference + tool calling实现",
+  "description": "实现brain.js LLM推理和工具调用，符合架构规定接口",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-2",
+  "blockedBy": [
+    "task-1775520092615"
+  ],
+  "groupId": "m41",
+  "hasDesign": true,
+  "created": "2026-04-07T00:01:32.648Z",
+  "updated": "2026-04-07T00:53:11.507Z",
+  "milestoneId": "m41"
+}

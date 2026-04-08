@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517741186",
+  "title": "服务端感知路径 — headless camera",
+  "description": "在 sense.js 添加服务端无头摄像头路径，不依赖浏览器 videoElement",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-2",
+  "blockedBy": [],
+  "groupId": "m36",
+  "hasDesign": true,
+  "created": "2026-04-06T23:22:21.186Z",
+  "updated": "2026-04-07T01:15:26.466Z",
+  "milestoneId": "m36"
+}

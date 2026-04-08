@@ -1,0 +1,14 @@
+{
+  "milestoneId": "m9",
+  "match": 80,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "tool_use response uses text field not content field", "status": "pass" },
+    { "criterion": "store.delete() method available and works", "status": "pass" },
+    { "criterion": "CDN URL correct and accessible", "status": "partial" },
+    { "criterion": "SIGINT graceful shutdown, exit code 0", "status": "pass" },
+    { "criterion": "npx install: Ollama not installed shows install prompt", "status": "pass" },
+    { "criterion": "npx install: model pull shows progress percentage", "status": "partial" },
+    { "criterion": "npx install: auto-opens browser after start", "status": "pass" }
+  ]
+}

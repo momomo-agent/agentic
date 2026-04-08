@@ -1,0 +1,14 @@
+{
+  "id": "task-1775536622791",
+  "title": "Wire agentic-voice as external package",
+  "description": "Verify package.json has agentic-voice dependency; update src/runtime/stt.js and tts.js to import from 'agentic-voice' not local stubs",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m84",
+  "hasDesign": true,
+  "created": "2026-04-07T04:37:02.791Z",
+  "updated": "2026-04-07T11:36:39.608Z",
+  "milestoneId": "m84"
+}

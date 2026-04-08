@@ -1,0 +1,14 @@
+{
+  "id": "task-1775522602124",
+  "title": "src/detector/hardware.js — 合并gpu-detector.js",
+  "description": "将gpu-detector.js的GPU检测逻辑合并到hardware.js，符合架构规范",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-3",
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:43:22.124Z",
+  "updated": "2026-04-07T00:54:27.429Z",
+  "milestoneId": "m42"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "task-1775523423910",
+  "title": "src/ui/admin/ — admin panel实现",
+  "description": "Implement admin panel at /admin route: hardware info, config editor, device list, log viewer. Vue 3 components matching ARCHITECTURE.md spec",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775523414954"
+  ],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:57:03.910Z",
+  "updated": "2026-04-07T00:57:35.905Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525193194",
+  "title": "src/runtime/memory.js — memory runtime",
+  "description": "Implement memory.js runtime: persistent memory store with vector embedding support, recall and store APIs per architecture spec.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m54",
+  "hasDesign": false,
+  "created": "2026-04-07T01:26:33.194Z",
+  "updated": "2026-04-07T01:28:34.522Z"
+}

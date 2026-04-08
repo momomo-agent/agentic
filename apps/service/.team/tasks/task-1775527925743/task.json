@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527925743",
+  "title": "SIGINT graceful drain during in-flight requests",
+  "description": "Confirm SIGINT handler drains active SSE/WebSocket connections before exit; add test for graceful shutdown",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m68",
+  "hasDesign": true,
+  "created": "2026-04-07T02:12:05.743Z",
+  "updated": "2026-04-07T02:23:28.482Z"
+}

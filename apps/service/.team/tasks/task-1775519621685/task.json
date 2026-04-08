@@ -1,0 +1,19 @@
+{
+  "id": "task-1775519621685",
+  "title": "src/server/hub.js — 设备管理实现",
+  "description": "实现设备注册/注销，追踪连接设备，emit join/leave事件",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775519613741",
+    "task-1775519617446",
+    "task-1775519617481",
+    "task-1775519688933",
+    "task-1775519688966"
+  ],
+  "groupId": "m39",
+  "hasDesign": true,
+  "created": "2026-04-06T23:53:41.685Z",
+  "updated": "2026-04-06T23:59:01.668Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775518019834",
+  "title": "唤醒词服务端管道集成",
+  "description": "将唤醒词检测从UI composable接入服务端always-on管道，hub.js监听唤醒事件触发brain.js推理",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m33",
+  "hasDesign": true,
+  "created": "2026-04-06T23:26:59.834Z",
+  "updated": "2026-04-06T23:44:04.105Z",
+  "milestoneId": "m33"
+}

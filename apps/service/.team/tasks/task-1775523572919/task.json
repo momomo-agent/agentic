@@ -1,0 +1,14 @@
+{
+  "id": "task-1775523572919",
+  "title": "CDN real endpoint",
+  "description": "Replace cdn.example.com placeholder with real CDN URL in src/detector/profiles.js",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m43",
+  "hasDesign": true,
+  "created": "2026-04-07T00:59:32.920Z",
+  "updated": "2026-04-07T02:09:04.732Z",
+  "milestoneId": "m43"
+}

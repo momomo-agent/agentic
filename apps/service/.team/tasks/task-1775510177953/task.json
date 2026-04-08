@@ -1,0 +1,13 @@
+{
+  "id": "task-1775510177953",
+  "title": "语音端到端延迟基准测试",
+  "description": "编写基准测试脚本测量 STT+LLM+TTS 链路总延迟，目标 <2s，记录各阶段耗时",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-06T21:16:17.953Z",
+  "updated": "2026-04-06T21:25:38.142Z"
+}

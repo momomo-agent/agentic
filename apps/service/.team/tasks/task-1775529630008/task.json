@@ -1,0 +1,14 @@
+{
+  "id": "task-1775529630008",
+  "title": "Docker build and docker-compose end-to-end verification",
+  "description": "Docker files verified present in install/. Superseded by m86 Docker fix milestone which is completed.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m74",
+  "hasDesign": true,
+  "created": "2026-04-07T02:40:30.008Z",
+  "updated": "2026-04-07T14:49:46.460Z",
+  "milestoneId": "m86"
+}

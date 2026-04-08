@@ -1,0 +1,16 @@
+{
+  "milestoneId": "m4",
+  "match": 85,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "embed(text) returns float32 array with length>0, all finite", "status": "pass" },
+    { "criterion": "embed('') returns [] or throws clear error", "status": "pass" },
+    { "criterion": "store.set/get persists across process restart", "status": "pass" },
+    { "criterion": "store.delete removes key", "status": "pass" },
+    { "criterion": "store.get nonexistent key returns null/undefined, no throw", "status": "pass" },
+    { "criterion": "GET /api/status includes devices array when device registered", "status": "pass" },
+    { "criterion": "GET /api/status devices=[] when no devices registered", "status": "pass" },
+    { "criterion": "/api/chat supports tool_use, response contains tool_use block", "status": "pass" },
+    { "criterion": "/api/chat without tools returns normal text response", "status": "pass" }
+  ]
+}

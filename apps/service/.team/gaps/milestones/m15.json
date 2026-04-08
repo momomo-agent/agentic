@@ -1,0 +1,14 @@
+{
+  "milestoneId": "m15",
+  "match": 86,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "sense.js loads in Node.js without requestAnimationFrame error", "status": "pass" },
+    { "criterion": "sense.js uses setInterval/process.nextTick not requestAnimationFrame", "status": "pass" },
+    { "criterion": "store.delete('foo') removes key, subsequent get returns undefined", "status": "pass" },
+    { "criterion": "store.del('bar') alias works identically to delete", "status": "pass" },
+    { "criterion": "hub.js broadcasts wakeword to all connected devices", "status": "pass" },
+    { "criterion": "Heartbeat timeout is 60000ms (not 40000ms)", "status": "pass" },
+    { "criterion": "brain.js tool_use response includes text field", "status": "pass" }
+  ]
+}

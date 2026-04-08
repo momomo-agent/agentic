@@ -1,0 +1,13 @@
+{
+  "id": "task-1775510177987",
+  "title": "HTTPS/LAN 安全访问支持",
+  "description": "支持 --https 启动选项，使用 mkcert 或自签名证书，允许局域网设备安全访问",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-06T21:16:17.987Z",
+  "updated": "2026-04-06T21:29:36.890Z"
+}

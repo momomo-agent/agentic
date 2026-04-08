@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525260832",
+  "title": "src/runtime/sense.js — MediaPipe headless sense runtime",
+  "description": "Implement src/runtime/sense.js: server-side headless camera/MediaPipe perception runtime. Must support face/gesture/object detection without browser videoElement dependency.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m54",
+  "hasDesign": false,
+  "created": "2026-04-07T01:27:40.832Z",
+  "updated": "2026-04-07T01:28:15.448Z"
+}

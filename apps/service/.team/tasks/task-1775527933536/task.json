@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527933536",
+  "title": "src/cli/ and unspecified server files — document or submit CR",
+  "description": "Audit src/cli/, src/server/cert.js, httpsServer.js, middleware.js against ARCHITECTURE.md; submit CR if architecture update needed",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m68",
+  "hasDesign": true,
+  "created": "2026-04-07T02:12:13.536Z",
+  "updated": "2026-04-07T02:40:18.828Z"
+}

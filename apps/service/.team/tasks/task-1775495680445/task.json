@@ -1,0 +1,16 @@
+{
+  "id": "task-1775495680445",
+  "title": "用户文档 README",
+  "description": "安装指南、API说明、配置文档，PRD M4 gap",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [
+    "task-1775495680384"
+  ],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-06T17:14:40.445Z",
+  "updated": "2026-04-06T18:02:11.175Z",
+  "milestoneId": "m7"
+}

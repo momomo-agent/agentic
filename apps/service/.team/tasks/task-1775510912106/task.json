@@ -1,0 +1,15 @@
+{
+  "id": "task-1775510912106",
+  "title": "完善 src/ui/client/ Admin路由",
+  "description": "添加 /admin 路由，连接 src/ui/admin/ 管理面板组件",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [
+    "task-1775510291601"
+  ],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-06T21:28:32.106Z",
+  "updated": "2026-04-06T22:03:19.452Z"
+}

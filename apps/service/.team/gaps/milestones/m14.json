@@ -1,0 +1,18 @@
+{
+  "milestoneId": "m14",
+  "match": 82,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "setup.js auto-executes Ollama install with user prompt", "status": "pass" },
+    { "criterion": "Ollama already installed: setup skips install step", "status": "pass" },
+    { "criterion": "User declines prompt: exits gracefully with non-zero code", "status": "partial" },
+    { "criterion": "hub.js sendCommand supports speak command type", "status": "pass" },
+    { "criterion": "hub.js sendCommand supports display command type", "status": "pass" },
+    { "criterion": "hub.js sendCommand supports capture command (no regression)", "status": "pass" },
+    { "criterion": "hub.js sendCommand unknown type: error returned/logged", "status": "pass" },
+    { "criterion": "llm.js selects model from optimizer profile, not hardcoded", "status": "pass" },
+    { "criterion": "Different hardware profiles result in different model selections", "status": "pass" },
+    { "criterion": "README.md exists with npx, global, Docker install instructions", "status": "partial" },
+    { "criterion": "README.md contains REST API endpoint documentation", "status": "partial" }
+  ]
+}

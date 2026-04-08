@@ -1,0 +1,13 @@
+{
+  "id": "task-1775491396691",
+  "title": "修复 EADDRINUSE 检测",
+  "description": "重构 Express app 初始化，避免模块级单例导致端口冲突无法被正确检测和拒绝",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-06T16:03:16.691Z",
+  "updated": "2026-04-06T16:16:01.985Z"
+}

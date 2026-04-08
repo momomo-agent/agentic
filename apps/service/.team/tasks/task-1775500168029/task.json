@@ -1,0 +1,13 @@
+{
+  "id": "task-1775500168029",
+  "title": "memory.js 并发写 mutex 修复",
+  "description": "为 memory.js 的 add() 方法添加互斥锁，防止并发写竞态导致 INDEX_KEY 数据丢失，满足 DBB-008",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-06T18:29:28.029Z",
+  "updated": "2026-04-06T18:39:22.520Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517325421",
+  "title": "CDN profiles真实端点配置",
+  "description": "将cdn.example.com占位符替换为真实CDN端点，验证7天缓存刷新逻辑",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m30",
+  "hasDesign": true,
+  "created": "2026-04-06T23:15:25.421Z",
+  "updated": "2026-04-06T23:52:04.957Z",
+  "milestoneId": "m30"
+}

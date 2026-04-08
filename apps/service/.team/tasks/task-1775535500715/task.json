@@ -1,0 +1,13 @@
+{
+  "id": "task-1775535500715",
+  "title": "Implement CDN profiles.json 7-day cache staleness check",
+  "description": "Add staleness check in profiles.js to refresh CDN cache after 7 days. DBB gap: partial",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m82",
+  "hasDesign": false,
+  "created": "2026-04-07T04:18:20.715Z",
+  "updated": "2026-04-07T04:20:24.043Z"
+}

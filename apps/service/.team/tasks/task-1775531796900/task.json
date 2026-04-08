@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531796900",
+  "title": "Wire agentic-embed external package in runtime/embed.js",
+  "description": "Replace local src/runtime/embed.js implementation with a proper wrapper around the agentic-embed external package. Ensure package.json imports map includes agentic-embed entry.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m81",
+  "hasDesign": true,
+  "created": "2026-04-07T03:16:36.900Z",
+  "updated": "2026-04-07T03:30:19.324Z",
+  "milestoneId": "m81"
+}

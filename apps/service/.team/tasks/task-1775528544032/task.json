@@ -1,0 +1,14 @@
+{
+  "id": "task-1775528544032",
+  "title": "npx entrypoint verification",
+  "description": "Verify bin/agentic-service.js starts server correctly via npx agentic-service",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m72",
+  "hasDesign": true,
+  "created": "2026-04-07T02:22:24.032Z",
+  "updated": "2026-04-07T02:49:43.967Z",
+  "milestoneId": "m72"
+}

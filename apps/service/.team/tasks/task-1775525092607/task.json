@@ -1,0 +1,14 @@
+{
+  "id": "task-1775525092607",
+  "title": "src/runtime/memory.js — memory runtime",
+  "description": "Implement src/runtime/memory.js: store/retrieve conversation context. Supports short-term and long-term memory.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m54",
+  "hasDesign": false,
+  "created": "2026-04-07T01:24:52.607Z",
+  "updated": "2026-04-07T01:33:12.699Z",
+  "milestoneId": "m54"
+}

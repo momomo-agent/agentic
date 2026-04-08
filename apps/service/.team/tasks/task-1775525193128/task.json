@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525193128",
+  "title": "src/runtime/tts.js — synthesize(text) → audioBuffer",
+  "description": "Implement tts.js runtime: synthesize(text) returns audioBuffer. Must support local TTS engine and cloud fallback per architecture spec.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m54",
+  "hasDesign": false,
+  "created": "2026-04-07T01:26:33.128Z",
+  "updated": "2026-04-07T01:28:34.491Z"
+}

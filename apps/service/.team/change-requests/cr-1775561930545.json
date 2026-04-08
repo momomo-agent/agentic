@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775561930545",
+  "from": "tech_lead",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Four modules exist in source but are undocumented: tunnel.js, src/cli/, runtime/vad.js, HTTPS/middleware. DBB requires architecture coverage.",
+  "proposedChange": "Add sections for: tunnel.js (LAN tunnel via ngrok/cloudflared), src/cli/setup.js + browser.js, runtime/vad.js (RMS energy VAD), HTTPS/middleware layer (cert.js, httpsServer.js, middleware.js).",
+  "status": "resolved",
+  "createdAt": "2026-04-07T11:40:52.902Z",
+  "reviewedAt": "2026-04-08T01:41:31.417Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530960767",
+  "title": "Submit CR for unspecified server files",
+  "description": "Submit a Change Request to ARCHITECTURE.md for src/server/cert.js, httpsServer.js, and middleware.js which exist but are not in the architecture spec (only hub.js, brain.js, api.js are listed).",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m78",
+  "hasDesign": false,
+  "created": "2026-04-07T03:02:40.767Z",
+  "updated": "2026-04-07T03:03:36.231Z"
+}

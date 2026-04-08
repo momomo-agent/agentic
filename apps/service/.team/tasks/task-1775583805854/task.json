@@ -1,0 +1,14 @@
+{
+  "id": "task-1775583805854",
+  "title": "Verify agentic-voice STT/TTS resolves in test environment",
+  "description": "Confirm agentic-voice package is installed and openai-tts/openai-whisper modules resolve without errors. Fix any import path issues blocking tests.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m93",
+  "hasDesign": true,
+  "created": "2026-04-07T17:43:25.854Z",
+  "updated": "2026-04-08T00:22:10.897Z",
+  "milestoneId": "m93"
+}

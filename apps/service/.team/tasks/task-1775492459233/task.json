@@ -1,0 +1,14 @@
+{
+  "id": "task-1775492459233",
+  "title": "STT 运行时",
+  "description": "实现 src/runtime/stt.js，封装 agentic-voice STT，transcribe(audioBuffer) → text，接入 /api/transcribe 端点",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m3",
+  "hasDesign": true,
+  "created": "2026-04-06T16:20:59.233Z",
+  "updated": "2026-04-06T16:33:54.807Z",
+  "milestoneId": "m3"
+}

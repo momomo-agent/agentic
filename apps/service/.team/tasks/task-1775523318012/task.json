@@ -1,0 +1,14 @@
+{
+  "id": "task-1775523318012",
+  "title": "HTTPS / LAN tunnel for multi-device access",
+  "description": "Enable HTTPS via self-signed cert or integrate localtunnel/ngrok for secure LAN access across devices",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-2",
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": true,
+  "created": "2026-04-07T00:55:18.012Z",
+  "updated": "2026-04-07T02:23:20.831Z",
+  "milestoneId": "m42"
+}

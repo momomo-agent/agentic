@@ -1,0 +1,14 @@
+{
+  "id": "task-1775535895843",
+  "title": "Fix WebSocket disconnect — remove device from registry",
+  "description": "WebSocket disconnect does not remove device from registry. Fix hub.js disconnect handler to clean up device entry.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m83",
+  "hasDesign": true,
+  "created": "2026-04-07T04:24:55.843Z",
+  "updated": "2026-04-07T05:15:33.635Z",
+  "milestoneId": "m83"
+}

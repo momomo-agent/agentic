@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525183475",
+  "title": "src/runtime/llm.js — chat() streaming",
+  "description": "Implement src/runtime/llm.js: chat(messages, options) → streaming token response via Ollama with tool-calling support",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m54",
+  "hasDesign": false,
+  "created": "2026-04-07T01:26:23.475Z",
+  "updated": "2026-04-07T01:28:34.330Z"
+}

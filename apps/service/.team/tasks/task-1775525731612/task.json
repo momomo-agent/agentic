@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525731612",
+  "title": "src/runtime/sense.js — MediaPipe sense runtime",
+  "description": "Implement src/runtime/sense.js with MediaPipe integration for vision/gesture sensing. Headless camera path required. Acceptance: sense() returns structured perception data.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m58",
+  "hasDesign": false,
+  "created": "2026-04-07T01:35:31.612Z",
+  "updated": "2026-04-07T01:36:50.493Z"
+}

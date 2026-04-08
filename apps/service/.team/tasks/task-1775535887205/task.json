@@ -1,0 +1,16 @@
+{
+  "id": "task-1775535887205",
+  "title": "Fix TTS runtime test setup — add missing init() call",
+  "description": "TTS adapter is null in tests due to missing init() call. Fix test setup so adapter initializes correctly. Edge case from test-coverage.json.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [
+    "task-1775538907092"
+  ],
+  "groupId": "m83",
+  "hasDesign": true,
+  "created": "2026-04-07T04:24:47.205Z",
+  "updated": "2026-04-07T11:26:02.522Z",
+  "milestoneId": "m83"
+}

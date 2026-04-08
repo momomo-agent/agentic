@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531528257",
+  "title": "Verify Docker end-to-end build and run",
+  "description": "Verify docker compose up starts the service correctly. Fix any Dockerfile or docker-compose.yml issues found during verification.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m80",
+  "hasDesign": false,
+  "created": "2026-04-07T03:12:08.257Z",
+  "updated": "2026-04-07T03:23:00.928Z",
+  "milestoneId": "m80"
+}

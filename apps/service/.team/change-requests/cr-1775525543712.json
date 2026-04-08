@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775525543712",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Architecture gap scan reports 18% match and lists src/runtime/llm.js, stt.js, tts.js, sense.js, memory.js, src/server/hub.js, brain.js, api.js, src/detector/profiles.js as 'missing' — but all these files exist on disk. The stale scan is causing repeated creation of redundant milestones (m45-m57) targeting already-implemented files, wasting planning cycles.",
+  "proposedChange": "Re-run the architecture gap scan against the current codebase to produce an accurate match score and gap list. The scan should verify file existence before marking gaps as 'missing'.",
+  "status": "resolved",
+  "createdAt": "2026-04-07T01:34:37.115Z",
+  "reviewedAt": "2026-04-08T01:41:31.415Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

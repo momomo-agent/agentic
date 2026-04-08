@@ -1,0 +1,14 @@
+{
+  "id": "task-1775526662402",
+  "title": "cpu-only profile in profiles/default.json",
+  "description": "Add cpu-only hardware profile to src/detector/profiles/default.json — currently only apple-silicon and nvidia profiles exist; cpu-only is required by DBB spec",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m61",
+  "hasDesign": true,
+  "created": "2026-04-07T01:51:02.402Z",
+  "updated": "2026-04-07T02:12:59.973Z",
+  "milestoneId": "m61"
+}

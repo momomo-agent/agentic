@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775569800000",
+  "from": "tech_lead",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Five modules exist in source but are undocumented: tunnel, CLI, HTTPS/middleware, VAD, embed. Architecture match score is below 92% without them.",
+  "proposedChange": "Add sections:\n\n## 5. Tunnel (src/tunnel.js)\nstartTunnel(port: number) → void — spawns ngrok or cloudflared; prefers ngrok; exits if neither installed; kills subprocess on SIGINT\n\n## 6. CLI (src/cli/)\nrunSetup() → Promise<void> — first-run wizard\nopenBrowser(port: number) → void — opens browser after server starts\n\n## 7. HTTPS/Middleware (src/server/cert.js, httpsServer.js, middleware.js)\ngenerateCert() → { key, cert }\ncreateHttpsServer(app, options) → https.Server\napplyMiddleware(app) → void\n\n## 8. VAD (src/runtime/vad.js)\ndetectVoiceActivity(buffer: Buffer) → boolean — RMS energy threshold on Int16 PCM\n\n## 9. Embed (src/runtime/embed.js)\nembed(text: string) → Promise<number[]> — delegates to agentic-embed",
+  "status": "resolved",
+  "createdAt": "2026-04-07T13:50:47.732Z",
+  "reviewedAt": "2026-04-08T01:41:31.417Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

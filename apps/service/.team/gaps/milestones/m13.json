@@ -1,0 +1,17 @@
+{
+  "milestoneId": "m13",
+  "match": 78,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "Heartbeat timeout is 60s (not 30s or 40s)", "status": "pass" },
+    { "criterion": "Device at 59s still online; at 61s marked offline", "status": "pass" },
+    { "criterion": "Device sending heartbeat every 30s stays online for 120s", "status": "pass" },
+    { "criterion": "brain.js tool_use response contains text field", "status": "pass" },
+    { "criterion": "hub.js broadcasts wakeword event to all connected clients", "status": "pass" },
+    { "criterion": "SIGINT: service exits cleanly, exit code 0", "status": "pass" },
+    { "criterion": "docker-compose up starts service, HTTP port accessible", "status": "partial" },
+    { "criterion": "Docker config volume persists across container restart", "status": "partial" },
+    { "criterion": "Config hot-reload: remote profiles change auto-reloads", "status": "pass" },
+    { "criterion": "Invalid profiles: service keeps last valid config, no crash", "status": "partial" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775514571886",
+  "title": "profiles.js getProfile(hardware)实现验证 + cpu-only profile",
+  "description": "BUG FIX REQUIRED: matcher.js does not enforce gpu type mismatch — profiles with wrong gpu type are not eliminated. Fix matcher.js to filter out profiles where hardware.gpu.type does not match profile gpu requirement. Then verify src/detector/profiles.js getProfile(hardware) works correctly and add cpu-only profile to profiles/default.json.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-06T22:29:31.886Z",
+  "updated": "2026-04-06T23:01:42.608Z",
+  "milestoneId": "m26"
+}

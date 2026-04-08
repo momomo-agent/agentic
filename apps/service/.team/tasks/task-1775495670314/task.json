@@ -1,0 +1,14 @@
+{
+  "id": "task-1775495670314",
+  "title": "云端 LLM 回退",
+  "description": "本地 Ollama 超时/失败时自动切换 OpenAI/Anthropic cloud fallback，vision gap: Cloud fallback missing",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-06T17:14:30.314Z",
+  "updated": "2026-04-06T17:28:28.584Z",
+  "milestoneId": "m7"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775535881379",
+  "title": "Fix failing tests to reach >=98% coverage",
+  "description": "119 tests failing due to: TTS init() missing in test setup, WebSocket disconnect not removing device, org name mismatch (momo-ai vs momomo), VAD onStart callback signature mismatch, and mocked module initialization issues. Fix test infrastructure to unblock coverage threshold.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m74",
+  "hasDesign": false,
+  "created": "2026-04-07T04:24:41.379Z",
+  "updated": "2026-04-07T04:27:56.087Z"
+}

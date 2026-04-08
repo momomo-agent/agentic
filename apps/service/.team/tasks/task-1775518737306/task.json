@@ -1,0 +1,14 @@
+{
+  "id": "task-1775518737306",
+  "title": "添加profiles/default.json",
+  "description": "创建内置默认硬件profile文件，作为CDN不可用时的离线fallback",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": true,
+  "created": "2026-04-06T23:38:57.306Z",
+  "updated": "2026-04-06T23:41:46.787Z",
+  "milestoneId": "m31"
+}

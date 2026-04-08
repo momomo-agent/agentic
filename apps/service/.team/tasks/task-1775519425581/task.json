@@ -1,0 +1,15 @@
+{
+  "id": "task-1775519425581",
+  "title": "实现src/ui/admin/ 管理面板",
+  "description": "设备管理、配置热更新、系统状态监控UI",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [
+    "task-1775519425549"
+  ],
+  "groupId": "m32",
+  "hasDesign": false,
+  "created": "2026-04-06T23:50:25.581Z",
+  "updated": "2026-04-06T23:50:51.180Z"
+}

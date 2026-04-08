@@ -1,0 +1,14 @@
+{
+  "id": "task-1775522602184",
+  "title": "VAD自动检测实现",
+  "description": "实现语音活动检测(VAD)，替代手动push-to-talk，支持自动开始/停止录音",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:43:22.184Z",
+  "updated": "2026-04-07T00:54:27.582Z",
+  "milestoneId": "m42"
+}

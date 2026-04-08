@@ -1,0 +1,13 @@
+{
+  "id": "task-1775528078539",
+  "title": "agentic-store and agentic-embed external package wiring",
+  "description": "Replace local src/store/index.js and src/runtime/embed.js implementations with wrappers around agentic-store and agentic-embed npm packages per ARCHITECTURE.md",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m69",
+  "hasDesign": false,
+  "created": "2026-04-07T02:14:38.539Z",
+  "updated": "2026-04-07T02:16:20.649Z"
+}

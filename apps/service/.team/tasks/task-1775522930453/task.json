@@ -1,0 +1,14 @@
+{
+  "id": "task-1775522930453",
+  "title": "src/ui/client/ — admin路由补全",
+  "description": "在 client UI 中添加 /admin 路由，确保 Vue Router 配置包含管理面板入口（当前仅有对话界面）",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:48:50.453Z",
+  "updated": "2026-04-07T00:54:27.522Z",
+  "milestoneId": "m42"
+}

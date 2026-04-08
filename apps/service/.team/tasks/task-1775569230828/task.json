@@ -1,0 +1,13 @@
+{
+  "id": "task-1775569230828",
+  "title": "Fix Docker build — resolve agentic-* local package dependencies",
+  "description": "Docker build fails because agentic-embed, agentic-sense, agentic-store, agentic-voice are not in npm registry. Fix package.json or Dockerfile to use local path references or npm pack bundling so docker build completes successfully.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m86",
+  "hasDesign": true,
+  "created": "2026-04-07T13:40:30.828Z",
+  "updated": "2026-04-07T13:56:08.967Z"
+}

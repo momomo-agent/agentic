@@ -1,0 +1,14 @@
+{
+  "id": "task-1775526824008",
+  "title": "Docker end-to-end build verification",
+  "description": "Verify docker build and docker-compose work end-to-end — build, start, health check, and basic API smoke test",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m62",
+  "hasDesign": true,
+  "created": "2026-04-07T01:53:44.008Z",
+  "updated": "2026-04-07T01:57:42.273Z",
+  "milestoneId": "m62"
+}

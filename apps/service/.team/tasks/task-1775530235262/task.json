@@ -1,0 +1,14 @@
+{
+  "id": "task-1775530235262",
+  "title": "Fix package.json imports map: add agentic-sense entry",
+  "description": "Add missing agentic-sense entry to package.json imports map so runtime/sense.js import resolves at runtime. Fix: add '\"agentic-sense\": \"./src/runtime/adapters/sense/index.js\"' (or equivalent adapter path) to the imports field. Unblocks task-1775528544100.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m77",
+  "hasDesign": true,
+  "created": "2026-04-07T02:50:35.262Z",
+  "updated": "2026-04-07T03:51:17.645Z",
+  "milestoneId": "m77"
+}

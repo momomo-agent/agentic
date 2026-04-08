@@ -1,0 +1,14 @@
+{
+  "id": "task-1775514594768",
+  "title": "README.md补全（npx/global/Docker安装 + API文档）",
+  "description": "补全README.md，覆盖npx、全局安装、Docker三种安装方式及REST API文档",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-06T22:29:54.769Z",
+  "updated": "2026-04-06T22:58:25.663Z",
+  "milestoneId": "m26"
+}

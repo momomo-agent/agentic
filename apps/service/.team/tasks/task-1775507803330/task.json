@@ -1,0 +1,13 @@
+{
+  "id": "task-1775507803330",
+  "title": "sense.js Node.js兼容: 移除requestAnimationFrame",
+  "description": "sense.js使用setInterval或process.nextTick替代requestAnimationFrame，确保在Node.js服务端环境可运行",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-06T20:36:43.330Z",
+  "updated": "2026-04-06T20:47:27.716Z"
+}

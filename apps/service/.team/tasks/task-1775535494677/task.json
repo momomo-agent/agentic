@@ -1,0 +1,13 @@
+{
+  "id": "task-1775535494677",
+  "title": "Implement server-side VAD silence suppression",
+  "description": "Add server-side voice activity detection to filter silence before STT/LLM pipeline. Integrate into runtime/stt.js audio pre-processing. DBB gap: missing",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m82",
+  "hasDesign": false,
+  "created": "2026-04-07T04:18:14.678Z",
+  "updated": "2026-04-07T04:20:23.938Z"
+}

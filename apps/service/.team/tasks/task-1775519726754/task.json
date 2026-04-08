@@ -1,0 +1,13 @@
+{
+  "id": "task-1775519726754",
+  "title": "src/detector/optimizer.js — 硬件优化路径补全",
+  "description": "补全src/detector/optimizer.js，覆盖matcher.js未处理的优化逻辑，确保完整实现架构规范的优化接口",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m40",
+  "hasDesign": false,
+  "created": "2026-04-06T23:55:26.754Z",
+  "updated": "2026-04-06T23:58:54.307Z"
+}

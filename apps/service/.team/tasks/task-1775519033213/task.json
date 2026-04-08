@@ -1,0 +1,14 @@
+{
+  "id": "task-1775519033213",
+  "title": "实现src/runtime/llm.js",
+  "description": "实现chat(messages, options) → stream接口，支持Ollama/OpenAI流式推理",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m34",
+  "hasDesign": true,
+  "created": "2026-04-06T23:43:53.213Z",
+  "updated": "2026-04-06T23:48:00.292Z",
+  "milestoneId": "m34"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531802193",
+  "title": "Confirm agentic-sense wrapping in runtime/sense.js",
+  "description": "Verify runtime/sense.js properly wraps the agentic-sense external package for MediaPipe face/gesture/object detection. Confirm package is listed in package.json dependencies and imports map.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m81",
+  "hasDesign": true,
+  "created": "2026-04-07T03:16:42.193Z",
+  "updated": "2026-04-07T03:23:01.074Z",
+  "milestoneId": "m81"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525739268",
+  "title": "src/server/hub.js — device management",
+  "description": "Implement src/server/hub.js for multi-device registration, heartbeat, and state sync. Acceptance: devices can register and receive brain state updates.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m59",
+  "hasDesign": false,
+  "created": "2026-04-07T01:35:39.268Z",
+  "updated": "2026-04-07T01:36:50.554Z"
+}

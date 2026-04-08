@@ -1,0 +1,14 @@
+{
+  "id": "task-1775561925076",
+  "title": "Push test pass rate to >=90% after M83 fixes",
+  "description": "After M83 mocked module init fix lands, identify and fix remaining failing tests to reach >=90% pass rate (>=591/657). DBB gap: partial (81.7%).",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m85",
+  "hasDesign": true,
+  "created": "2026-04-07T11:38:45.076Z",
+  "updated": "2026-04-07T13:46:46.761Z",
+  "milestoneId": "m86"
+}

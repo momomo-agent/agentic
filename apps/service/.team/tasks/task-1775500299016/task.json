@@ -1,0 +1,16 @@
+{
+  "id": "task-1775500299016",
+  "title": "server/api.js REST端点",
+  "description": "POST /api/chat, /api/transcribe, /api/synthesize, GET/PUT /api/config, /api/status",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [
+    "task-1775500298984"
+  ],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-06T18:31:39.016Z",
+  "updated": "2026-04-06T18:42:43.552Z",
+  "milestoneId": "m11"
+}

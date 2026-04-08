@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775561292071",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Several implemented modules are absent from ARCHITECTURE.md: tunnel.js (LAN tunnel), src/cli/ (setup/browser), HTTPS/middleware layer (cert.js, httpsServer.js, middleware.js), VAD runtime (src/runtime/vad.js), and agentic-embed runtime integration. These gaps cause architecture match to sit at 88% and prevent accurate milestone planning.",
+  "proposedChange": "Add sections for: Tunnel module (src/tunnel.js), CLI module (src/cli/), HTTPS/Middleware layer, VAD runtime (src/runtime/vad.js), and agentic-embed runtime integration (src/runtime/embed.js + adapters/).",
+  "status": "resolved",
+  "createdAt": "2026-04-07T11:29:11.130Z",
+  "reviewedAt": "2026-04-08T01:41:31.416Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

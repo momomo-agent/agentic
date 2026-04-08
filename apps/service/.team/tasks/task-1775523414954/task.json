@@ -1,0 +1,15 @@
+{
+  "id": "task-1775523414954",
+  "title": "src/server/api.js — REST API endpoints实现",
+  "description": "Implement server/api.js with all ARCHITECTURE.md endpoints: POST /api/chat, POST /api/transcribe, POST /api/synthesize, GET /api/status, GET/PUT /api/config",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775523414912"
+  ],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:56:54.954Z",
+  "updated": "2026-04-07T00:57:35.843Z"
+}

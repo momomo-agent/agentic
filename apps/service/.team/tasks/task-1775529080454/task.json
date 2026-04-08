@@ -1,0 +1,13 @@
+{
+  "id": "task-1775529080454",
+  "title": "SIGINT graceful drain during in-flight requests",
+  "description": "Ensure SIGINT handler waits for in-flight requests to complete before process exit",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m73",
+  "hasDesign": true,
+  "created": "2026-04-07T02:31:20.454Z",
+  "updated": "2026-04-07T02:51:40.036Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775516748265",
+  "title": "语音延迟<2s端到端基准",
+  "description": "STT+LLM+TTS端到端延迟测试，目标≤2000ms，输出benchmark报告",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m29",
+  "hasDesign": true,
+  "created": "2026-04-06T23:05:48.265Z",
+  "updated": "2026-04-06T23:14:23.340Z",
+  "milestoneId": "m29"
+}

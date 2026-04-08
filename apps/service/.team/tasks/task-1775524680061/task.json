@@ -1,0 +1,15 @@
+{
+  "id": "task-1775524680061",
+  "title": "src/server/api.js — REST API endpoints",
+  "description": "Implement api.js: all REST endpoints (/api/chat, /api/transcribe, /api/synthesize, /api/status, /api/config) per architecture spec",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775524680027"
+  ],
+  "groupId": "m51",
+  "hasDesign": false,
+  "created": "2026-04-07T01:18:00.061Z",
+  "updated": "2026-04-07T01:20:48.458Z"
+}

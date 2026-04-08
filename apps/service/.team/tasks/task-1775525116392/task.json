@@ -1,0 +1,16 @@
+{
+  "id": "task-1775525116392",
+  "title": "src/server/api.js — REST API endpoints",
+  "description": "Implement src/server/api.js: POST /api/chat, /api/transcribe, /api/synthesize, GET /api/status, /api/config, PUT /api/config.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775525116359"
+  ],
+  "groupId": "m55",
+  "hasDesign": false,
+  "created": "2026-04-07T01:25:16.392Z",
+  "updated": "2026-04-07T01:33:12.801Z",
+  "milestoneId": "m55"
+}

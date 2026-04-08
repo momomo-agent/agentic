@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527254959",
+  "title": "npx entrypoint smoke test",
+  "description": "Verify bin/agentic-service.js is correctly wired so npx agentic-service launches without error — check package.json bin field and entrypoint",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-2",
+  "blockedBy": [],
+  "groupId": "m64",
+  "hasDesign": false,
+  "created": "2026-04-07T02:00:54.959Z",
+  "updated": "2026-04-07T02:09:04.928Z"
+}

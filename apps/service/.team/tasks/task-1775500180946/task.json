@@ -1,0 +1,13 @@
+{
+  "id": "task-1775500180946",
+  "title": "config 热更新 — 远程 profiles 变更触发重载",
+  "description": "监听远程 profiles.json 变更，自动触发配置重载，无需重启服务，满足 PRD M4 热更新要求",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-06T18:29:40.946Z",
+  "updated": "2026-04-06T18:43:37.951Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775519688933",
+  "title": "src/runtime/sense.js — MediaPipe感知运行时",
+  "description": "实现sense(frame) → detections，支持Node.js无头模式帧输入",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m38",
+  "hasDesign": false,
+  "created": "2026-04-06T23:54:48.933Z",
+  "updated": "2026-04-06T23:58:54.075Z"
+}

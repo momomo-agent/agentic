@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530965690",
+  "title": "Submit CR for src/cli/ directory",
+  "description": "Submit a Change Request to ARCHITECTURE.md for src/cli/ directory which exists in codebase but architecture only specifies bin/agentic-service.js as the CLI entry point.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m78",
+  "hasDesign": false,
+  "created": "2026-04-07T03:02:45.690Z",
+  "updated": "2026-04-07T03:03:36.261Z"
+}

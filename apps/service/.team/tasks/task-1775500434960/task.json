@@ -1,0 +1,14 @@
+{
+  "id": "task-1775500434960",
+  "title": "STT/TTS 完整性修复",
+  "description": "验证并修复 stt.js transcribe(audioBuffer)→text 和 tts.js synthesize(text)→audioBuffer 的完整实现，确保云端回退路径可用",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-06T18:33:54.960Z",
+  "updated": "2026-04-06T18:50:06.068Z",
+  "milestoneId": "m12"
+}

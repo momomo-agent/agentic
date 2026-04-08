@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527561341",
+  "title": "Docker end-to-end build verification",
+  "description": "Verify docker-compose up builds and starts agentic-service without errors; confirm all services come up healthy",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m66",
+  "hasDesign": false,
+  "created": "2026-04-07T02:06:01.341Z",
+  "updated": "2026-04-07T02:07:58.190Z"
+}

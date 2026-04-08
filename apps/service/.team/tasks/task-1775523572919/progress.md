@@ -1,0 +1,4 @@
+# CDN real endpoint
+
+## Progress
+

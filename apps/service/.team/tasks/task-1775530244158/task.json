@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530244158",
+  "title": "README completeness verification",
+  "description": "Verify README covers: npx install, Docker deploy, all API endpoints, admin panel URL, and voice setup. Update any missing or outdated sections.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m75",
+  "hasDesign": false,
+  "created": "2026-04-07T02:50:44.158Z",
+  "updated": "2026-04-07T02:51:27.387Z"
+}

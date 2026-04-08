@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517579673",
+  "title": "gpu-detector.js合并入hardware.js",
+  "description": "将src/detector/gpu-detector.js逻辑合并入hardware.js，删除独立文件消除架构偏差",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer-2",
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": false,
+  "created": "2026-04-06T23:19:39.673Z",
+  "updated": "2026-04-06T23:26:16.773Z",
+  "milestoneId": "m31"
+}

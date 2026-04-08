@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531522990",
+  "title": "Fix optimizer.js to output hardware-adaptive config",
+  "description": "Replace ollama setup code in optimizer.js with hardware-adaptive configuration logic that returns appropriate model/inference settings based on detected hardware.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m80",
+  "hasDesign": false,
+  "created": "2026-04-07T03:12:02.990Z",
+  "updated": "2026-04-07T03:23:00.892Z",
+  "milestoneId": "m80"
+}

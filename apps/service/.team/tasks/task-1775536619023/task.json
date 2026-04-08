@@ -1,0 +1,16 @@
+{
+  "id": "task-1775536619023",
+  "title": "Wire agentic-store as external package",
+  "description": "Add agentic-store to package.json dependencies. src/store/index.js already imports from agentic-store correctly, but package.json is missing the dependency declaration. Fix: add \"agentic-store\": \"*\" to dependencies in package.json.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [
+    "task-1775538907396"
+  ],
+  "groupId": "m84",
+  "hasDesign": true,
+  "created": "2026-04-07T04:36:59.023Z",
+  "updated": "2026-04-07T11:26:02.556Z",
+  "milestoneId": "m84"
+}

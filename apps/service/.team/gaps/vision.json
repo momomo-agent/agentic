@@ -1,0 +1,111 @@
+{
+  "match": 91,
+  "timestamp": "2026-04-08T10:30:00.000Z",
+  "gaps": [
+    {
+      "description": "M1: Hardware detector — GPU/CPU/OS/memory (src/detector/hardware.js)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M1: Remote profiles from CDN with local cache (src/detector/profiles.js)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M1: Ollama auto-install and model pull (src/detector/ollama.js, src/cli/setup.js)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M1: Basic HTTP REST API (src/server/api.js)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M1: Web UI minimal chat dialog (src/ui/client/)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M1: One-click install script — bin/agentic-service.js + src/cli/setup.js complete, bin entry in package.json verified",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M2: STT integration — stt.js wires to agentic-voice/sensevoice, whisper, openai-whisper; agentic-voice installed in node_modules",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M2: TTS integration — tts.js wires to agentic-voice/kokoro, piper, openai-tts; agentic-voice installed in node_modules",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M2: Push-to-talk UI (PushToTalk.vue) and VAD composable (useVAD.js)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M2: Wake word — WakeWord.vue + useWakeWord.js + server-side startWakeWordPipeline() fully implemented with node-record-lpcm16 and VAD",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M3: WebSocket device registration and heartbeat (src/server/hub.js)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M3: Visual perception — sense.js imports from local adapter (./adapters/sense.js); agentic-sense package installed but is a stub returning empty arrays",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "M3: Device tools speak/display/capture (src/server/hub.js)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M3: Admin panel with device list, logs, hardware, config (src/ui/admin/)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M4: Cloud fallback to OpenAI/Anthropic — llm.js implements Ollama-first-then-cloud fallback with API key checks; brain.js has separate tool-call fallback",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M4: Config hot-update — profiles.js watchProfiles() polls every 30s with ETag-based conditional fetching",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M4: Docker / docker-compose deployment — Dockerfile + docker-compose.yml in project root and install/",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "M4: Complete user documentation — README.md exists (267 lines)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Vision: optimizer.js has real hardware-based selection logic (apple-silicon/nvidia/cpu branches) but operates independently from profile matcher.js — llm.js loadConfig() uses profiles.js not optimizer; vision implies unified model selection driven by optimizer",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "Vision: embed adapter (src/runtime/adapters/embed.js) throws 'not implemented' — memory.js imports embed from adapter directly, so memory search will fail at runtime when called",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "Vision: Server middleware (src/server/middleware.js) is a 4-line error handler — vision implies production-quality server with proper request validation, rate limiting, and security middleware",
+      "status": "partial",
+      "severity": "minor"
+    }
+  ]
+}

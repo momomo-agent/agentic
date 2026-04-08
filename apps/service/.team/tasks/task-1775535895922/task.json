@@ -1,0 +1,14 @@
+{
+  "id": "task-1775535895922",
+  "title": "Fix VAD callback signature mismatch (onStart is not a function)",
+  "description": "M30 VAD tests fail with 'onStart is not a function'. Fix callback signature in VAD implementation or test mocks.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m83",
+  "hasDesign": true,
+  "created": "2026-04-07T04:24:55.922Z",
+  "updated": "2026-04-07T04:52:35.054Z",
+  "milestoneId": "m83"
+}

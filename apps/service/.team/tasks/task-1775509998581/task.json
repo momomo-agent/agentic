@@ -1,0 +1,13 @@
+{
+  "id": "task-1775509998581",
+  "title": "实现 src/runtime/memory.js",
+  "description": "记忆模块，封装 agentic-store + agentic-embed，提供存储/检索接口",
+  "status": "done",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-06T21:13:18.581Z",
+  "updated": "2026-04-06T21:16:48.288Z"
+}

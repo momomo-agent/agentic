@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525187745",
+  "title": "src/runtime/stt.js + tts.js — transcribe & synthesize",
+  "description": "Implement src/runtime/stt.js: transcribe(audioBuffer) → text via SenseVoice/Whisper; and src/runtime/tts.js: synthesize(text) → audioBuffer",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m54",
+  "hasDesign": false,
+  "created": "2026-04-07T01:26:27.745Z",
+  "updated": "2026-04-07T01:28:34.395Z"
+}

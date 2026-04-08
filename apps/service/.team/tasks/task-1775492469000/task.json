@@ -1,0 +1,14 @@
+{
+  "id": "task-1775492469000",
+  "title": "TTS 运行时",
+  "description": "实现 src/runtime/tts.js，封装 agentic-voice TTS，synthesize(text) → audioBuffer，接入 /api/synthesize 端点",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m3",
+  "hasDesign": true,
+  "created": "2026-04-06T16:21:09.000Z",
+  "updated": "2026-04-06T16:35:05.157Z",
+  "milestoneId": "m3"
+}

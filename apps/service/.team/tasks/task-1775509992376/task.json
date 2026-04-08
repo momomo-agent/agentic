@@ -1,0 +1,13 @@
+{
+  "id": "task-1775509992376",
+  "title": "实现 src/runtime/tts.js",
+  "description": "synthesize(text) → audioBuffer，封装 agentic-voice TTS接口",
+  "status": "done",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-06T21:13:12.376Z",
+  "updated": "2026-04-06T21:16:48.212Z"
+}

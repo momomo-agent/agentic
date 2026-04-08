@@ -1,0 +1,14 @@
+{
+  "id": "task-1775522924391",
+  "title": "src/detector/optimizer.js — 硬件优化逻辑补全",
+  "description": "补全 optimizer.js，确保覆盖 ARCHITECTURE.md 中的完整优化逻辑（当前 matcher.js 仅部分覆盖）",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-3",
+  "blockedBy": [],
+  "groupId": "m42",
+  "hasDesign": false,
+  "created": "2026-04-07T00:48:44.391Z",
+  "updated": "2026-04-07T00:54:27.491Z",
+  "milestoneId": "m42"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525750474",
+  "title": "src/detector/profiles.js + profiles/default.json",
+  "description": "Implement src/detector/profiles.js with getProfile(hardware) and add profiles/default.json built-in default hardware profile. Acceptance: getProfile returns valid profile for test hardware object.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m59",
+  "hasDesign": false,
+  "created": "2026-04-07T01:35:50.474Z",
+  "updated": "2026-04-07T01:36:50.642Z"
+}

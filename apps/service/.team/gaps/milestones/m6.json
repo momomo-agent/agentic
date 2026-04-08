@@ -1,0 +1,18 @@
+{
+  "milestoneId": "m6",
+  "match": 82,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "POST /api/chat returns SSE stream with text/event-stream", "status": "pass" },
+    { "criterion": "POST /api/transcribe returns {text}", "status": "pass" },
+    { "criterion": "POST /api/synthesize returns audio binary", "status": "pass" },
+    { "criterion": "GET /api/status returns {hardware, profile, devices}", "status": "pass" },
+    { "criterion": "GET /api/config returns current config JSON", "status": "pass" },
+    { "criterion": "PUT /api/config persists config", "status": "pass" },
+    { "criterion": "WebSocket device registration updates devices list", "status": "pass" },
+    { "criterion": "brain.js tool_use executes tool and returns result", "status": "pass" },
+    { "criterion": "/admin page loads with HTTP 200", "status": "partial" },
+    { "criterion": "push-to-talk triggers STT and fills input", "status": "partial" },
+    { "criterion": "VAD auto-detects speech and triggers STT", "status": "partial" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775572892189",
+  "title": "Implement CPU profiling instrumentation in runtime pipeline",
+  "description": "Add CPU profiling/timing instrumentation to key pipeline stages (STT, LLM, TTS) to measure per-stage latency. Store metrics accessible via API.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m88",
+  "hasDesign": true,
+  "created": "2026-04-07T14:41:32.189Z",
+  "updated": "2026-04-07T14:54:18.243Z"
+}

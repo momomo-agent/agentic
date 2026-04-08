@@ -1,0 +1,14 @@
+{
+  "id": "task-1775514586151",
+  "title": "gpu-detector.js合并到hardware.js（架构规范对齐）",
+  "description": "将src/detector/gpu-detector.js的功能合并到hardware.js，消除架构规范外的独立文件",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-06T22:29:46.151Z",
+  "updated": "2026-04-06T22:44:22.220Z",
+  "milestoneId": "m26"
+}

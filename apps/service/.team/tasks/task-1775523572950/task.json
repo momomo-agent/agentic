@@ -1,0 +1,14 @@
+{
+  "id": "task-1775523572950",
+  "title": "sense.js headless camera path",
+  "description": "Add server-side headless (non-browser) camera input path to src/runtime/sense.js",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m43",
+  "hasDesign": true,
+  "created": "2026-04-07T00:59:32.950Z",
+  "updated": "2026-04-07T02:25:29.491Z",
+  "milestoneId": "m43"
+}

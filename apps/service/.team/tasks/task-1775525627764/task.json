@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525627764",
+  "title": "src/server/hub.js — device management",
+  "description": "Implement src/server/hub.js: device registration, heartbeat (60s timeout), wakeword broadcast, speak/display commands per architecture spec.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m57",
+  "hasDesign": false,
+  "created": "2026-04-07T01:33:47.764Z",
+  "updated": "2026-04-07T01:34:21.916Z"
+}

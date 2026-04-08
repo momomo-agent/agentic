@@ -1,0 +1,16 @@
+{
+  "id": "task-1775573593639",
+  "title": "Verify LAN tunnel and HTTPS cert generation",
+  "description": "Superseded by task-1775575363327 which covers tunnel.js export fix + LAN tunnel + HTTPS cert verification.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [
+    "task-1775575363327"
+  ],
+  "groupId": "m90",
+  "hasDesign": true,
+  "created": "2026-04-07T14:53:13.640Z",
+  "updated": "2026-04-07T15:44:28.762Z",
+  "milestoneId": "m90"
+}

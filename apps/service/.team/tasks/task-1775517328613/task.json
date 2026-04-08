@@ -1,0 +1,13 @@
+{
+  "id": "task-1775517328613",
+  "title": "CDN真实端点 + profiles.js配置",
+  "description": "配置CDN真实端点，更新profiles.js使用生产CDN URL，确保远程profiles可正常拉取",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "milestoneId": "m30",
+  "hasDesign": false,
+  "created": "2026-04-06T23:15:28.613Z",
+  "updated": "2026-04-06T23:19:19.873Z"
+}

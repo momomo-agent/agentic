@@ -1,0 +1,13 @@
+{
+  "id": "task-1775500180912",
+  "title": "install/setup.sh 一键安装脚本",
+  "description": "编写 install/setup.sh，支持 curl -fsSL <url> | sh 完成首次安装：检测 Node.js、安装依赖、启动服务",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-06T18:29:40.912Z",
+  "updated": "2026-04-06T18:43:37.918Z"
+}

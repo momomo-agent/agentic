@@ -1,0 +1,14 @@
+{
+  "id": "task-1775523681486",
+  "title": "Multi-device brain state sharing",
+  "description": "Sync conversation context and active profile across connected devices via hub.js broadcastSession",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m44",
+  "hasDesign": true,
+  "created": "2026-04-07T01:01:21.486Z",
+  "updated": "2026-04-07T02:28:28.629Z",
+  "milestoneId": "m44"
+}

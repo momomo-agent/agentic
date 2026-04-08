@@ -1,0 +1,13 @@
+{
+  "id": "task-1775500155143",
+  "title": "sense.js detect(frame) API 修复",
+  "description": "添加同步 detect(frame) 接口返回 {faces, gestures, objects}，兼容 DBB-001~004 期望的调用方式，同时保留现有事件接口",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-06T18:29:15.143Z",
+  "updated": "2026-04-06T18:38:35.209Z"
+}

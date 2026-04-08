@@ -1,0 +1,13 @@
+{
+  "id": "task-1775509592226",
+  "title": "sense.js补充detect()导出",
+  "description": "sense.js添加detect(frame)方法导出，满足DBB M4/M5规范要求",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-06T21:06:32.226Z",
+  "updated": "2026-04-06T21:14:15.643Z"
+}

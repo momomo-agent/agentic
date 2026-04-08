@@ -1,0 +1,13 @@
+{
+  "id": "task-1775569629612",
+  "title": "Wire agentic-sense as external package",
+  "description": "Remove '#agentic-sense' import map stub. Add agentic-sense to package.json dependencies and update src/runtime/adapters/sense.js to import directly from the package.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m87",
+  "hasDesign": true,
+  "created": "2026-04-07T13:47:09.613Z",
+  "updated": "2026-04-07T14:24:29.576Z"
+}

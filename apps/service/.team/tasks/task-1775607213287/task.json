@@ -1,0 +1,14 @@
+{
+  "id": "task-1775607213287",
+  "title": "Implement CPU profiling instrumentation for voice latency measurement",
+  "description": "Vision gap: 'CPU profiling / performance instrumentation for latency measurement absent' is marked MISSING. M88 (Voice Latency Benchmarking) is completed. Add CPU profiling instrumentation to measure STT+LLM+TTS pipeline bottlenecks. Can be as simple as performance.now() timing wrappers around key functions (stt.js transcribe, llm.js chat, tts.js synthesize) with a /api/profile endpoint returning timing data. This closes the last Vision missing gap toward ≥90%.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m95",
+  "hasDesign": true,
+  "created": "2026-04-08T00:13:33.287Z",
+  "updated": "2026-04-08T00:57:06.015Z",
+  "milestoneId": "m95"
+}

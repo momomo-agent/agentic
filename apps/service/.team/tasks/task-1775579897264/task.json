@@ -1,0 +1,14 @@
+{
+  "id": "task-1775579897264",
+  "title": "Re-run full test suite and confirm >=90% pass rate",
+  "description": "After agentic-sense wiring is complete, run the full test suite and confirm pass rate is >=90% (>=591/657 tests). Report final count.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m91",
+  "hasDesign": true,
+  "created": "2026-04-07T16:38:17.264Z",
+  "updated": "2026-04-08T00:12:05.001Z",
+  "milestoneId": "m91"
+}

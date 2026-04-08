@@ -1,0 +1,17 @@
+{
+  "id": "task-1775520092615",
+  "title": "src/server/hub.js — device management实现",
+  "description": "实现hub.js设备管理服务，符合架构规定接口",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [
+    "task-1775520086865",
+    "task-1775520086899"
+  ],
+  "groupId": "m41",
+  "hasDesign": true,
+  "created": "2026-04-07T00:01:32.615Z",
+  "updated": "2026-04-07T00:53:11.477Z",
+  "milestoneId": "m41"
+}

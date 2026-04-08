@@ -1,0 +1,13 @@
+{
+  "id": "task-1775536806759",
+  "title": "Verify CDN profiles.json fallback to default.json",
+  "description": "profiles.js must fall back to bundled profiles/default.json when CDN fetch fails or times out. Verify the fallback path is exercised and default.json includes cpu-only profile.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m84",
+  "hasDesign": false,
+  "created": "2026-04-07T04:40:06.759Z",
+  "updated": "2026-04-07T04:40:29.171Z"
+}

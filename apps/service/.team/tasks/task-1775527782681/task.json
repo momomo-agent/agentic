@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527782681",
+  "title": "setup.sh Node.js detection and idempotency",
+  "description": "Verify setup.sh correctly detects Node.js version on Linux/macOS and is safe to re-run without side effects",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m67",
+  "hasDesign": true,
+  "created": "2026-04-07T02:09:42.681Z",
+  "updated": "2026-04-07T02:11:42.507Z"
+}

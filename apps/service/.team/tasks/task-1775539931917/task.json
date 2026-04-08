@@ -1,0 +1,14 @@
+{
+  "id": "task-1775539931917",
+  "title": "Fix optimizer.js — replace ollama setup with hardware optimization logic",
+  "description": "optimizer.js currently contains ollama setup code instead of hardware optimization logic as required by DBB. Replace with: CPU thread tuning, memory allocation hints, GPU utilization settings based on detected hardware profile. Must export optimize(profile) function.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m74",
+  "hasDesign": true,
+  "created": "2026-04-07T05:32:11.917Z",
+  "updated": "2026-04-07T11:18:46.435Z",
+  "milestoneId": "m74"
+}

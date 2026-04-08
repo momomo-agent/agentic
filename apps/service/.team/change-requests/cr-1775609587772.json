@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775609587772",
+  "from": "developer",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "agentic-embed runtime integration (embed.js) is implemented but absent from ARCHITECTURE.md",
+  "proposedChange": "Add section to ARCHITECTURE.md:\n\n## 9. agentic-embed (Vector Embedding)\n```javascript\n// src/runtime/embed.js — wraps agentic-embed package\nembed(text: string) → number[]  // bge-m3 vector embedding\n// Throws TypeError if text is not a string\n// Returns empty array for empty string\n// Used by memory.js for semantic search / retrieval\n```",
+  "status": "resolved",
+  "createdAt": "2026-04-08T00:59:47.772Z",
+  "reviewedAt": "2026-04-08T01:41:31.418Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

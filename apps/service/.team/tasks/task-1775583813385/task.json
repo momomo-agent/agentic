@@ -1,0 +1,14 @@
+{
+  "id": "task-1775583813385",
+  "title": "Verify cloud fallback and npx entrypoint",
+  "description": "Confirm cloud fallback (OpenAI/Anthropic) test passes with mocked responses. Confirm npx agentic-service --help exits 0. PRD gaps: cloud fallback partial, npx entrypoint completeness unverified.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m93",
+  "hasDesign": true,
+  "created": "2026-04-07T17:43:33.385Z",
+  "updated": "2026-04-08T00:22:11.208Z",
+  "milestoneId": "m93"
+}

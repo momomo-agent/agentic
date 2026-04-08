@@ -1,0 +1,19 @@
+{
+  "milestoneId": "m7",
+  "match": 73,
+  "timestamp": "2026-04-06T21:04:06.537Z",
+  "criteria": [
+    { "criterion": "Ollama timeout auto-switches to cloud, returns valid stream", "status": "pass" },
+    { "criterion": "ANTHROPIC_API_KEY set: chat() uses Anthropic API", "status": "pass" },
+    { "criterion": "No API key: throws 'OPENAI_API_KEY not set'", "status": "pass" },
+    { "criterion": "WebSocket device registration: getDevices() includes device", "status": "pass" },
+    { "criterion": "WebSocket ping/pong: server replies pong", "status": "pass" },
+    { "criterion": "60s no heartbeat: device auto-removed", "status": "pass" },
+    { "criterion": "speak/display/capture commands routed to device", "status": "pass" },
+    { "criterion": "tool_use response format: {role:'tool', tool_use_id, content}", "status": "pass" },
+    { "criterion": "SIGINT: HTTP+WS server closes within 5s, exit code 0", "status": "partial" },
+    { "criterion": "CDN URL returns valid JSON, cache written", "status": "partial" },
+    { "criterion": "ollama pull shows download progress", "status": "partial" },
+    { "criterion": "README has install methods + all REST endpoints with examples", "status": "partial" }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "name": "agentic-service",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Local-first AI service with hardware detection and model optimization",
+  "main": "src/index.js",
+  "bin": {
+    "agentic-service": "bin/agentic-service.js"
+  },
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run",
+    "start": "node bin/agentic-service.js",
+    "dev": "node bin/agentic-service.js --skip-setup",
+    "build": "cd src/ui/admin && npm install && npm run build",
+    "tunnel": "node src/tunnel.js"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "ollama",
+    "local-first"
+  ],
+  "author": "",
+  "license": "MIT",
+  "vitest": {
+    "coverage": {
+      "thresholds": {
+        "statements": 98,
+        "lines": 98,
+        "branches": 98,
+        "functions": 98
+      }
+    }
+  },
+  "devDependencies": {
+    "vitest": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "imports": {
+    "#agentic-embed": "./src/runtime/adapters/embed.js",
+    "#agentic-voice": "./src/runtime/adapters/voice/openai-tts.js"
+  },
+  "dependencies": {
+    "agentic-embed": "file:./vendor/agentic-embed.tgz",
+    "agentic-sense": "file:./vendor/agentic-sense.tgz",
+    "agentic-store": "file:./vendor/agentic-store.tgz",
+    "agentic-voice": "file:./vendor/agentic-voice.tgz",
+    "chalk": "^5.6.2",
+    "commander": "^12.1.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "mic": "^2.1.2",
+    "multer": "^2.1.1",
+    "node-record-lpcm16": "^1.0.1",
+    "open": "^10.2.0",
+    "ora": "^9.3.0",
+    "selfsigned": "^1.10.14",
+    "ws": "^8.20.0"
+  }
+}

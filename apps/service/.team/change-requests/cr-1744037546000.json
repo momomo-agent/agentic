@@ -1,0 +1,14 @@
+{
+  "id": "cr-1744037546000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Several implemented modules are absent from ARCHITECTURE.md: tunnel.js (LAN tunnel), src/cli/ (setup/browser CLI), src/server/cert.js + httpsServer.js + middleware.js (HTTPS/middleware layer), src/runtime/vad.js (VAD), src/runtime/embed.js + adapters/ (agentic-embed integration), src/detector/matcher.js + ollama.js (detector submodules). Architecture match is 88% but these gaps prevent accurate system documentation.",
+  "proposedChange": "Add sections to ARCHITECTURE.md documenting: (1) LAN Tunnel module (tunnel.js), (2) CLI module (src/cli/setup.js, browser.js), (3) HTTPS/Middleware layer (cert.js, httpsServer.js, middleware.js), (4) VAD runtime module (vad.js), (5) agentic-embed runtime integration (embed.js, adapters/), (6) Detector submodules (matcher.js, ollama.js).",
+  "status": "resolved",
+  "createdAt": "2026-04-07T14:52:26.000Z",
+  "reviewedAt": "2026-04-08T01:41:31.412Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

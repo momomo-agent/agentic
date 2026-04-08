@@ -1,0 +1,16 @@
+{
+  "id": "task-1775524194190",
+  "title": "src/runtime/llm.js — chat() stream",
+  "description": "Implement chat(messages, options) → stream interface using Ollama",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775524084653"
+  ],
+  "groupId": "m49",
+  "hasDesign": false,
+  "created": "2026-04-07T01:09:54.190Z",
+  "updated": "2026-04-07T01:20:48.208Z",
+  "milestoneId": "m49"
+}

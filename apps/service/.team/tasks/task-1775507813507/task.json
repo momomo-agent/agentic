@@ -1,0 +1,13 @@
+{
+  "id": "task-1775507813507",
+  "title": "store.js: 导出delete()方法别名",
+  "description": "store.js添加delete()方法作为del()的别名，使store.delete(key)可用（符合M4 DBB测试规范）",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-06T20:36:53.507Z",
+  "updated": "2026-04-06T20:53:43.512Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775536627468",
+  "title": "Wire agentic-sense as external package",
+  "description": "Verify package.json has agentic-sense dependency; update src/runtime/sense.js to import from 'agentic-sense' not local stub",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m84",
+  "hasDesign": true,
+  "created": "2026-04-07T04:37:07.469Z",
+  "updated": "2026-04-07T11:09:30.692Z",
+  "milestoneId": "m84"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775500050357",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L1",
+  "targetFile": "PRD.md",
+  "reason": "Multiple gaps identified by monitors that require architectural clarification and PRD updates",
+  "proposedChange": "1. sense.js API contract: PRD must specify whether sense.js uses synchronous detect(frame) call or event-based pipeline — DBB expects detect(frame) but implementation uses event loop. 2. store.js API: PRD must clarify whether the KV store exposes delete() or del() — DBB-002 requires store.delete(key) but implementation exports del(). 3. hub.js heartbeat timeout: PRD must specify exact timeout — DBB-005 says 60s but implementation uses 40s. 4. CDN URL for profiles.json: PRD must provide a real accessible URL instead of cdn.example.com placeholder. 5. wake word detection: PRD must clarify whether audio-level wake word detection is required (M8) or text-match only is acceptable. 6. HTTPS/intranet tunneling: PRD must specify if multi-device cross-network access requires HTTPS or tunneling support in hub.js. 7. End-to-end voice latency: PRD must define measurable acceptance criteria (<2s) and require benchmark tests. 8. STT/TTS cloud fallback: PRD must explicitly require adaptive provider selection in stt.js/tts.js matching the LLM fallback pattern. 9. install/ directory: PRD must confirm Dockerfile, docker-compose.yml, and setup.sh are required deliverables for M4 Docker deployment milestone.",
+  "status": "resolved",
+  "createdAt": "2026-04-06T18:27:41.106Z",
+  "reviewedAt": "2026-04-08T01:41:31.418Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775533866914",
+  "title": "Add CPU-only profile to profiles/default.json",
+  "description": "Add cpu-only hardware profile to profiles/default.json (currently only has apple-silicon and nvidia). Should specify lightweight models suitable for CPU-only inference. DBB gap: profiles/default.json missing cpu-only profile",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m74",
+  "hasDesign": false,
+  "created": "2026-04-07T03:51:06.914Z",
+  "updated": "2026-04-07T03:55:11.761Z",
+  "milestoneId": "m74"
+}

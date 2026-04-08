@@ -1,0 +1,14 @@
+{
+  "id": "task-1775523676474",
+  "title": "Ollama auto-install + model pull",
+  "description": "Detect missing Ollama binary, download and install it, pull recommended model with progress display in cli/setup.js",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m44",
+  "hasDesign": true,
+  "created": "2026-04-07T01:01:16.474Z",
+  "updated": "2026-04-07T02:09:04.764Z",
+  "milestoneId": "m44"
+}

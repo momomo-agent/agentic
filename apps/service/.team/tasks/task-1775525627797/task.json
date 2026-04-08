@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525627797",
+  "title": "src/server/brain.js — LLM inference + tool calling",
+  "description": "Implement src/server/brain.js: LLM inference pipeline with tool_use response format, text field required per architecture spec.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m57",
+  "hasDesign": false,
+  "created": "2026-04-07T01:33:47.797Z",
+  "updated": "2026-04-07T01:34:21.948Z"
+}

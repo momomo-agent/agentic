@@ -1,0 +1,13 @@
+{
+  "id": "task-1775525627832",
+  "title": "src/server/api.js — REST API endpoints",
+  "description": "Implement src/server/api.js: /api/status, /api/config (persistent), /api/speak, /api/devices REST endpoints per architecture spec.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m57",
+  "hasDesign": false,
+  "created": "2026-04-07T01:33:47.832Z",
+  "updated": "2026-04-07T01:34:21.982Z"
+}

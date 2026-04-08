@@ -1,0 +1,13 @@
+{
+  "id": "task-1775527313331",
+  "title": "agentic-embed package verification — src/runtime/embed.js",
+  "description": "Confirm agentic-embed is in package.json dependencies and src/runtime/embed.js imports from the external package rather than being a local implementation",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m64",
+  "hasDesign": true,
+  "created": "2026-04-07T02:01:53.331Z",
+  "updated": "2026-04-07T02:25:29.364Z"
+}

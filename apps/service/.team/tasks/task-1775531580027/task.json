@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531580027",
+  "title": "Voice latency benchmark: enforce <2s STT+LLM+TTS end-to-end",
+  "description": "Add a benchmark test or runtime measurement that verifies voice latency (STT+LLM+TTS) stays under 2 seconds end-to-end. Log latency per request and fail if threshold exceeded.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m81",
+  "hasDesign": true,
+  "created": "2026-04-07T03:13:00.027Z",
+  "updated": "2026-04-07T03:58:51.607Z",
+  "milestoneId": "m81"
+}

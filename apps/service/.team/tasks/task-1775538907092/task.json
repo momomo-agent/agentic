@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538907092",
+  "title": "Fix TTS import paths to use package.json imports map",
+  "description": "Fix src/runtime/tts.js lines 5-7: Change import('agentic-voice/kokoro') to import('#agentic-voice/kokoro'), same for piper and openai-tts. This unblocks task-1775535887205 test verification.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m83",
+  "hasDesign": true,
+  "created": "2026-04-07T05:15:07.092Z",
+  "updated": "2026-04-07T11:23:55.338Z",
+  "milestoneId": "m83"
+}

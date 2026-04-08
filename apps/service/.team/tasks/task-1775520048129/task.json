@@ -1,0 +1,14 @@
+{
+  "id": "task-1775520048129",
+  "title": "src/detector/profiles.js — getProfile(hardware)实现",
+  "description": "实现 getProfile(hardware) 根据硬件信息返回推荐模型配置，补全 profiles/default.json",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m41",
+  "hasDesign": true,
+  "created": "2026-04-07T00:00:48.129Z",
+  "updated": "2026-04-07T00:53:11.381Z",
+  "milestoneId": "m41"
+}

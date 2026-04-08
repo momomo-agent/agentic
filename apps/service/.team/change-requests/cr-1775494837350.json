@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775494837350",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L1",
+  "targetFile": "PRD.md",
+  "reason": "Monitor gaps analysis reveals 6 critical unaddressed areas in current ARCHITECTURE.md that need PRD clarification to implement correctly: (1) sense.js and memory.js are in-progress but PRD M3/M5 specs lack detail on MediaPipe integration points and vector memory search API contract; (2) Docker/install/ directory is missing despite being M4 requirement; (3) Admin UI lacks live data binding spec — PRD must clarify whether /admin reads from /api/status+/api/config or static files; (4) hub.js WebSocket message routing protocol is unspecified — PRD must define device registration, heartbeat, and message envelope format; (5) Cloud fallback trigger conditions unspecified — PRD must define latency threshold and error count before auto-switching; (6) STT/TTS hardware-adaptive provider selection logic unspecified — PRD must define which hardware profile maps to which provider.",
+  "proposedChange": "Add to PRD.md the following sections: (1) M3: WebSocket message envelope schema {type, deviceId, payload, ts}; heartbeat interval 30s; registration handshake sequence. (2) M3: Admin panel MUST source device list from GET /api/status and config from GET /api/config — no static files. (3) M4: Cloud fallback triggers: local LLM timeout >5s OR 3 consecutive errors → auto-switch to configured cloud provider; restore local after 60s probe succeeds. (4) M4: STT/TTS provider selection: profile.stt.provider field drives runtime/stt.js provider choice — sensevoice for apple-silicon, whisper for nvidia, cloud for cpu-only. (5) M4: Docker — docker-compose.yml must expose port 3000, mount ./data volume, include OLLAMA_HOST env var. (6) M5: sense.js must call agentic-sense detect(stream) → {faces, gestures, objects}; memory.js must expose search(query, topK) and upsert(id, text, meta) via agentic-store+agentic-embed.",
+  "status": "resolved",
+  "createdAt": "2026-04-06T17:00:58.548Z",
+  "reviewedAt": "2026-04-08T01:41:31.418Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775530249339",
+  "title": "LAN tunnel implementation",
+  "description": "Implement ngrok or cloudflare tunnel for remote device access. Add npm run tunnel script that starts tunnel and prints public URL.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m75",
+  "hasDesign": false,
+  "created": "2026-04-07T02:50:49.339Z",
+  "updated": "2026-04-07T02:51:27.421Z"
+}

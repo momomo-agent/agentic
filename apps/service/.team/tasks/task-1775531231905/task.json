@@ -1,0 +1,13 @@
+{
+  "id": "task-1775531231905",
+  "title": "Add cpu-only profile to profiles/default.json",
+  "description": "Add a cpu-only hardware profile entry to profiles/default.json for systems without GPU. Should include appropriate model size limits and inference settings.",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m79",
+  "hasDesign": false,
+  "created": "2026-04-07T03:07:11.905Z",
+  "updated": "2026-04-07T03:07:48.838Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531500430",
+  "title": "Deepen cross-device brain state sharing in hub.js",
+  "description": "Extend joinSession/broadcastSession to share LLM conversation context across devices, not just session ID. Devices in same session should share message history.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m80",
+  "hasDesign": true,
+  "created": "2026-04-07T03:11:40.430Z",
+  "updated": "2026-04-07T04:09:40.640Z",
+  "milestoneId": "m80"
+}

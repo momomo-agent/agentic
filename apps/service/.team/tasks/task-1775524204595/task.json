@@ -1,0 +1,16 @@
+{
+  "id": "task-1775524204595",
+  "title": "src/server/brain.js + api.js",
+  "description": "Implement LLM inference+tool calling and REST API endpoints per ARCHITECTURE.md",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [
+    "task-1775524199199"
+  ],
+  "groupId": "m50",
+  "hasDesign": false,
+  "created": "2026-04-07T01:10:04.596Z",
+  "updated": "2026-04-07T01:20:48.303Z",
+  "milestoneId": "m50"
+}

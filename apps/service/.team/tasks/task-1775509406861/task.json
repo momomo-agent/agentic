@@ -1,0 +1,13 @@
+{
+  "id": "task-1775509406861",
+  "title": "store.delete()别名修复",
+  "description": "store.js补充delete()方法作为del()的别名，满足DBB M4测试要求",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-06T21:03:26.861Z",
+  "updated": "2026-04-06T21:12:50.223Z"
+}

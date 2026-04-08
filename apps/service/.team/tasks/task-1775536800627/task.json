@@ -1,0 +1,13 @@
+{
+  "id": "task-1775536800627",
+  "title": "Verify and fix npx bin entrypoint",
+  "description": "Confirm bin/agentic-service.js exists and is wired in package.json bin field. Test npx agentic-service starts without error on clean install. Fix any missing shebang, missing exports, or broken require paths.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m84",
+  "hasDesign": false,
+  "created": "2026-04-07T04:40:00.627Z",
+  "updated": "2026-04-07T04:40:29.133Z"
+}

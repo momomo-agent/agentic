@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775579794375",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Several implemented modules are absent from ARCHITECTURE.md: tunnel.js (LAN tunnel), src/cli/ (setup.js, browser.js), HTTPS/middleware layer (cert.js, httpsServer.js, middleware.js), VAD (runtime/vad.js), and agentic-embed runtime integration (embed.js, adapters/). Architecture match is 88% but these gaps prevent accurate system documentation.",
+  "proposedChange": "Add sections for: Tunnel module (tunnel.js — LAN tunnel via localtunnel/ngrok), CLI module (cli/setup.js, cli/browser.js — setup wizard and browser launch), HTTPS/Middleware layer (server/cert.js, server/httpsServer.js, server/middleware.js), VAD module (runtime/vad.js — voice activity detection), and agentic-embed integration (runtime/embed.js, runtime/adapters/ — vector embedding via bge-m3).",
+  "status": "resolved",
+  "createdAt": "2026-04-07T16:38:49.955Z",
+  "reviewedAt": "2026-04-08T01:41:31.418Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

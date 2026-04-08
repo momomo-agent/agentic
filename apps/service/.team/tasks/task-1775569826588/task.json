@@ -1,0 +1,13 @@
+{
+  "id": "task-1775569826588",
+  "title": "Fix SIGINT graceful drain during in-flight requests",
+  "description": "SIGINT handler does not fully drain in-flight requests before shutdown. Fix graceful drain logic so all active requests complete before process exits.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m87",
+  "hasDesign": true,
+  "created": "2026-04-07T13:50:26.588Z",
+  "updated": "2026-04-07T14:16:23.755Z"
+}

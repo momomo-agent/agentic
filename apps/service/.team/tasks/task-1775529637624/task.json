@@ -1,0 +1,14 @@
+{
+  "id": "task-1775529637624",
+  "title": "setup.sh Node.js detection and idempotency",
+  "description": "Verify setup.sh detects existing Node.js installation and is safe to re-run without side effects",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m74",
+  "hasDesign": true,
+  "created": "2026-04-07T02:40:37.624Z",
+  "updated": "2026-04-07T03:34:06.525Z",
+  "milestoneId": "m74"
+}

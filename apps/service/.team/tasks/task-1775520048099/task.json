@@ -1,0 +1,13 @@
+{
+  "id": "task-1775520048099",
+  "title": "src/runtime/tts.js — synthesize实现",
+  "description": "实现 synthesize(text) → audioBuffer，支持 Kokoro/Piper 本地模型及云端回退",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m41",
+  "hasDesign": true,
+  "created": "2026-04-07T00:00:48.099Z",
+  "updated": "2026-04-07T00:04:40.099Z"
+}

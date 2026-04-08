@@ -1,0 +1,13 @@
+{
+  "id": "task-1775523855296",
+  "title": "Runtime layer: llm.js + stt.js + tts.js",
+  "description": "Implement src/runtime/llm.js (chat→stream), src/runtime/stt.js (transcribe→text), src/runtime/tts.js (synthesize→audioBuffer) per ARCHITECTURE.md interfaces",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m45",
+  "hasDesign": false,
+  "created": "2026-04-07T01:04:15.296Z",
+  "updated": "2026-04-07T01:04:52.422Z"
+}

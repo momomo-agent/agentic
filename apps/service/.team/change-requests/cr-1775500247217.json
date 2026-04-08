@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775500247217",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L1",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Monitor gaps identified several architectural issues not addressed in current ARCHITECTURE.md: (1) optimizer.js output not wired to llm.js loadConfig() — hardcoded to gemma4:26b; (2) sense.js uses requestAnimationFrame (browser-only), no server-side perception path documented; (3) sense.detect(frame) API not exported — only event-based API; (4) store.js exports del() but DBB tests store.delete(); (5) brain.js tool_use response missing text field expected by M9 DBB; (6) hub.js heartbeat removes device after 40s, DBB specifies 60s; (7) hub.js does not broadcast wakeword events; (8) Docker/Dockerfile confirmed in install/ directory per architecture but not yet built; (9) CDN URL uses jsdelivr.net proxy instead of cdn.example.com as specified in M1 DBB; (10) SIGINT graceful shutdown handler not confirmed in server entry.",
+  "proposedChange": "Add the following clarifications to ARCHITECTURE.md: (1) llm.js loadConfig() MUST call optimizer.js and use its output model selection, not hardcode gemma4:26b; (2) sense.js MUST export detect(frame) in addition to event API for server-side use; (3) store.js MUST export delete() alias alongside del(); (4) brain.js tool_use response MUST include text field; (5) hub.js heartbeat timeout MUST be 60s per DBB-005; (6) hub.js MUST broadcast wakeword events to connected clients; (7) profiles.js remote URL MUST use cdn.example.com (not jsdelivr proxy); (8) server entry MUST register process.on('SIGINT') for graceful shutdown.",
+  "status": "resolved",
+  "createdAt": "2026-04-06T18:30:52.607Z",
+  "reviewedAt": "2026-04-08T01:41:31.413Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

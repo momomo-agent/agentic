@@ -1,0 +1,13 @@
+{
+  "id": "task-1775498242331",
+  "title": "唤醒词检测",
+  "description": "实现可配置唤醒词（默认'hey'），触发语音输入激活，PRD M2 gap",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-06T17:57:22.331Z",
+  "updated": "2026-04-06T18:09:44.613Z"
+}

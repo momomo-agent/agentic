@@ -1,0 +1,13 @@
+{
+  "id": "task-1775524883327",
+  "title": "src/runtime/sense.js + memory.js — MediaPipe sense + memory runtime",
+  "description": "Implement runtime/sense.js: MediaPipe headless sense runtime. Implement runtime/memory.js: memory runtime backed by agentic-store.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m52",
+  "hasDesign": false,
+  "created": "2026-04-07T01:21:23.327Z",
+  "updated": "2026-04-07T01:33:12.453Z"
+}

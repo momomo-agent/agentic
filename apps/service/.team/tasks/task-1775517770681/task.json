@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517770681",
+  "title": "实现src/server/brain.js",
+  "description": "实现LLM推理 + tool calling服务端逻辑",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m32",
+  "hasDesign": true,
+  "created": "2026-04-06T23:22:50.681Z",
+  "updated": "2026-04-06T23:42:29.084Z",
+  "milestoneId": "m32"
+}

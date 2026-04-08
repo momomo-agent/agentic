@@ -1,0 +1,14 @@
+{
+  "id": "task-1775506792151",
+  "title": "hub.js设备命令: speak/display支持",
+  "description": "hub.js的sendCommand添加speak和display命令类型处理，补全设备工具能力",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": true,
+  "created": "2026-04-06T20:19:52.151Z",
+  "updated": "2026-04-06T20:32:00.639Z",
+  "milestoneId": "m14"
+}

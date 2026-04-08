@@ -1,0 +1,13 @@
+{
+  "id": "task-1775520042892",
+  "title": "src/runtime/llm.js — chat stream实现",
+  "description": "实现 chat(messages, options) → AsyncGenerator 流式输出，对接 Ollama /api/chat，支持 abort",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m41",
+  "hasDesign": true,
+  "created": "2026-04-07T00:00:42.892Z",
+  "updated": "2026-04-07T00:04:40.038Z"
+}

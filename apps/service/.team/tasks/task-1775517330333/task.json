@@ -1,0 +1,14 @@
+{
+  "id": "task-1775517330333",
+  "title": "HTTPS/LAN隧道安全访问",
+  "description": "实现LAN内HTTPS访问支持，自签名证书或mDNS隧道，确保多设备安全连接",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "tech_lead-3",
+  "blockedBy": [],
+  "groupId": "m30",
+  "hasDesign": true,
+  "created": "2026-04-06T23:15:30.333Z",
+  "updated": "2026-04-07T00:50:35.499Z",
+  "milestoneId": "m30"
+}

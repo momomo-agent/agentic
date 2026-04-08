@@ -1,0 +1,7 @@
+{
+  "agent": "prd_monitor",
+  "timestamp": "2026-04-08T04:25:14.381Z",
+  "exitCode": 0,
+  "status": "completed",
+  "summary": "PRD gap analysis: match 55% (down from 95%). 22 implemented, 3 partial, 3 missing. New gaps: OLLAMA_HOST env var, data volume mount, docs missing. Resolved: sense.js detect(), CDN URL, heartbeat timeout. Written to .team/gaps/prd.json."
+}

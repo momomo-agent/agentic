@@ -1,0 +1,14 @@
+{
+  "id": "task-1775533867080",
+  "title": "Migrate agentic-embed to external package dependency",
+  "description": "Architecture specifies agentic-embed as external package, but src/runtime/embed.js is currently a local module. Either: (1) publish agentic-embed as npm package and update imports, or (2) submit CR to update architecture to reflect local implementation. Architecture gap: agentic-embed should be external package",
+  "status": "cancelled",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m77",
+  "hasDesign": false,
+  "created": "2026-04-07T03:51:07.080Z",
+  "updated": "2026-04-07T03:54:34.798Z",
+  "milestoneId": "m77"
+}

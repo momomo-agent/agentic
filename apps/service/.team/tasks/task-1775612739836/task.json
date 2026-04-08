@@ -1,0 +1,14 @@
+{
+  "id": "task-1775612739836",
+  "title": "Verify and update Vision/PRD gap statuses",
+  "description": "Gap files vision.json and prd.json are stale (Apr 7). Many items marked 'partial' may now be 'implemented'. Check each partial/missing item against actual code: (1) STT/TTS agentic-voice dependency wiring, (2) wake word server-side pipeline, (3) cloud fallback OpenAI/Anthropic, (4) npx entrypoint, (5) external packages (agentic-store, agentic-voice, agentic-sense), (6) CDN fallback, (7) cross-device brain state, (8) HTTPS/LAN tunnel, (9) config hot-update. Update gap statuses to reflect reality.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m97",
+  "hasDesign": false,
+  "created": "2026-04-08T01:45:39.836Z",
+  "updated": "2026-04-08T02:10:42.055Z",
+  "milestoneId": "m97"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775518448489",
+  "title": "实现src/runtime/sense.js",
+  "description": "实现MediaPipe感知运行时：处理视觉输入，支持服务端无头摄像头路径",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m31",
+  "hasDesign": false,
+  "created": "2026-04-06T23:34:08.490Z",
+  "updated": "2026-04-06T23:35:06.637Z"
+}

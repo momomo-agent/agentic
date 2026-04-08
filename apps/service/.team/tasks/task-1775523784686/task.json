@@ -1,0 +1,13 @@
+{
+  "id": "task-1775523784686",
+  "title": "src/runtime/stt.js — transcribe audioBuffer to text",
+  "description": "Implement transcribe(audioBuffer) → text using whisper.cpp or equivalent",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m45",
+  "hasDesign": false,
+  "created": "2026-04-07T01:03:04.686Z",
+  "updated": "2026-04-07T01:07:00.199Z"
+}

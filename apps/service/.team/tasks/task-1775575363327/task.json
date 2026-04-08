@@ -1,0 +1,14 @@
+{
+  "id": "task-1775575363327",
+  "title": "Fix tunnel.js export and re-verify LAN tunnel + HTTPS cert",
+  "description": "tunnel.js does not export startTunnel(port) — tester-2 blocked on this. Export the function and verify LAN tunnel establishes HTTPS connection. cert.js self-signed cert generation must also pass.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m90",
+  "hasDesign": true,
+  "created": "2026-04-07T15:22:43.327Z",
+  "updated": "2026-04-07T16:36:32.220Z",
+  "milestoneId": "m90"
+}

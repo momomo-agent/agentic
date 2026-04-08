@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531518034",
+  "title": "Implement server-side VAD silence suppression",
+  "description": "Add Voice Activity Detection on the server to filter silence before forwarding audio to STT pipeline. Integrate into hub.js or sense.js audio handling.",
+  "status": "cancelled",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m80",
+  "hasDesign": false,
+  "created": "2026-04-07T03:11:58.034Z",
+  "updated": "2026-04-07T03:23:00.852Z",
+  "milestoneId": "m80"
+}
