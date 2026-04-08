@@ -62,9 +62,6 @@ program
         });
       }
 
-      const proto = useHttps ? 'https' : 'http';
-      console.log(chalk.green(`✓ Server running at ${proto}://localhost:${port}\n`));
-
       if (isFirstRun || options.browser) {
         await openBrowser(`${proto}://localhost:${port}`);
       }
