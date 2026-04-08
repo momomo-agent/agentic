@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agentic-render — Streaming Markdown Renderer</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <style>
+    :root {
+      --bg: #050505; --surface: #0f0f0f; --border: #1c1c1c;
+      --text: #e4e4e7; --text-2: #888; --accent: #a78bfa;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 3rem 1rem; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .sub { color: var(--text-2); margin-bottom: 2rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; width: 100%; max-width: 800px; margin-bottom: 1rem; }
+    .card h3 { font-size: 0.85rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    label { display: block; font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.3rem; }
+    textarea { width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem; resize: vertical; min-height: 120px; margin-bottom: 0.8rem; font-family: 'SF Mono', Monaco, monospace; }
+    button { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; font-size: 0.9rem; cursor: pointer; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #000; font-weight: 600; width: 100%; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary { background: #444; color: #fff; }
+    .row { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
+    .row button { flex: 1; }
+    .render-output { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; min-height: 200px; }
+    .status { font-size: 0.8rem; color: var(--text-2); min-height: 1.2rem; margin-top: 0.5rem; }
+    .theme-toggle { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
+    .theme-btn { padding: 0.4rem 0.8rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-2); }
+    .theme-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>⚡ agentic-render</h1>
+  <p class="sub">Streaming markdown renderer for AI — zero deps, beautiful defaults</p>
+
+  <!-- Markdown Input -->
+  <div class="card">
+    <h3>📝 Markdown Input</h3>
+    <textarea id="markdownInput" placeholder="Type markdown here..."># Hello World
+
+This is **agentic-render** — a streaming markdown renderer.
+
+## Features
+
+- **Streaming support** — no flicker on partial code blocks
+- **Syntax highlighting** — built-in
+- **Zero dependencies** — one script tag
+- **Beautiful defaults** — dark + light themes
+
+## Code Example
+
+```javascript
+const r = AgenticRender.create('#output', { theme: 'dark' })
+r.append('# Hello\n\n')
+r.append('Some **bold** text')
+```
+
+## Lists
+
+- Item 1
+- Item 2
+  - Nested item
+- Item 3
+
+## Table
+
+| Feature | Status |
+|---------|--------|
+| Streaming | ✅ |
+| Syntax | ✅ |
+| Tables | ✅ |
+
+> This is a blockquote. Pretty cool, right?</textarea>
+    <div class="row">
+      <button class="btn-primary" onclick="renderMarkdown()">Render</button>
+      <button class="btn-secondary" onclick="streamMarkdown()">Stream (Simulate)</button>
+      <button class="btn-secondary" onclick="clearOutput()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Theme Selection -->
+  <div class="card">
+    <h3>🎨 Theme</h3>
+    <div class="theme-toggle">
+      <div class="theme-btn active" onclick="setTheme('dark')">Dark</div>
+      <div class="theme-btn" onclick="setTheme('light')">Light</div>
+    </div>
+  </div>
+
+  <!-- Render Output -->
+  <div class="card">
+    <h3>🖼️ Rendered Output</h3>
+    <div class="render-output" id="renderOutput"></div>
+    <div class="status" id="renderStatus"></div>
+  </div>
+
+  <!-- Info -->
+  <div class="card">
+    <h3>📦 Usage</h3>
+    <pre style="font-size:0.8rem;color:var(--text-2);overflow-x:auto;white-space:pre-wrap">&lt;script src="agentic-render.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+// Create renderer
+const r = AgenticRender.create('#output', { theme: 'dark' })
+
+// Stream tokens one by one — no flicker
+r.append('# Hello\n\n')
+r.append('Some **bold** text\n\n')
+r.append('```js\n')
+r.append('console.log("hi")')  // partial code block
+r.append('\n```')              // closes cleanly
+
+// Or render all at once
+r.set('# Complete markdown')
+
+// Switch theme
+r.setTheme('light')
+&lt;/script&gt;</pre>
+  </div>
+
+  <p class="sub" style="margin-top:1rem"><a href="https://github.com/momomo-agent/agentic-render">GitHub</a> · Part of the <a href="https://github.com/momomo-agent/agentic">agentic</a> family</p>
+
+  <script src="../agentic-render.js"></script>
+  <script>
+    // Initialize renderer
+    let renderer = AgenticRender.create('#renderOutput', { theme: 'dark' })
+
+    // Render markdown (instant)
+    function renderMarkdown() {
+      const markdown = document.getElementById('markdownInput').value
+      renderer.set(markdown)
+      document.getElementById('renderStatus').textContent = '✓ Rendered'
+    }
+
+    // Stream markdown (simulate token-by-token)
+    async function streamMarkdown() {
+      const markdown = document.getElementById('markdownInput').value
+      renderer.set('') // clear first
+      document.getElementById('renderStatus').textContent = 'Streaming...'
+      
+      // Simulate streaming by appending character by character
+      // In real usage, you'd append tokens as they arrive from LLM
+      for (let i = 0; i < markdown.length; i++) {
+        renderer.append(markdown[i])
+        // Small delay to visualize streaming
+        if (i % 10 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 20))
+        }
+      }
+      
+      document.getElementById('renderStatus').textContent = '✓ Streaming complete'
+    }
+
+    // Clear output
+    function clearOutput() {
+      renderer.set('')
+      document.getElementById('renderStatus').textContent = 'Cleared'
+    }
+
+    // Set theme
+    function setTheme(theme) {
+      renderer.setTheme(theme)
+      
+      // Update button states
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.remove('active')
+      })
+      event.target.classList.add('active')
+      
+      document.getElementById('renderStatus').textContent = `Theme: ${theme}`
+    }
+
+    // Initial render
+    renderMarkdown()
+  </script>
+</body>
+</html>

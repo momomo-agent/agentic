@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agentic-shell — Unix Shell for AI</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💻</text></svg>">
+  <style>
+    :root {
+      --bg: #050505; --surface: #0f0f0f; --border: #1c1c1c;
+      --text: #e4e4e7; --text-2: #888; --accent: #4ade80;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 3rem 1rem; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .sub { color: var(--text-2); margin-bottom: 2rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; width: 100%; max-width: 800px; margin-bottom: 1rem; }
+    .card h3 { font-size: 0.85rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .terminal { background: #000; border: 1px solid var(--border); border-radius: 6px; padding: 1rem; min-height: 300px; max-height: 400px; overflow-y: auto; font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem; }
+    .terminal-line { margin-bottom: 0.3rem; }
+    .terminal-prompt { color: var(--accent); }
+    .terminal-command { color: #fff; }
+    .terminal-output { color: var(--text-2); white-space: pre-wrap; }
+    .terminal-error { color: #ef4444; }
+    .command-input { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .command-input input { flex: 1; padding: 0.6rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem; font-family: 'SF Mono', Monaco, monospace; }
+    button { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; font-size: 0.9rem; cursor: pointer; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #000; font-weight: 600; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary { background: #444; color: #fff; }
+    .quick-commands { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .quick-cmd { padding: 0.4rem 0.8rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-2); font-family: 'SF Mono', Monaco, monospace; }
+    .quick-cmd:hover { border-color: var(--accent); color: var(--accent); }
+    .status { font-size: 0.8rem; color: var(--text-2); min-height: 1.2rem; margin-top: 0.5rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>💻 agentic-shell</h1>
+  <p class="sub">Unix-like shell for AI — runs in browser with virtual filesystem</p>
+
+  <!-- Terminal -->
+  <div class="card">
+    <h3>🖥️ Terminal</h3>
+    <div class="quick-commands">
+      <div class="quick-cmd" onclick="runQuickCommand('ls -la')">ls -la</div>
+      <div class="quick-cmd" onclick="runQuickCommand('pwd')">pwd</div>
+      <div class="quick-cmd" onclick="runQuickCommand('mkdir test')">mkdir test</div>
+      <div class="quick-cmd" onclick="runQuickCommand('echo Hello > hello.txt')">echo Hello > hello.txt</div>
+      <div class="quick-cmd" onclick="runQuickCommand('cat hello.txt')">cat hello.txt</div>
+      <div class="quick-cmd" onclick="runQuickCommand('find . -name \"*.txt\"')">find . -name "*.txt"</div>
+      <div class="quick-cmd" onclick="runQuickCommand('grep -r Hello .')">grep -r Hello .</div>
+    </div>
+    <div class="terminal" id="terminal"></div>
+    <div class="command-input">
+      <input id="commandInput" placeholder="Type a command..." onkeydown="handleKeydown(event)">
+      <button class="btn-primary" onclick="runCommand()">Run</button>
+      <button class="btn-secondary" onclick="clearTerminal()">Clear</button>
+    </div>
+    <div class="status" id="terminalStatus"></div>
+  </div>
+
+  <!-- Info -->
+  <div class="card">
+    <h3>📦 Usage</h3>
+    <pre style="font-size:0.8rem;color:var(--text-2);overflow-x:auto;white-space:pre-wrap">&lt;script src="agentic-shell.js"&gt;&lt;/script&gt;
+&lt;script type="module"&gt;
+import { AgenticFileSystem } from 'agentic-filesystem'
+import { AgenticShell } from 'agentic-shell'
+
+// Create virtual filesystem
+const fs = new AgenticFileSystem()
+
+// Create shell
+const shell = new AgenticShell(fs)
+
+// Execute commands
+const result = await shell.exec('ls -la')
+console.log(result.output)
+
+// Pipe commands
+await shell.exec('echo "Hello World" | grep Hello')
+
+// File operations
+await shell.exec('mkdir test')
+await shell.exec('echo "content" > test/file.txt')
+await shell.exec('cat test/file.txt')
+&lt;/script&gt;</pre>
+  </div>
+
+  <p class="sub" style="margin-top:1rem"><a href="https://github.com/momomo-agent/agentic-shell">GitHub</a> · Part of the <a href="https://github.com/momomo-agent/agentic">agentic</a> family</p>
+
+  <script type="module">
+    // Import dependencies
+    import { AgenticFileSystem } from 'https://unpkg.com/agentic-filesystem/dist/index.js'
+    import { AgenticShell } from '../dist/index.js'
+
+    // Initialize filesystem and shell
+    const fs = new AgenticFileSystem()
+    const shell = new AgenticShell(fs)
+
+    // Create some initial files for demo
+    await fs.writeFile('/README.md', '# Welcome to agentic-shell\n\nThis is a virtual filesystem running in your browser.')
+    await fs.writeFile('/example.txt', 'This is an example file.\nYou can use shell commands to interact with it.')
+    await fs.mkdir('/docs')
+    await fs.writeFile('/docs/guide.md', '# Guide\n\nUse Unix commands like ls, cat, grep, find, etc.')
+
+    // Terminal output
+    const terminal = document.getElementById('terminal')
+    let commandHistory = []
+    let historyIndex = -1
+
+    function addToTerminal(type, content) {
+      const line = document.createElement('div')
+      line.className = 'terminal-line'
+      
+      if (type === 'prompt') {
+        line.innerHTML = `<span class="terminal-prompt">$ </span><span class="terminal-command">${escapeHtml(content)}</span>`
+      } else if (type === 'output') {
+        line.innerHTML = `<span class="terminal-output">${escapeHtml(content)}</span>`
+      } else if (type === 'error') {
+        line.innerHTML = `<span class="terminal-error">${escapeHtml(content)}</span>`
+      }
+      
+      terminal.appendChild(line)
+      terminal.scrollTop = terminal.scrollHeight
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div')
+      div.textContent = text
+      return div.innerHTML
+    }
+
+    async function executeCommand(command) {
+      if (!command.trim()) return
+      
+      addToTerminal('prompt', command)
+      commandHistory.push(command)
+      historyIndex = commandHistory.length
+      
+      try {
+        const result = await shell.exec(command)
+        
+        if (result.output) {
+          addToTerminal('output', result.output)
+        }
+        
+        if (result.exitCode !== 0) {
+          document.getElementById('terminalStatus').textContent = `Exit code: ${result.exitCode}`
+        } else {
+          document.getElementById('terminalStatus').textContent = '✓ Command executed'
+        }
+      } catch (err) {
+        addToTerminal('error', err.message)
+        document.getElementById('terminalStatus').textContent = '✗ Error'
+      }
+    }
+
+    window.runCommand = async function() {
+      const input = document.getElementById('commandInput')
+      const command = input.value
+      input.value = ''
+      await executeCommand(command)
+    }
+
+    window.runQuickCommand = async function(command) {
+      document.getElementById('commandInput').value = command
+      await runCommand()
+    }
+
+    window.clearTerminal = function() {
+      terminal.innerHTML = ''
+      document.getElementById('terminalStatus').textContent = 'Terminal cleared'
+    }
+
+    window.handleKeydown = function(event) {
+      if (event.key === 'Enter') {
+        runCommand()
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault()
+        if (historyIndex > 0) {
+          historyIndex--
+          document.getElementById('commandInput').value = commandHistory[historyIndex]
+        }
+      } else if (event.key === 'ArrowDown') {
+        event.preventDefault()
+        if (historyIndex < commandHistory.length - 1) {
+          historyIndex++
+          document.getElementById('commandInput').value = commandHistory[historyIndex]
+        } else {
+          historyIndex = commandHistory.length
+          document.getElementById('commandInput').value = ''
+        }
+      }
+    }
+
+    // Welcome message
+    addToTerminal('output', 'Welcome to agentic-shell! Try running some commands.')
+    addToTerminal('output', 'Type "ls" to see files, or click quick commands above.')
+    addToTerminal('output', '')
+  </script>
+</body>
+</html>

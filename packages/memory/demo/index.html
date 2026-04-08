@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agentic-memory — AI Memory System</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <style>
+    :root {
+      --bg: #050505; --surface: #0f0f0f; --border: #1c1c1c;
+      --text: #e4e4e7; --text-2: #888; --accent: #a78bfa;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 3rem 1rem; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .sub { color: var(--text-2); margin-bottom: 2rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; width: 100%; max-width: 600px; margin-bottom: 1rem; }
+    .card h3 { font-size: 0.85rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    label { display: block; font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.3rem; }
+    input, textarea { width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem; margin-bottom: 0.8rem; }
+    textarea { resize: vertical; min-height: 60px; }
+    button { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; font-size: 0.9rem; cursor: pointer; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #000; font-weight: 600; width: 100%; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary { background: #444; color: #fff; }
+    .row { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
+    .row button { flex: 1; }
+    .output { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.8rem; font-size: 0.85rem; min-height: 3rem; max-height: 200px; overflow-y: auto; white-space: pre-wrap; font-family: 'SF Mono', Monaco, monospace; }
+    .message { margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 4px; }
+    .message.user { background: #1a1a2e; border-left: 3px solid var(--accent); }
+    .message.assistant { background: #1a2e1a; border-left: 3px solid #4ade80; }
+    .message .role { font-size: 0.75rem; color: var(--text-2); margin-bottom: 0.2rem; }
+    .knowledge-item { padding: 0.5rem; margin-bottom: 0.5rem; background: var(--bg); border-radius: 4px; border-left: 3px solid #fbbf24; }
+    .knowledge-item .id { font-size: 0.75rem; color: var(--text-2); }
+    .knowledge-item .score { float: right; color: #4ade80; font-size: 0.75rem; }
+    .status { font-size: 0.8rem; color: var(--text-2); min-height: 1.2rem; margin-top: 0.5rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>🧠 agentic-memory</h1>
+  <p class="sub">AI memory — conversation context + knowledge retrieval</p>
+
+  <!-- Short-term Memory (Conversation) -->
+  <div class="card">
+    <h3>💬 Short-term: Conversation Context</h3>
+    <label>User Message</label>
+    <input id="userMsg" placeholder="What is quantum computing?" value="What is quantum computing?">
+    <label>Assistant Response</label>
+    <textarea id="assistantMsg" placeholder="Quantum computing uses qubits...">Quantum computing uses qubits to perform calculations that would be impossible for classical computers.</textarea>
+    <div class="row">
+      <button class="btn-primary" onclick="addMessage()">Add to History</button>
+      <button class="btn-secondary" onclick="clearHistory()">Clear</button>
+    </div>
+    <div class="output" id="historyOutput"></div>
+    <div class="status" id="historyStatus"></div>
+  </div>
+
+  <!-- Long-term Memory (Knowledge) -->
+  <div class="card">
+    <h3>📚 Long-term: Knowledge Retrieval</h3>
+    <label>Document ID</label>
+    <input id="docId" placeholder="physics" value="physics">
+    <label>Document Content</label>
+    <textarea id="docContent" placeholder="Add knowledge...">Quantum computing uses qubits to perform calculations. Unlike classical bits that are 0 or 1, qubits can be in superposition.</textarea>
+    <div class="row">
+      <button class="btn-primary" onclick="learnDoc()">Learn</button>
+      <button class="btn-secondary" onclick="forgetDoc()">Forget</button>
+    </div>
+    <label>Search Query</label>
+    <input id="searchQuery" placeholder="How do quantum computers work?" value="How do quantum computers work?">
+    <button class="btn-primary" onclick="recallKnowledge()">Recall</button>
+    <div class="output" id="knowledgeOutput"></div>
+    <div class="status" id="knowledgeStatus"></div>
+  </div>
+
+  <!-- Info -->
+  <div class="card">
+    <h3>📦 Usage</h3>
+    <pre style="font-size:0.8rem;color:var(--text-2);overflow-x:auto;white-space:pre-wrap">&lt;script src="agentic-memory.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+const { createMemory } = AgenticMemory
+
+// Short-term: conversation context
+const mem = createMemory({ maxTokens: 8000 })
+await mem.user('What is quantum computing?')
+await mem.assistant('Quantum computing uses qubits...')
+const messages = mem.messages() // for LLM API
+
+// Long-term: knowledge retrieval
+const mem2 = createMemory({ knowledge: true })
+await mem2.learn('physics', 'Quantum computing...')
+const results = await mem2.recall('How do qubits work?')
+&lt;/script&gt;</pre>
+  </div>
+
+  <p class="sub" style="margin-top:1rem"><a href="https://github.com/momomo-agent/agentic-memory">GitHub</a> · Part of the <a href="https://github.com/momomo-agent/agentic">agentic</a> family</p>
+
+  <script src="../agentic-memory.js"></script>
+  <script>
+    // Initialize memory instances
+    const { createMemory } = AgenticMemory
+    
+    // Short-term memory (conversation)
+    const conversationMem = createMemory({ 
+      maxTokens: 8000,
+      systemPrompt: 'You are a helpful assistant.'
+    })
+    
+    // Long-term memory (knowledge)
+    const knowledgeMem = createMemory({ 
+      knowledge: true,
+      embedProvider: 'local' // TF-IDF, no API key needed
+    })
+
+    // Display conversation history
+    function displayHistory() {
+      const output = document.getElementById('historyOutput')
+      const history = conversationMem.history()
+      
+      if (history.length === 0) {
+        output.innerHTML = '<div style="color:var(--text-2)">No messages yet</div>'
+        return
+      }
+      
+      output.innerHTML = history.map(msg => `
+        <div class="message ${msg.role}">
+          <div class="role">${msg.role.toUpperCase()}</div>
+          <div>${msg.content}</div>
+        </div>
+      `).join('')
+      
+      const tokens = conversationMem.tokens()
+      document.getElementById('historyStatus').textContent = 
+        `${history.length} messages, ~${tokens} tokens`
+    }
+
+    // Add message to conversation
+    async function addMessage() {
+      const userMsg = document.getElementById('userMsg').value.trim()
+      const assistantMsg = document.getElementById('assistantMsg').value.trim()
+      
+      if (!userMsg || !assistantMsg) {
+        alert('Please enter both user and assistant messages')
+        return
+      }
+      
+      await conversationMem.user(userMsg)
+      await conversationMem.assistant(assistantMsg)
+      
+      displayHistory()
+      
+      // Clear inputs
+      document.getElementById('userMsg').value = ''
+      document.getElementById('assistantMsg').value = ''
+    }
+
+    // Clear conversation history
+    function clearHistory() {
+      conversationMem.clear()
+      displayHistory()
+    }
+
+    // Learn document
+    async function learnDoc() {
+      const id = document.getElementById('docId').value.trim()
+      const content = document.getElementById('docContent').value.trim()
+      
+      if (!id || !content) {
+        alert('Please enter both document ID and content')
+        return
+      }
+      
+      await knowledgeMem.learn(id, content)
+      document.getElementById('knowledgeStatus').textContent = `✓ Learned: ${id}`
+      
+      // Clear inputs
+      document.getElementById('docId').value = ''
+      document.getElementById('docContent').value = ''
+    }
+
+    // Forget document
+    async function forgetDoc() {
+      const id = document.getElementById('docId').value.trim()
+      
+      if (!id) {
+        alert('Please enter document ID to forget')
+        return
+      }
+      
+      await knowledgeMem.forget(id)
+      document.getElementById('knowledgeStatus').textContent = `✓ Forgot: ${id}`
+      document.getElementById('knowledgeOutput').innerHTML = ''
+    }
+
+    // Recall knowledge
+    async function recallKnowledge() {
+      const query = document.getElementById('searchQuery').value.trim()
+      
+      if (!query) {
+        alert('Please enter a search query')
+        return
+      }
+      
+      const results = await knowledgeMem.recall(query)
+      const output = document.getElementById('knowledgeOutput')
+      
+      if (results.length === 0) {
+        output.innerHTML = '<div style="color:var(--text-2)">No results found</div>'
+        document.getElementById('knowledgeStatus').textContent = '0 results'
+        return
+      }
+      
+      output.innerHTML = results.map(r => `
+        <div class="knowledge-item">
+          <div class="id">${r.id}<span class="score">score: ${r.score.toFixed(2)}</span></div>
+          <div>${r.chunk}</div>
+        </div>
+      `).join('')
+      
+      document.getElementById('knowledgeStatus').textContent = `${results.length} results`
+    }
+
+    // Initialize display
+    displayHistory()
+  </script>
+</body>
+</html>

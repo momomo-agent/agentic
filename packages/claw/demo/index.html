@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agentic-claw — AI Agent Runtime</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+  <style>
+    :root {
+      --bg: #050505; --surface: #0f0f0f; --border: #1c1c1c;
+      --text: #e4e4e7; --text-2: #888; --accent: #818cf8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 3rem 1rem; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .sub { color: var(--text-2); margin-bottom: 2rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; width: 100%; max-width: 700px; margin-bottom: 1rem; }
+    .card h3 { font-size: 0.85rem; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    label { display: block; font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.3rem; }
+    input, select, textarea { width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.9rem; margin-bottom: 0.8rem; }
+    textarea { resize: vertical; min-height: 80px; }
+    button { padding: 0.6rem 1.2rem; border-radius: 8px; border: none; font-size: 0.9rem; cursor: pointer; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #fff; font-weight: 600; width: 100%; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary { background: #444; color: #fff; }
+    .row { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
+    .row button { flex: 1; }
+    .chat-container { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; min-height: 300px; max-height: 400px; overflow-y: auto; }
+    .message { margin-bottom: 1rem; padding: 0.8rem; border-radius: 8px; }
+    .message.user { background: #1a1a2e; border-left: 3px solid var(--accent); }
+    .message.assistant { background: #1a2e1a; border-left: 3px solid #4ade80; }
+    .message .role { font-size: 0.75rem; color: var(--text-2); margin-bottom: 0.3rem; text-transform: uppercase; }
+    .message .content { font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; }
+    .message.streaming .content::after { content: '▊'; animation: blink 1s infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .status { font-size: 0.8rem; color: var(--text-2); min-height: 1.2rem; margin-top: 0.5rem; }
+    .input-row { display: flex; gap: 0.5rem; margin-top: 1rem; }
+    .input-row input { flex: 1; margin-bottom: 0; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <h1>🤖 agentic-claw</h1>
+  <p class="sub">AI agent runtime — conversation + memory + tools</p>
+
+  <!-- Config -->
+  <div class="card">
+    <h3>⚙️ Configuration</h3>
+    <label>Provider</label>
+    <select id="provider">
+      <option value="anthropic">Anthropic</option>
+      <option value="openai">OpenAI</option>
+    </select>
+    <label>API Key</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-... or sk-...">
+    <label>Base URL <span style="color:#555">(optional)</span></label>
+    <input id="baseUrl" placeholder="https://api.anthropic.com">
+    <label>Model <span style="color:#555">(optional)</span></label>
+    <input id="model" placeholder="claude-sonnet-4-20250514">
+    <label>System Prompt</label>
+    <textarea id="systemPrompt" placeholder="You are a helpful assistant.">You are a helpful AI assistant. Be concise and friendly.</textarea>
+  </div>
+
+  <!-- Chat -->
+  <div class="card">
+    <h3>💬 Chat</h3>
+    <div class="chat-container" id="chatContainer">
+      <div style="color:var(--text-2);text-align:center;padding:2rem">
+        Configure your API key above and start chatting!
+      </div>
+    </div>
+    <div class="input-row">
+      <input id="messageInput" placeholder="Type your message..." onkeydown="handleKeydown(event)">
+      <button class="btn-primary" id="sendBtn" onclick="sendMessage()">Send</button>
+    </div>
+    <div class="row" style="margin-top:0.5rem">
+      <button class="btn-secondary" onclick="clearChat()">Clear Chat</button>
+      <button class="btn-secondary" onclick="exportChat()">Export</button>
+    </div>
+    <div class="status" id="chatStatus"></div>
+  </div>
+
+  <!-- Info -->
+  <div class="card">
+    <h3>📦 Usage</h3>
+    <pre style="font-size:0.8rem;color:var(--text-2);overflow-x:auto;white-space:pre-wrap">&lt;script src="agentic-claw.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+const { createClaw } = AgenticClaw
+
+// Create agent
+const claw = createClaw({
+  apiKey: 'sk-...',
+  provider: 'anthropic',
+  systemPrompt: 'You are a helpful assistant.',
+})
+
+// Chat
+const result = await claw.chat('Hello!')
+console.log(result.answer)
+
+// Streaming
+await claw.chat('Tell me a story', (event, data) => {
+  if (event === 'token') process.stdout.write(data.text)
+})
+
+// Multi-session
+const alice = claw.session('alice')
+const bob = claw.session('bob')
+await alice.chat('My name is Alice')
+await bob.chat('My name is Bob')
+&lt;/script&gt;</pre>
+  </div>
+
+  <p class="sub" style="margin-top:1rem"><a href="https://github.com/momomo-agent/agentic-claw">GitHub</a> · Part of the <a href="https://github.com/momomo-agent/agentic">agentic</a> family</p>
+
+  <script src="../agentic-claw.js"></script>
+  <script>
+    let claw = null
+    let isStreaming = false
+
+    // Load config from localStorage
+    function loadConfig() {
+      const saved = localStorage.getItem('agentic-claw-config')
+      if (saved) {
+        try {
+          const config = JSON.parse(saved)
+          if (config.provider) document.getElementById('provider').value = config.provider
+          if (config.apiKey) document.getElementById('apiKey').value = config.apiKey
+          if (config.baseUrl) document.getElementById('baseUrl').value = config.baseUrl
+          if (config.model) document.getElementById('model').value = config.model
+          if (config.systemPrompt) document.getElementById('systemPrompt').value = config.systemPrompt
+        } catch {}
+      }
+    }
+
+    // Save config to localStorage
+    function saveConfig() {
+      const config = {
+        provider: document.getElementById('provider').value,
+        apiKey: document.getElementById('apiKey').value,
+        baseUrl: document.getElementById('baseUrl').value,
+        model: document.getElementById('model').value,
+        systemPrompt: document.getElementById('systemPrompt').value,
+      }
+      localStorage.setItem('agentic-claw-config', JSON.stringify(config))
+    }
+
+    // Initialize claw instance
+    function initClaw() {
+      const apiKey = document.getElementById('apiKey').value.trim()
+      if (!apiKey) {
+        alert('Please enter an API key')
+        return null
+      }
+
+      const config = {
+        apiKey,
+        provider: document.getElementById('provider').value,
+        systemPrompt: document.getElementById('systemPrompt').value,
+      }
+
+      const baseUrl = document.getElementById('baseUrl').value.trim()
+      if (baseUrl) config.baseUrl = baseUrl
+
+      const model = document.getElementById('model').value.trim()
+      if (model) config.model = model
+
+      saveConfig()
+
+      if (claw) claw.destroy()
+      claw = AgenticClaw.createClaw(config)
+      return claw
+    }
+
+    // Add message to chat UI
+    function addMessage(role, content, streaming = false) {
+      const container = document.getElementById('chatContainer')
+      
+      // Clear welcome message if present
+      if (container.children.length === 1 && container.children[0].style.textAlign === 'center') {
+        container.innerHTML = ''
+      }
+
+      const msg = document.createElement('div')
+      msg.className = `message ${role}${streaming ? ' streaming' : ''}`
+      msg.innerHTML = `
+        <div class="role">${role}</div>
+        <div class="content">${escapeHtml(content)}</div>
+      `
+      container.appendChild(msg)
+      container.scrollTop = container.scrollHeight
+      return msg
+    }
+
+    // Update streaming message
+    function updateMessage(msgElement, content) {
+      const contentEl = msgElement.querySelector('.content')
+      contentEl.textContent = content
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div')
+      div.textContent = text
+      return div.innerHTML
+    }
+
+    // Send message
+    async function sendMessage() {
+      const input = document.getElementById('messageInput')
+      const message = input.value.trim()
+      
+      if (!message || isStreaming) return
+
+      const agent = initClaw()
+      if (!agent) return
+
+      input.value = ''
+      isStreaming = true
+      document.getElementById('sendBtn').disabled = true
+      document.getElementById('chatStatus').textContent = 'Thinking...'
+
+      // Add user message
+      addMessage('user', message)
+
+      // Add assistant message (streaming)
+      const assistantMsg = addMessage('assistant', '', true)
+      let streamedText = ''
+
+      try {
+        await agent.chat(message, (event, data) => {
+          if (event === 'token') {
+            streamedText += data.text
+            updateMessage(assistantMsg, streamedText)
+          }
+        })
+
+        // Remove streaming indicator
+        assistantMsg.classList.remove('streaming')
+        document.getElementById('chatStatus').textContent = '✓ Response complete'
+      } catch (err) {
+        assistantMsg.classList.remove('streaming')
+        updateMessage(assistantMsg, `Error: ${err.message}`)
+        document.getElementById('chatStatus').textContent = '✗ Error'
+      } finally {
+        isStreaming = false
+        document.getElementById('sendBtn').disabled = false
+      }
+    }
+
+    // Handle Enter key
+    function handleKeydown(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault()
+        sendMessage()
+      }
+    }
+
+    // Clear chat
+    function clearChat() {
+      const container = document.getElementById('chatContainer')
+      container.innerHTML = '<div style="color:var(--text-2);text-align:center;padding:2rem">Chat cleared. Start a new conversation!</div>'
+      if (claw) {
+        claw.destroy()
+        claw = null
+      }
+      document.getElementById('chatStatus').textContent = 'Chat cleared'
+    }
+
+    // Export chat
+    function exportChat() {
+      if (!claw) {
+        alert('No active conversation to export')
+        return
+      }
+
+      const data = claw.export()
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `chat-${Date.now()}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      document.getElementById('chatStatus').textContent = '✓ Exported'
+    }
+
+    // Auto-save config on change
+    document.querySelectorAll('#provider,#apiKey,#baseUrl,#model,#systemPrompt').forEach(el => {
+      el.addEventListener('change', saveConfig)
+      el.addEventListener('input', saveConfig)
+    })
+
+    // Load saved config
+    loadConfig()
+  </script>
+</body>
+</html>
