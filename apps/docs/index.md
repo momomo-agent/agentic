@@ -1,0 +1,41 @@
+---
+layout: home
+
+hero:
+  name: "Agentic"
+  text: "给 AI 造身体的零件箱"
+  tagline: 一套模块化的 JavaScript 库，让你能组装出有感知、有记忆、能行动的 AI agent
+  actions:
+    - theme: brand
+      text: 快速开始
+      link: /guide/getting-started
+    - theme: alt
+      text: 器官手册
+      link: /packages/
+
+features:
+  - icon: 🧠
+    title: core - 大脑
+    details: LLM 调用基础，支持多 provider，自动 retry + fallback
+  - icon: 👁️
+    title: sense - 眼睛
+    details: MediaPipe 感知，人脸/手势/姿态/物体检测
+  - icon: 💪
+    title: act - 意志
+    details: 意图→决策→执行，让 agent 能主动采取行动
+  - icon: 🎙️
+    title: voice - 声音
+    details: TTS + STT，让 agent 能说话和听
+  - icon: 💾
+    title: memory - 记忆
+    details: 短期 + 长期记忆系统，spreading activation 检索
+  - icon: 🦴
+    title: store - 骨骼
+    details: SQLite-first 持久化，WAL 模式支持并发
+  - icon: 📝
+    title: render - 表达
+    details: 流式 Markdown 渲染，零依赖，一个 script tag
+  - icon: 🦾
+    title: claw - 完整身体
+    details: 组合所有器官的完整 agent 运行时
+---
