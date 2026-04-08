@@ -1,0 +1,14 @@
+{
+  "id": "task-1775583337028",
+  "title": "Fix OPFSBackend.stat() isDirectory detection",
+  "description": "OPFSBackend.stat() always returns isDirectory: false. It must detect directories correctly to match NodeFsBackend behavior.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T17:35:37.028Z",
+  "updated": "2026-04-07T17:55:16.475Z",
+  "milestoneId": "m16"
+}

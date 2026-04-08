@@ -1,0 +1,14 @@
+{
+  "id": "task-1775613064216",
+  "title": "Update stale architecture.json gap file",
+  "description": "architecture.json shows 'missing' for ARCHITECTURE.md and cross-backend tests, 'partial' for OPFS fixes. ARCHITECTURE.md exists (75 lines, created m15). Cross-backend tests exist (4 files). OPFS stat/delete/walkDir/empty-path all fixed in m15-m17. Update architecture.json to reflect actual codebase.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-08T01:51:04.216Z",
+  "updated": "2026-04-08T02:13:12.779Z",
+  "milestoneId": "m25"
+}

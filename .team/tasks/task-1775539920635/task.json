@@ -1,0 +1,16 @@
+{
+  "id": "task-1775539920635",
+  "title": "Add concurrent and edge-case tests",
+  "description": "Write tests for concurrent writes, race conditions, empty paths, and special characters across all backends.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [
+    "task-1775538384470"
+  ],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T05:32:00.635Z",
+  "updated": "2026-04-07T11:51:51.191Z",
+  "milestoneId": "m5"
+}

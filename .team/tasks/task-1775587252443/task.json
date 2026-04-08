@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587252443",
+  "title": "Create README with usage examples and per-backend configuration docs",
+  "description": "PRD §5 requires a README at the project root with: usage examples for all backends (NodeFs, OPFS, AgenticStore/IndexedDB, Memory, SQLite, LocalStorage), per-backend configuration documentation, and a performance comparison table. This is a documentation-only task — no source code changes. Target: PRD gap 'README with usage examples', PRD gap 'Per-backend configuration docs and performance comparison table'.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T18:40:52.443Z",
+  "updated": "2026-04-08T00:16:02.378Z",
+  "milestoneId": "m20"
+}

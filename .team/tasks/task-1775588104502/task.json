@@ -1,0 +1,13 @@
+{
+  "id": "task-1775588104502",
+  "title": "Fix AgenticStoreBackend stat() mtime to use stored timestamp instead of Date.now()",
+  "description": "Vision gap: AgenticStoreBackend.stat() returns mtime as Date.now() rather than actual modification time. Store actual mtime when files are written (via set()) and return the stored value from stat(). This makes metadata accurate and consistent with NodeFsBackend. Add tests verifying mtime persists across get/set operations. Target: vision gap 'AgenticStoreBackend stat() returns mtime as Date.now()'",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T18:55:04.503Z",
+  "updated": "2026-04-08T00:16:34.140Z"
+}

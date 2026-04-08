@@ -1,0 +1,14 @@
+{
+  "id": "task-1775583323705",
+  "title": "Throw IOError on raw I/O failures in all backends",
+  "description": "Backends currently catch raw I/O failures and return null. They must throw IOError instances instead (DBB-008). Affects NodeFsBackend, OPFSBackend, AgenticStoreBackend, SQLiteBackend.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T17:35:23.705Z",
+  "updated": "2026-04-07T17:54:10.813Z",
+  "milestoneId": "m16"
+}

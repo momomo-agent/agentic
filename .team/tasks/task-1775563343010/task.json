@@ -1,0 +1,13 @@
+{
+  "id": "task-1775563343010",
+  "title": "Add empty path and concurrent write tests",
+  "description": "Add missing test coverage: (1) empty path tests for all backends - get/set/delete/list with empty string path; (2) concurrent write tests with 10+ files to meet DBB spec; (3) strengthen race condition tests for same-file concurrent writes.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T12:02:23.010Z",
+  "updated": "2026-04-07T12:04:52.789Z"
+}

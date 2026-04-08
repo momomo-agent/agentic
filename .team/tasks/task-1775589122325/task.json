@@ -1,0 +1,13 @@
+{
+  "id": "task-1775589122325",
+  "title": "Add JSDoc to all backend class methods",
+  "description": "PRD §5 requires JSDoc on backend classes. Currently only the StorageBackend interface (types.ts) and AgenticFileSystem public methods have JSDoc. Add JSDoc comments to all public methods on: AgenticStoreBackend, OPFSBackend, NodeFsBackend, MemoryBackend, SQLiteBackend, LocalStorageBackend. Match the quality and format of existing interface docs. Target: PRD §5 gap 'backend class methods lack JSDoc'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T19:12:02.904Z",
+  "updated": "2026-04-08T00:53:47.521Z"
+}

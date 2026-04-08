@@ -1,0 +1,14 @@
+{
+  "id": "task-1775585021267",
+  "title": "Cross-backend consistency test suite",
+  "description": "Create a shared contract test that validates get/set/delete/list/scan/stat/batchGet/batchSet behavior is identical across MemoryStorage, AgenticStoreBackend, and NodeFsBackend. Run the same assertions against each backend. Target: Architecture gap 'cross-backend consistency tests', PRD §4.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T18:03:41.267Z",
+  "updated": "2026-04-07T18:26:56.417Z",
+  "milestoneId": "m17"
+}

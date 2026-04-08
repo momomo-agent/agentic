@@ -1,0 +1,13 @@
+{
+  "id": "task-1775566212258",
+  "title": "Fix empty path validation in 3 backends",
+  "description": "Add empty path validation to AgenticStoreBackend (src/backends/agentic-store.ts), MemoryStorage (src/backends/memory.ts), and LocalStorageBackend (src/backends/local-storage.ts). Each backend's set/get/delete methods must throw an error when path is empty string. NodeFsBackend already does this correctly. Required by DBB-003. Unblocks task-1775565205056.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-07T12:50:12.259Z",
+  "updated": "2026-04-07T13:03:14.416Z"
+}

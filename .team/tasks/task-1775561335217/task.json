@@ -1,0 +1,13 @@
+{
+  "id": "task-1775561335217",
+  "title": "Fix 3 failing tests from outdated assertions",
+  "description": "Fix outdated test assertions: (1) test/ls-metadata.test.js expects AgenticStoreBackend to NOT have stat() — now it does; (2) test/shell-tools.test.js expects 4 tools but there are now 6. These 3 failures block the test suite from passing.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T11:28:55.217Z",
+  "updated": "2026-04-07T11:34:46.452Z"
+}

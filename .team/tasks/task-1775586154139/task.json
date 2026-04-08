@@ -1,0 +1,14 @@
+{
+  "id": "task-1775586154139",
+  "title": "Fix failing agentic-store-stat.test.ts import path",
+  "description": "Test file test/backends/agentic-store-stat.test.ts imports from ../../src/backends/agentic-store.js (TypeScript source) but Node.js can't resolve .js from .ts. Fix the import to use ../../dist/index.js (compiled output) matching the pattern used by other test files. This is the only failing test in the suite (1/483).",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-07T18:22:34.139Z",
+  "updated": "2026-04-07T18:43:06.178Z",
+  "milestoneId": "m18"
+}

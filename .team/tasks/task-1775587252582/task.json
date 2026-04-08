@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587252582",
+  "title": "Verify AgenticStoreBackend scan() streams instead of loading full content",
+  "description": "After m19 task (Fix AgenticStoreBackend scan() to stream), verify that the implementation truly streams via cursor/iteration rather than loading all content into memory. Compare memory usage with large files (>1MB) vs the previous implementation. Document results. Target: PRD §1 gap 'scan() streaming — AgenticStoreBackend loads full file content into memory'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T18:40:52.582Z",
+  "updated": "2026-04-08T01:49:23.674Z",
+  "milestoneId": "m20"
+}

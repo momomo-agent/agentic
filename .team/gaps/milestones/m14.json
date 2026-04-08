@@ -1,0 +1,22 @@
+{
+  "milestoneId": "m14",
+  "match": 90,
+  "timestamp": "2026-04-07T17:07:09.327Z",
+  "criteria": [
+    { "criterion": "DBB-001: OPFSBackend.stat() returns {size, mtime} for existing file", "status": "pass" },
+    { "criterion": "DBB-002: OPFSBackend.stat() returns null for missing file", "status": "pass" },
+    { "criterion": "DBB-003: OPFSBackend.stat() size matches byte length of written content", "status": "pass" },
+    { "criterion": "DBB-004: AgenticStoreBackend.stat() returns {size, mtime} for existing key", "status": "pass" },
+    { "criterion": "DBB-005: AgenticStoreBackend.stat() returns null for missing key", "status": "pass" },
+    { "criterion": "DBB-006: stat() interface parity — identical shape across OPFSBackend and AgenticStoreBackend", "status": "pass" },
+    { "criterion": "DBB-007: file_delete agent tool — existing file deleted successfully", "status": "pass" },
+    { "criterion": "DBB-008: file_delete agent tool — missing file returns error, no unhandled exception", "status": "partial" },
+    { "criterion": "DBB-009: file_tree agent tool — non-empty directory returns all files", "status": "pass" },
+    { "criterion": "DBB-010: file_tree agent tool — empty directory returns empty result", "status": "pass" },
+    { "criterion": "DBB-011: file_delete and file_tree appear in getToolDefinitions()", "status": "pass" },
+    { "criterion": "DBB-012: createDefaultBackend() returns NodeFsBackend in Node.js", "status": "pass" },
+    { "criterion": "DBB-013: createDefaultBackend() returns OPFSBackend in browser with OPFS", "status": "pass" },
+    { "criterion": "DBB-014: createDefaultBackend() falls back to MemoryStorage", "status": "pass" },
+    { "criterion": "DBB-015: createDefaultBackend() returns functional backend (write+read)", "status": "pass" }
+  ]
+}

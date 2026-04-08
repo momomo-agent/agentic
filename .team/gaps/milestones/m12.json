@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m12",
+  "match": 90,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "DBB-001: stat() on AgenticStoreBackend returns {size, mtime, isDirectory: false}", "status": "pass" },
+    { "criterion": "DBB-002: stat() on OPFSBackend returns {size, mtime, isDirectory: false}", "status": "pass" },
+    { "criterion": "DBB-003: createDefaultBackend() selects correct backend per environment", "status": "pass" },
+    { "criterion": "DBB-004: ShellFS handles 'rm' command", "status": "pass" },
+    { "criterion": "DBB-005: ShellFS handles 'tree' command", "status": "pass" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775574043795",
+  "title": "Add empty path and cross-backend edge-case tests",
+  "description": "DBB gap: empty path tests missing; edge-case tests only cover NodeFs and AgenticStore. Add empty path tests and extend edge-case coverage to OPFS, Memory, and LocalStorage backends.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T15:00:43.795Z",
+  "updated": "2026-04-07T15:07:30.545Z"
+}

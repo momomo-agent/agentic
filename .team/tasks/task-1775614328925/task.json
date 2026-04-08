@@ -1,0 +1,14 @@
+{
+  "id": "task-1775614328925",
+  "title": "Add JSDoc to NodeFsBackend",
+  "description": "PRD §5.2 requires JSDoc on all backend classes. NodeFsBackend (src/backends/node-fs.ts) has zero JSDoc comments while all 5 other backends have full JSDoc. Add class-level and method-level JSDoc comments to NodeFsBackend matching the style of other backends (agentic-store.ts, opfs.ts, memory.ts, local-storage.ts, sqlite.ts). This is the last remaining PRD gap preventing full compliance.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m26",
+  "hasDesign": true,
+  "created": "2026-04-08T02:12:08.925Z",
+  "updated": "2026-04-08T02:25:08.765Z",
+  "milestoneId": "m26"
+}

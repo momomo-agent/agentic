@@ -1,0 +1,13 @@
+{
+  "id": "task-1775564118217",
+  "title": "Create CHANGELOG.md",
+  "description": "Create CHANGELOG.md documenting features shipped in m1-m5: API consistency, test foundation, public API completeness, storage backends, agent tooling, streaming, SQLite, metadata, and test coverage.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m6",
+  "hasDesign": true,
+  "created": "2026-04-07T12:15:18.217Z",
+  "updated": "2026-04-07T12:26:44.468Z"
+}

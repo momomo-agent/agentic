@@ -1,0 +1,13 @@
+{
+  "id": "task-1775574038900",
+  "title": "Expand concurrent write and race condition tests",
+  "description": "DBB gap: concurrent write tests cover only 2 files. Expand to 10+ simultaneous files. Add non-trivial race condition tests for same-file concurrent writes across NodeFs and AgenticStore backends.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m13",
+  "hasDesign": true,
+  "created": "2026-04-07T15:00:38.900Z",
+  "updated": "2026-04-07T15:07:30.502Z"
+}

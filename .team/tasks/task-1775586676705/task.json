@@ -1,0 +1,14 @@
+{
+  "id": "task-1775586676705",
+  "title": "Fix AgenticStoreBackend scan() to stream instead of loading full content",
+  "description": "PRD §1: AgenticStoreBackend.scan() currently loads all file content into memory before scanning. Implement streaming scan using the store's iteration capabilities to avoid loading full file content. Match NodeFsBackend which uses readline streams. Add memory-efficiency test. Target: PRD §1 scan() streaming gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T18:31:16.705Z",
+  "updated": "2026-04-08T00:14:02.041Z",
+  "milestoneId": "m19"
+}

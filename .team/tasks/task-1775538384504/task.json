@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538384504",
+  "title": "Final documentation pass",
+  "description": "Complete JSDoc on all public APIs, add performance comparison table, and backend-specific configuration examples to README",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:06:24.504Z",
+  "updated": "2026-04-07T12:14:31.388Z",
+  "milestoneId": "m4"
+}

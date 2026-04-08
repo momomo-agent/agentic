@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582110082",
+  "title": "Fix OPFSBackend.delete() error handling",
+  "description": "OPFSBackend.delete() should silently no-op when path not found, matching AgenticStoreBackend and NodeFsBackend behavior",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T17:15:10.082Z",
+  "updated": "2026-04-07T17:31:45.446Z"
+}

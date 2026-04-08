@@ -1,0 +1,13 @@
+{
+  "id": "task-1775571984308",
+  "title": "Per-backend test suites for OPFS, Memory, and LocalStorage",
+  "description": "PRD §4 gap: test suites missing for OPFSBackend, MemoryStorage, and LocalStorageBackend. Create test files covering read/write/delete/list/scan operations for each backend.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T14:26:24.308Z",
+  "updated": "2026-04-07T14:34:25.060Z"
+}

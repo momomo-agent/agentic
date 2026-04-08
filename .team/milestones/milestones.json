@@ -1,0 +1,304 @@
+{
+  "milestones": [
+    {
+      "id": "m1",
+      "name": "API Consistency & Test Foundation",
+      "status": "completed",
+      "tasks": [
+        "task-1775531289546",
+        "task-1775531289579",
+        "task-1775531289613",
+        "task-1775531683476",
+        "task-1775531687208",
+        "task-1775531865819"
+      ]
+    },
+    {
+      "id": "m2",
+      "name": "Public API Completeness & Developer Experience",
+      "status": "completed",
+      "tasks": [
+        "task-1775532372624",
+        "task-1775532383398",
+        "task-1775532383428",
+        "task-1775532383458",
+        "task-1775533551366",
+        "task-1775533564409",
+        "task-1775533568331"
+      ]
+    },
+    {
+      "id": "m3",
+      "name": "Storage Backends & Agent Tooling",
+      "status": "completed",
+      "tasks": [
+        "task-1775536053766",
+        "task-1775536058978",
+        "task-1775536059029",
+        "task-1775536902887",
+        "task-1775536906609"
+      ]
+    },
+    {
+      "id": "m4",
+      "name": "Streaming, SQLite & Test Coverage",
+      "status": "completed",
+      "tasks": [
+        "task-1775538373523",
+        "task-1775538379020",
+        "task-1775538384436",
+        "task-1775538384470",
+        "task-1775538384504"
+      ]
+    },
+    {
+      "id": "m5",
+      "name": "Metadata Completeness, Agent Tools & Test Coverage",
+      "status": "completed",
+      "tasks": [
+        "task-1775539909417",
+        "task-1775539915801",
+        "task-1775539920635",
+        "task-1775539920672",
+        "task-1775558752316",
+        "task-1775558760195",
+        "task-1775558760235",
+        "task-1775559740884",
+        "task-1775561335217",
+        "task-1775561804840",
+        "task-1775563343010"
+      ]
+    },
+    {
+      "id": "m6",
+      "name": "Quality Polish & Release Readiness",
+      "status": "completed",
+      "tasks": [
+        "task-1775564113930",
+        "task-1775564118217",
+        "task-1775564379657",
+        "task-1775564385126"
+      ]
+    },
+    {
+      "id": "m7",
+      "name": "Test Coverage Completeness & Runtime Auto-Selection",
+      "status": "completed",
+      "tasks": [
+        "task-1775565205056",
+        "task-1775565211123",
+        "task-1775565216166",
+        "task-1775566212258"
+      ]
+    },
+    {
+      "id": "m8",
+      "name": "Build Fix & Production Readiness",
+      "status": "completed",
+      "tasks": [
+        "task-1775567388705",
+        "task-1775567436318",
+        "task-1775567446935",
+        "task-1775567446977"
+      ]
+    },
+    {
+      "id": "m9",
+      "name": "Test Coverage & Documentation Completeness",
+      "status": "completed",
+      "tasks": [
+        "task-1775567454494",
+        "task-1775567460417",
+        "task-1775569413579"
+      ]
+    },
+    {
+      "id": "m10",
+      "name": "stat() Implementation & Agent Tool Completeness",
+      "status": "completed",
+      "tasks": [
+        "task-1775570244624",
+        "task-1775570270902",
+        "task-1775570276776"
+      ]
+    },
+    {
+      "id": "m11",
+      "name": "Test Coverage Completeness & Documentation Polish",
+      "status": "completed",
+      "tasks": [
+        "task-1775571984308",
+        "task-1775571992017",
+        "task-1775571997853",
+        "task-1775572006098"
+      ]
+    },
+    {
+      "id": "m12",
+      "name": "stat() Completeness, Agent Tool Parity & Auto Backend Selection",
+      "status": "completed",
+      "tasks": [
+        "task-1775573019284",
+        "task-1775573036378",
+        "task-1775573036337"
+      ]
+    },
+    {
+      "id": "m13",
+      "name": "Test Coverage Completeness & README Polish",
+      "status": "completed",
+      "tasks": [
+        "task-1775574038900",
+        "task-1775574043795",
+        "task-1775574756133",
+        "task-1775574827531"
+      ]
+    },
+    {
+      "id": "m14",
+      "name": "stat() Parity, Agent Tool Completeness & Auto Backend Selection",
+      "status": "completed",
+      "tasks": [
+        "task-1775575221748",
+        "task-1775575227913",
+        "task-1775575245337",
+        "task-1775575261928"
+      ]
+    },
+    {
+      "id": "m15",
+      "name": "Error Handling Hardening, Validation & Cross-Backend Tests",
+      "status": "completed",
+      "tasks": [
+        "task-1775582110082",
+        "task-1775582140329",
+        "task-1775582140362",
+        "task-1775582152717",
+        "task-1775582152752"
+      ]
+    },
+    {
+      "id": "m16",
+      "name": "IOError Propagation, stat() Parity & scan() Streaming",
+      "status": "completed",
+      "tasks": [
+        "task-1775583323705",
+        "task-1775583337028",
+        "task-1775583337186",
+        "task-1775583337266"
+      ]
+    },
+    {
+      "id": "m17",
+      "name": "Cross-Backend Consistency, OPFS Hardening & SQLite Auto-Selection",
+      "status": "completed",
+      "tasks": [
+        "task-1775585021267",
+        "task-1775585021517",
+        "task-1775585021564",
+        "task-1775585021613",
+        "task-1775585387666"
+      ]
+    },
+    {
+      "id": "m18",
+      "name": "Test Fix, JSDoc Completeness & Public API Exposure",
+      "status": "completed",
+      "tasks": [
+        "task-1775586154139",
+        "task-1775586160070",
+        "task-1775586160174"
+      ]
+    },
+    {
+      "id": "m19",
+      "name": "PRD Gap Closure — Streaming, Error Consistency & stat() Parity",
+      "status": "completed",
+      "tasks": [
+        "task-1775586676543",
+        "task-1775586676705",
+        "task-1775586679805",
+        "task-1775586684332",
+        "task-1775588104111",
+        "task-1775588104502"
+      ]
+    },
+    {
+      "id": "m20",
+      "name": "Documentation, Edge Case Tests & Streaming Verification",
+      "status": "completed",
+      "tasks": [
+        "task-1775587252443",
+        "task-1775587252529",
+        "task-1775587252582",
+        "task-1775587252636"
+      ]
+    },
+    {
+      "id": "m21",
+      "name": "JSDoc Completeness, SQLite Auto-Selection & Public API Exposure",
+      "status": "completed",
+      "tasks": [
+        "task-1775589122325",
+        "task-1775589123427",
+        "task-1775589127175",
+        "task-1775589127602"
+      ]
+    },
+    {
+      "id": "m22",
+      "name": "Backend Error Consistency, OPFS Hardening & Cross-Backend Tests",
+      "status": "completed",
+      "tasks": [
+        "task-1775607507903",
+        "task-1775607508394",
+        "task-1775607509173",
+        "task-1775607509331",
+        "task-1775607509442"
+      ]
+    },
+    {
+      "id": "m23",
+      "name": "PRD Gap Closure — stat() Permissions, OPFS walkDir & Architecture Doc",
+      "status": "completed",
+      "tasks": [
+        "task-1775608676284",
+        "task-1775608676626",
+        "task-1775608676787"
+      ],
+      "created": "2026-04-08T00:38:00.173Z"
+    },
+    {
+      "id": "m24",
+      "name": "PRD Gap Verification & Documentation Completion",
+      "status": "completed",
+      "tasks": [
+        "task-1775612568885",
+        "task-1775612568931",
+        "task-1775612568973",
+        "task-1775612569013"
+      ],
+      "created": "2026-04-08T01:04:00.000Z"
+    },
+    {
+      "id": "m25",
+      "name": "Gap Analysis Re-run & Score Correction",
+      "status": "completed",
+      "tasks": [
+        "task-1775613064143",
+        "task-1775613064181",
+        "task-1775613064216"
+      ],
+      "created": "2026-04-08T02:00:00.000Z"
+    },
+    {
+      "id": "m26",
+      "name": "Final PRD Gap Closure — NodeFsBackend JSDoc",
+      "status": "completed",
+      "tasks": [
+        "task-1775614328925"
+      ],
+      "created": "2026-04-08T02:32:00.000Z"
+    }
+  ]
+}

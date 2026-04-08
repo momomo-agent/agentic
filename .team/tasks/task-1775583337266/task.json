@@ -1,0 +1,14 @@
+{
+  "id": "task-1775583337266",
+  "title": "Implement streaming scan() for OPFSBackend and AgenticStoreBackend",
+  "description": "Both backends load full file content into memory for scan(). Implement incremental/streaming scan() matching NodeFsBackend's readline approach.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T17:35:37.266Z",
+  "updated": "2026-04-07T18:19:00.302Z",
+  "milestoneId": "m16"
+}

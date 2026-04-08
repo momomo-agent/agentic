@@ -1,0 +1,13 @@
+{
+  "milestoneId": "m11",
+  "match": 75,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "DBB-001: Per-backend test suites for OPFS, Memory, LocalStorage", "status": "fail" },
+    { "criterion": "DBB-002: Concurrent writes cover 20 simultaneous files", "status": "fail" },
+    { "criterion": "DBB-003: Same-file concurrent write race condition covered", "status": "fail" },
+    { "criterion": "DBB-004: Empty path rejected by all backends", "status": "pass" },
+    { "criterion": "DBB-005: Cross-backend consistency verified", "status": "fail" },
+    { "criterion": "DBB-006: README performance table has all required columns", "status": "pass" }
+  ]
+}

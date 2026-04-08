@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775716800000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "ARCHITECTURE.md",
+  "reason": "Gap analysis is stale (timestamp April 7 17:08-17:14 UTC). Since then, m15-m21 have completed work addressing gaps marked 'missing' or 'partial'. ARCHITECTURE.md gap says 'does not exist' but the file was created in m15. OPFS fixes (stat directory, delete error, empty-path validation) were completed in m15/m17/m19 but gaps still show 'partial'. Cross-backend tests, edge case tests, per-backend tests, README were all completed in earlier milestones but PRD gaps still show 'missing'. The mismatch between gap scores (PRD 72%, ARCH 82%) and actual completion state prevents accurate milestone planning — m22 tasks may duplicate already-completed work.",
+  "proposedChange": "Re-run gap analysis on current codebase to get accurate PRD and architecture match scores. The 3 architecture 'missing' gaps (ARCHITECTURE.md, OPFS empty-path, cross-backend tests) and 5 PRD 'missing' gaps (per-backend tests, cross-backend tests, edge case tests, README, config docs) appear to already be addressed. New scores should reflect m15-m21 completion.",
+  "status": "resolved",
+  "createdAt": "2026-04-08T00:40:00.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.513Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

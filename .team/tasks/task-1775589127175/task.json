@@ -1,0 +1,13 @@
+{
+  "id": "task-1775589127175",
+  "title": "Expose batchGet/batchSet/scanStream as AgenticFileSystem public methods",
+  "description": "Vision gap: batchGet/batchSet/scanStream are implemented on backends but not exposed as AgenticFileSystem public methods or agent tools. Add batchGet(paths), batchSet(entries), and scanStream(pattern) as public methods on the AgenticFileSystem class. Optionally add corresponding agent tool definitions. Target: Vision gap 'batchGet/batchSet/scanStream not exposed as public methods or agent tools'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T19:12:07.175Z",
+  "updated": "2026-04-08T01:46:38.921Z"
+}

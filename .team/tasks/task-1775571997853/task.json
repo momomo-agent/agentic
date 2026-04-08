@@ -1,0 +1,13 @@
+{
+  "id": "task-1775571997853",
+  "title": "Edge case tests: empty paths and cross-backend consistency",
+  "description": "PRD §4 / DBB gap: empty path tests missing; cross-backend consistency tests missing. Add tests for empty/invalid paths and verify same operations produce identical results across all backends.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T14:26:37.853Z",
+  "updated": "2026-04-07T14:48:43.596Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538373523",
+  "title": "Implement streaming scan()",
+  "description": "Add AsyncIterable-based scan() to StorageBackend interface and all backends to avoid loading large files into memory",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:06:13.523Z",
+  "updated": "2026-04-07T10:48:07.653Z",
+  "milestoneId": "m4"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775588104111",
+  "title": "Fix OPFSBackend consistency: stat() directory support, delete() error handling, empty-path validation",
+  "description": "Three OPFS-specific architecture gaps: (1) OPFSBackend.stat() always returns isDirectory:false — implement directory detection using FileSystemDirectoryHandle iteration. (2) OPFSBackend.delete() throws if path not found — wrap in try/catch and silently no-op like other backends. (3) OPFSBackend missing empty-path validation that AgenticStoreBackend and NodeFsBackend have. Add tests for all three. Target: architecture gaps 'OPFSBackend.stat() isDirectory:false', 'OPFSBackend.delete() no error handling', 'OPFSBackend missing empty-path validation'",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T18:55:04.111Z",
+  "updated": "2026-04-08T00:16:34.053Z"
+}

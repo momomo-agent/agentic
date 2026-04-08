@@ -1,0 +1,14 @@
+{
+  "id": "task-1775532372624",
+  "title": "Export ShellFS in index.ts",
+  "description": "ShellFS implements cat/grep/find but is not exported from index.ts - expose it so consumers can use the shell interface",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-07T03:26:12.624Z",
+  "updated": "2026-04-07T03:56:33.927Z",
+  "milestoneId": "m2"
+}

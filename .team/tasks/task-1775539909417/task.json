@@ -1,0 +1,14 @@
+{
+  "id": "task-1775539909417",
+  "title": "Implement file metadata in LsResult",
+  "description": "Populate size and mtime fields in LsResult for NodeFsBackend and OPFSBackend. NodeFsBackend should use fs.stat(), OPFSBackend should use FileSystemFileHandle.getFile().",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T05:31:49.417Z",
+  "updated": "2026-04-07T11:43:26.578Z",
+  "milestoneId": "m5"
+}

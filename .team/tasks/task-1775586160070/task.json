@@ -1,0 +1,14 @@
+{
+  "id": "task-1775586160070",
+  "title": "Add JSDoc to all backend class methods",
+  "description": "PRD §5 gap: backend class methods lack JSDoc documentation. Add JSDoc comments to all public methods on: AgenticStoreBackend, OPFSBackend, NodeFsBackend, MemoryStorage, LocalStorageBackend, SQLiteBackend. Methods to document: get, set, delete, list, scan, scanStream, batchGet, batchSet, stat. Reference the existing JSDoc patterns on AgenticFileSystem public methods and the StorageBackend interface in types.ts.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m18",
+  "hasDesign": true,
+  "created": "2026-04-07T18:22:40.070Z",
+  "updated": "2026-04-07T18:44:40.615Z",
+  "milestoneId": "m18"
+}

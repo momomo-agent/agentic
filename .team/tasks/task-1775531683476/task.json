@@ -1,0 +1,13 @@
+{
+  "id": "task-1775531683476",
+  "title": "Fix scan() return type inconsistency",
+  "description": "AgenticStoreBackend.scan() must return {path, line, content}[] to match NodeFsBackend/OPFSBackend and the StorageBackend interface",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-07T03:14:43.476Z",
+  "updated": "2026-04-07T03:53:40.530Z"
+}

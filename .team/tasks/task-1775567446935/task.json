@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567446935",
+  "title": "Add delete and tree agent tool definitions",
+  "description": "Agent tool definitions in src/tools/shell-tools.ts (or equivalent) are missing 'delete' and 'tree' operations. Add file_delete and file_tree tool definitions to getToolDefinitions() and implement their handlers in executeTool(). Reference existing file_read/file_write/grep/ls implementations.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-07T13:10:46.935Z",
+  "updated": "2026-04-07T13:41:37.662Z"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "task-1775538384470",
+  "title": "Tests for m3 backends and features",
+  "description": "Write test coverage for localStorage backend, EmbedBackend, tree() API, and permissions system added in m3",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [
+    "task-1775536902887",
+    "task-1775536906609"
+  ],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:06:24.470Z",
+  "updated": "2026-04-07T11:05:49.577Z",
+  "milestoneId": "m4"
+}

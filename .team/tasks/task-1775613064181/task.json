@@ -1,0 +1,14 @@
+{
+  "id": "task-1775613064181",
+  "title": "Update stale vision.json gap file",
+  "description": "vision.json shows 'missing' for SQLiteBackend in createBackend() and 'partial' for batchGet/batchSet exposure, AgenticStore mtime, OPFS isDirectory. All were fixed in m16-m19. Update vision.json to reflect actual codebase state.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-08T01:51:04.181Z",
+  "updated": "2026-04-08T02:13:12.739Z",
+  "milestoneId": "m25"
+}

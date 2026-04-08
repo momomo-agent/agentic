@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582140329",
+  "title": "Fix OPFSBackend.walkDir() error handling",
+  "description": "OPFSBackend.walkDir() should catch errors on individual entries and continue walking instead of throwing, matching PRD error handling requirements",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T17:15:40.329Z",
+  "updated": "2026-04-07T17:31:45.479Z"
+}

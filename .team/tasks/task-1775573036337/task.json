@@ -1,0 +1,14 @@
+{
+  "id": "task-1775573036337",
+  "title": "Add delete and tree agent tool definitions",
+  "description": "Vision gap: agent tool definitions omit delete and tree operations. Add file_delete and file_tree to getToolDefinitions() and handle in executeTool().",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-07T14:43:56.337Z",
+  "updated": "2026-04-07T15:13:49.488Z",
+  "milestoneId": "m12"
+}

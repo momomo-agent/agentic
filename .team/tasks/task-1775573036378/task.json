@@ -1,0 +1,14 @@
+{
+  "id": "task-1775573036378",
+  "title": "Implement automatic backend selection based on runtime environment",
+  "description": "Vision gap: consumers must manually choose backend. Implement createDefaultBackend() that auto-selects OPFS in browser, NodeFs in Node.js, Memory as fallback.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-07T14:43:56.378Z",
+  "updated": "2026-04-07T15:07:00.390Z",
+  "milestoneId": "m12"
+}

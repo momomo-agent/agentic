@@ -1,0 +1,21 @@
+{
+  "milestoneId": "m2",
+  "match": 86,
+  "timestamp": "2026-04-07T15:37:11.488Z",
+  "criteria": [
+    { "criterion": "DBB-001: ShellFS exported from index.ts", "status": "pass" },
+    { "criterion": "DBB-002: ShellFS usable — exec('ls /') returns string without error", "status": "pass" },
+    { "criterion": "DBB-003: AgenticFileSystem public methods have JSDoc", "status": "pass" },
+    { "criterion": "DBB-004: StorageBackend interface methods have JSDoc", "status": "pass" },
+    { "criterion": "DBB-005: ls() returns size on NodeFsBackend", "status": "pass" },
+    { "criterion": "DBB-006: ls() size is best-effort on other backends — no crash", "status": "pass" },
+    { "criterion": "DBB-007: LsResult includes mtime on NodeFsBackend", "status": "pass" },
+    { "criterion": "DBB-008: MemoryStorage passes core contract", "status": "pass" },
+    { "criterion": "DBB-009: MemoryStorage exported from index.ts", "status": "pass" },
+    { "criterion": "DBB-010: StorageBackend interface has batchGet and batchSet", "status": "pass" },
+    { "criterion": "DBB-011: batchGet returns null for missing paths", "status": "pass" },
+    { "criterion": "DBB-012: batchSet writes all entries", "status": "pass" },
+    { "criterion": "DBB-013: tests/cross-backend.test.js passes", "status": "fail" },
+    { "criterion": "DBB-014: tests/edge-cases.test.js passes", "status": "fail" }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "milestoneId": "m7",
+  "match": 85,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "DBB-001: Edge-case tests cover all 5 backends", "status": "fail" },
+    { "criterion": "DBB-002: Concurrent write test uses 10+ files", "status": "fail" },
+    { "criterion": "DBB-003: Empty path rejected on all backends", "status": "pass" },
+    { "criterion": "DBB-004: createDefaultBackend() selects NodeFs in Node.js", "status": "pass" },
+    { "criterion": "DBB-005: createDefaultBackend() selects OPFS in browser", "status": "pass" },
+    { "criterion": "DBB-006: createDefaultBackend() falls back to Memory backend", "status": "pass" },
+    { "criterion": "DBB-007: README performance table includes large file read, storage limits, browser support, use cases", "status": "pass" },
+    { "criterion": "DBB-008: README scan() example uses current signature with line field", "status": "pass" }
+  ]
+}

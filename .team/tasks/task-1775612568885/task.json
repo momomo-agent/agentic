@@ -1,0 +1,13 @@
+{
+  "id": "task-1775612568885",
+  "title": "Verify and update PRD gap status — test suites, README, scan streaming",
+  "description": "Re-evaluate prd.json gaps against current state: (1) PRD §4 'Complete per-backend test suites' — 53 test files exist in test/, verify this is now implemented; (2) PRD §5 'README with usage examples' — README.md exists, verify it covers all backends; (3) PRD §1 scan() streaming — check if AgenticStoreBackend now streams properly; (4) Update prd.json to reflect actual status of each gap. Goal: bring PRD match from 72% closer to 90%.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-08T01:42:48.885Z",
+  "updated": "2026-04-08T01:50:44.620Z"
+}

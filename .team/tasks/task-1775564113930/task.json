@@ -1,0 +1,13 @@
+{
+  "id": "task-1775564113930",
+  "title": "Fix NodeFsBackend race condition test",
+  "description": "The write-delete-write race condition test is timing-dependent and fails intermittently. Fix the test to use proper async coordination instead of relying on timing.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m6",
+  "hasDesign": true,
+  "created": "2026-04-07T12:15:13.930Z",
+  "updated": "2026-04-07T12:26:44.416Z"
+}

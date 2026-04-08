@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567436318",
+  "title": "Implement stat() on AgenticStoreBackend and OPFSBackend",
+  "description": "Both AgenticStoreBackend (src/backends/agentic-store.ts) and OPFSBackend (src/backends/opfs.ts) are missing the stat() method required by the StorageBackend interface. Implement stat() on both backends to return {size, mtime} for existing files and null for missing files. NodeFsBackend (src/backends/node-fs.ts) is the reference implementation. Required by vision gaps and DBB gap: OPFSBackend.stat() not implemented.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-07T13:10:36.318Z",
+  "updated": "2026-04-07T13:53:04.637Z"
+}

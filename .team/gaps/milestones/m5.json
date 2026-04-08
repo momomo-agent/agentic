@@ -1,0 +1,27 @@
+{
+  "milestoneId": "m5",
+  "match": 82,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "NodeFsBackend.stat() returns accurate size and mtime", "status": "pass" },
+    { "criterion": "OPFSBackend.stat() implemented using FileSystemFileHandle.getFile()", "status": "pass" },
+    { "criterion": "AgenticFileSystem.ls() populates size/mtime when stat() available", "status": "pass" },
+    { "criterion": "AgenticFileSystem.tree() populates size/mtime when stat() available", "status": "pass" },
+    { "criterion": "stat() returns null for missing files without throwing", "status": "pass" },
+    { "criterion": "AgenticStoreBackend.list() returns all paths with / prefix", "status": "pass" },
+    { "criterion": "AgenticStoreBackend.scan() returns normalized paths", "status": "pass" },
+    { "criterion": "AgenticStoreBackend.scanStream() yields normalized paths", "status": "pass" },
+    { "criterion": "Consistency test: all backends return identical path formats", "status": "partial" },
+    { "criterion": "Concurrent write tests: 10+ parallel writes succeed", "status": "fail" },
+    { "criterion": "Race condition tests: concurrent writes to same file", "status": "fail" },
+    { "criterion": "Empty path tests: empty string paths handled gracefully", "status": "pass" },
+    { "criterion": "Special character tests: spaces, unicode, dots work", "status": "pass" },
+    { "criterion": "Tests run against all 5 backends", "status": "fail" },
+    { "criterion": "README performance table with read/write speeds for small files", "status": "pass" },
+    { "criterion": "README performance table includes large file read speed", "status": "pass" },
+    { "criterion": "README performance table includes storage limits", "status": "pass" },
+    { "criterion": "README performance table includes browser support matrix", "status": "pass" },
+    { "criterion": "README performance table includes recommended use cases", "status": "pass" },
+    { "criterion": "README table covers all 5 backends", "status": "pass" }
+  ]
+}

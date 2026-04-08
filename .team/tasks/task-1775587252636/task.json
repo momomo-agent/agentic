@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587252636",
+  "title": "Verify OPFSBackend scan() streaming implementation",
+  "description": "After m19 task (scan streaming), verify that OPFSBackend.scan()/scanStream() uses streaming file reads rather than loading entire file content into memory. Test with large files and document results. Target: PRD §1 gap 'scan() streaming — OPFSBackend loads full file content into memory'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T18:40:52.637Z",
+  "updated": "2026-04-07T18:45:26.581Z",
+  "milestoneId": "m20"
+}

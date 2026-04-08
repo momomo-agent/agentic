@@ -1,0 +1,22 @@
+{
+  "milestoneId": "m1",
+  "match": 93,
+  "timestamp": "2026-04-07T15:52:09.719Z",
+  "criteria": [
+    { "criterion": "DBB-001: scan() returns {path, line, content} with line as positive integer on all backends", "status": "pass" },
+    { "criterion": "DBB-002: AgenticStoreBackend scan() result includes line field", "status": "pass" },
+    { "criterion": "DBB-003: AgenticStoreBackend list() paths have leading slash", "status": "pass" },
+    { "criterion": "DBB-004: OPFSBackend list() paths have leading slash", "status": "pass" },
+    { "criterion": "DBB-005: NodeFsBackend list() paths have leading slash", "status": "pass" },
+    { "criterion": "DBB-006: NotFoundError thrown on missing file read", "status": "pass" },
+    { "criterion": "DBB-007: PermissionDeniedError thrown on readOnly write", "status": "pass" },
+    { "criterion": "DBB-008: IOError thrown on backend I/O failure", "status": "partial" },
+    { "criterion": "DBB-009: OPFS walkDir errors logged and not silently swallowed", "status": "pass" },
+    { "criterion": "DBB-010: Per-backend test suite covers core operations", "status": "pass" },
+    { "criterion": "DBB-011: Cross-backend consistency test suite passes", "status": "pass" },
+    { "criterion": "DBB-012: Empty path rejected with error", "status": "pass" },
+    { "criterion": "DBB-013: Path with special characters can be written and read back", "status": "pass" },
+    { "criterion": "DBB-014: README includes backend configuration examples for all 3 backends", "status": "pass" },
+    { "criterion": "DBB-015: README includes performance comparison table with at least 3 rows", "status": "pass" }
+  ]
+}

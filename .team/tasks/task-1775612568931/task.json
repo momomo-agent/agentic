@@ -1,0 +1,13 @@
+{
+  "id": "task-1775612568931",
+  "title": "Add performance comparison table to README",
+  "description": "PRD §5 requires per-backend configuration docs and performance comparison table. Add a performance comparison section to README.md showing relative speed, memory usage, and best-use-case for each backend (Memory, NodeFs, OPFS, AgenticStore, SQLite, LocalStorage).",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-08T01:42:48.931Z",
+  "updated": "2026-04-08T01:50:44.653Z"
+}

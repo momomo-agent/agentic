@@ -1,0 +1,21 @@
+{
+  "milestoneId": "m8",
+  "match": 88,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "DBB-001: TypeScript build succeeds, dist/ contains output", "status": "pass" },
+    { "criterion": "DBB-002: All existing tests pass after fix", "status": "fail" },
+    { "criterion": "DBB-003: createBackend() instantiates AgenticStoreBackend in browser", "status": "pass" },
+    { "criterion": "DBB-004: createBackend() auto-selects OPFS in supported browsers", "status": "pass" },
+    { "criterion": "DBB-005: createBackend() auto-selects NodeFs in Node.js", "status": "pass" },
+    { "criterion": "DBB-006: stat() returns file metadata on AgenticStoreBackend", "status": "pass" },
+    { "criterion": "DBB-007: stat() returns null for missing files on AgenticStoreBackend", "status": "pass" },
+    { "criterion": "DBB-008: stat() returns file metadata on OPFSBackend", "status": "pass" },
+    { "criterion": "DBB-009: stat() returns null for missing files on OPFSBackend", "status": "pass" },
+    { "criterion": "DBB-010: file_delete tool in getToolDefinitions()", "status": "pass" },
+    { "criterion": "DBB-011: file_delete tool deletes files", "status": "pass" },
+    { "criterion": "DBB-012: file_tree tool in getToolDefinitions()", "status": "pass" },
+    { "criterion": "DBB-013: file_tree tool shows directory structure", "status": "pass" },
+    { "criterion": "DBB-014: Package is publishable (npm pack succeeds)", "status": "fail" }
+  ]
+}

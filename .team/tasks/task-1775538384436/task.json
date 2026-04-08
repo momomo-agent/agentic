@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538384436",
+  "title": "Add symlink support to NodeFsBackend",
+  "description": "Resolve symlinks correctly in NodeFsBackend list/get/scan operations",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:06:24.436Z",
+  "updated": "2026-04-07T11:04:08.465Z",
+  "milestoneId": "m4"
+}

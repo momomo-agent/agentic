@@ -1,0 +1,14 @@
+{
+  "id": "task-1775608676284",
+  "title": "Expose permissions field in stat() result across all backends",
+  "description": "PRD §2 gap: 'permissions field not exposed in stat result'. The stat() method returns size, mtime, isDirectory but not the permissions field. Add permissions to the StatResult type in types.ts and return it from stat() on all 6 backends (NodeFs, OPFS, AgenticStore, Memory, SQLite, LocalStorage). For NodeFs, read actual file permissions. For other backends, return a sensible default (e.g. 0o644 for files, 0o755 for directories). Ensure the StorageBackend interface documents the permissions field.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-08T00:37:56.285Z",
+  "updated": "2026-04-08T01:41:13.880Z",
+  "milestoneId": "m23"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570244624",
+  "title": "Implement stat() on AgenticStoreBackend and OPFSBackend",
+  "description": "Vision/DBB gap: both backends are missing stat(path) method. Implement stat() returning {size, mtime, isDirectory} on AgenticStoreBackend (IndexedDB) and OPFSBackend. Match the signature used by NodeFsBackend and the StorageBackend interface.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T13:57:24.624Z",
+  "updated": "2026-04-07T14:20:08.590Z",
+  "milestoneId": "m10"
+}

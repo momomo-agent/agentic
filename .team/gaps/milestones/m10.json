@@ -1,0 +1,11 @@
+{
+  "milestoneId": "m10",
+  "match": 90,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "DBB-001: stat() returns isDirectory field on AgenticStoreBackend and OPFSBackend", "status": "pass" },
+    { "criterion": "DBB-002: stat() returns null for missing paths on any backend", "status": "pass" },
+    { "criterion": "DBB-003: file_delete and file_tree in getToolDefinitions()", "status": "pass" },
+    { "criterion": "DBB-004: createAutoBackend() exported from index", "status": "pass" }
+  ]
+}

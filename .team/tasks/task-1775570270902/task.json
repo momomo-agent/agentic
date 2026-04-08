@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570270902",
+  "title": "Add file_delete and file_tree agent tool definitions",
+  "description": "Vision gap: getToolDefinitions() is missing delete and tree operations. Add file_delete tool (calls backend.delete()) and file_tree tool (calls backend.list() recursively) to the agent tool definitions in AgenticFileSystem.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T13:57:50.902Z",
+  "updated": "2026-04-07T14:20:08.621Z",
+  "milestoneId": "m10"
+}
