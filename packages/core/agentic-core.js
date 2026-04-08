@@ -303,7 +303,7 @@ async function agenticAsk(prompt, config, emit) {
 }
 
 async function _agenticAsk(prompt, config, emit) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images, audio } = config
   
   if (!apiKey) throw new Error('API Key required')
   
@@ -320,17 +320,39 @@ async function _agenticAsk(prompt, config, emit) {
     messages.push(...history)
   }
   
-  // Build user message — support vision (images)
-  if (images?.length) {
+  // Build user message — support vision (images) and audio
+  if (images?.length || audio) {
     const content = []
-    for (const img of images) {
-      if (provider === 'anthropic') {
-        content.push({ type: 'image', source: { type: 'base64', media_type: img.media_type || 'image/jpeg', data: img.data } })
-      } else {
-        const url = img.url || `data:${img.media_type || 'image/jpeg'};base64,${img.data}`
-        content.push({ type: 'image_url', image_url: { url, detail: img.detail || 'low' } })
+    
+    // Add images
+    if (images?.length) {
+      for (const img of images) {
+        if (provider === 'anthropic') {
+          content.push({ type: 'image', source: { type: 'base64', media_type: img.media_type || 'image/jpeg', data: img.data } })
+        } else {
+          const url = img.url || `data:${img.media_type || 'image/jpeg'};base64,${img.data}`
+          content.push({ type: 'image_url', image_url: { url, detail: img.detail || 'low' } })
+        }
       }
     }
+    
+    // Add audio (Gemini/Ollama format)
+    if (audio) {
+      if (provider === 'anthropic') {
+        // Anthropic doesn't support audio yet
+        console.warn('[agenticAsk] Anthropic does not support audio input')
+      } else {
+        // OpenAI/Gemini format
+        content.push({
+          type: 'input_audio',
+          input_audio: {
+            data: audio.data,
+            format: audio.format || 'wav'
+          }
+        })
+      }
+    }
+    
     content.push({ type: 'text', text: prompt })
     messages.push({ role: 'user', content })
   } else {

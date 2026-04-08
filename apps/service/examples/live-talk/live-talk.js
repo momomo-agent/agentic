@@ -61,8 +61,18 @@ function captureFrame() {
   return canvas.toDataURL('image/jpeg', 0.8).split(',')[1]
 }
 
-// 发送消息到 LLM（带图片）
-async function sendToLLM(text, includeImage = true) {
+// Blob 转 base64
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result.split(',')[1])
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
+// 发送消息到 LLM（带图片和音频）
+async function sendToLLM(text, audioBlob = null, includeImage = true) {
   const content = []
   
   if (includeImage && video.videoWidth > 0) {
@@ -73,7 +83,19 @@ async function sendToLLM(text, includeImage = true) {
     })
   }
   
-  content.push({ type: 'text', text })
+  // 如果有音频，直接发送音频（Gemma 4 原生支持）
+  if (audioBlob) {
+    const audioData = await blobToBase64(audioBlob)
+    content.push({
+      type: 'input_audio',
+      input_audio: {
+        data: audioData,
+        format: 'wav'
+      }
+    })
+  }
+  
+  content.push({ type: 'text', text: text || 'What do you hear?' })
   
   const messages = [
     {
