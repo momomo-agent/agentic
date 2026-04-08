@@ -1,10 +1,5 @@
-// agentic-memory unit tests
-import { describe, it } from 'node:test'
-import assert from 'node:assert/strict'
-import { createRequire } from 'node:module'
-
-const require = createRequire(import.meta.url)
-const {
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import {
   createMemory,
   createManager,
   createKnowledgeStore,
@@ -12,203 +7,275 @@ const {
   chunkText,
   cosineSimilarity,
   localEmbed,
-} = require('../memory.js')
+} from '../agentic-memory.js'
 
-describe('agentic-memory', () => {
-  // ── createMemory ──
+describe('AgenticMemory', () => {
+  describe('createMemory', () => {
+    it('should create memory instance with default config', () => {
+      const mem = createMemory()
+      expect(mem).toBeDefined()
+      expect(mem.add).toBeInstanceOf(Function)
+      expect(mem.messages).toBeInstanceOf(Function)
+      expect(mem.history).toBeInstanceOf(Function)
+      expect(mem.info).toBeInstanceOf(Function)
+      expect(mem.clear).toBeInstanceOf(Function)
+    })
 
-  it('1. createMemory — creates an instance', () => {
-    const mem = createMemory()
-    assert.ok(mem, 'should return an instance')
-    assert.equal(typeof mem.add, 'function')
-    assert.equal(typeof mem.messages, 'function')
-    assert.equal(typeof mem.history, 'function')
-    assert.equal(typeof mem.info, 'function')
-    assert.equal(typeof mem.clear, 'function')
+    it('should accept custom config', () => {
+      const mem = createMemory({
+        maxTokens: 4000,
+        systemPrompt: 'You are helpful.',
+        storage: 'memory'
+      })
+      expect(mem).toBeDefined()
+    })
+
+    it('should add messages', async () => {
+      const mem = createMemory()
+      await mem.add('user', 'Hello')
+      await mem.add('assistant', 'Hi there!')
+      const msgs = mem.history()
+      expect(msgs).toHaveLength(2)
+      expect(msgs[0].role).toBe('user')
+      expect(msgs[0].content).toBe('Hello')
+      expect(msgs[1].role).toBe('assistant')
+      expect(msgs[1].content).toBe('Hi there!')
+    })
+
+    it('should return messages array', async () => {
+      const mem = createMemory()
+      await mem.add('user', 'Test')
+      const msgs = mem.messages()
+      expect(Array.isArray(msgs)).toBe(true)
+      expect(msgs.length).toBeGreaterThanOrEqual(1)
+      const userMsg = msgs.find(m => m.role === 'user')
+      expect(userMsg).toBeDefined()
+      expect(userMsg.content).toBe('Test')
+    })
+
+    it('should separate history and messages with system prompt', async () => {
+      const mem = createMemory({ systemPrompt: 'You are a helpful bot.' })
+      await mem.add('user', 'Hello')
+      
+      const history = mem.history()
+      expect(history.some(m => m.role === 'system')).toBe(false)
+      expect(history).toHaveLength(1)
+      
+      const messages = mem.messages()
+      expect(messages.some(m => m.role === 'system')).toBe(true)
+      expect(messages[0].content).toBe('You are a helpful bot.')
+    })
+
+    it('should provide info with turns/tokens/messageCount', async () => {
+      const mem = createMemory()
+      await mem.add('user', 'Hello')
+      await mem.add('assistant', 'World')
+      
+      const info = mem.info()
+      expect(typeof info.turns).toBe('number')
+      expect(info.turns).toBe(1)
+      expect(typeof info.tokens).toBe('number')
+      expect(info.tokens).toBeGreaterThan(0)
+      expect(info.messageCount).toBe(2)
+    })
+
+    it('should auto-trim when exceeding maxTokens', async () => {
+      const mem = createMemory({ maxTokens: 50 })
+      for (let i = 0; i < 30; i++) {
+        await mem.add('user', `This is a longer message number ${i} with some extra content to fill tokens`)
+        await mem.add('assistant', `Response to message ${i} with some additional details and information`)
+      }
+      const info = mem.info()
+      expect(info.tokens <= 50 || info.messageCount <= 2).toBe(true)
+    })
+
+    it('should clear all messages', async () => {
+      const mem = createMemory()
+      await mem.add('user', 'Hello')
+      await mem.add('assistant', 'World')
+      mem.clear()
+      const info = mem.info()
+      expect(info.messageCount).toBe(0)
+      expect(info.turns).toBe(0)
+    })
   })
 
-  it('2. add() — adds messages', async () => {
-    const mem = createMemory()
-    await mem.add('user', 'Hello')
-    await mem.add('assistant', 'Hi there!')
-    const msgs = mem.history()
-    assert.equal(msgs.length, 2)
-    assert.equal(msgs[0].role, 'user')
-    assert.equal(msgs[0].content, 'Hello')
-    assert.equal(msgs[1].role, 'assistant')
-    assert.equal(msgs[1].content, 'Hi there!')
+  describe('Knowledge Store', () => {
+    it('should create knowledge store instance', () => {
+      const ks = createKnowledgeStore()
+      expect(ks).toBeDefined()
+      expect(ks.add).toBeInstanceOf(Function)
+      expect(ks.search).toBeInstanceOf(Function)
+      expect(ks.remove).toBeInstanceOf(Function)
+    })
+
+    it('should learn and store documents', async () => {
+      const mem = createMemory({ knowledge: true })
+      await mem.learn('doc-1', 'Quantum computing uses qubits for parallel computation')
+      const ki = mem.knowledgeInfo()
+      expect(ki.size).toBe(1)
+      expect(ki.ids).toContain('doc-1')
+    })
+
+    it('should recall relevant documents', async () => {
+      const mem = createMemory({ knowledge: true })
+      await mem.learn('doc-1', 'Quantum computing uses qubits for parallel computation')
+      await mem.learn('doc-2', 'Classical music evolved through the Baroque and Romantic periods')
+      
+      const results = await mem.recall('How do qubits work?')
+      expect(Array.isArray(results)).toBe(true)
+      expect(results.length).toBeGreaterThan(0)
+      expect(results[0].id).toBe('doc-1')
+      expect(results[0].score).toBeGreaterThan(0)
+    })
+
+    it('should forget documents', async () => {
+      const mem = createMemory({ knowledge: true })
+      await mem.learn('doc-1', 'First document')
+      await mem.learn('doc-2', 'Second document')
+      
+      await mem.forget('doc-1')
+      const ki = mem.knowledgeInfo()
+      expect(ki.size).toBe(1)
+      expect(ki.ids).not.toContain('doc-1')
+      expect(ki.ids).toContain('doc-2')
+    })
+
+    it('should return null knowledgeInfo when knowledge disabled', () => {
+      const mem = createMemory({ knowledge: false })
+      expect(mem.knowledgeInfo()).toBeNull()
+    })
   })
 
-  it('3. messages() — returns message array', async () => {
-    const mem = createMemory()
-    await mem.add('user', 'Test')
-    const msgs = mem.messages()
-    assert.ok(Array.isArray(msgs))
-    assert.ok(msgs.length >= 1)
-    // Without system prompt, messages just contain the user message
-    const userMsg = msgs.find(m => m.role === 'user')
-    assert.ok(userMsg)
-    assert.equal(userMsg.content, 'Test')
+  describe('Utility Functions', () => {
+    describe('estimateTokens', () => {
+      it('should estimate token count for English text', () => {
+        const tokens = estimateTokens('Hello world')
+        expect(typeof tokens).toBe('number')
+        expect(tokens).toBeGreaterThan(0)
+      })
+
+      it('should estimate token count for Chinese text', () => {
+        const cnTokens = estimateTokens('你好世界')
+        expect(cnTokens).toBeGreaterThan(0)
+      })
+
+      it('should return 0 for empty text', () => {
+        expect(estimateTokens('')).toBe(0)
+        expect(estimateTokens(null)).toBe(0)
+      })
+    })
+
+    describe('chunkText', () => {
+      it('should return single chunk for short text', () => {
+        const chunks = chunkText('short text')
+        expect(chunks).toHaveLength(1)
+        expect(chunks[0]).toBe('short text')
+      })
+
+      it('should split long text into chunks', () => {
+        const longText = Array(20).fill('This is a sentence that should be chunked.').join('\n\n')
+        const chunks = chunkText(longText, { maxChunkSize: 100 })
+        expect(Array.isArray(chunks)).toBe(true)
+        expect(chunks.length).toBeGreaterThan(1)
+        for (const chunk of chunks) {
+          expect(chunk.length).toBeGreaterThan(0)
+        }
+      })
+
+      it('should handle custom separator', () => {
+        const text = 'Part 1. Part 2. Part 3.'
+        const chunks = chunkText(text, { separator: '. ', maxChunkSize: 10 })
+        expect(chunks.length).toBeGreaterThan(1)
+      })
+
+      it('should handle empty text', () => {
+        const chunks = chunkText('')
+        expect(chunks).toEqual([''])
+      })
+    })
+
+    describe('cosineSimilarity', () => {
+      it('should return 1 for identical vectors', () => {
+        const sim = cosineSimilarity([1, 0, 0], [1, 0, 0])
+        expect(Math.abs(sim - 1)).toBeLessThan(0.001)
+      })
+
+      it('should return 0 for orthogonal vectors', () => {
+        const sim = cosineSimilarity([1, 0, 0], [0, 1, 0])
+        expect(Math.abs(sim)).toBeLessThan(0.001)
+      })
+
+      it('should return -1 for opposite vectors', () => {
+        const sim = cosineSimilarity([1, 0], [-1, 0])
+        expect(Math.abs(sim - (-1))).toBeLessThan(0.001)
+      })
+
+      it('should return 0 for zero vector', () => {
+        const sim = cosineSimilarity([0, 0], [1, 1])
+        expect(sim).toBe(0)
+      })
+    })
+
+    describe('localEmbed', () => {
+      it('should return embeddings for texts', () => {
+        const texts = ['Hello world', 'Goodbye world', 'Quantum computing']
+        const embeddings = localEmbed(texts)
+        
+        expect(Array.isArray(embeddings)).toBe(true)
+        expect(embeddings).toHaveLength(3)
+        
+        for (const emb of embeddings) {
+          expect(Array.isArray(emb) || emb instanceof Float32Array).toBe(true)
+          expect(emb.length).toBeGreaterThan(0)
+        }
+      })
+
+      it('should produce similar embeddings for similar texts', () => {
+        const texts = ['Hello world', 'Goodbye world', 'Quantum computing']
+        const embeddings = localEmbed(texts)
+        
+        const sim_similar = cosineSimilarity(embeddings[0], embeddings[1])
+        const sim_different = cosineSimilarity(embeddings[0], embeddings[2])
+        
+        expect(sim_similar).toBeGreaterThan(sim_different)
+      })
+    })
   })
 
-  it('4. history() — returns messages without system prompt; messages() includes system', async () => {
-    const mem = createMemory({ systemPrompt: 'You are a helpful bot.' })
-    await mem.add('user', 'Hello')
-    
-    const history = mem.history()
-    assert.ok(!history.some(m => m.role === 'system'), 'history should not have system message')
-    assert.equal(history.length, 1)
-    
-    const messages = mem.messages()
-    assert.ok(messages.some(m => m.role === 'system'), 'messages() should include system prompt')
-    assert.equal(messages[0].content, 'You are a helpful bot.')
-  })
+  describe('createManager', () => {
+    it('should create manager instance', () => {
+      const manager = createManager()
+      expect(manager).toBeDefined()
+      expect(manager.get).toBeInstanceOf(Function)
+      expect(manager.list).toBeInstanceOf(Function)
+      expect(manager.delete).toBeInstanceOf(Function)
+      expect(manager.clear).toBeInstanceOf(Function)
+    })
 
-  it('5. info() — returns turns/tokens/messageCount', async () => {
-    const mem = createMemory()
-    await mem.add('user', 'Hello')
-    await mem.add('assistant', 'World')
-    
-    const info = mem.info()
-    assert.equal(typeof info.turns, 'number')
-    assert.equal(info.turns, 1, 'only user messages count as turns')
-    assert.equal(typeof info.tokens, 'number')
-    assert.ok(info.tokens > 0)
-    assert.equal(info.messageCount, 2)
-  })
+    it('should get or create sessions', () => {
+      const manager = createManager()
+      const mem1 = manager.get('session-1')
+      const mem2 = manager.get('session-1')
+      expect(mem1).toBe(mem2)
+    })
 
-  it('6. trim — auto-trims when exceeding maxTokens', async () => {
-    const mem = createMemory({ maxTokens: 50 })
-    // Add many messages to exceed the token budget
-    for (let i = 0; i < 30; i++) {
-      await mem.add('user', `This is a longer message number ${i} with some extra content to fill tokens`)
-      await mem.add('assistant', `Response to message ${i} with some additional details and information`)
-    }
-    const info = mem.info()
-    assert.ok(info.tokens <= 50 || info.messageCount <= 2,
-      'should have trimmed messages to fit within maxTokens (or kept minimum 2)')
-  })
+    it('should list session ids', () => {
+      const manager = createManager()
+      manager.get('alice')
+      manager.get('bob')
+      const ids = manager.list()
+      expect(ids).toContain('alice')
+      expect(ids).toContain('bob')
+    })
 
-  it('7. clear() — clears all messages', async () => {
-    const mem = createMemory()
-    await mem.add('user', 'Hello')
-    await mem.add('assistant', 'World')
-    mem.clear()
-    const info = mem.info()
-    assert.equal(info.messageCount, 0)
-    assert.equal(info.turns, 0)
-  })
-
-  // ── createKnowledgeStore ──
-
-  it('8. createKnowledgeStore — creates an instance', () => {
-    const ks = createKnowledgeStore()
-    assert.ok(ks)
-    assert.equal(typeof ks.add, 'function')
-    assert.equal(typeof ks.search, 'function')
-    assert.equal(typeof ks.remove, 'function')
-  })
-
-  it('9. learn(id, text) — stores a document', async () => {
-    const mem = createMemory({ knowledge: true })
-    await mem.learn('doc-1', 'Quantum computing uses qubits for parallel computation')
-    const ki = mem.knowledgeInfo()
-    assert.equal(ki.size, 1)
-    assert.ok(ki.ids.includes('doc-1'))
-  })
-
-  it('10. recall(query) — retrieves relevant documents', async () => {
-    const mem = createMemory({ knowledge: true })
-    await mem.learn('doc-1', 'Quantum computing uses qubits for parallel computation')
-    await mem.learn('doc-2', 'Classical music evolved through the Baroque and Romantic periods')
-    
-    const results = await mem.recall('How do qubits work?')
-    assert.ok(Array.isArray(results))
-    assert.ok(results.length > 0)
-    // The quantum doc should rank higher
-    assert.equal(results[0].id, 'doc-1')
-    assert.ok(results[0].score > 0)
-  })
-
-  it('11. forget(id) — deletes a document', async () => {
-    const mem = createMemory({ knowledge: true })
-    await mem.learn('doc-1', 'First document')
-    await mem.learn('doc-2', 'Second document')
-    
-    await mem.forget('doc-1')
-    const ki = mem.knowledgeInfo()
-    assert.equal(ki.size, 1)
-    assert.ok(!ki.ids.includes('doc-1'))
-    assert.ok(ki.ids.includes('doc-2'))
-  })
-
-  // ── Utility functions ──
-
-  it('12. estimateTokens — estimates token count', () => {
-    const tokens = estimateTokens('Hello world')
-    assert.equal(typeof tokens, 'number')
-    assert.ok(tokens > 0)
-    
-    // Chinese text should estimate differently
-    const cnTokens = estimateTokens('你好世界')
-    assert.ok(cnTokens > 0)
-    
-    // Empty string
-    assert.equal(estimateTokens(''), 0)
-    assert.equal(estimateTokens(null), 0)
-  })
-
-  it('13. chunkText — splits text into chunks', () => {
-    const longText = Array(20).fill('This is a sentence that should be chunked.').join('\n\n')
-    const chunks = chunkText(longText, { maxChunkSize: 100 })
-    assert.ok(Array.isArray(chunks))
-    assert.ok(chunks.length > 1, 'should produce multiple chunks')
-    // Each chunk should be within the limit (approximately)
-    for (const chunk of chunks) {
-      assert.ok(chunk.length > 0, 'chunk should not be empty')
-    }
-    
-    // Short text returns single chunk
-    const shortChunks = chunkText('short text')
-    assert.equal(shortChunks.length, 1)
-    assert.equal(shortChunks[0], 'short text')
-  })
-
-  it('14. cosineSimilarity — calculates correctly', () => {
-    // Identical vectors = 1
-    const sim1 = cosineSimilarity([1, 0, 0], [1, 0, 0])
-    assert.ok(Math.abs(sim1 - 1) < 0.001)
-    
-    // Orthogonal vectors = 0
-    const sim2 = cosineSimilarity([1, 0, 0], [0, 1, 0])
-    assert.ok(Math.abs(sim2) < 0.001)
-    
-    // Opposite vectors = -1
-    const sim3 = cosineSimilarity([1, 0], [-1, 0])
-    assert.ok(Math.abs(sim3 - (-1)) < 0.001)
-    
-    // Zero vector = 0
-    const sim4 = cosineSimilarity([0, 0], [1, 1])
-    assert.equal(sim4, 0)
-  })
-
-  it('15. localEmbed — returns vectors', () => {
-    const texts = ['Hello world', 'Goodbye world', 'Quantum computing']
-    const embeddings = localEmbed(texts)
-    
-    assert.ok(Array.isArray(embeddings))
-    assert.equal(embeddings.length, 3)
-    
-    for (const emb of embeddings) {
-      assert.ok(Array.isArray(emb) || emb instanceof Float32Array)
-      assert.ok(emb.length > 0, 'embedding should have dimensions')
-    }
-    
-    // Similar texts should have higher similarity than dissimilar
-    const sim_similar = cosineSimilarity(embeddings[0], embeddings[1])
-    const sim_different = cosineSimilarity(embeddings[0], embeddings[2])
-    // "Hello world" and "Goodbye world" share "world" — should be more similar
-    assert.ok(sim_similar > sim_different,
-      `similar texts should have higher similarity: ${sim_similar} vs ${sim_different}`)
+    it('should delete sessions', () => {
+      const manager = createManager()
+      const mem = manager.get('temp')
+      expect(mem).toBeDefined()
+      manager.delete('temp')
+      const ids = manager.list()
+      expect(ids).not.toContain('temp')
+    })
   })
 })

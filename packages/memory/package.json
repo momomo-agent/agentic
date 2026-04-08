@@ -5,12 +5,18 @@
   "main": "agentic-memory.js",
   "files": ["agentic-memory.js", "agentic-memory.min.js", "README.md"],
   "scripts": {
-    "minify": "npx terser agentic-memory.js -c -m -o agentic-memory.min.js"
+    "minify": "npx terser agentic-memory.js -c -m -o agentic-memory.min.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": ["memory", "conversation", "context", "knowledge", "embedding", "vector", "search", "rag", "ai", "llm", "zero-dependency"],
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/momomo-agent/agentic-memory.git"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "vitest": "^2.1.9"
   }
 }
