@@ -5,7 +5,13 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "dev": "npx serve ."
+    "dev": "npx serve .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9",
+    "@vitest/coverage-v8": "^2.1.9"
   },
   "license": "MIT"
 }

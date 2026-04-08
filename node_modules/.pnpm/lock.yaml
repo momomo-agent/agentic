@@ -159,7 +159,14 @@ importers:
         specifier: ^2.0.0
         version: 2.1.9(@types/node@25.5.2)(jsdom@29.0.2)
 
-  packages/spatial: {}
+  packages/spatial:
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^2.1.9
+        version: 2.1.9(vitest@2.1.9(@types/node@25.5.2)(jsdom@29.0.2))
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.5.2)(jsdom@29.0.2)
 
   packages/store:
     dependencies:
