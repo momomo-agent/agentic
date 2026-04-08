@@ -1,0 +1,13 @@
+{
+  "name": "agentic",
+  "private": true,
+  "version": "0.1.0",
+  "description": "给 AI 造身体的零件箱",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "test": "pnpm -r test"
+  },
+  "keywords": ["ai", "agent", "llm", "toolkit"],
+  "license": "MIT"
+}
