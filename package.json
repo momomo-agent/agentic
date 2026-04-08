@@ -1,0 +1,16 @@
+{
+  "name": "agentic-memory",
+  "version": "0.2.0",
+  "description": "AI memory — conversation context + knowledge retrieval. Zero dependencies.",
+  "main": "agentic-memory.js",
+  "files": ["agentic-memory.js", "agentic-memory.min.js", "README.md"],
+  "scripts": {
+    "minify": "npx terser agentic-memory.js -c -m -o agentic-memory.min.js"
+  },
+  "keywords": ["memory", "conversation", "context", "knowledge", "embedding", "vector", "search", "rag", "ai", "llm", "zero-dependency"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momomo-agent/agentic-memory.git"
+  }
+}
