@@ -1,0 +1,246 @@
+// Live Talk - 实时语音视觉对话
+// 使用 agentic-sense (VAD + 摄像头) + agentic-voice (TTS)
+
+const API_BASE = 'http://localhost:1234'
+
+// UI 元素
+const video = document.getElementById('video')
+const statusDot = document.getElementById('statusDot')
+const statusText = document.getElementById('statusText')
+const startBtn = document.getElementById('startBtn')
+const stopBtn = document.getElementById('stopBtn')
+const messages = document.getElementById('messages')
+const textInput = document.getElementById('textInput')
+const sendBtn = document.getElementById('sendBtn')
+
+// 状态
+let audio = null
+let voice = null
+let isActive = false
+let conversationHistory = []
+
+// 添加消息到 UI
+function addMessage(role, content) {
+  const msg = document.createElement('div')
+  msg.className = `message ${role}`
+  msg.textContent = content
+  messages.appendChild(msg)
+  messages.scrollTop = messages.scrollHeight
+}
+
+// 更新状态
+function setStatus(status, text) {
+  statusDot.className = `status-dot ${status}`
+  statusText.textContent = text
+}
+
+// 初始化摄像头
+async function initCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { width: 640, height: 480 },
+      audio: false 
+    })
+    video.srcObject = stream
+    await video.play()
+    return true
+  } catch (e) {
+    console.error('Camera init failed:', e)
+    addMessage('system', '摄像头初始化失败: ' + e.message)
+    return false
+  }
+}
+
+// 捕获当前帧为 base64
+function captureFrame() {
+  const canvas = document.createElement('canvas')
+  canvas.width = video.videoWidth
+  canvas.height = video.videoHeight
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(video, 0, 0)
+  return canvas.toDataURL('image/jpeg', 0.8).split(',')[1]
+}
+
+// 发送消息到 LLM（带图片）
+async function sendToLLM(text, includeImage = true) {
+  const content = []
+  
+  if (includeImage && video.videoWidth > 0) {
+    const imageData = captureFrame()
+    content.push({
+      type: 'image_url',
+      image_url: { url: `data:image/jpeg;base64,${imageData}` }
+    })
+  }
+  
+  content.push({ type: 'text', text })
+  
+  const messages = [
+    ...conversationHistory,
+    { role: 'user', content }
+  ]
+  
+  try {
+    const response = await fetch(`${API_BASE}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages })
+    })
+    
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let assistantText = ''
+    
+    // 创建异步迭代器供 speakStream 使用
+    const textStream = {
+      [Symbol.asyncIterator]: async function* () {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+          
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue
+            const data = line.slice(6)
+            if (data === '[DONE]') return
+            
+            try {
+              const chunk = JSON.parse(data)
+              if (chunk.type === 'content') {
+                const text = chunk.content || chunk.text || ''
+                assistantText += text
+                yield text
+              }
+            } catch {}
+          }
+        }
+      }
+    }
+    
+    // 流式播放
+    setStatus('speaking', '回复中...')
+    await voice.speakStream(textStream)
+    
+    // 更新历史
+    conversationHistory.push(
+      { role: 'user', content: text },
+      { role: 'assistant', content: assistantText }
+    )
+    
+    addMessage('assistant', assistantText)
+    setStatus('listening', '聆听中...')
+    
+  } catch (e) {
+    console.error('LLM call failed:', e)
+    addMessage('system', '请求失败: ' + e.message)
+    setStatus('active', '就绪')
+  }
+}
+
+// 开始对话
+async function start() {
+  if (isActive) return
+  
+  addMessage('system', '正在初始化...')
+  
+  // 初始化摄像头
+  if (!await initCamera()) return
+  
+  // 初始化 VAD
+  audio = new window.AgenticAudio({
+    wakeWords: [],  // 不使用唤醒词，持续监听
+    silenceThreshold: 500,  // 500ms 静音后结束
+  })
+  
+  // 初始化 TTS
+  voice = window.AgenticVoice.createVoice({
+    tts: { 
+      provider: 'openai',
+      baseUrl: API_BASE,
+      apiKey: 'dummy',  // service 不需要真实 key
+      voice: 'alloy'
+    }
+  })
+  
+  // VAD 回调
+  audio.onResult = async (text, isFinal) => {
+    if (!isFinal || !text.trim()) return
+    
+    addMessage('user', text)
+    setStatus('active', '思考中...')
+    
+    // 打断当前播放
+    voice.stop()
+    
+    // 发送到 LLM
+    await sendToLLM(text, true)
+  }
+  
+  await audio.start()
+  
+  isActive = true
+  startBtn.disabled = true
+  stopBtn.disabled = false
+  setStatus('listening', '聆听中...')
+  addMessage('system', '对话已开始，可以说话了')
+}
+
+// 停止对话
+function stop() {
+  if (!isActive) return
+  
+  if (audio) {
+    audio.stop()
+    audio = null
+  }
+  
+  if (voice) {
+    voice.stop()
+    voice.destroy()
+    voice = null
+  }
+  
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(t => t.stop())
+    video.srcObject = null
+  }
+  
+  isActive = false
+  startBtn.disabled = false
+  stopBtn.disabled = true
+  setStatus('', '未连接')
+  addMessage('system', '对话已停止')
+}
+
+// 文字输入
+async function sendText() {
+  const text = textInput.value.trim()
+  if (!text) return
+  
+  textInput.value = ''
+  addMessage('user', text)
+  
+  if (isActive) {
+    voice.stop()
+    await sendToLLM(text, true)
+  } else {
+    addMessage('system', '请先开始对话')
+  }
+}
+
+// 事件绑定
+startBtn.addEventListener('click', start)
+stopBtn.addEventListener('click', stop)
+sendBtn.addEventListener('click', sendText)
+textInput.addEventListener('keypress', e => {
+  if (e.key === 'Enter') sendText()
+})
+
+// 页面卸载时清理
+window.addEventListener('beforeunload', stop)

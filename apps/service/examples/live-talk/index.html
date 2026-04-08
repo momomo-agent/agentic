@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Talk - 实时语音视觉对话</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .header {
+      padding: 20px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .header p {
+      color: #888;
+      font-size: 14px;
+    }
+    
+    .main {
+      flex: 1;
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      overflow: hidden;
+    }
+    
+    .video-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .video-container {
+      position: relative;
+      flex: 1;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .video-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    
+    .status-badge {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #666;
+    }
+    
+    .status-dot.active { background: #4ade80; animation: pulse 2s infinite; }
+    .status-dot.listening { background: #3b82f6; }
+    .status-dot.speaking { background: #f59e0b; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .controls {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .btn-primary:hover { background: #2563eb; }
+    .btn-primary:disabled {
+      background: #374151;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+    
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .btn-danger:hover { background: #dc2626; }
+    
+    .chat-panel {
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .chat-header {
+      padding: 16px;
+      border-bottom: 1px solid #333;
+      font-weight: 600;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .message {
+      padding: 12px;
+      border-radius: 8px;
+      max-width: 85%;
+      word-wrap: break-word;
+    }
+    
+    .message.user {
+      background: #3b82f6;
+      align-self: flex-end;
+    }
+    
+    .message.assistant {
+      background: #374151;
+      align-self: flex-start;
+    }
+    
+    .message.system {
+      background: #1f2937;
+      align-self: center;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+    }
+    
+    .chat-input {
+      padding: 16px;
+      border-top: 1px solid #333;
+      display: flex;
+      gap: 8px;
+    }
+    
+    .chat-input input {
+      flex: 1;
+      padding: 10px 12px;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+    
+    .chat-input input:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎙️ Live Talk</h1>
+    <p>实时语音视觉对话 - 基于 Gemma 4 E2B</p>
+  </div>
+  
+  <div class="main">
+    <div class="video-panel">
+      <div class="video-container">
+        <video id="video" autoplay playsinline muted></video>
+        <div class="video-overlay">
+          <div class="status-badge">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">未连接</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <button class="btn btn-primary" id="startBtn">开始对话</button>
+        <button class="btn btn-danger" id="stopBtn" disabled>停止</button>
+      </div>
+    </div>
+    
+    <div class="chat-panel">
+      <div class="chat-header">对话记录</div>
+      <div class="chat-messages" id="messages"></div>
+      <div class="chat-input">
+        <input type="text" id="textInput" placeholder="输入文字消息..." />
+        <button class="btn btn-primary" id="sendBtn">发送</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../../packages/sense/agentic-sense.js"></script>
+  <script src="../../packages/voice/agentic-voice.js"></script>
+  <script src="./live-talk.js"></script>
+</body>
+</html>
