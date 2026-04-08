@@ -23,5 +23,13 @@
   "peerDependencies": {
     "agentic-core": "workspace:*",
     "agentic-memory": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "vitest": "^2.1.9"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }

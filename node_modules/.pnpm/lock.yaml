@@ -107,6 +107,13 @@ importers:
       agentic-memory:
         specifier: workspace:*
         version: link:../memory
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^2.1.9
+        version: 2.1.9(vitest@2.1.9(@types/node@25.5.2)(jsdom@29.0.2))
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.5.2)(jsdom@29.0.2)
 
   packages/core: {}
 
@@ -124,9 +131,26 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
-  packages/memory: {}
+  packages/memory:
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^2.1.9
+        version: 2.1.9(vitest@2.1.9(@types/node@25.5.2)(jsdom@29.0.2))
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.5.2)(jsdom@29.0.2)
 
-  packages/render: {}
+  packages/render:
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^2.1.9
+        version: 2.1.9(vitest@2.1.9(@types/node@25.5.2)(jsdom@29.0.2))
+      jsdom:
+        specifier: ^29.0.2
+        version: 29.0.2
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.5.2)(jsdom@29.0.2)
 
   packages/sense:
     devDependencies:
