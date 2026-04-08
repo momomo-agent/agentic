@@ -24,6 +24,37 @@ async function isModelPulled(model) {
   } catch { return false; }
 }
 
+async function isOllamaRunning() {
+  try {
+    const response = await fetch('http://localhost:11434/api/version');
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function startOllama() {
+  return new Promise((resolve, reject) => {
+    const child = spawn('ollama', ['serve'], {
+      detached: true,
+      stdio: 'ignore'
+    });
+    child.unref();
+    
+    // Wait for Ollama to be ready
+    let attempts = 0;
+    const checkInterval = setInterval(async () => {
+      if (await isOllamaRunning()) {
+        clearInterval(checkInterval);
+        resolve();
+      } else if (++attempts > 30) { // 30 seconds timeout
+        clearInterval(checkInterval);
+        reject(new Error('Ollama failed to start'));
+      }
+    }, 1000);
+  });
+}
+
 function getInstallCommand(platform) {
   if (platform === 'darwin') return 'brew install ollama';
   if (platform === 'linux') return 'curl -fsSL https://ollama.ai/install.sh | sh';
@@ -71,6 +102,18 @@ export async function ensureModel() {
     const spinner = ora('Installing Ollama...').start();
     await installOllama(getInstallCommand(hardware.platform));
     spinner.succeed('Ollama installed');
+  }
+
+  // Check if Ollama is running, start if not
+  if (!await isOllamaRunning()) {
+    const spinner = ora('Starting Ollama...').start();
+    try {
+      await startOllama();
+      spinner.succeed('Ollama started');
+    } catch (err) {
+      spinner.fail('Failed to start Ollama');
+      throw err;
+    }
   }
 
   if (!await isModelPulled(profile.llm.model)) {
