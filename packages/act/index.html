@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>agentic-act — AI Intent Execution Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08080a;--surface:rgba(255,255,255,0.025);--border:rgba(255,255,255,0.05);
+  --text:rgba(255,255,255,0.88);--text2:rgba(255,255,255,0.45);--text3:rgba(255,255,255,0.2);
+  --accent:#818cf8;--accent2:#a78bfa;--green:#4ade80;--warm:#fb923c;
+  --serif:'Instrument Serif',Georgia,serif;--mono:'Space Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ── Noise overlay ── */
+body::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:999}
+
+/* ── Hero ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:0 10vw;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(129,140,248,0.06);border:1px solid rgba(129,140,248,0.12);border-radius:20px;font-size:11px;color:var(--accent);margin-bottom:32px;width:fit-content}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-family:var(--serif);font-size:clamp(48px,8vw,96px);font-weight:400;line-height:1.05;letter-spacing:-0.02em;max-width:900px}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero .subtitle{font-size:14px;color:var(--text2);max-width:520px;line-height:1.8;margin-top:28px}
+.hero-actions{display:flex;gap:12px;margin-top:36px}
+.hero-actions a{display:inline-flex;align-items:center;gap:6px;padding:10px 22px;border-radius:6px;font-size:12px;font-family:var(--mono);text-decoration:none;transition:all 0.2s}
+.hero-actions .primary{background:var(--accent);color:#000;border:none}
+.hero-actions .primary:hover{background:var(--accent2)}
+.hero-actions .secondary{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.hero-actions .secondary:hover{border-color:rgba(255,255,255,0.15);color:var(--text)}
+
+/* Floating glow */
+.hero::after{content:'';position:absolute;top:20%;right:5%;width:400px;height:400px;background:radial-gradient(circle,rgba(129,140,248,0.06) 0%,transparent 70%);pointer-events:none;border-radius:50%}
+
+/* ── Section ── */
+section{padding:100px 10vw}
+.section-label{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:3px;margin-bottom:12px}
+.section-title{font-family:var(--serif);font-size:clamp(28px,4vw,48px);font-weight:400;margin-bottom:40px}
+
+/* ── Core concept ── */
+.concept{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.concept-text{font-size:13px;color:var(--text2);line-height:2}
+.concept-text strong{color:var(--text);font-weight:700}
+.concept-diagram{position:relative;padding:40px;background:var(--surface);border:1px solid var(--border);border-radius:12px}
+.flow-step{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.flow-step:last-child{border-bottom:none}
+.flow-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.flow-icon.input{background:rgba(129,140,248,0.08);border:1px solid rgba(129,140,248,0.15)}
+.flow-icon.decide{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.15)}
+.flow-icon.output{background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.15)}
+.flow-label{font-size:11px;color:var(--text)}
+.flow-desc{font-size:10px;color:var(--text3)}
+.flow-arrow{text-align:center;color:var(--text3);font-size:10px;padding:4px 0}
+
+/* ── Code block ── */
+.code-section{background:rgba(255,255,255,0.015);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.code-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0}
+.code-tab{padding:10px 20px;font-size:11px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.code-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.code-block{font-family:var(--mono);font-size:12px;line-height:1.9;color:var(--text2);white-space:pre;overflow-x:auto;padding:30px 0}
+.code-block .kw{color:var(--accent)}
+.code-block .str{color:var(--green)}
+.code-block .cmt{color:var(--text3);font-style:italic}
+.code-block .fn{color:var(--warm)}
+
+/* ── Features grid ── */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feature-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:28px 24px;transition:all 0.3s}
+.feature-card:hover{border-color:rgba(255,255,255,0.1);transform:translateY(-2px)}
+.feature-card .fc-icon{font-size:24px;margin-bottom:14px}
+.feature-card .fc-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.feature-card .fc-desc{font-size:11px;color:var(--text3);line-height:1.7}
+
+/* ── Philosophy ── */
+.philosophy{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.phil-card{padding:32px;border-left:2px solid var(--border)}
+.phil-card .phil-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}
+.phil-card .phil-title{font-family:var(--serif);font-size:22px;margin-bottom:10px}
+.phil-card .phil-desc{font-size:11px;color:var(--text2);line-height:1.8}
+.phil-card.highlight{border-left-color:var(--accent)}
+
+/* ── Footer ── */
+footer{padding:60px 10vw;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+footer .logo{font-family:var(--serif);font-size:18px;font-style:italic}
+footer .links{display:flex;gap:20px}
+footer a{font-size:11px;color:var(--text3);text-decoration:none}
+footer a:hover{color:var(--text)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .hero{padding:0 6vw}
+  section{padding:60px 6vw}
+  .concept,.philosophy{grid-template-columns:1fr}
+  .features{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge"><div class="dot"></div>agentic family</div>
+  <h1>Agentic <em>Act</em></h1>
+  <div class="subtitle">
+    AI 意图执行引擎。多模态输入，结构化行动决策。<br>
+    不负责"怎么做"，只回答"做什么"。
+  </div>
+  <div class="hero-actions">
+    <a href="demo/" class="primary">Live Demo →</a>
+    <a href="https://github.com/momomo-agent/agentic-act" class="secondary">GitHub</a>
+  </div>
+</div>
+
+<!-- Core Concept -->
+<section>
+  <div class="section-label">Core Concept</div>
+  <div class="section-title">Sense → Think → Act</div>
+  <div class="concept">
+    <div class="concept-text">
+      <strong>tools 是输入扩展</strong> — AI 调外部能力来获取信息。<br><br>
+      <strong>actions 是输出扩展</strong> — AI 选外部通道来输出信息。<br><br>
+      act 是 AI 意志的<strong>投射</strong>，不是能力的延伸。输入一个意图，act 从注册的行动选项中选择最合适的一个，填好参数返回。执行是你的事。<br><br>
+      所有 AI 产品的交互方式都是固定的 — ChatGPT 永远是文字框，Siri 永远是语音。但现实中人与人的沟通方式是<strong>动态选择</strong>的：看到你在忙就发微信不打电话。act 让 AI 也能做这个判断。
+    </div>
+    <div class="concept-diagram">
+      <div class="flow-step">
+        <div class="flow-icon input">📝</div>
+        <div><div class="flow-label">多模态输入</div><div class="flow-desc">text / image / audio / sense / 任意字段</div></div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-icon decide">🧠</div>
+        <div><div class="flow-label">LLM 决策</div><div class="flow-desc">理解意图 + 感知环境 + 匹配 actions</div></div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <div class="flow-icon output">⚡</div>
+        <div><div class="flow-label">结构化输出</div><div class="flow-desc">action id + params + reason + confidence</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Code -->
+<section class="code-section">
+  <div class="section-label">Quick Start</div>
+  <div class="section-title">Three lines to decide</div>
+  <div class="code-block"><span class="kw">const</span> act = <span class="kw">new</span> <span class="fn">AgenticAct</span>({
+  provider: <span class="str">'openai'</span>,
+  apiKey: <span class="str">'sk-...'</span>,
+
+  <span class="cmt">// 路由准则 — 告诉 AI 怎么思考、怎么选</span>
+  prompt: <span class="str">`他工作时极度讨厌被打断，除非紧急一律静默排队。
+    做饭时喜欢听语音播报。晚上 11 点后不要用语音。`</span>,
+
+  actions: [
+    {
+      id: <span class="str">'voice'</span>,
+      name: <span class="str">'语音播报'</span>,
+      description: <span class="str">'通过音箱语音告知。适合用户没在看屏幕的场景'</span>,
+      schema: { content: <span class="str">'string'</span>, volume: <span class="str">'low|normal'</span> },
+      handler: <span class="kw">async</span> (params) => speaker.<span class="fn">say</span>(params.content)
+    }
+  ]
+})
+
+<span class="cmt">// 只决策</span>
+<span class="kw">const</span> decision = <span class="kw">await</span> act.<span class="fn">decide</span>({ text: <span class="str">'外卖到了'</span>, image: cameraFrame })
+<span class="cmt">// → { action: 'voice', params: { content: '外卖到楼下了', volume: 'low' } }</span>
+
+<span class="cmt">// 决策 + 执行</span>
+<span class="kw">const</span> result = <span class="kw">await</span> act.<span class="fn">run</span>({ text: <span class="str">'会议要开始了'</span> })
+<span class="cmt">// → { action: 'voice', params: {...}, executed: true }</span></div>
+</section>
+
+<!-- Features -->
+<section>
+  <div class="section-label">Design</div>
+  <div class="section-title">Built for intent, not implementation</div>
+  <div class="features">
+    <div class="feature-card">
+      <div class="fc-icon">🎯</div>
+      <div class="fc-title">意图驱动</div>
+      <div class="fc-desc">输入的不是"用音箱播语音"，而是"让他知道外卖到了"。怎么做，act 自己决定。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">📡</div>
+      <div class="fc-title">多模态输入</div>
+      <div class="fc-desc">text / image / audio / sensor data — 全部可选，至少一个。任意字段自动归一化。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">🔌</div>
+      <div class="fc-title">Actions 注册表</div>
+      <div class="fc-desc">声明式定义可选行动。id + name + description + schema + handler。consumer 教 act 决策。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">🧠</div>
+      <div class="fc-title">decide() / run()</div>
+      <div class="fc-desc">decide 只决策不执行。run 决策后自动调用 handler。两种模式，一个接口。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">🔗</div>
+      <div class="fc-title">agentic-core 驱动</div>
+      <div class="fc-desc">内部使用 agentic-core 调用 LLM。OpenAI / Anthropic 双 provider，vision 原生支持。</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon">📦</div>
+      <div class="fc-title">零依赖</div>
+      <div class="fc-desc">单文件 ~5KB。浏览器 script 标签或 Node.js require 直接用。</div>
+    </div>
+  </div>
+</section>
+
+<!-- Philosophy -->
+<section>
+  <div class="section-label">Philosophy</div>
+  <div class="section-title">Why act exists</div>
+  <div class="philosophy">
+    <div class="phil-card highlight">
+      <div class="phil-label">Tools vs Actions</div>
+      <div class="phil-title">输入 ↔ 输出</div>
+      <div class="phil-desc">Tools 是 AI 调外部能力来获取信息 — 搜索、查询、计算。Actions 是 AI 选择外部通道来输出信息 — 说话、通知、亮灯。方向相反，抽象对称。</div>
+    </div>
+    <div class="phil-card">
+      <div class="phil-label">Framework shapes thinking</div>
+      <div class="phil-title">框架决定思维</div>
+      <div class="phil-desc">如果把 act 当 tool 实现，developer 会想"给 AI 加个发通知的工具"。用 act，developer 会想"AI 该怎么跟人说话"。前者是能力视角，后者是意图视角。</div>
+    </div>
+  </div>
+</section>
+
+<!-- Agentic Family -->
+<section>
+  <div class="section-label">Ecosystem</div>
+  <div class="section-title">Part of the agentic family</div>
+  <div class="features" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    <div class="feature-card"><div class="fc-icon">🧠</div><div class="fc-title">agentic-core</div><div class="fc-desc">LLM + vision. The brain.</div></div>
+    <div class="feature-card"><div class="fc-icon">👁</div><div class="fc-title">agentic-sense</div><div class="fc-desc">Perception engine. The eyes.</div></div>
+    <div class="feature-card" style="border-color:rgba(129,140,248,0.2);background:rgba(129,140,248,0.02)"><div class="fc-icon">⚡</div><div class="fc-title">agentic-act</div><div class="fc-desc">Intent → action. The will.</div></div>
+    <div class="feature-card"><div class="fc-icon">🎨</div><div class="fc-title">agentic-render</div><div class="fc-desc">Dynamic UI. The expression.</div></div>
+    <div class="feature-card"><div class="fc-icon">🗣️</div><div class="fc-title">agentic-voice</div><div class="fc-desc">TTS + STT. The voice.</div></div>
+    <div class="feature-card"><div class="fc-icon">💭</div><div class="fc-title">agentic-memory</div><div class="fc-desc">Context + retrieval. The memory.</div></div>
+    <div class="feature-card"><div class="fc-icon">📦</div><div class="fc-title">agentic-store</div><div class="fc-desc">SQLite persistence. Long-term storage.</div></div>
+    <div class="feature-card"><div class="fc-icon">🦀</div><div class="fc-title">agentic-claw</div><div class="fc-desc">Runtime + skills. The body.</div></div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="logo">agentic-act</div>
+  <div class="links">
+    <a href="demo/">Demo</a>
+    <a href="https://github.com/momomo-agent/agentic-act">GitHub</a>
+    <a href="https://github.com/momomo-agent">momomo-agent</a>
+  </div>
+</footer>
+
+</body>
+</html>
