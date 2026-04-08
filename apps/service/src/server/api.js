@@ -471,10 +471,10 @@ export async function startServer(port = 3000, { https: useHttps = false } = {})
   await listenAsync(httpServer, port);
   initWebSocket(httpServer);
   startWakeWordDetection();
-  const stopWake = startWakeWordPipeline(() => broadcastWakeword('server'));
+  // const stopWake = startWakeWordPipeline(() => broadcastWakeword('server')); // Disabled for basic demos
   process.once('SIGINT', async () => {
     startDrain();
-    stopWake();
+    // stopWake(); // Disabled
     try { await waitDrain(10_000); } catch { /* timeout, proceed */ }
     httpServer.close(() => process.exit(0));
   });
