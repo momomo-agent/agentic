@@ -265,8 +265,14 @@ async function fetchData() {
 async function loadConfig() {
   try {
     const res = await fetch('/api/config').then(r => r.json())
-    config.value = res
-  } catch {}
+    if (res && res.llm) {
+      config.value = res
+    } else {
+      config.value = { llm: { provider: 'ollama', apiKey: '', baseUrl: '' } }
+    }
+  } catch {
+    config.value = { llm: { provider: 'ollama', apiKey: '', baseUrl: '' } }
+  }
 }
 
 async function saveConfig() {
