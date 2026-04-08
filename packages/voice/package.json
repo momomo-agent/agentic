@@ -4,7 +4,8 @@
   "description": "Speech for AI apps — TTS + STT in one library",
   "main": "agentic-voice.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "ai",
@@ -17,5 +18,10 @@
   "license": "MIT",
   "dependencies": {
     "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "jsdom": "^29.0.2",
+    "vitest": "^2.1.9"
   }
 }

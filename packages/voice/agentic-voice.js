@@ -941,5 +941,19 @@
   return { createVoice, createTTS, createSTT }
 })
 
-// ES module export
-export const { createVoice, createTTS, createSTT } = typeof window !== 'undefined' && window.AgenticVoice || AgenticVoice
+// ES module export (for import statements)
+// In Node.js, the UMD wrapper exports to module.exports
+// In browser, it exports to window.AgenticVoice
+// We need to handle both cases
+let AgenticVoiceModule
+if (typeof module !== 'undefined' && module.exports && typeof module.exports.createVoice === 'function') {
+  // Node.js: UMD already exported to module.exports
+  AgenticVoiceModule = module.exports
+} else if (typeof window !== 'undefined' && window.AgenticVoice) {
+  // Browser: UMD exported to window
+  AgenticVoiceModule = window.AgenticVoice
+}
+
+export const createVoice = AgenticVoiceModule?.createVoice
+export const createTTS = AgenticVoiceModule?.createTTS
+export const createSTT = AgenticVoiceModule?.createSTT
