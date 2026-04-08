@@ -131,7 +131,7 @@ export async function ensureModel() {
   }
 }
 
-export async function runSetup() {
+export async function runSetup(options = {}) {
   console.log(chalk.bold('Setup Wizard\n'));
 
   const hardwareSpinner = ora('Detecting hardware...').start();
@@ -153,7 +153,7 @@ export async function runSetup() {
     console.log(chalk.gray(`  Fallback: ${profile.fallback.provider} / ${profile.fallback.model}\n`));
   }
 
-  if (profile.llm.provider === 'ollama') {
+  if (!options.skipModelDownload && profile.llm.provider === 'ollama') {
     if (!await isOllamaInstalled()) {
       const spinner = ora('Installing Ollama...').start();
       await installOllama(getInstallCommand(hardware.platform));

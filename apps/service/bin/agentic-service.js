@@ -40,11 +40,9 @@ program
       if (!options.skipSetup) {
         isFirstRun = await checkFirstRun();
         if (isFirstRun) {
-          console.log(chalk.yellow('First run detected. Running setup...\n'));
-          await runSetup();
-        } else {
-          // Not first run, but still ensure model is available
-          await ensureModel();
+          console.log(chalk.yellow('First run detected. Running basic setup...\n'));
+          // Only run hardware detection and config, skip model download
+          await runSetup({ skipModelDownload: true });
         }
       }
 
@@ -53,6 +51,16 @@ program
       console.log(chalk.cyan(`Starting server on port ${port}...`));
 
       const server = await startServer(port, { https: useHttps });
+
+      const proto = useHttps ? 'https' : 'http';
+      console.log(chalk.green(`✓ Server running at ${proto}://localhost:${port}\n`));
+
+      // Start model download in background (non-blocking)
+      if (!options.skipSetup) {
+        ensureModel().catch(err => {
+          console.error(chalk.red(`Model setup failed: ${err.message}`));
+        });
+      }
 
       const proto = useHttps ? 'https' : 'http';
       console.log(chalk.green(`✓ Server running at ${proto}://localhost:${port}\n`));
