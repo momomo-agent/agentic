@@ -1,0 +1,13 @@
+{
+  "id": "task-1775569413579",
+  "title": "Fix SQLiteBackend empty path validation and tree tool name",
+  "description": "Two concrete failures from test-coverage.json: (1) SQLiteBackend.norm('') returns '/' instead of throwing — add empty path guard to SQLiteBackend matching other backends; (2) tree tool is named 'tree' in source but DBB spec requires 'file_tree' — rename the tool definition. These are the only known failing test and a spec mismatch.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m9",
+  "hasDesign": true,
+  "created": "2026-04-07T13:43:33.579Z",
+  "updated": "2026-04-07T13:55:37.175Z"
+}

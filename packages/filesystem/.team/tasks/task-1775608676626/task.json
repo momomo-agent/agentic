@@ -1,0 +1,14 @@
+{
+  "id": "task-1775608676626",
+  "title": "Fix OPFSBackend walkDir() graceful error handling",
+  "description": "PRD §1 gap: 'OPFS walkDir error handling — throws on error instead of gracefully skipping bad entries'. walkDir() should catch errors per-entry and continue iteration rather than throwing and aborting the entire directory walk. When an entry cannot be accessed (permission denied, file removed during iteration), log a warning and skip to the next entry. Match the resilient behavior expected by the PRD. Add test verifying walkDir continues past inaccessible entries.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-08T00:37:56.626Z",
+  "updated": "2026-04-08T01:50:12.517Z",
+  "milestoneId": "m23"
+}

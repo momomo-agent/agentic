@@ -1,0 +1,14 @@
+{
+  "id": "task-1775607507903",
+  "title": "Add cross-backend consistency test suite",
+  "description": "PRD §4 and ARCH require cross-backend consistency tests — all backends must pass the same behavioral test suite. Create test/cross-backend-consistency.test.js that runs identical get/set/delete/list/scan/stat operations against all 6 backends (AgenticStore, OPFS, NodeFs, Memory, SQLite, LocalStorage) and asserts identical results. Cover: path format (/prefix), error types (NotFoundError on missing get/delete), empty path rejection, list() result format, stat() field completeness. Target: PRD §4 gap 'Cross-backend consistency tests — not found' and ARCH gap 'No cross-backend consistency tests'.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m22",
+  "hasDesign": true,
+  "created": "2026-04-08T00:18:27.903Z",
+  "updated": "2026-04-08T01:47:45.422Z",
+  "milestoneId": "m22"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775538379020",
+  "title": "Add SQLite backend adapter",
+  "description": "Implement SQLiteBackend that wraps a SQLite database and passes the same StorageBackend interface tests",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m4",
+  "hasDesign": true,
+  "created": "2026-04-07T05:06:19.021Z",
+  "updated": "2026-04-07T10:59:39.338Z",
+  "milestoneId": "m4"
+}

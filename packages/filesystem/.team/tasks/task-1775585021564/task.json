@@ -1,0 +1,14 @@
+{
+  "id": "task-1775585021564",
+  "title": "OPFSBackend delete() graceful error handling",
+  "description": "OPFSBackend.delete() currently throws if the path doesn't exist. Change it to silently succeed (no-op) when the file is already absent, matching AgenticStoreBackend and NodeFsBackend behavior. Target: Architecture gap 'OPFSBackend.delete() has no error handling'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T18:03:41.564Z",
+  "updated": "2026-04-07T18:14:12.456Z",
+  "milestoneId": "m17"
+}

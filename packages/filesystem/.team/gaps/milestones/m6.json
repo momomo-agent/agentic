@@ -1,0 +1,12 @@
+{
+  "milestoneId": "m6",
+  "match": 80,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "DBB-001: All 289 tests pass (npm test exits 0)", "status": "fail" },
+    { "criterion": "DBB-002: No timing-dependent race condition failures across 5 runs", "status": "fail" },
+    { "criterion": "DBB-003: CHANGELOG.md exists and is non-empty", "status": "pass" },
+    { "criterion": "DBB-004: CHANGELOG.md covers m1-m5 milestones", "status": "pass" },
+    { "criterion": "DBB-005: No regressions — all previously passing tests still pass", "status": "fail" }
+  ]
+}

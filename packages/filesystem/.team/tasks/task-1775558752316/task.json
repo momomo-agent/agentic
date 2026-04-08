@@ -1,0 +1,14 @@
+{
+  "id": "task-1775558752316",
+  "title": "Implement stat() on OPFSBackend and AgenticStoreBackend",
+  "description": "Add stat() method returning {size, mtime} to OPFSBackend (via FileSystemFileHandle.getFile()) and AgenticStoreBackend (best-effort from IndexedDB metadata). Must return null for missing files without throwing.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T10:45:52.316Z",
+  "updated": "2026-04-07T11:27:52.011Z",
+  "milestoneId": "m5"
+}

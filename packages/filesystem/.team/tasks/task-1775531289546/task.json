@@ -1,0 +1,14 @@
+{
+  "id": "task-1775531289546",
+  "title": "统一三个 backend 的 list() 路径格式",
+  "description": "确保 AgenticStoreBackend/OPFSBackend/NodeFsBackend 返回的路径都带 / 前缀",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": null,
+  "hasDesign": true,
+  "created": "2026-04-07T03:08:09.547Z",
+  "updated": "2026-04-07T03:52:32.940Z",
+  "milestoneId": "m1"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775607509442",
+  "title": "Fix OPFSBackend delete() error handling to match other backends",
+  "description": "ARCH gap: OPFSBackend.delete() throws if path not found, unlike AgenticStoreBackend/NodeFsBackend which silently no-op (return false). Change OPFSBackend.delete() to catch NotFoundError and return false instead of throwing. Ensure consistent behavior: delete() returns boolean, never throws on missing path. Target: ARCH gap 'OPFSBackend.delete() has no error handling — throws if path not found'.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m22",
+  "hasDesign": true,
+  "created": "2026-04-08T00:18:29.442Z",
+  "updated": "2026-04-08T01:49:58.301Z",
+  "milestoneId": "m22"
+}

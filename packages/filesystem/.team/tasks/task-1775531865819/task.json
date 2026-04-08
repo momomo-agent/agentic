@@ -1,0 +1,13 @@
+{
+  "id": "task-1775531865819",
+  "title": "Fix OPFS walkDir error handling",
+  "description": "Replace empty catch blocks in OPFSBackend.walkDir with proper error logging and propagation - errors should not be silently swallowed",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-07T03:17:45.819Z",
+  "updated": "2026-04-07T03:56:33.892Z"
+}

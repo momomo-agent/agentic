@@ -1,0 +1,13 @@
+{
+  "id": "task-1775559740884",
+  "title": "Implement auto backend selection",
+  "description": "Add a createBackend() factory function that automatically selects the appropriate StorageBackend based on runtime environment: AgenticStoreBackend in browser with IndexedDB, OPFSBackend when OPFS is available, NodeFsBackend in Node.js. Export from index.ts.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T11:02:20.884Z",
+  "updated": "2026-04-07T12:10:59.104Z"
+}

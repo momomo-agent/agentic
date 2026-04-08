@@ -1,0 +1,14 @@
+{
+  "id": "task-1775558760195",
+  "title": "Add delete and tree agent tool definitions",
+  "description": "Expose AgenticFileSystem.delete() and tree() as AI agent tool definitions in shell-tools.ts, exported from index.ts. Currently only cat/head/tail/find are exposed.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T10:46:00.195Z",
+  "updated": "2026-04-07T11:46:35.289Z",
+  "milestoneId": "m5"
+}

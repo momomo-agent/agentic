@@ -1,0 +1,14 @@
+{
+  "id": "task-1775573019284",
+  "title": "Implement stat() on AgenticStoreBackend and OPFSBackend",
+  "description": "Vision gap: both backends missing stat() method. Implement stat() returning {size, mtime} or null for missing files, matching NodeFsBackend behavior.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m12",
+  "hasDesign": true,
+  "created": "2026-04-07T14:43:39.284Z",
+  "updated": "2026-04-07T15:04:08.791Z",
+  "milestoneId": "m12"
+}

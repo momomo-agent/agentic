@@ -1,0 +1,14 @@
+{
+  "id": "task-1775587252529",
+  "title": "Add edge case tests — empty path, special chars, concurrent writes",
+  "description": "PRD §4 requires edge case tests covering: empty path handling across all backends (should throw IOError/NotFoundError), special characters in filenames (spaces, unicode, dots, slashes), and concurrent write safety (two simultaneous sets to the same path). Create test/edge-cases.test.js with these scenarios validated across all 5 backends. Target: PRD gap 'Edge case tests (empty path, special chars, concurrent writes)'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m20",
+  "hasDesign": true,
+  "created": "2026-04-07T18:40:52.529Z",
+  "updated": "2026-04-07T18:44:47.440Z",
+  "milestoneId": "m20"
+}

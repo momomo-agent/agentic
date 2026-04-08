@@ -1,0 +1,13 @@
+{
+  "id": "task-1775575221748",
+  "title": "Implement OPFSBackend.stat() method",
+  "description": "Add stat() to OPFSBackend returning {size, mtime} for existing files and null for missing files, matching NodeFsBackend interface",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": false,
+  "created": "2026-04-07T15:20:21.748Z",
+  "updated": "2026-04-07T17:46:41.861Z"
+}

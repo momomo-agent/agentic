@@ -1,0 +1,14 @@
+{
+  "id": "task-1775586684332",
+  "title": "Standardize error handling across backends — typed throws vs silent swallow",
+  "description": "PRD §3: Some backends silently swallow errors while others throw. Standardize behavior: NotFoundError for missing files on read/stat, PermissionDeniedError for permission issues, IOError for I/O failures. Ensure all backends throw typed errors consistently instead of returning null or silently succeeding. Add tests for error cases. Target: PRD §3 unified error format gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T18:31:24.332Z",
+  "updated": "2026-04-08T00:15:17.339Z",
+  "milestoneId": "m19"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582152752",
+  "title": "Create ARCHITECTURE.md",
+  "description": "Document system architecture: storage backend interface, backend implementations, agent tool layer, and runtime auto-selection. Closes the missing ARCHITECTURE.md gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T17:15:52.752Z",
+  "updated": "2026-04-07T17:33:39.793Z"
+}

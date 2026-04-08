@@ -1,0 +1,13 @@
+{
+  "id": "task-1775531687208",
+  "title": "Implement typed error classes",
+  "description": "Replace generic string errors with NotFound/PermissionDenied/IOError classes across all backends",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m1",
+  "hasDesign": true,
+  "created": "2026-04-07T03:14:47.208Z",
+  "updated": "2026-04-07T03:53:40.561Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "task-1775532383428",
+  "title": "Populate file metadata in LsResult",
+  "description": "Implement size and mtime fields in LsResult for NodeFsBackend; best-effort for other backends",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-07T03:26:23.428Z",
+  "updated": "2026-04-07T03:56:33.988Z",
+  "milestoneId": "m2"
+}

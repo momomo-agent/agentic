@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582140362",
+  "title": "Add empty-path validation to OPFSBackend",
+  "description": "OPFSBackend should reject empty-string paths with the same error as AgenticStoreBackend and NodeFsBackend",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T17:15:40.362Z",
+  "updated": "2026-04-07T17:31:45.510Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775572006098",
+  "title": "README performance table: add missing columns",
+  "description": "DBB gap: README performance table missing large file read speed, storage limits, browser support matrix, and recommended use cases columns. Update the table to include all required columns.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T14:26:46.098Z",
+  "updated": "2026-04-07T14:40:58.887Z"
+}

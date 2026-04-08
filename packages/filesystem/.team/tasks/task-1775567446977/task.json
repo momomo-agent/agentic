@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567446977",
+  "title": "Implement automatic backend selection based on runtime environment",
+  "description": "No automatic backend selection exists — consumers must manually choose a backend. Implement a createBackend() or autoBackend() function in src/index.ts that detects the runtime environment (Node.js vs browser with OPFS vs browser without OPFS) and returns the appropriate backend. This addresses the vision gap: 'No automatic backend selection based on runtime environment'.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-07T13:10:46.977Z",
+  "updated": "2026-04-07T13:53:04.670Z"
+}

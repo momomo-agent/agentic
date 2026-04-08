@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567454494",
+  "title": "Add cross-backend and edge-case test suites",
+  "description": "PRD and DBB gaps: tests/cross-backend.test.js and tests/edge-cases.test.js are missing. Create both test files covering: (1) cross-backend: same operations across all backends (NodeFs, Memory, AgenticStore, OPFS, LocalStorage, SQLite), (2) edge-cases: empty paths, special characters, unicode paths, concurrent writes (10+ files), race conditions on same-file writes. Reference existing test files for patterns.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m9",
+  "hasDesign": true,
+  "created": "2026-04-07T13:10:54.494Z",
+  "updated": "2026-04-07T14:06:48.982Z"
+}

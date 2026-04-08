@@ -1,0 +1,14 @@
+{
+  "id": "task-1775539915801",
+  "title": "Fix AgenticStoreBackend scan/list normalization",
+  "description": "Ensure AgenticStoreBackend.scan() returns {path, line, content}[] and list() normalizes paths with '/' prefix, consistent with NodeFsBackend and OPFSBackend.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T05:31:55.801Z",
+  "updated": "2026-04-07T11:44:21.881Z",
+  "milestoneId": "m5"
+}

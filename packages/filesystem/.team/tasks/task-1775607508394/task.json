@@ -1,0 +1,14 @@
+{
+  "id": "task-1775607508394",
+  "title": "Add OPFSBackend empty-path validation",
+  "description": "ARCH gap: OPFSBackend is missing empty-path validation that AgenticStoreBackend and NodeFsBackend already have. Add validation in get(), set(), delete(), list(), scan(), stat() methods to reject empty paths with appropriate error. Match the validation pattern used in other backends. Target: ARCH gap 'OPFSBackend missing empty-path validation present in AgenticStoreBackend and NodeFsBackend'.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m22",
+  "hasDesign": true,
+  "created": "2026-04-08T00:18:28.394Z",
+  "updated": "2026-04-08T01:49:58.268Z",
+  "milestoneId": "m22"
+}

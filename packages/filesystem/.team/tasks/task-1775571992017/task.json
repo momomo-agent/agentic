@@ -1,0 +1,13 @@
+{
+  "id": "task-1775571992017",
+  "title": "Concurrent write tests (10+ files) and race condition coverage",
+  "description": "DBB gap: concurrent write tests cover only 2 files. Expand to 10+ simultaneous writes and add thorough race condition tests for same-file concurrent writes.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m11",
+  "hasDesign": true,
+  "created": "2026-04-07T14:26:32.017Z",
+  "updated": "2026-04-07T14:40:58.857Z"
+}

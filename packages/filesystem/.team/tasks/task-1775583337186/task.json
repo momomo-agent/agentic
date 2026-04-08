@@ -1,0 +1,14 @@
+{
+  "id": "task-1775583337186",
+  "title": "Fix AgenticStoreBackend.stat() mtime accuracy",
+  "description": "AgenticStoreBackend.stat() returns mtime: Date.now() instead of the actual file modification time. Must return real mtime.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m16",
+  "hasDesign": true,
+  "created": "2026-04-07T17:35:37.186Z",
+  "updated": "2026-04-07T18:02:02.011Z",
+  "milestoneId": "m16"
+}

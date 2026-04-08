@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>agentic-filesystem Browser Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; color: #fff; }
+    .subtitle { color: #888; margin-bottom: 2rem; }
+    .section { background: #1a1a1a; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .section h2 { font-size: 1.2rem; margin-bottom: 1rem; color: #6366f1; }
+    .controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    button {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+    button:hover { background: #4f46e5; }
+    button.secondary { background: #374151; }
+    button.secondary:hover { background: #4b5563; }
+    input, textarea {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      color: #e0e0e0;
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    input { width: 100%; margin-bottom: 0.5rem; }
+    textarea { width: 100%; min-height: 100px; font-family: 'Monaco', monospace; }
+    .output {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 1rem;
+      font-family: 'Monaco', monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .output:empty::before { content: 'Output will appear here...'; color: #555; }
+    .file-item { padding: 0.5rem; background: #0a0a0a; border-radius: 4px; margin-bottom: 0.5rem; }
+    .file-item:hover { background: #1a1a1a; }
+    .match { background: #fbbf24; color: #000; padding: 0 2px; }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .info { color: #888; font-size: 0.85rem; margin-top: 1rem; padding: 1rem; background: #1a1a1a; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗂️ agentic-filesystem</h1>
+    <p class="subtitle">Virtual filesystem powered by agentic-store</p>
+
+    <div class="section">
+      <h2>📝 Write File</h2>
+      <input type="text" id="writePath" placeholder="Path (e.g., /docs/readme.md)">
+      <textarea id="writeContent" placeholder="File content..."></textarea>
+      <div class="controls">
+        <button onclick="writeFile()">Write File</button>
+        <button class="secondary" onclick="seedFiles()">Seed Example Files</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>📖 Read File</h2>
+      <input type="text" id="readPath" placeholder="Path to read">
+      <button onclick="readFile()">Read</button>
+      <div class="output" id="readOutput"></div>
+    </div>
+
+    <div class="section">
+      <h2>🔍 Grep</h2>
+      <input type="text" id="grepPattern" placeholder="Search pattern">
+      <button onclick="grepFiles()">Search</button>
+      <div class="output" id="grepOutput"></div>
+    </div>
+
+    <div class="section">
+      <h2>📂 List Files</h2>
+      <input type="text" id="lsPrefix" placeholder="Prefix (optional, e.g., /docs)">
+      <button onclick="listFiles()">List</button>
+      <div class="output" id="lsOutput"></div>
+    </div>
+
+    <div class="section">
+      <h2>🗑️ Clear Storage</h2>
+      <button class="secondary" onclick="clearAll()">Clear All Files</button>
+    </div>
+
+    <div class="info">
+      💡 <strong>Storage:</strong> This demo uses agentic-store with IndexedDB backend (auto-selected).<br>
+      Data persists across page reloads. Open DevTools → Application → IndexedDB to see the database.
+    </div>
+  </div>
+
+  <script src="../agentic-store/agentic-store.js"></script>
+  <script type="module">
+    import { AgenticFileSystem, AgenticStoreBackend } from './dist/index.js'
+
+    // Initialize agentic-store (auto-selects best backend)
+    const store = await AgenticStore.createStore('agentic-fs-demo')
+    console.log('📦 Storage backend:', store.backend)
+
+    // Create filesystem
+    window.fs = new AgenticFileSystem({
+      storage: new AgenticStoreBackend(store),
+      readOnly: false
+    })
+
+    window.writeFile = async () => {
+      const path = document.getElementById('writePath').value
+      const content = document.getElementById('writeContent').value
+      if (!path) return alert('Please enter a path')
+      
+      const result = await window.fs.write(path, content)
+      if (result.error) {
+        alert('Error: ' + result.error)
+      } else {
+        document.getElementById('writeContent').value = ''
+        alert('✓ File written: ' + path)
+      }
+    }
+
+    window.readFile = async () => {
+      const path = document.getElementById('readPath').value
+      if (!path) return alert('Please enter a path')
+      
+      const result = await window.fs.read(path)
+      const output = document.getElementById('readOutput')
+      
+      if (result.error) {
+        output.innerHTML = `<span class="error">Error: ${result.error}</span>`
+      } else {
+        output.textContent = result.content
+      }
+    }
+
+    window.grepFiles = async () => {
+      const pattern = document.getElementById('grepPattern').value
+      if (!pattern) return alert('Please enter a search pattern')
+      
+      const results = await window.fs.grep(pattern)
+      const output = document.getElementById('grepOutput')
+      
+      if (results.length === 0) {
+        output.innerHTML = '<span class="error">No matches found</span>'
+      } else {
+        output.innerHTML = results.map(r => {
+          const highlighted = r.content.replace(
+            new RegExp(pattern, 'gi'),
+            match => `<span class="match">${match}</span>`
+          )
+          return `<div class="file-item">${r.path}:${r.line}<br>${highlighted}</div>`
+        }).join('')
+      }
+    }
+
+    window.listFiles = async () => {
+      const prefix = document.getElementById('lsPrefix').value
+      const files = await window.fs.ls(prefix || undefined)
+      const output = document.getElementById('lsOutput')
+      
+      if (files.length === 0) {
+        output.innerHTML = '<span class="error">No files found</span>'
+      } else {
+        output.innerHTML = files.map(f => 
+          `<div class="file-item">${f.name}</div>`
+        ).join('')
+      }
+    }
+
+    window.seedFiles = async () => {
+      await window.fs.write('/docs/intro.md', '# Introduction\nWelcome to agentic-filesystem.\nThis is a virtual filesystem running in your browser.')
+      await window.fs.write('/docs/guide.md', '# User Guide\nHow to use grep, read, write, and ls commands.')
+      await window.fs.write('/code/example.js', 'console.log("Hello from virtual filesystem")')
+      await window.fs.write('/notes/todo.txt', '- Implement semantic search\n- Add more backends\n- Write documentation')
+      alert('✓ Seeded 4 example files')
+      await window.listFiles()
+    }
+
+    window.clearAll = async () => {
+      if (!confirm('Clear all files?')) return
+      await store.clear()
+      alert('✓ Cleared all files')
+      await window.listFiles()
+    }
+
+    // Auto-list files on load
+    window.addEventListener('load', () => {
+      window.listFiles()
+    })
+  </script>
+</body>
+</html>

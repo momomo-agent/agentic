@@ -1,0 +1,14 @@
+{
+  "id": "task-1775561804840",
+  "title": "Fix README custom storage scan() signature example",
+  "description": "README.md line 147 shows old scan() signature in the custom storage example — update it to match the current return type {path, line, content}[] with line number field.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T11:36:44.840Z",
+  "updated": "2026-04-07T11:39:25.637Z",
+  "milestoneId": "m5"
+}

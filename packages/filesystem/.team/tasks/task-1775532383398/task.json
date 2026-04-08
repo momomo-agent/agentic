@@ -1,0 +1,14 @@
+{
+  "id": "task-1775532383398",
+  "title": "Add JSDoc to public APIs",
+  "description": "Add JSDoc comments to all public methods on AgenticFileSystem and StorageBackend interface",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m2",
+  "hasDesign": true,
+  "created": "2026-04-07T03:26:23.398Z",
+  "updated": "2026-04-07T03:56:33.958Z",
+  "milestoneId": "m2"
+}

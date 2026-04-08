@@ -1,0 +1,18 @@
+{
+  "match": 92,
+  "timestamp": "2026-04-07T16:21:05.221Z",
+  "gaps": [
+    {
+      "description": "README roadmap lists cat, head, tail, find commands as planned but not yet implemented in AgenticFileSystem or tool definitions",
+      "status": "missing"
+    },
+    {
+      "description": "Streaming scan (scanStream) is defined in StorageBackend interface and documented in README but not exposed as a tool definition or AgenticFileSystem method",
+      "status": "partial"
+    },
+    {
+      "description": "TfIdfEmbedBackend is exported from index.ts but not documented in README backends section or performance table",
+      "status": "partial"
+    }
+  ]
+}

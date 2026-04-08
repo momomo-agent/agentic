@@ -1,0 +1,31 @@
+{
+  "match": 90,
+  "timestamp": "2026-04-07T17:06:44.278Z",
+  "gaps": [
+    { "description": "DBB-008: IOError is defined but backends catch raw I/O failures and return null rather than throwing IOError instances", "status": "partial" },
+    { "description": "scan() returns {path, line, content} with 1-based line on all backends", "status": "implemented" },
+    { "description": "list() returns paths with leading slash on all backends", "status": "implemented" },
+    { "description": "NotFoundError, PermissionDeniedError, IOError typed error classes implemented and exported", "status": "implemented" },
+    { "description": "OPFS walkDir errors logged via console.error and re-thrown", "status": "implemented" },
+    { "description": "Empty path validation on AgenticStoreBackend, NodeFsBackend, MemoryStorage, LocalStorageBackend", "status": "implemented" },
+    { "description": "README has backend configuration examples for all 3 backends", "status": "implemented" },
+    { "description": "README has performance comparison table with all required columns (Read small/large, Write, Storage Limit, Browser Support, Best For)", "status": "implemented" },
+    { "description": "README has browser support matrix with Chrome/Safari/Firefox/Edge/Node.js for all backends", "status": "implemented" },
+    { "description": "ShellFS exported from index.ts with exec() supporting ls/cat/grep/find/rm/tree", "status": "implemented" },
+    { "description": "MemoryStorage exported from index.ts and passes core contract", "status": "implemented" },
+    { "description": "JSDoc on all AgenticFileSystem public methods and StorageBackend interface methods", "status": "implemented" },
+    { "description": "batchGet and batchSet on StorageBackend interface and all backends", "status": "implemented" },
+    { "description": "ls() size and mtime populated via stat() on NodeFsBackend", "status": "implemented" },
+    { "description": "LocalStorageBackend exported from index.ts with full StorageBackend implementation", "status": "implemented" },
+    { "description": "TfIdfEmbedBackend exported from index.ts implementing EmbedBackend", "status": "implemented" },
+    { "description": "tree() method on AgenticFileSystem returns nested TreeNode structure", "status": "implemented" },
+    { "description": "Permission system enforces read/write per path with prefix matching", "status": "implemented" },
+    { "description": "scanStream() on all backends yields results incrementally", "status": "implemented" },
+    { "description": "SQLiteBackend exported from index.ts with full StorageBackend implementation", "status": "implemented" },
+    { "description": "NodeFsBackend symlink support with circular detection", "status": "implemented" },
+    { "description": "stat() on NodeFsBackend, OPFSBackend, AgenticStoreBackend returns {size, mtime, isDirectory}", "status": "implemented" },
+    { "description": "CHANGELOG.md covers m1-m5 milestones", "status": "implemented" },
+    { "description": "file_delete and file_tree in getToolDefinitions() and executeTool()", "status": "implemented" },
+    { "description": "createDefaultBackend()/createAutoBackend() exported and selects correct backend per runtime", "status": "implemented" }
+  ]
+}

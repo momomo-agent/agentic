@@ -1,0 +1,14 @@
+{
+  "id": "task-1775586676543",
+  "title": "Add permissions field to stat() result across all backends",
+  "description": "PRD §2 requires stat() to return { size, mtime, isDirectory, permissions }. Currently permissions is not exposed. Add a permissions field (string like 'rw-r--r--' or object {read,write}) to stat() return type in types.ts and implement in all backends: AgenticStoreBackend, OPFSBackend, NodeFsBackend, MemoryBackend, SQLiteBackend, LocalStorageBackend. Add tests. Target: PRD §2 gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T18:31:16.543Z",
+  "updated": "2026-04-07T18:51:21.530Z",
+  "milestoneId": "m19"
+}

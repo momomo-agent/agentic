@@ -1,0 +1,13 @@
+{
+  "id": "task-1775565205056",
+  "title": "Expand edge-case tests to all backends",
+  "description": "Add edge-case tests (empty paths, special characters, unicode, concurrent writes with 10+ files) for OPFS, Memory, and LocalStorage backends. Currently only NodeFs and AgenticStore are covered. Addresses dbb.json gaps: partial edge-case coverage and concurrent write tests.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m7",
+  "hasDesign": true,
+  "created": "2026-04-07T12:33:25.056Z",
+  "updated": "2026-04-07T13:07:36.081Z"
+}

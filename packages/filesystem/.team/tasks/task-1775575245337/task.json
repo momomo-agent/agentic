@@ -1,0 +1,13 @@
+{
+  "id": "task-1775575245337",
+  "title": "Add agent tool definitions for delete and tree operations",
+  "description": "Extend getToolDefinitions() and executeTool() to include file_delete and file_tree agent tools, closing the partial gap in agent tool parity",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tech_lead-1",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": false,
+  "created": "2026-04-07T15:20:45.337Z",
+  "updated": "2026-04-07T17:46:42.027Z"
+}

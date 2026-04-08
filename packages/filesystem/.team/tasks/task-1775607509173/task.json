@@ -1,0 +1,14 @@
+{
+  "id": "task-1775607509173",
+  "title": "Normalize backend error handling — typed throws instead of silent swallow",
+  "description": "PRD §3 gap: backends silently swallow errors without typed throws. Audit all backend catch blocks (especially OPFSBackend and AgenticStoreBackend). Ensure every caught error is either: (a) wrapped in NotFoundError/PermissionDeniedError/IOError and re-thrown, or (b) explicitly logged with context. No empty catch blocks. Verify error consistency matches the StorageBackend interface contract. Target: PRD §3 gap 'backends silently swallow errors without typed throws'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m22",
+  "hasDesign": true,
+  "created": "2026-04-08T00:18:29.174Z",
+  "updated": "2026-04-08T00:36:05.324Z",
+  "milestoneId": "m22"
+}

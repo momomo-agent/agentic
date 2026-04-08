@@ -1,0 +1,14 @@
+{
+  "id": "task-1775536902887",
+  "title": "Implement directory tree API",
+  "description": "Add a formal recursive tree() method to AgenticFileSystem that returns a nested directory structure; ls() currently has basic logic but no tree API",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m3",
+  "hasDesign": true,
+  "created": "2026-04-07T04:41:42.887Z",
+  "updated": "2026-04-07T10:48:07.589Z",
+  "milestoneId": "m3"
+}

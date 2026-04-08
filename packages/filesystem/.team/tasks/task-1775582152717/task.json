@@ -1,0 +1,13 @@
+{
+  "id": "task-1775582152717",
+  "title": "Cross-backend consistency test suite",
+  "description": "Add tests that run identical read/write/delete/stat/list scenarios against all three backends (NodeFsBackend, OPFSBackend, AgenticStoreBackend) to verify consistent behavior",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m15",
+  "hasDesign": true,
+  "created": "2026-04-07T17:15:52.718Z",
+  "updated": "2026-04-07T17:27:48.386Z"
+}

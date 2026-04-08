@@ -1,0 +1,13 @@
+{
+  "id": "task-1775589127602",
+  "title": "Verify per-backend test coverage completeness",
+  "description": "PRD §4 requires complete per-backend test suites. Verify that each of the 6 backends (AgenticStore, OPFS, NodeFs, Memory, SQLite, LocalStorage) has dedicated test coverage for: get/set/delete/list/scan/stat. Check test/backends/ and test/*.test.js for coverage. Create missing per-backend test files if any backend lacks dedicated tests. Target: PRD §4 gap 'Complete per-backend test suites'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T19:12:07.607Z",
+  "updated": "2026-04-08T00:17:08.421Z"
+}

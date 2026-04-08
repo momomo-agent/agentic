@@ -1,0 +1,27 @@
+{
+  "name": "agentic-filesystem",
+  "version": "0.1.0",
+  "description": "Virtual filesystem for AI agents — POSIX commands backed by smart storage",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "node --test"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "filesystem",
+    "virtual",
+    "storage"
+  ],
+  "author": "momomo-agent",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3"
+  }
+}

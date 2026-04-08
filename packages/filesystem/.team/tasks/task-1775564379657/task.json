@@ -1,0 +1,13 @@
+{
+  "id": "task-1775564379657",
+  "title": "Implement stat() on OPFSBackend and AgenticStoreBackend",
+  "description": "Add stat() method to OPFSBackend (src/backends/opfs.ts) and AgenticStoreBackend (src/backends/agentic-store.ts) returning {size, mtime} or null for missing files. Required by vision gap: file metadata support on all backends.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m6",
+  "hasDesign": true,
+  "created": "2026-04-07T12:19:39.657Z",
+  "updated": "2026-04-07T12:31:39.229Z"
+}

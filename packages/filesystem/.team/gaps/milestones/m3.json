@@ -1,0 +1,25 @@
+{
+  "milestoneId": "m3",
+  "match": 90,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "LocalStorageBackend exported from src/backends/local-storage.ts", "status": "pass" },
+    { "criterion": "LocalStorageBackend implements all StorageBackend methods", "status": "pass" },
+    { "criterion": "LocalStorageBackend list() paths start with /", "status": "pass" },
+    { "criterion": "LocalStorageBackend exported from src/index.ts", "status": "pass" },
+    { "criterion": "shellFsTools array exported from src/shell-tools.ts", "status": "pass" },
+    { "criterion": "shellFsTools covers cat, head, tail, find commands", "status": "partial" },
+    { "criterion": "Each tool definition has name, description, input_schema", "status": "pass" },
+    { "criterion": "shellFsTools re-exported from src/index.ts", "status": "pass" },
+    { "criterion": "TfIdfEmbedBackend exported from src/backends/tfidf-embed.ts", "status": "pass" },
+    { "criterion": "TfIdfEmbedBackend implements EmbedBackend (encode + search)", "status": "pass" },
+    { "criterion": "TfIdfEmbedBackend has index(storage) method", "status": "pass" },
+    { "criterion": "TfIdfEmbedBackend exported from src/index.ts", "status": "pass" },
+    { "criterion": "TreeNode type exported from src/types.ts", "status": "pass" },
+    { "criterion": "tree() method on AgenticFileSystem returns nested structure", "status": "pass" },
+    { "criterion": "Permission system: FileSystemConfig accepts permissions", "status": "pass" },
+    { "criterion": "read() enforces read permission", "status": "pass" },
+    { "criterion": "write()/delete() enforce write permission", "status": "pass" },
+    { "criterion": "Permission lookup: exact match → longest prefix → allow by default", "status": "pass" }
+  ]
+}

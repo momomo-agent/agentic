@@ -1,0 +1,13 @@
+{
+  "id": "task-1775612568973",
+  "title": "Verify cross-backend error consistency",
+  "description": "PRD §3: Verify all backends throw consistent typed errors (NotFoundError, PermissionDeniedError, IOError) instead of silently swallowing. Test that AgenticStoreBackend, NodeFsBackend, OPFSBackend all throw NotFoundError on get/delete of non-existent paths. Update prd.json gap status after verification.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-08T01:42:48.973Z",
+  "updated": "2026-04-08T01:50:44.682Z"
+}

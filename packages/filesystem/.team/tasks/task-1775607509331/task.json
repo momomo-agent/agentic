@@ -1,0 +1,14 @@
+{
+  "id": "task-1775607509331",
+  "title": "Fix OPFSBackend stat() directory detection",
+  "description": "ARCH gap: OPFSBackend.stat() always returns isDirectory: false. Implement proper directory detection using OPFS FileSystemDirectoryHandle API. When stat() is called on a directory path, it should return isDirectory: true with appropriate size (0) and mtime. Match NodeFsBackend behavior. Target: ARCH gap 'OPFSBackend.stat() always returns isDirectory: false — cannot detect directories, inconsistent with NodeFsBackend'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m22",
+  "hasDesign": true,
+  "created": "2026-04-08T00:18:29.331Z",
+  "updated": "2026-04-08T00:45:06.874Z",
+  "milestoneId": "m22"
+}

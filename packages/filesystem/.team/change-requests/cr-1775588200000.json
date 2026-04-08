@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775588200000",
+  "from": "pm",
+  "fromLevel": "L3",
+  "toLevel": "L2",
+  "targetFile": "PRD.md",
+  "reason": "Gap analysis files (prd.json, vision.json, architecture.json) are stale and significantly undercount implemented features. Verified against actual codebase: (1) PRD §4 claims 'per-backend test suites not found' but 48 test files exist including per-backend tests for all 6 backends. (2) PRD §4 claims 'cross-backend consistency tests not found' but cross-backend.test.js and cross-backend-extra.test.js exist. (3) PRD §4 claims 'edge case tests not found' but edge-cases.test.js exists. (4) PRD §5 claims 'README with usage examples not found' but README.md exists with usage examples, performance comparison table, and browser support matrix. (5) Vision claims 'SQLiteBackend not included in createBackend()' but it IS included (via explicit sqliteDb option). (6) Vision claims 'batchGet/batchSet/scanStream not exposed as public methods' but they ARE exposed on AgenticFileSystem. The stale gap analysis inflates PRD gap count from ~5 real gaps to 15, suppressing the true PRD match score from ~87% to 72%.",
+  "proposedChange": "Re-run gap analysis against actual codebase to produce accurate gap counts. PRD §4 items (per-backend tests, cross-backend tests, edge case tests) and PRD §5 items (README with examples) should be reclassified from 'missing' to 'implemented'. Vision items (SQLite in createBackend, batchGet/batchSet/scanStream exposed) should also be updated. This would likely bring PRD match from 72% to ~87%+ and resolve the inaccurate gap reporting.",
+  "status": "resolved",
+  "createdAt": "2026-04-08T18:36:00.000Z",
+  "reviewedAt": "2026-04-08T01:41:51.512Z",
+  "reviewedBy": "process-crs",
+  "resolution": "auto-merged by process-crs"
+}

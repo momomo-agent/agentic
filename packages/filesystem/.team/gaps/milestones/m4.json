@@ -1,0 +1,27 @@
+{
+  "milestoneId": "m4",
+  "match": 85,
+  "timestamp": "2026-04-07T15:37:20.629Z",
+  "criteria": [
+    { "criterion": "StorageBackend interface has scanStream()", "status": "pass" },
+    { "criterion": "All backends implement scanStream()", "status": "pass" },
+    { "criterion": "scan() remains for backward compatibility", "status": "pass" },
+    { "criterion": "scanStream() yields results incrementally", "status": "pass" },
+    { "criterion": "Test verifies streaming with large files (>10MB)", "status": "fail" },
+    { "criterion": "SQLiteBackend exported from src/backends/sqlite.ts", "status": "pass" },
+    { "criterion": "SQLiteBackend implements all StorageBackend methods", "status": "pass" },
+    { "criterion": "SQLiteBackend works in Node.js (better-sqlite3)", "status": "pass" },
+    { "criterion": "SQLiteBackend schema: files(path, content, size, mtime)", "status": "pass" },
+    { "criterion": "SQLiteBackend paths stored with / prefix", "status": "pass" },
+    { "criterion": "SQLiteBackend exported from src/index.ts", "status": "pass" },
+    { "criterion": "NodeFsBackend list() resolves symlinks", "status": "pass" },
+    { "criterion": "NodeFsBackend get() follows symlinks", "status": "pass" },
+    { "criterion": "NodeFsBackend scan()/scanStream() follow symlinks", "status": "pass" },
+    { "criterion": "Circular symlink detection prevents infinite loops", "status": "pass" },
+    { "criterion": "Test coverage for M3 features (LocalStorage, TfIdf, tree, permissions)", "status": "fail" },
+    { "criterion": "README updated with SQLite backend example", "status": "fail" },
+    { "criterion": "README performance table includes SQLiteBackend", "status": "pass" },
+    { "criterion": "README includes streaming scan() example", "status": "fail" },
+    { "criterion": "CHANGELOG.md updated with M4 features", "status": "pass" }
+  ]
+}

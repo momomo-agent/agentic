@@ -1,0 +1,13 @@
+{
+  "id": "task-1775575261928",
+  "title": "Implement automatic backend selection based on runtime environment",
+  "description": "Add createDefaultBackend() factory that detects Node.js vs browser (OPFS available vs not) and returns the appropriate backend automatically",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tech_lead-2",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": false,
+  "created": "2026-04-07T15:21:01.929Z",
+  "updated": "2026-04-07T17:46:42.126Z"
+}

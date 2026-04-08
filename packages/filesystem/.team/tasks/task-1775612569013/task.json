@@ -1,0 +1,13 @@
+{
+  "id": "task-1775612569013",
+  "title": "Verify AgenticStore stat() mtime accuracy and OPFS stat() directory support",
+  "description": "Vision gaps: (1) AgenticStoreBackend.stat() returns mtime as Date.now() — verify if this has been improved to use actual timestamps; (2) OPFSBackend.stat() isDirectory always false — verify if directory detection has been fixed. Update vision.json gap status based on findings.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m24",
+  "hasDesign": true,
+  "created": "2026-04-08T01:42:49.014Z",
+  "updated": "2026-04-08T01:50:44.712Z"
+}

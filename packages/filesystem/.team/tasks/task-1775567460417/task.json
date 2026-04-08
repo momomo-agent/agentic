@@ -1,0 +1,13 @@
+{
+  "id": "task-1775567460417",
+  "title": "Complete README performance table and docs",
+  "description": "DBB gap: README performance table is missing large file read speed, storage limits, browser support matrix, and recommended use cases columns. Also fix architecture gap: README.md line 147 custom storage example shows old scan() signature without line number field in return type. Update README.md to address both gaps.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m9",
+  "hasDesign": true,
+  "created": "2026-04-07T13:11:00.417Z",
+  "updated": "2026-04-07T13:55:37.140Z"
+}

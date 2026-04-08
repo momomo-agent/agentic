@@ -1,0 +1,14 @@
+{
+  "id": "task-1775586679805",
+  "title": "Verify cross-backend consistency test coverage completeness",
+  "description": "PRD §4 requires all backends pass the same test suite. Verify that test/cross-backend.test.js and test/cross-backend-extra.test.js cover all 6 backends (AgenticStore, OPFS, NodeFs, Memory, SQLite, LocalStorage) for: get/set/delete/list/scan/stat/batchGet/batchSet. Add missing coverage if gaps found. Target: PRD §4 cross-backend consistency tests gap.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m19",
+  "hasDesign": true,
+  "created": "2026-04-07T18:31:23.810Z",
+  "updated": "2026-04-08T00:14:29.073Z",
+  "milestoneId": "m19"
+}

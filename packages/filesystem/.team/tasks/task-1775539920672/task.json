@@ -1,0 +1,14 @@
+{
+  "id": "task-1775539920672",
+  "title": "Add performance comparison table to README",
+  "description": "Document IndexedDB vs OPFS vs Node fs performance characteristics (read/write speed, storage limits, browser support) in README.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m5",
+  "hasDesign": true,
+  "created": "2026-04-07T05:32:00.672Z",
+  "updated": "2026-04-07T12:11:42.928Z",
+  "milestoneId": "m5"
+}

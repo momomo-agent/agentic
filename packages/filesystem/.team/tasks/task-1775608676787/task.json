@@ -1,0 +1,14 @@
+{
+  "id": "task-1775608676787",
+  "title": "Create ARCHITECTURE.md documenting system design",
+  "description": "Architecture gap: 'ARCHITECTURE.md does not exist'. Create ARCHITECTURE.md at project root documenting: (1) StorageBackend interface contract and design decisions, (2) Backend selection flow (createBackend auto-detection chain), (3) AgenticFileSystem class architecture (readOnly mode, permissions, tool definitions), (4) Error type hierarchy (NotFoundError/PermissionDeniedError/IOError), (5) Cross-backend consistency guarantees. This provides the formal architecture reference that PRD and test suites reference.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m23",
+  "hasDesign": true,
+  "created": "2026-04-08T00:37:56.787Z",
+  "updated": "2026-04-08T01:50:12.550Z",
+  "milestoneId": "m23"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "task-1775585387666",
+  "title": "OPFSBackend walkDir() graceful error handling",
+  "description": "OPFSBackend.walkDir() currently throws on error instead of continuing. Change to log errors via console.error and skip bad entries, matching the PRD requirement for improved error handling. Target: Architecture gap 'OPFSBackend.walkDir() throws on error', PRD §1.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T18:09:47.666Z",
+  "updated": "2026-04-07T18:14:12.604Z"
+}

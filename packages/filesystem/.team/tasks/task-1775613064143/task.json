@@ -1,0 +1,14 @@
+{
+  "id": "task-1775613064143",
+  "title": "Re-run gap analysis on current codebase",
+  "description": "Gap analysis prd.json and vision.json are stale (April 7 timestamp). PRD.md has been written with full requirements. Re-run gap analysis against current codebase and PRD.md to produce accurate match scores. Per-backend tests (40+ files), cross-backend tests (4 files), edge case tests (3 files), README with examples, ARCHITECTURE.md (75 lines), SQLite in createBackend(), batchGet/batchSet/scanStream exposed — all exist but gap files still mark them missing.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m25",
+  "hasDesign": true,
+  "created": "2026-04-08T01:51:04.143Z",
+  "updated": "2026-04-08T02:13:18.245Z",
+  "milestoneId": "m25"
+}

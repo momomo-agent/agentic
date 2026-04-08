@@ -1,0 +1,13 @@
+{
+  "id": "task-1775589123427",
+  "title": "Add SQLiteBackend to createBackend() auto-selection",
+  "description": "Vision gap: SQLiteBackend is not included in the createBackend() auto-selection chain. Currently the chain is Node → OPFS → IndexedDB → Memory. Add SQLite to the chain with appropriate runtime detection (check for better-sqlite3 or sql.js availability). Ensure the fallback order is correct and documented. Target: Vision gap 'SQLiteBackend not included in createBackend() auto-selection'.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m21",
+  "hasDesign": true,
+  "created": "2026-04-07T19:12:03.427Z",
+  "updated": "2026-04-08T00:34:24.761Z"
+}

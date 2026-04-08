@@ -1,0 +1,14 @@
+{
+  "id": "task-1775570276776",
+  "title": "Implement auto backend selection based on runtime environment",
+  "description": "Vision gap: consumers must manually choose a backend. Implement createAutoBackend() that detects the runtime environment and returns the appropriate backend: NodeFs in Node.js, OPFS in browsers with OPFS support, AgenticStore in browsers without OPFS, Memory as fallback. Export from index.ts.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m10",
+  "hasDesign": true,
+  "created": "2026-04-07T13:57:56.776Z",
+  "updated": "2026-04-07T14:31:09.308Z",
+  "milestoneId": "m10"
+}

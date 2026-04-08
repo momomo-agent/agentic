@@ -1,0 +1,14 @@
+{
+  "id": "task-1775567388705",
+  "title": "Fix AgenticStoreBackend instantiation in createBackend()",
+  "description": "The createBackend() function in src/index.ts:40 calls 'new AgenticStoreBackend()' without arguments, but the constructor requires a store parameter. This breaks the TypeScript build. Need to either: (1) create a default IndexedDB store instance and pass it, or (2) make the store parameter optional with a default implementation.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m8",
+  "hasDesign": true,
+  "created": "2026-04-07T13:09:48.705Z",
+  "updated": "2026-04-07T13:54:04.246Z",
+  "milestoneId": "m8"
+}

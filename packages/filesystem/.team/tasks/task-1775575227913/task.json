@@ -1,0 +1,13 @@
+{
+  "id": "task-1775575227913",
+  "title": "Implement AgenticStoreBackend.stat() method",
+  "description": "Add stat() to AgenticStoreBackend returning {size, mtime} for existing keys and null for missing, matching StorageBackend interface",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tech_lead",
+  "blockedBy": [],
+  "groupId": "m14",
+  "hasDesign": false,
+  "created": "2026-04-07T15:20:27.913Z",
+  "updated": "2026-04-07T17:46:41.959Z"
+}

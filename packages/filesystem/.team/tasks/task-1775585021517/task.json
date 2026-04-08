@@ -1,0 +1,14 @@
+{
+  "id": "task-1775585021517",
+  "title": "OPFSBackend empty-path validation",
+  "description": "Add empty-path validation to OPFSBackend.get(), set(), delete(), and stat() — reject empty string paths with an error, matching the validation already present in AgenticStoreBackend and NodeFsBackend. Target: Architecture gap 'OPFSBackend missing empty-path validation'.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "tester-1",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T18:03:41.517Z",
+  "updated": "2026-04-07T18:28:16.443Z",
+  "milestoneId": "m17"
+}

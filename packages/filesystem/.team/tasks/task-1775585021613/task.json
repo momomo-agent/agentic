@@ -1,0 +1,14 @@
+{
+  "id": "task-1775585021613",
+  "title": "SQLiteBackend in createBackend() auto-selection",
+  "description": "Add SQLiteBackend to the createBackend() auto-selection chain in src/index.ts. In Node.js, after checking for NodeFsBackend, try SQLiteBackend if a sqlite adapter is available, before falling back to MemoryStorage. Target: Vision gap 'SQLiteBackend not included in createBackend() auto-selection'.",
+  "status": "done",
+  "priority": "P1",
+  "assignee": "tester-2",
+  "blockedBy": [],
+  "groupId": "m17",
+  "hasDesign": true,
+  "created": "2026-04-07T18:03:41.613Z",
+  "updated": "2026-04-07T18:19:24.286Z",
+  "milestoneId": "m17"
+}
