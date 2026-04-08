@@ -121,12 +121,17 @@ const download = ref({ inProgress: false, model: '', status: '', progress: 0, to
 const progress = ref({})
 
 const recommended = [
-  { name: 'gemma2:2b', desc: 'Lightweight, fast' },
-  { name: 'qwen2.5:3b', desc: 'Chinese optimized' },
-  { name: 'qwen2.5-coder:3b', desc: 'Code generation' },
+  { name: 'gemma2:2b', desc: 'Google, lightweight' },
+  { name: 'gemma2:9b', desc: 'Google, balanced' },
+  { name: 'gemma2:27b', desc: 'Google, high quality' },
+  { name: 'qwen2.5:3b', desc: 'Alibaba, Chinese' },
+  { name: 'qwen2.5:7b', desc: 'Alibaba, versatile' },
+  { name: 'qwen2.5-coder:3b', desc: 'Alibaba, code' },
+  { name: 'qwen2.5-coder:7b', desc: 'Alibaba, code pro' },
+  { name: 'glm4:9b', desc: 'Zhipu, Chinese' },
   { name: 'llama3.2:3b', desc: 'Meta, versatile' },
-  { name: 'phi3.5:3.8b', desc: 'Code & reasoning' },
-  { name: 'mistral:7b', desc: 'High quality' },
+  { name: 'phi3.5:3.8b', desc: 'Microsoft, reasoning' },
+  { name: 'mistral:7b', desc: 'Mistral, high quality' },
 ]
 
 const downloadPercent = computed(() => {
