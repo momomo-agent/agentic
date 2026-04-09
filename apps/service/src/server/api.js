@@ -114,13 +114,23 @@ function addRoutes(r) {
     } else {
       try {
         const chunks = [];
+        const toolCalls = [];
         for await (const chunk of chat(messages, { tools })) {
           if (chunk.type === 'content') chunks.push(chunk.content ?? chunk.text ?? '');
+          if (chunk.type === 'tool_use') {
+            toolCalls.push({
+              id: chunk.id,
+              type: 'function',
+              function: { name: chunk.name, arguments: JSON.stringify(chunk.input) }
+            });
+          }
         }
         const content = chunks.join('');
+        const message = { role: 'assistant', content };
+        if (toolCalls.length) message.tool_calls = toolCalls;
         res.json({
           id, object: 'chat.completion', created, model: model || 'agentic-service',
-          choices: [{ index: 0, message: { role: 'assistant', content }, finish_reason: 'stop' }],
+          choices: [{ index: 0, message, finish_reason: toolCalls.length ? 'tool_calls' : 'stop' }],
           usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
         });
       } catch (error) {
@@ -336,6 +346,18 @@ function addRoutes(r) {
   });
 
   r.post('/api/synthesize', async (req, res) => {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ error: 'text required' });
+    try {
+      const audio = await tts.synthesize(text);
+      res.set('Content-Type', 'audio/wav').send(audio);
+    } catch (e) {
+      res.status(e.code === 'EMPTY_TEXT' ? 400 : 500).json({ error: e.message });
+    }
+  });
+
+  // Alias for /api/synthesize
+  r.post('/api/tts', async (req, res) => {
     const { text } = req.body;
     if (!text) return res.status(400).json({ error: 'text required' });
     try {
