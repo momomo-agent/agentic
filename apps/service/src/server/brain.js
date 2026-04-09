@@ -1,18 +1,16 @@
-import { chat as llmChat } from '../runtime/llm.js';
+import { getConfig, onConfigChange } from '../config.js';
 import { getSession, broadcastSession } from './hub.js';
 import { startMark, endMark } from '../runtime/profiler.js';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
 
-const CONFIG_PATH = path.join(os.homedir(), '.agentic-service', 'config.json');
 const tools = new Map();
+let _config = null;
 
-async function loadConfig() {
-  try {
-    return JSON.parse(await fs.readFile(CONFIG_PATH, 'utf8'));
-  } catch { return {}; }
+// 启动时加载 + 监听变更
+async function ensureConfig() {
+  if (!_config) _config = await getConfig();
+  return _config;
 }
+onConfigChange(c => { _config = c; console.log('[brain] config reloaded:', c.llm?.model); });
 
 export function registerTool(name, fn) {
   tools.set(name, fn);
@@ -29,21 +27,15 @@ function normalizeMessages(messages) {
 
 async function* chatWithTools(messages, tools) {
   const normalized = normalizeMessages(messages);
-  const userConfig = await loadConfig();
-  const config = {
-    llm: { provider: 'ollama', model: 'gemma4:e4b', ...userConfig.llm },
-    fallback: userConfig.fallback || {},
-  };
+  const config = await ensureConfig();
   try {
     if (config.llm.provider === 'ollama') {
-      yield* ollamaChat(normalized, tools, config.llm.model);
+      yield* ollamaChat(normalized, tools, config);
       return;
     }
-    // Cloud provider as primary
     yield* cloudChat(normalized, tools, config.llm);
     return;
   } catch (err) {
-    // If primary fails and fallback is configured, try fallback
     if (config.fallback?.provider) {
       console.warn(`Primary LLM failed (${err.message}), trying fallback...`);
       yield* cloudChat(normalized, tools, config.fallback);
@@ -53,40 +45,42 @@ async function* chatWithTools(messages, tools) {
   }
 }
 
-async function* ollamaChat(messages, tools, model) {
+async function* ollamaChat(messages, tools, config) {
+  const model = config.llm.model;
+  const ollamaHost = config.llm.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+  console.log(`[brain] ollama request: model=${model} host=${ollamaHost}`);
+
   const body = { model, messages, stream: true };
   if (tools?.length) body.tools = tools;
-  const config = await loadConfig();
-  const ollamaHost = config?.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
 
-    const response = await fetch(`${ollamaHost}/api/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(30000)
-    });
+  const response = await fetch(`${ollamaHost}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(30000)
+  });
 
-    if (!response.ok) throw new Error(`Ollama API error: ${response.status}`);
+  if (!response.ok) throw new Error(`Ollama API error: ${response.status} (model=${model})`);
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      for (const line of decoder.decode(value).split('\n').filter(l => l.trim())) {
-        try {
-          const data = JSON.parse(line);
-          if (data.message?.tool_calls?.length) {
-            for (const tc of data.message.tool_calls) {
-              yield { type: 'tool_use', id: tc.id || `call_${Date.now()}`, name: tc.function.name, input: typeof tc.function.arguments === 'string' ? JSON.parse(tc.function.arguments) : tc.function.arguments, text: '' };
-            }
-          } else if (data.message?.content) {
-            yield { type: 'content', text: data.message.content, done: data.done || false };
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    for (const line of decoder.decode(value).split('\n').filter(l => l.trim())) {
+      try {
+        const data = JSON.parse(line);
+        if (data.message?.tool_calls?.length) {
+          for (const tc of data.message.tool_calls) {
+            yield { type: 'tool_use', id: tc.id || `call_${Date.now()}`, name: tc.function.name, input: typeof tc.function.arguments === 'string' ? JSON.parse(tc.function.arguments) : tc.function.arguments, text: '' };
           }
-        } catch { /* ignore */ }
-      }
+        } else if (data.message?.content) {
+          yield { type: 'content', text: data.message.content, done: data.done || false };
+        }
+      } catch { /* ignore */ }
     }
+  }
 }
 
 async function* cloudChat(messages, tools, providerConfig) {
@@ -139,7 +133,6 @@ async function* cloudChat(messages, tools, providerConfig) {
 }
 
 export async function* chat(input, options = {}) {
-  // Accept both string (legacy) and messages array
   const messages = typeof input === 'string'
     ? [...(options.history || []), { role: 'user', content: input }]
     : input;
