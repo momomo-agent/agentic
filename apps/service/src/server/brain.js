@@ -56,8 +56,10 @@ async function* chatWithTools(messages, tools) {
 async function* ollamaChat(messages, tools, model) {
   const body = { model, messages, stream: true };
   if (tools?.length) body.tools = tools;
+  const config = await loadConfig();
+  const ollamaHost = config?.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
 
-    const response = await fetch('http://localhost:11434/api/chat', {
+    const response = await fetch(`${ollamaHost}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

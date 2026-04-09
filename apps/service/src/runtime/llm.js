@@ -21,7 +21,8 @@ loadConfig().then(cfg => {
 
 async function* chatWithOllama(messages) {
   const config = await loadConfig();
-  const response = await fetch('http://localhost:11434/api/chat', {
+  const ollamaHost = config.llm.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+  const response = await fetch(`${ollamaHost}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ model: config.llm.model, messages, stream: true }),

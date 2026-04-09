@@ -51,7 +51,7 @@ export function waitDrain(timeout = 10_000) {
 const CONFIG_PATH = path.join(os.homedir(), '.agentic-service', 'config.json');
 
 const DEFAULT_CONFIG = {
-  llm: { provider: 'ollama', model: 'gemma2:2b' },
+  llm: { provider: 'ollama', model: 'gemma2:2b', ollamaHost: 'http://localhost:11434' },
   stt: { provider: 'whisper' },
   tts: { provider: 'openai-tts' },
   fallback: { provider: '' },
@@ -78,9 +78,15 @@ async function writeConfig(data) {
   await fs.rename(tmp, CONFIG_PATH);
 }
 
+function getOllamaHost(config) {
+  return config?.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+}
+
 async function getOllamaStatus() {
   try {
-    const res = await fetch('http://localhost:11434/api/tags', { signal: AbortSignal.timeout(2000) });
+    const config = await readConfig();
+    const host = getOllamaHost(config);
+    const res = await fetch(`${host}/api/tags`, { signal: AbortSignal.timeout(2000) });
     if (!res.ok) return { running: false, models: [] };
     const { models } = await res.json();
     return { running: true, models: models.map(m => m.name) };
@@ -296,7 +302,9 @@ function addRoutes(r) {
     res.setHeader('Connection', 'keep-alive');
 
     try {
-      const response = await fetch('http://localhost:11434/api/pull', {
+      const config = await readConfig();
+      const host = getOllamaHost(config);
+      const response = await fetch(`${host}/api/pull`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: model, stream: true })
@@ -336,7 +344,9 @@ function addRoutes(r) {
   r.delete('/api/models/:name', async (req, res) => {
     const { name } = req.params;
     try {
-      const response = await fetch('http://localhost:11434/api/delete', {
+      const config = await readConfig();
+      const host = getOllamaHost(config);
+      const response = await fetch(`${host}/api/delete`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name })

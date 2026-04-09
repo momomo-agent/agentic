@@ -170,7 +170,11 @@ async function sendChat() {
         if (trimmed === 'data: [DONE]') continue
         try {
           const data = JSON.parse(trimmed.slice(5).trim())
-          if (data.type === 'content') {
+          if (data.error) {
+            assistantMsg.content = '错误: ' + data.error
+            await nextTick()
+            if (chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight
+          } else if (data.type === 'content') {
             assistantMsg.content += data.content || data.text || ''
             await nextTick()
             if (chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight
