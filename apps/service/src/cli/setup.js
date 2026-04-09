@@ -134,7 +134,16 @@ async function pullModel(model) {
  * Called on every startup (not just first run).
  */
 export async function ensureModel() {
-  const config = await getConfig();
+  let config = await getConfig();
+
+  // 如果 config 是默认值（没有 config.json），先跑 profile 匹配
+  if (config.llm.model === 'gemma2:2b' && !config._hardware) {
+    const hardware = await detect();
+    const profile = await getProfile(hardware);
+    await initFromProfile(profile, hardware);
+    config = await getConfig();
+    console.log(chalk.gray(`[setup] auto-configured: ${config.llm.provider} / ${config.llm.model}`));
+  }
 
   // Ensure sox is installed (for wake word detection)
   try {
