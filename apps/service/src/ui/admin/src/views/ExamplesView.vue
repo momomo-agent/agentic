@@ -23,10 +23,10 @@
       <div v-if="activeExample === 'chat'" class="chat-panel">
         <div class="chat-messages" ref="chatEl">
           <div v-for="(msg, i) in chatHistory" :key="i" class="chat-msg" :class="msg.role">
-            <div class="msg-bubble">{{ msg.content }}</div>
-          </div>
-          <div v-if="chatLoading" class="chat-msg assistant">
-            <div class="msg-bubble loading">思考中...</div>
+            <div class="msg-bubble" v-if="msg.content">{{ msg.content }}</div>
+            <div class="msg-bubble loading" v-else-if="msg.role === 'assistant' && chatLoading">
+              <span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>
+            </div>
           </div>
         </div>
         <div class="chat-input-row">
@@ -914,7 +914,14 @@ onUnmounted(() => { stopCamera(); stopVoice(); closeParlorWs(); stopLiveVision()
 }
 .chat-msg.user .msg-bubble { background: var(--accent, #3b82f6); color: white; }
 .chat-msg.assistant .msg-bubble { background: var(--surface-3, #374151); }
-.msg-bubble.loading { opacity: 0.6; font-style: italic; }
+.msg-bubble.loading { opacity: 0.6; }
+.typing-dots span {
+  animation: blink 1.4s infinite both;
+  font-size: 20px; letter-spacing: 2px; line-height: 1;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
 .chat-input-row {
   display: flex; gap: 8px; margin-top: 12px;
 }
