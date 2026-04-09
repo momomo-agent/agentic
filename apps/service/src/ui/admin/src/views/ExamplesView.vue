@@ -184,7 +184,7 @@ async function sendChat() {
         }
       }
     }
-    if (!assistantMsg.content) assistantMsg.content = '无回复'
+    if (!assistantMsg.content) assistantMsg.content = '无回复 — 检查 Ollama 是否正常运行'
     const ex = examples.value.find(e => e.id === 'chat')
     if (ex) ex.status = 'pass'
   } catch (e) {

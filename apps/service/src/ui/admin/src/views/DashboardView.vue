@@ -20,8 +20,9 @@
           <div class="ollama-status">
             <div class="status-indicator" :class="ollama.running ? 'running' : 'stopped'"></div>
             <span>{{ ollama.running ? '运行中' : '未运行' }}</span>
-            <span class="status-detail">端口 11434</span>
+            <span class="status-detail">{{ ollama.host || 'localhost:11434' }}</span>
           </div>
+          <div v-if="!ollama.running && ollama.error" class="error-hint">{{ ollama.error }}</div>
           <div v-if="ollama.models.length > 0" style="margin-top: 16px">
             <div class="info-label">已安装 ({{ ollama.models.length }})</div>
             <div class="model-tags">
@@ -633,6 +634,7 @@ onUnmounted(() => clearInterval(timer))
 .status-indicator.running { background: var(--success); }
 .status-indicator.stopped { background: var(--error); }
 .status-detail { color: var(--text-dim); font-size: 13px; margin-left: auto; }
+.error-hint { color: #e74c3c; font-size: 12px; margin-top: 8px; padding: 6px 10px; background: rgba(231,76,60,0.08); border-radius: 6px; }
 .info-label { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
 .model-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .tag { background: var(--surface-2); padding: 4px 10px; border-radius: 4px; font-size: 13px; }

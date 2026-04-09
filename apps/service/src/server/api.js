@@ -88,11 +88,13 @@ async function getOllamaStatus() {
     const config = await readConfig();
     const host = getOllamaHost(config);
     const res = await fetch(`${host}/api/tags`, { signal: AbortSignal.timeout(2000) });
-    if (!res.ok) return { running: false, models: [] };
+    if (!res.ok) return { running: false, models: [], host, error: `HTTP ${res.status}` };
     const { models } = await res.json();
-    return { running: true, models: models.map(m => m.name) };
-  } catch {
-    return { running: false, models: [] };
+    return { running: true, models: models.map(m => m.name), host };
+  } catch (e) {
+    const config = await readConfig().catch(() => ({}));
+    const host = getOllamaHost(config);
+    return { running: false, models: [], host, error: e.message };
   }
 }
 
@@ -242,6 +244,7 @@ function addRoutes(r) {
 
   r.post('/api/chat', async (req, res) => {
     const { message, messages: rawMessages, history = [], tools, sessionId } = req.body;
+    console.log(`[chat] request: ${message || (rawMessages?.length ? `${rawMessages.length} messages` : 'empty')}`);
     // Support both { message: string } and { messages: [...] } formats
     let chatMessages;
     if (rawMessages?.length) {
@@ -267,6 +270,7 @@ function addRoutes(r) {
         broadcastSession(sessionId);
       }
     } catch (error) {
+      console.log(`[chat] error: ${error.message}`);
       res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
     }
     res.end();
