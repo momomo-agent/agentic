@@ -154,23 +154,30 @@ async function sendChat() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userMsg })
     })
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
+    let buffer = ''
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
-      const chunk = decoder.decode(value)
-      const lines = chunk.split('\n').filter(l => l.startsWith('data:'))
-      for (const line of lines) {
-        if (line === 'data: [DONE]') continue
+      buffer += decoder.decode(value, { stream: true })
+      const parts = buffer.split('\n')
+      buffer = parts.pop() || ''
+      for (const line of parts) {
+        const trimmed = line.trim()
+        if (!trimmed || !trimmed.startsWith('data:')) continue
+        if (trimmed === 'data: [DONE]') continue
         try {
-          const data = JSON.parse(line.slice(5))
+          const data = JSON.parse(trimmed.slice(5).trim())
           if (data.type === 'content') {
             assistantMsg.content += data.content || data.text || ''
             await nextTick()
             if (chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight
           }
-        } catch {}
+        } catch (parseErr) {
+          console.warn('[Chat SSE] parse error:', trimmed, parseErr)
+        }
       }
     }
     if (!assistantMsg.content) assistantMsg.content = '无回复'
