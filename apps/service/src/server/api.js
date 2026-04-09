@@ -12,7 +12,7 @@ import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
 import { errorHandler } from './middleware.js';
 import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession } from './hub.js';
-// import { startWakeWordPipeline } from '../runtime/sense.js'; // Not needed for basic demos
+import { getConfig, setConfig, reloadConfig, CONFIG_PATH } from '../config.js';
 
 function getLanIp() {
   for (const ifaces of Object.values(os.networkInterfaces())) {
@@ -49,50 +49,20 @@ export function waitDrain(timeout = 10_000) {
   });
 }
 
-const CONFIG_PATH = path.join(os.homedir(), '.agentic-service', 'config.json');
-
-const DEFAULT_CONFIG = {
-  llm: { provider: 'ollama', model: 'gemma2:2b', ollamaHost: 'http://localhost:11434' },
-  stt: { provider: 'whisper' },
-  tts: { provider: 'openai-tts' },
-  fallback: { provider: '' },
-};
-
-async function readConfig() {
-  try {
-    const raw = await fs.readFile(CONFIG_PATH, 'utf8');
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
-      return parsed;
-    }
-  } catch {
-    // file missing or invalid JSON — fall through to defaults
-  }
-  await writeConfig(DEFAULT_CONFIG);
-  return DEFAULT_CONFIG;
-}
-
-async function writeConfig(data) {
-  const tmp = CONFIG_PATH + '.tmp';
-  await fs.mkdir(path.dirname(CONFIG_PATH), { recursive: true });
-  await fs.writeFile(tmp, JSON.stringify(data, null, 2));
-  await fs.rename(tmp, CONFIG_PATH);
-}
-
 function getOllamaHost(config) {
   return config?.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
 }
 
 async function getOllamaStatus() {
   try {
-    const config = await readConfig();
+    const config = await getConfig();
     const host = getOllamaHost(config);
     const res = await fetch(`${host}/api/tags`, { signal: AbortSignal.timeout(2000) });
     if (!res.ok) return { running: false, models: [], host, error: `HTTP ${res.status}` };
     const { models } = await res.json();
     return { running: true, models: models.map(m => m.name), host };
   } catch (e) {
-    const config = await readConfig().catch(() => ({}));
+    const config = await getConfig().catch(() => ({}));
     const host = getOllamaHost(config);
     return { running: false, models: [], host, error: e.message };
   }
@@ -280,18 +250,19 @@ function addRoutes(r) {
     const { detect } = await import('../detector/hardware.js');
     const { getDownloadState } = await import('../cli/download-state.js');
     const hardware = await detect();
+    const config = await getConfig();
     const ollama = await getOllamaStatus();
     const download = getDownloadState();
-    res.json({ hardware, profile: {}, ollama, devices: getDevices(), download });
+    res.json({ hardware, config, ollama, devices: getDevices(), download });
   });
 
   r.get('/api/devices', (req, res) => res.json(getDevices()));
 
-  r.get('/api/config', async (req, res) => res.json(await readConfig()));
+  r.get('/api/config', async (req, res) => res.json(await getConfig()));
 
   r.put('/api/config', async (req, res) => {
     try {
-      await writeConfig(req.body);
+      await setConfig(req.body);
       res.json({ ok: true });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -307,7 +278,7 @@ function addRoutes(r) {
     res.setHeader('Connection', 'keep-alive');
 
     try {
-      const config = await readConfig();
+      const config = await getConfig();
       const host = getOllamaHost(config);
       const response = await fetch(`${host}/api/pull`, {
         method: 'POST',
@@ -349,7 +320,7 @@ function addRoutes(r) {
   r.delete('/api/models/:name', async (req, res) => {
     const { name } = req.params;
     try {
-      const config = await readConfig();
+      const config = await getConfig();
       const host = getOllamaHost(config);
       const response = await fetch(`${host}/api/delete`, {
         method: 'DELETE',

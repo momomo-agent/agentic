@@ -1,35 +1,34 @@
-import { detect as detectHardware } from '../detector/hardware.js'
-import { getProfile, watchProfiles } from '../detector/profiles.js'
+import { getConfig, onConfigChange } from '../config.js'
 import { record } from './latency-log.js'
 import { startMark, endMark } from './profiler.js'
 
 let _config = null
+
 async function loadConfig() {
   if (_config) return _config
-  const hardware = await detectHardware()
-  const profile = await getProfile(hardware)
-  _config = { ...profile, _hardware: hardware }
+  _config = await getConfig()
   return _config
 }
 
-loadConfig().then(cfg => {
-  watchProfiles(cfg._hardware, (newProfile) => {
-    _config = { ...newProfile, _hardware: cfg._hardware }
-    console.log('[llm] config reloaded:', newProfile.llm.model)
-  })
-}).catch(() => {})
+// 监听配置变更
+onConfigChange((newConfig) => {
+  _config = newConfig
+  console.log('[llm] config reloaded:', newConfig.llm?.model)
+})
 
 async function* chatWithOllama(messages) {
   const config = await loadConfig();
   const ollamaHost = config.llm.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+  const model = config.llm.model;
+  console.log(`[llm] ollama request: model=${model} host=${ollamaHost}`);
   const response = await fetch(`${ollamaHost}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: config.llm.model, messages, stream: true }),
+    body: JSON.stringify({ model, messages, stream: true }),
     signal: AbortSignal.timeout(30000)
   });
 
-  if (!response.ok) throw new Error(`Ollama API error: ${response.status}`);
+  if (!response.ok) throw new Error(`Ollama API error: ${response.status} (model=${model})`);
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -127,11 +126,12 @@ export async function* chat(messageOrText, options = {}) {
       record('llm_total', Date.now() - t0);
       return;
     } catch (error) {
-      console.warn('Ollama failed, falling back to cloud:', error.message);
+      console.warn('[llm] Ollama failed, falling back to cloud:', error.message);
     }
 
     const config = await loadConfig();
-    const { provider, model } = config.fallback;
+    const { provider, model } = config.fallback || {};
+    if (!provider) throw new Error('No fallback provider configured');
     if (provider === 'openai' && !process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not set — cannot fallback to cloud');
     if (provider === 'anthropic' && !process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not set — cannot fallback to cloud');
     yield { type: 'meta', provider: 'cloud' };

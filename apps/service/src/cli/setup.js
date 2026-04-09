@@ -1,14 +1,12 @@
 import ora from 'ora';
 import chalk from 'chalk';
-import { promises as fs } from 'fs';
-import path from 'path';
-import os from 'os';
 import { spawn, execSync } from 'child_process';
 import http from 'http';
 import { detect } from '../detector/hardware.js';
 import { getProfile } from '../detector/profiles.js';
 import { ensureSox } from '../detector/sox.js';
 import { setDownloadState, clearDownloadState, getDownloadState } from './download-state.js';
+import { initFromProfile, getConfig } from '../config.js';
 
 async function isOllamaInstalled() {
   try { execSync('which ollama', { stdio: 'ignore' }); return true; } catch { return false; }
@@ -130,15 +128,13 @@ async function pullModel(model) {
   }
 }
 
-const CONFIG_PATH = path.join(os.homedir(), '.agentic-service', 'config.json');
 
 /**
  * Ensure Ollama is installed and recommended model is pulled.
  * Called on every startup (not just first run).
  */
 export async function ensureModel() {
-  const hardware = await detect();
-  const profile = await getProfile(hardware);
+  const config = await getConfig();
 
   // Ensure sox is installed (for wake word detection)
   try {
@@ -147,7 +143,9 @@ export async function ensureModel() {
     console.warn(chalk.yellow(`⚠ sox install skipped: ${err.message}`));
   }
 
-  if (profile.llm.provider !== 'ollama') return;
+  if (config.llm.provider !== 'ollama') return;
+
+  const hardware = await detect();
 
   if (!await isOllamaInstalled()) {
     const spinner = ora('Installing Ollama...').start();
@@ -172,8 +170,8 @@ export async function ensureModel() {
     throw new Error('Ollama is not running. Please run "ollama serve" manually.');
   }
 
-  if (!await isModelPulled(profile.llm.model)) {
-    await pullModel(profile.llm.model);
+  if (!await isModelPulled(config.llm.model)) {
+    await pullModel(config.llm.model);
   }
 }
 
@@ -235,8 +233,7 @@ export async function runSetup(options = {}) {
   }
 
   const configSpinner = ora('Saving configuration...').start();
-  await fs.mkdir(path.dirname(CONFIG_PATH), { recursive: true });
-  await fs.writeFile(CONFIG_PATH, JSON.stringify({ hardware, profile }, null, 2));
+  await initFromProfile(profile, hardware);
   configSpinner.succeed('Configuration saved');
 
   console.log(chalk.green('\n✓ Setup complete!\n'));
