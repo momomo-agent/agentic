@@ -2,121 +2,131 @@
   <div class="config-view">
     <h1 class="page-title">配置</h1>
 
+    <!-- 🧠 对话 Chat -->
     <div class="card">
-      <div class="card-title">🧠 LLM</div>
-      <form @submit.prevent="save" class="config-form">
+      <div class="card-title">🧠 对话 (Chat)</div>
+      <div class="config-form">
         <div class="field">
-          <label>Provider</label>
-          <select v-model="config.llm.provider">
-            <option value="ollama">Ollama (本地)</option>
-            <option value="openai">OpenAI (云端)</option>
-            <option value="anthropic">Anthropic (云端)</option>
+          <label>模型</label>
+          <select v-model="chatModel">
+            <optgroup label="本地模型">
+              <option v-for="m in ollamaModels" :key="'ollama/'+m" :value="'ollama / '+m">ollama / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="enabledCloud('openai')" label="OpenAI">
+              <option v-for="m in cloudModels.openai" :key="'openai/'+m" :value="'openai / '+m">openai / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="enabledCloud('anthropic')" label="Anthropic">
+              <option v-for="m in cloudModels.anthropic" :key="'anthropic/'+m" :value="'anthropic / '+m">anthropic / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="enabledCloud('google')" label="Google">
+              <option v-for="m in cloudModels.google" :key="'google/'+m" :value="'google / '+m">google / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="enabledCloud('groq')" label="Groq">
+              <option v-for="m in cloudModels.groq" :key="'groq/'+m" :value="'groq / '+m">groq / {{ m }}</option>
+            </optgroup>
           </select>
         </div>
         <div class="field">
-          <label>Model</label>
-          <input v-model="config.llm.model" :placeholder="config.llm.provider === 'ollama' ? 'gemma4:e4b' : config.llm.provider === 'openai' ? 'gpt-4o-mini' : 'claude-sonnet-4-20250514'" />
-        </div>
-        <div class="field" v-if="config.llm.provider !== 'ollama'">
-          <label>API Key</label>
-          <input v-model="config.llm.apiKey" type="password" placeholder="sk-..." />
-        </div>
-        <div class="field" v-if="config.llm.provider !== 'ollama'">
-          <label>Base URL <span class="hint">(可选)</span></label>
-          <input v-model="config.llm.baseUrl" placeholder="https://api.openai.com/v1" />
-        </div>
-        <div class="field">
-          <label>Fallback Provider <span class="hint">(可选，本地失败时回退)</span></label>
-          <select v-model="config.fallback.provider">
+          <label>回退模型 <span class="hint">(可选)</span></label>
+          <select v-model="chatFallback">
             <option value="">不回退</option>
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic</option>
+            <optgroup label="本地模型">
+              <option v-for="m in ollamaModels" :key="'fb-ollama/'+m" :value="'ollama / '+m">ollama / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="enabledCloud('openai')" label="OpenAI">
+              <option v-for="m in cloudModels.openai" :key="'fb-openai/'+m" :value="'openai / '+m">openai / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="enabledCloud('anthropic')" label="Anthropic">
+              <option v-for="m in cloudModels.anthropic" :key="'fb-anthropic/'+m" :value="'anthropic / '+m">anthropic / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="enabledCloud('google')" label="Google">
+              <option v-for="m in cloudModels.google" :key="'fb-google/'+m" :value="'google / '+m">google / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="enabledCloud('groq')" label="Groq">
+              <option v-for="m in cloudModels.groq" :key="'fb-groq/'+m" :value="'groq / '+m">groq / {{ m }}</option>
+            </optgroup>
           </select>
         </div>
-        <div class="field" v-if="config.fallback.provider">
-          <label>Fallback Model</label>
-          <input v-model="config.fallback.model" :placeholder="config.fallback.provider === 'openai' ? 'gpt-4o-mini' : 'claude-sonnet-4-20250514'" />
-        </div>
-        <div class="field" v-if="config.fallback.provider">
-          <label>Fallback API Key</label>
-          <input v-model="config.fallback.apiKey" type="password" placeholder="sk-..." />
-        </div>
-      </form>
+      </div>
     </div>
 
+    <!-- 👁️ 视觉 Vision -->
     <div class="card">
-      <div class="card-title">🎙 STT (语音转文字)</div>
-      <form @submit.prevent="save" class="config-form">
+      <div class="card-title">👁️ 视觉 (Vision)</div>
+      <div class="config-form">
         <div class="field">
-          <label>Provider</label>
-          <select v-model="config.stt.provider">
+          <label>模型</label>
+          <select v-model="visionModel">
+            <optgroup label="本地模型">
+              <option v-for="m in visionLocalModels" :key="'v-ollama/'+m" :value="'ollama / '+m">ollama / {{ m }}</option>
+            </optgroup>
+            <optgroup v-if="visionCloudOptions.length" label="云端模型">
+              <option v-for="o in visionCloudOptions" :key="'v-'+o.value" :value="o.value">{{ o.value }}</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🎙 语音识别 STT -->
+    <div class="card">
+      <div class="card-title">🎙 语音识别 (STT)</div>
+      <div class="config-form">
+        <div class="field">
+          <label>引擎</label>
+          <select v-model="sttEngine">
             <option value="whisper">Whisper (本地)</option>
             <option value="sensevoice">SenseVoice (本地)</option>
-            <option value="openai-whisper">OpenAI Whisper (云端)</option>
+            <option v-if="enabledCloud('openai')" value="openai-whisper">OpenAI Whisper (云端)</option>
             <option value="deepgram">Deepgram (云端)</option>
           </select>
         </div>
-        <div class="field" v-if="config.stt.provider !== 'whisper' && config.stt.provider !== 'sensevoice'">
+        <div class="field" v-if="sttEngine === 'deepgram'">
           <label>API Key</label>
-          <input v-model="config.stt.apiKey" type="password" placeholder="API Key" />
+          <input v-model="sttApiKey" type="password" placeholder="Deepgram API Key" />
         </div>
-      </form>
+      </div>
     </div>
 
+    <!-- 🔊 语音合成 TTS -->
     <div class="card">
-      <div class="card-title">🔊 TTS (文字转语音)</div>
-      <form @submit.prevent="save" class="config-form">
+      <div class="card-title">🔊 语音合成 (TTS)</div>
+      <div class="config-form">
         <div class="field">
-          <label>Provider</label>
-          <select v-model="config.tts.provider">
+          <label>引擎</label>
+          <select v-model="ttsEngine">
+            <option value="macos-say">macOS Say (本地)</option>
             <option value="kokoro">Kokoro (本地)</option>
             <option value="piper">Piper (本地)</option>
-            <option value="coqui">Coqui (本地)</option>
-            <option value="macos-say">macOS Say (本地)</option>
-            <option value="openai">OpenAI TTS (云端)</option>
+            <option v-if="enabledCloud('openai')" value="openai">OpenAI TTS (云端)</option>
             <option value="elevenlabs">ElevenLabs (云端)</option>
           </select>
         </div>
-        <div class="field" v-if="config.tts.provider === 'openai' || config.tts.provider === 'elevenlabs'">
+        <div class="field" v-if="ttsEngine === 'macos-say'">
+          <label>声音</label>
+          <select v-model="ttsVoice">
+            <option v-for="v in macVoices" :key="v.value" :value="v.value">{{ v.label }}</option>
+          </select>
+        </div>
+        <div class="field" v-if="ttsEngine === 'openai'">
+          <label>声音</label>
+          <select v-model="ttsVoice">
+            <option v-for="v in openaiVoices" :key="v" :value="v">{{ v }}</option>
+          </select>
+        </div>
+        <div class="field" v-if="ttsEngine === 'elevenlabs'">
           <label>API Key</label>
-          <input v-model="config.tts.apiKey" type="password" :placeholder="config.tts.provider === 'openai' ? 'sk-...' : 'xi-...'" />
+          <input v-model="ttsApiKey" type="password" placeholder="xi-..." />
         </div>
-        <div class="field" v-if="config.tts.provider === 'elevenlabs'">
+        <div class="field" v-if="ttsEngine === 'elevenlabs'">
           <label>Voice ID <span class="hint">(可选)</span></label>
-          <input v-model="config.tts.voiceId" placeholder="JBFqnCBsd6RMkjVDRZzb (George)" />
+          <input v-model="ttsVoiceId" placeholder="JBFqnCBsd6RMkjVDRZzb" />
         </div>
-        <div class="field" v-if="config.tts.provider === 'macos-say'">
-          <label>Voice</label>
-          <select v-model="config.tts.voice">
-            <option value="Samantha">Samantha</option>
-            <option value="Alex">Alex</option>
-            <option value="Daniel">Daniel</option>
-            <option value="Karen">Karen</option>
-            <option value="Moira">Moira</option>
-            <option value="Tessa">Tessa</option>
-            <option value="Tingting">Tingting (中文)</option>
-          </select>
-        </div>
-        <div class="field" v-if="config.tts.provider === 'openai'">
-          <label>Voice <span class="hint">(可选)</span></label>
-          <select v-model="config.tts.voice">
-            <option value="alloy">Alloy</option>
-            <option value="echo">Echo</option>
-            <option value="fable">Fable</option>
-            <option value="onyx">Onyx</option>
-            <option value="nova">Nova</option>
-            <option value="shimmer">Shimmer</option>
-          </select>
-        </div>
-        <div class="field" v-if="config.tts.provider === 'elevenlabs' || config.tts.provider === 'openai'">
-          <label>Base URL <span class="hint">(可选)</span></label>
-          <input v-model="config.tts.baseUrl" :placeholder="config.tts.provider === 'elevenlabs' ? 'https://api.elevenlabs.io/v1' : ''" />
-        </div>
-      </form>
+      </div>
     </div>
 
     <div class="actions">
-      <button @click="save" :disabled="saving">{{ saving ? '保存中...' : '💾 保存所有配置' }}</button>
+      <button @click="save" :disabled="saving">{{ saving ? '保存中...' : '💾 保存配置' }}</button>
       <span v-if="saved" class="saved-msg">✓ 已保存</span>
       <span v-if="error" class="error-msg">{{ error }}</span>
     </div>
@@ -124,66 +134,184 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
-const defaults = () => ({
-  llm: { provider: 'ollama', model: '', apiKey: '', baseUrl: '' },
-  stt: { provider: 'whisper', apiKey: '' },
-  tts: { provider: 'coqui', apiKey: '', voiceId: '', voice: 'Samantha', baseUrl: '' },
-  fallback: { provider: '', model: '', apiKey: '' },
-})
+// --- static data ---
+const cloudModels = {
+  openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1'],
+  anthropic: ['claude-sonnet-4-20250514', 'claude-haiku-35', 'claude-opus-4'],
+  google: ['gemini-2.5-flash', 'gemini-2.5-pro'],
+  groq: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768'],
+}
+const visionCapable = {
+  local: ['llava:7b', 'moondream', 'gemma4:e4b'],
+  cloud: [
+    { provider: 'openai', model: 'gpt-4o' },
+    { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
+    { provider: 'google', model: 'gemini-2.5-flash' },
+  ],
+}
+const macVoices = [
+  { value: 'Samantha', label: 'Samantha' },
+  { value: 'Alex', label: 'Alex' },
+  { value: 'Daniel', label: 'Daniel' },
+  { value: 'Karen', label: 'Karen' },
+  { value: 'Moira', label: 'Moira' },
+  { value: 'Tessa', label: 'Tessa' },
+  { value: 'Tingting', label: 'Tingting (中文)' },
+]
+const openaiVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
 
-const config = ref(defaults())
-const loading = ref(true)
+// --- state ---
+const ollamaModels = ref([])
+const providers = ref({}) // config.providers from /api/config
+const chatModel = ref('')
+const chatFallback = ref('')
+const visionModel = ref('')
+const sttEngine = ref('whisper')
+const sttApiKey = ref('')
+const ttsEngine = ref('macos-say')
+const ttsVoice = ref('Samantha')
+const ttsApiKey = ref('')
+const ttsVoiceId = ref('')
 const saving = ref(false)
 const saved = ref(false)
 const error = ref(null)
 
+// --- helpers ---
+function enabledCloud(name) {
+  const p = providers.value[name]
+  return p && p.enabled
+}
+
+function parseSelection(str) {
+  if (!str) return { provider: '', model: '' }
+  const [provider, model] = str.split(' / ')
+  return { provider: provider.trim(), model: model.trim() }
+}
+
+function toSelection(provider, model) {
+  if (!provider || !model) return ''
+  return `${provider} / ${model}`
+}
+
+const visionLocalModels = computed(() =>
+  visionCapable.local.filter(m => ollamaModels.value.includes(m))
+)
+
+const visionCloudOptions = computed(() =>
+  visionCapable.cloud
+    .filter(c => enabledCloud(c.provider))
+    .map(c => ({ value: `${c.provider} / ${c.model}` }))
+)
+
+// --- load ---
 onMounted(async () => {
   try {
-    const data = await fetch('/api/config').then(r => r.json())
-    const d = defaults()
-    config.value = {
-      llm: { ...d.llm, ...data.llm },
-      stt: { ...d.stt, ...data.stt },
-      tts: { ...d.tts, ...data.tts },
-      fallback: { ...d.fallback, ...data.fallback },
-    }
-  } catch (e) { error.value = e.message }
-  finally { loading.value = false }
+    const [configData, statusData] = await Promise.all([
+      fetch('/api/config').then(r => r.json()),
+      fetch('/api/status').then(r => r.json()),
+    ])
+
+    // ollama models from status
+    ollamaModels.value = statusData?.ollama?.models || []
+
+    // providers map
+    providers.value = configData?.providers || {}
+
+    // Chat
+    const llm = configData?.llm || {}
+    chatModel.value = toSelection(llm.provider || 'ollama', llm.model || '')
+
+    const fb = configData?.fallback || {}
+    chatFallback.value = fb.provider ? toSelection(fb.provider, fb.model) : ''
+
+    // Vision
+    const vis = configData?.vision || {}
+    visionModel.value = vis.provider ? toSelection(vis.provider, vis.model) : ''
+
+    // STT
+    const stt = configData?.stt || {}
+    sttEngine.value = stt.provider || 'whisper'
+    sttApiKey.value = stt.apiKey || ''
+
+    // TTS
+    const tts = configData?.tts || {}
+    ttsEngine.value = tts.provider || 'macos-say'
+    ttsVoice.value = tts.voice || 'Samantha'
+    ttsApiKey.value = tts.apiKey || ''
+    ttsVoiceId.value = tts.voiceId || ''
+  } catch (e) {
+    error.value = e.message
+  }
 })
 
+// --- save ---
 async function save() {
   saving.value = true
   error.value = null
   try {
-    // Clean empty strings to avoid overriding defaults
-    const clean = JSON.parse(JSON.stringify(config.value))
-    for (const section of Object.values(clean)) {
-      for (const [k, v] of Object.entries(section)) {
-        if (v === '') delete section[k]
-      }
+    const chat = parseSelection(chatModel.value)
+    const fallback = parseSelection(chatFallback.value)
+    const vision = parseSelection(visionModel.value)
+
+    const payload = {
+      llm: { provider: chat.provider, model: chat.model },
+      stt: { provider: sttEngine.value },
+      tts: { provider: ttsEngine.value },
     }
-    if (!clean.fallback?.provider) delete clean.fallback
-    await fetch('/api/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(clean) })
+
+    // fallback
+    if (fallback.provider) {
+      payload.fallback = { provider: fallback.provider, model: fallback.model }
+    }
+
+    // vision
+    if (vision.provider) {
+      payload.vision = { provider: vision.provider, model: vision.model }
+    }
+
+    // STT extras
+    if (sttEngine.value === 'deepgram' && sttApiKey.value) {
+      payload.stt.apiKey = sttApiKey.value
+    }
+
+    // TTS extras
+    if (ttsEngine.value === 'macos-say' || ttsEngine.value === 'openai') {
+      payload.tts.voice = ttsVoice.value
+    }
+    if (ttsEngine.value === 'elevenlabs') {
+      if (ttsApiKey.value) payload.tts.apiKey = ttsApiKey.value
+      if (ttsVoiceId.value) payload.tts.voiceId = ttsVoiceId.value
+    }
+
+    await fetch('/api/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
     saved.value = true
-    setTimeout(() => saved.value = false, 2000)
-  } catch (e) { error.value = e.message }
-  finally { saving.value = false }
+    setTimeout(() => (saved.value = false), 2000)
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
 <style scoped>
 .page-title { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
-.card { margin-bottom: 24px; padding: 20px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
-.card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-.config-form { display: flex; flex-direction: column; gap: 16px; }
+.card { margin-bottom: 20px; padding: 20px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); }
+.card-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+.config-form { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
 .field input, .field select {
   padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);
   background: var(--surface); font-size: 14px; color: var(--text);
 }
+.field select optgroup { color: var(--text-dim); font-style: normal; }
 .field input::placeholder { color: var(--text-dim); opacity: 0.5; }
 .hint { font-weight: 400; opacity: 0.6; }
 .actions { display: flex; align-items: center; gap: 16px; padding-top: 8px; }
