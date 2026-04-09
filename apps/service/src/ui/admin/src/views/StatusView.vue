@@ -50,6 +50,22 @@
       </div>
     </div>
 
+    <!-- 下载进度 -->
+    <div class="card download-card" style="margin-top: 24px" v-if="download.inProgress">
+      <div class="card-title">⬇️ 正在下载模型</div>
+      <div class="download-info">
+        <span class="download-model">{{ download.model }}</span>
+        <span class="download-status">{{ download.status }}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" :style="{ width: downloadPct + '%' }"></div>
+      </div>
+      <div class="download-detail">
+        <span>{{ downloadPct }}%</span>
+        <span v-if="download.total">{{ (download.total / 1e9).toFixed(1) }} GB</span>
+      </div>
+    </div>
+
     <!-- 当前配置概览 -->
     <div class="card" style="margin-top: 24px">
       <div class="card-title">当前配置</div>
@@ -102,7 +118,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const status = ref({})
 const config = ref({})
@@ -110,10 +126,16 @@ const hw = ref({})
 const perf = ref({})
 const logs = ref([])
 const logEl = ref(null)
+const download = ref({ inProgress: false })
 let timer = null
 
 const sttOk = ref(false)
 const ttsOk = ref(false)
+
+const downloadPct = computed(() => {
+  if (!download.value.total) return 0
+  return Math.round(download.value.progress / download.value.total * 100)
+})
 
 async function fetchData() {
   try {
@@ -125,6 +147,7 @@ async function fetchData() {
     ])
     status.value = statusRes
     hw.value = statusRes.hardware || {}
+    download.value = statusRes.download || { inProgress: false }
     perf.value = perfRes
     logs.value = logsRes
     config.value = cfgRes
@@ -146,7 +169,7 @@ function formatLogTime(ts) {
 
 onMounted(() => {
   fetchData()
-  timer = setInterval(fetchData, 5000)
+  timer = setInterval(fetchData, 2000)
 })
 onUnmounted(() => clearInterval(timer))
 </script>
@@ -186,5 +209,21 @@ onUnmounted(() => clearInterval(timer))
 .btn-small {
   padding: 4px 10px; border-radius: 4px; font-size: 12px;
   background: var(--surface-3, #374151); color: var(--text); border: none; cursor: pointer;
+}
+
+.download-card { border: 1px solid var(--accent, #3b82f6); }
+.download-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.download-model { font-weight: 600; font-size: 15px; }
+.download-status { font-size: 13px; color: var(--text-dim); }
+.progress-bar {
+  height: 6px; background: var(--surface-3, #374151); border-radius: 3px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--accent, #3b82f6); border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.download-detail {
+  display: flex; justify-content: space-between; margin-top: 8px;
+  font-size: 13px; color: var(--text-dim);
 }
 </style>

@@ -77,52 +77,56 @@ async function pullModel(model) {
   const spinner = ora(`Pulling model ${model}...`).start();
   
   try {
-    await new Promise((resolve, reject) => {
-      const child = spawn('ollama', ['pull', model], { stdio: ['ignore', 'pipe', 'pipe'] });
-      
-      let buffer = '';
-      child.stdout.on('data', (data) => {
-        buffer += data.toString();
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-        
-        for (const line of lines) {
-          try {
-            const json = JSON.parse(line);
-            if (json.status) {
-              spinner.text = `Pulling ${model}: ${json.status}`;
-              
-              // Handle final stages without progress
-              if (json.status.includes('verifying') || json.status.includes('writing manifest')) {
-                const currentState = getDownloadState();
-                setDownloadState({ 
-                  status: 'Finalizing...',
-                  progress: json.total || currentState.total,
-                  total: json.total || currentState.total
-                });
-              } else {
-                setDownloadState({ 
-                  status: json.status,
-                  progress: json.completed || 0,
-                  total: json.total || 0
-                });
-              }
-            }
-          } catch {}
-        }
-      });
-      
-      child.on('close', code => {
-        if (code === 0) {
-          spinner.succeed(`Model ${model} ready`);
-          clearDownloadState();
-          resolve();
-        } else {
-          reject(new Error(`pull failed: ${code}`));
-        }
-      });
+    const config = await getConfig();
+    const host = config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+    
+    const response = await fetch(`${host}/api/pull`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: model, stream: true })
     });
+
+    if (!response.ok) throw new Error(`Ollama pull failed: HTTP ${response.status}`);
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const data = JSON.parse(line);
+          if (data.error) throw new Error(data.error);
+
+          if (data.status) {
+            const pct = data.total ? Math.round(data.completed / data.total * 100) : 0;
+            const sizeStr = data.total ? ` (${(data.total / 1e9).toFixed(1)}GB)` : '';
+            spinner.text = `Pulling ${model}: ${data.status}${pct ? ` ${pct}%` : ''}${sizeStr}`;
+
+            if (data.status.includes('verifying') || data.status.includes('writing manifest')) {
+              setDownloadState({ status: 'Finalizing...', progress: data.total || 0, total: data.total || 0 });
+            } else {
+              setDownloadState({ status: data.status, progress: data.completed || 0, total: data.total || 0 });
+            }
+          }
+        } catch (e) {
+          if (e.message && !e.message.includes('JSON')) throw e;
+        }
+      }
+    }
+
+    spinner.succeed(`Model ${model} ready`);
+    clearDownloadState();
   } catch (err) {
+    spinner.fail(`Failed to pull ${model}: ${err.message}`);
     clearDownloadState();
     throw err;
   }
