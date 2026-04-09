@@ -27,8 +27,9 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 const logBuffer = [];
 const _log = console.log;
+const stripAnsi = (s) => s.replace(/\x1b\[[0-9;]*m/g, '');
 console.log = (...args) => {
-  logBuffer.push({ ts: Date.now(), msg: args.join(' ') });
+  logBuffer.push({ ts: Date.now(), msg: stripAnsi(args.join(' ')) });
   if (logBuffer.length > 200) logBuffer.shift();
   _log(...args);
 };
