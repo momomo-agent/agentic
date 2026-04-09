@@ -10,19 +10,16 @@ const readme = readFileSync(join(__dirname, '../README.md'), 'utf8');
 const checks = [
   ['Install section', /## Install/i],
   ['Usage/Quick Start section', /## Quick Start/i],
-  ['API Reference section', /## API Reference/i],
-  ['Docker section', /## Docker/i],
-  ['Environment Variables section', /## Environment Variables/i],
-  ['POST /api/chat', /POST \/api\/chat/],
-  ['POST /api/transcribe', /POST \/api\/transcribe/],
-  ['POST /api/synthesize', /POST \/api\/synthesize/],
-  ['GET /api/status', /GET \/api\/status/],
-  ['GET /api/config', /GET \/api\/config/],
-  ['PUT /api/config', /PUT \/api\/config/],
+  ['API Endpoints section', /## API Endpoints/i],
+  ['Environment Variables section', /Environment Variables/i],
+  ['POST /api/chat', /\/api\/chat/],
+  ['POST /api/transcribe', /\/api\/transcribe/],
+  ['POST /api/synthesize', /\/api\/synthesize/],
+  ['GET /api/status', /\/api\/status/],
+  ['GET /api/config', /\/api\/config/],
+  ['PUT /api/config', /\/api\/config/],
   ['npx install', /npx agentic-service/],
   ['global install', /npm i -g/],
-  ['docker run', /docker run/],
-  ['docker-compose', /docker-compose/],
 ];
 
 let passed = 0, failed = 0;

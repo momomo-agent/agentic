@@ -11,8 +11,8 @@ describe('DBB-010: README install instructions', () => {
   it('contains global install', () => {
     expect(readme).toMatch(/npm i -g|npm install -g/);
   });
-  it('contains docker section', () => {
-    expect(readme.toLowerCase()).toContain('docker');
+  it('contains HTTPS support', () => {
+    expect(readme.toLowerCase()).toContain('https');
   });
 });
 

@@ -55,10 +55,12 @@ describe('GET /api/status — Ollama real detection', () => {
 });
 
 describe('GET /api/config — persistence', () => {
-  it('returns {} when no config file exists', async () => {
+  it('returns default config when no config file exists', async () => {
     const res = await req('GET', '/api/config');
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({});
+    const config = await res.json();
+    expect(config.llm.provider).toBe('ollama');
+    expect(config.llm.model).toBe('gemma2:2b');
   });
 
   it('PUT then GET returns same value', async () => {
@@ -78,11 +80,12 @@ describe('GET /api/config — persistence', () => {
     expect(JSON.parse(raw)).toEqual(config);
   });
 
-  it('GET returns {} after config file is deleted', async () => {
+  it('GET returns default config after config file is deleted', async () => {
     await req('PUT', '/api/config', { x: 1 });
     await fs.rm(CONFIG_PATH, { force: true });
     const res = await req('GET', '/api/config');
-    expect(await res.json()).toEqual({});
+    const config = await res.json();
+    expect(config.llm.provider).toBe('ollama');
   });
 });
 

@@ -1,14 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// --- TTS mocks ---
-vi.mock('agentic-voice/kokoro',     () => ({ synthesize: vi.fn(async () => Buffer.from('kokoro')) }))
-vi.mock('agentic-voice/piper',      () => ({ synthesize: vi.fn(async () => Buffer.from('piper')) }))
-vi.mock('agentic-voice/openai-tts', () => ({ synthesize: vi.fn(async () => Buffer.from('openai-tts')) }))
+// --- TTS mocks (local adapter paths) ---
+vi.mock('../../src/runtime/adapters/voice/openai-tts.js', () => ({ synthesize: vi.fn(async () => Buffer.from('openai-tts')) }))
 
-// --- STT mocks (needed so stt.js doesn't break if imported transitively) ---
-vi.mock('agentic-voice/sensevoice',    () => ({ transcribe: vi.fn(async () => 'sv') }))
-vi.mock('agentic-voice/whisper',       () => ({ transcribe: vi.fn(async () => 'wh') }))
-vi.mock('agentic-voice/openai-whisper',() => ({ transcribe: vi.fn(async () => 'ow') }))
+// --- STT mocks (local adapter paths) ---
+vi.mock('../../src/runtime/adapters/voice/openai-whisper.js', () => ({ transcribe: vi.fn(async () => 'ow') }))
 
 let profileData = { tts: { provider: 'default' }, llm: { model: 'gemma3:1b' }, fallback: { provider: 'openai', model: 'gpt-4o-mini' } }
 
@@ -44,7 +40,7 @@ describe('m38: tts.js synthesize()', () => {
   })
 
   it('valid text → Buffer after init()', async () => {
-    profileData = { tts: { provider: 'kokoro' } }
+    profileData = { tts: { provider: 'default' } }
     const { init, synthesize } = await import('../../src/runtime/tts.js')
     await init()
     const buf = await synthesize('hello')
@@ -52,7 +48,7 @@ describe('m38: tts.js synthesize()', () => {
   })
 
   it('empty string → EMPTY_TEXT error', async () => {
-    profileData = { tts: { provider: 'kokoro' } }
+    profileData = { tts: { provider: 'default' } }
     const { init, synthesize } = await import('../../src/runtime/tts.js')
     await init()
     const err = await synthesize('').catch(e => e)
@@ -60,7 +56,7 @@ describe('m38: tts.js synthesize()', () => {
   })
 
   it('whitespace-only → EMPTY_TEXT error', async () => {
-    profileData = { tts: { provider: 'kokoro' } }
+    profileData = { tts: { provider: 'default' } }
     const { init, synthesize } = await import('../../src/runtime/tts.js')
     await init()
     const err = await synthesize('   ').catch(e => e)
@@ -75,12 +71,13 @@ describe('m38: tts.js synthesize()', () => {
     expect(buf.toString()).toBe('openai-tts')
   })
 
-  it('piper provider uses piper adapter', async () => {
+  it('piper provider falls back to openai-tts (adapter not installed)', async () => {
     profileData = { tts: { provider: 'piper' } }
     const { init, synthesize } = await import('../../src/runtime/tts.js')
     await init()
     const buf = await synthesize('hi')
-    expect(buf.toString()).toBe('piper')
+    expect(Buffer.isBuffer(buf)).toBe(true)
+    expect(buf.toString()).toBe('openai-tts')
   })
 })
 

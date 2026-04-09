@@ -1,14 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('agentic-voice/openai-whisper', () => ({ transcribe: vi.fn() }));
-vi.mock('agentic-voice/sensevoice', () => ({ transcribe: vi.fn() }));
-vi.mock('agentic-voice/whisper', () => ({ transcribe: vi.fn() }));
+vi.mock('../../src/runtime/adapters/voice/openai-whisper.js', () => ({ transcribe: vi.fn() }));
+vi.mock('../../src/runtime/adapters/voice/sensevoice.js', () => ({ transcribe: vi.fn() }));
+vi.mock('../../src/runtime/adapters/voice/whisper.js', () => ({ transcribe: vi.fn() }));
 vi.mock('../../src/detector/hardware.js', () => ({ detect: vi.fn().mockResolvedValue({}) }));
 vi.mock('../../src/detector/profiles.js', () => ({ getProfile: vi.fn().mockResolvedValue({ stt: { provider: 'default' } }) }));
 vi.mock('../../src/runtime/profiler.js', () => ({ startMark: vi.fn(), endMark: vi.fn().mockReturnValue(0) }));
 vi.mock('../../src/runtime/latency-log.js', () => ({ record: vi.fn() }));
 
-import * as whisperAdapter from 'agentic-voice/openai-whisper';
+import * as whisperAdapter from '../../src/runtime/adapters/voice/openai-whisper.js';
 import * as sttMod from '../../src/runtime/stt.js';
 
 describe('STT runtime', () => {

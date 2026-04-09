@@ -71,7 +71,7 @@ describe('brain.js — DBB-009: content chunks without tools', () => {
 
     const contentChunk = chunks.find(c => c.type === 'content');
     expect(contentChunk).toBeDefined();
-    expect(contentChunk.content).toBe('Hello there!');
+    expect(contentChunk.text).toBe('Hello there!');
   });
 });
 

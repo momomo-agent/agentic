@@ -50,12 +50,25 @@ export function waitDrain(timeout = 10_000) {
 
 const CONFIG_PATH = path.join(os.homedir(), '.agentic-service', 'config.json');
 
+const DEFAULT_CONFIG = {
+  llm: { provider: 'ollama', model: 'gemma2:2b' },
+  stt: { provider: 'whisper' },
+  tts: { provider: 'openai-tts' },
+  fallback: { provider: '' },
+};
+
 async function readConfig() {
   try {
-    return JSON.parse(await fs.readFile(CONFIG_PATH, 'utf8'));
+    const raw = await fs.readFile(CONFIG_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+      return parsed;
+    }
   } catch {
-    return {};
+    // file missing or invalid JSON — fall through to defaults
   }
+  await writeConfig(DEFAULT_CONFIG);
+  return DEFAULT_CONFIG;
 }
 
 async function writeConfig(data) {

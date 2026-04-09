@@ -1,17 +1,18 @@
 # agentic-service
 
-One-command AI agent service with automatic hardware detection and optimization.
+Local-first AI service with hardware detection, automatic model optimization, and a built-in Admin UI.
 
-## Features
+## Quick Start
 
-- One-command install: `npx agentic-service`
-- Automatic hardware detection (GPU, CPU, memory)
-- Optimized model selection based on your hardware
-- Voice capabilities (STT + TTS)
-- Vision sensing (face, gesture, object detection)
-- LLM-powered conversation with tool use
-- Docker support for easy deployment
-- Modular architecture with external packages
+```bash
+npx agentic-service
+```
+
+On first run, agentic-service will:
+1. Detect your hardware (GPU, VRAM, CPU, memory)
+2. Configure Ollama with an optimized model for your system
+3. Start the server at `http://localhost:1234`
+4. Open the Admin UI in your browser
 
 ## Install
 
@@ -21,247 +22,176 @@ npx agentic-service
 
 # Install globally
 npm i -g agentic-service && agentic-service
-
-# Docker
-docker run -p 3000:3000 momomo/agentic-service
 ```
 
-## Quick Start
-
-On first run, agentic-service will:
-1. Detect your hardware (GPU, VRAM, CPU, OS)
-2. Pull the recommended Ollama model for your hardware
-3. Open the chat UI in your browser at `http://localhost:3000`
-
-## Environment Variables
-
-| Variable | Description |
-|---|---|
-| `OPENAI_API_KEY` | Cloud fallback via OpenAI |
-| `ANTHROPIC_API_KEY` | Cloud fallback via Anthropic |
-| `PORT` | HTTP port (default: `3000`) |
-| `PROFILES_URL` | Override CDN URL for hardware profiles JSON |
-| `WAKE_WORD` | Wake word for voice activation (default: `"hey agent"`) |
-
-## API Reference
-
-### `POST /api/chat`
-
-SSE stream. Send a message, receive a streamed response.
+## CLI Options
 
 ```
-POST /api/chat
-Content-Type: application/json
+agentic-service [options]
 
-{ "message": "Hello", "history": [] }
+  -p, --port <port>  server port (default: 1234)
+  --no-browser       do not open browser automatically
+  --skip-setup       skip first-time setup
+  --https            enable HTTPS with self-signed certificate
+  -V, --version      output the version number
+  -h, --help         display help
 ```
 
-Response: `text/event-stream` with `data: <token>` lines.
+## Features
 
----
+- **Hardware-adaptive model selection** — picks the best model and quantization for your GPU/CPU/memory
+- **Ollama integration** — auto-detects and configures Ollama
+- **OpenAI-compatible API** — drop-in `/v1/chat/completions` and `/v1/models`
+- **Anthropic-compatible API** — `/v1/messages` endpoint
+- **Speech-to-text / Text-to-speech** — pluggable adapters (OpenAI Whisper, SenseVoice, Kokoro, Piper)
+- **Wake word detection** — voice-activated pipeline with VAD
+- **Multi-device hub** — WebSocket device registration, heartbeat, cross-device sessions
+- **Admin UI** — Vue 3 dashboard for config, models, status, and testing
+- **HTTPS support** — self-signed certificates for LAN access
+- **Cloud fallback** — automatic failover to Anthropic/OpenAI when Ollama is unavailable
+- **Tunnel** — expose your local service to the internet
 
-### `POST /api/transcribe`
+## API Endpoints
 
-Transcribe audio to text.
+### OpenAI-Compatible
 
-```
-POST /api/transcribe
-Content-Type: multipart/form-data
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/models` | List available models |
+| POST | `/v1/chat/completions` | Chat completion (streaming supported) |
 
-file=<audio file>
-```
+### Anthropic-Compatible
 
-Response:
-```json
-{ "text": "transcribed text" }
-```
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/v1/messages` | Messages API (streaming supported) |
 
----
+### Service API
 
-### `POST /api/synthesize`
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/health` | Health check |
+| POST | `/api/chat` | Chat with streaming (SSE) |
+| GET | `/api/status` | Hardware, Ollama, and device status |
+| GET | `/api/devices` | Connected devices |
+| GET | `/api/config` | Read configuration |
+| PUT | `/api/config` | Update configuration |
+| GET | `/api/models` | List Ollama models |
+| POST | `/api/models/pull` | Pull a model (streaming progress) |
+| DELETE | `/api/models/:name` | Delete a model |
+| POST | `/api/transcribe` | Speech-to-text (multipart audio) |
+| POST | `/api/synthesize` | Text-to-speech |
+| GET | `/api/logs` | Recent server logs |
+| GET | `/api/profiler` | Performance metrics |
+| POST | `/api/vad` | Voice activity detection |
 
-Synthesize text to audio.
+## Admin UI
 
-```
-POST /api/synthesize
-Content-Type: application/json
+Served at the root URL. Views:
 
-{ "text": "Hello world" }
-```
+- **Dashboard** — system status, connected devices, Ollama health
+- **Config** — LLM provider, model, STT/TTS settings, cloud fallback
+- **Models** — browse, pull, and delete Ollama models
+- **Status** — hardware detection results and system info
+- **Test** — interactive chat playground
+- **Examples** — usage examples and API docs
 
-Response: audio buffer (`audio/wav`).
-
----
-
-### `GET /api/status`
-
-Returns current hardware, profile, and connected devices.
-
-```json
-{
-  "hardware": { "gpu": "apple_silicon", "vram": 16, "cpu": "arm64", "os": "darwin" },
-  "profile": { "model": "llama3.2", "contextSize": 4096 },
-  "devices": []
-}
-```
-
----
-
-### `GET /api/config`
-
-Returns current configuration.
-
-```json
-{
-  "port": 3000,
-  "model": "llama3.2",
-  "cloudFallback": { "enabled": false }
-}
-```
-
----
-
-### `PUT /api/config`
-
-Update configuration (partial update supported).
-
-```
-PUT /api/config
-Content-Type: application/json
-
-{ "model": "mistral" }
-```
-
-Response: updated config JSON.
-
----
-
-## Docker Deployment
+Build the Admin UI separately:
 
 ```bash
-# Single container
-docker run -p 3000:3000 \
-  -e OPENAI_API_KEY=sk-... \
-  -v ~/.agentic-service:/root/.agentic-service \
-  momomo/agentic-service
+cd src/ui/admin && npm install && npm run build
 ```
-
-```yaml
-# docker-compose.yml
-services:
-  agentic-service:
-    image: momomo/agentic-service
-    ports:
-      - "3000:3000"
-    environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-    volumes:
-      - ~/.agentic-service:/root/.agentic-service
-```
-
-## UI
-
-| Route | Description |
-|---|---|
-| `/` | Chat interface |
-| `/admin` | Admin panel (devices, config, logs) |
-
-## Profiles
-
-Hardware profiles are loaded from `profiles/default.json` (or fetched from CDN). Each profile matches hardware and sets providers:
-
-| Field | Description |
-|---|---|
-| `match.platform` | `"darwin"`, `"linux"`, `"win32"` |
-| `match.gpu` | `"apple-silicon"`, `"nvidia"`, `"cpu"` |
-| `match.minMemory` | Minimum RAM in GB |
-| `config.llm` | LLM provider + model + quantization |
-| `config.stt` | Speech-to-text provider + model |
-| `config.tts` | Text-to-speech provider + voice |
-| `config.fallback` | Cloud fallback provider + model |
 
 ## Configuration
 
 Config file: `~/.agentic-service/config.json`
 
+Editable via Admin UI (`/config`) or the REST API (`PUT /api/config`).
+
 ```json
 {
-  "port": 3000,
-  "model": "auto",
-  "cloudFallback": {
-    "enabled": false,
-    "provider": "openai",
-    "model": "gpt-4o-mini",
-    "timeoutMs": 5000
+  "llm": {
+    "provider": "ollama",
+    "model": "gemma2:2b"
   },
-  "wakeWord": null,
-  "vad": false
+  "stt": {
+    "provider": "whisper"
+  },
+  "tts": {
+    "provider": "openai-tts"
+  },
+  "fallback": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-20250514",
+    "apiKey": "sk-..."
+  }
 }
 ```
 
-| Field | Default | Description |
-|---|---|---|
-| `port` | `3000` | HTTP listen port |
-| `model` | `"auto"` | Ollama model name, or `"auto"` to use hardware profile |
-| `cloudFallback.enabled` | `false` | Fall back to cloud LLM on local failure |
-| `cloudFallback.provider` | `"openai"` | `"openai"` or `"anthropic"` |
-| `cloudFallback.timeoutMs` | `5000` | Local timeout before fallback triggers |
-| `wakeWord` | `null` | Wake word for voice activation (e.g. `"hey momo"`) |
-| `vad` | `false` | Enable voice activity detection |
+### LLM Providers
 
-## Troubleshooting
+| Provider | Notes |
+|----------|-------|
+| `ollama` | Default, local. Model auto-selected by hardware profile |
+| `anthropic` | Cloud. Requires `apiKey` |
+| `openai` | Cloud. Requires `apiKey` |
 
-| Problem | Solution |
-|---|---|
-| Ollama not found | Install from https://ollama.ai or run `brew install ollama` |
-| Port in use | Set `PORT=3001` env var or update `~/.agentic-service/config.json` |
-| No microphone | Check browser permissions or use text-only mode via `/api/chat` |
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `OPENAI_API_KEY` | OpenAI API key (for STT/TTS and cloud fallback) |
+| `ANTHROPIC_API_KEY` | Anthropic API key (for cloud fallback) |
+| `PORT` | HTTP port override |
+| `WAKE_WORD` | Wake word for voice activation (default: `"hey agent"`) |
+| `HTTPS_ENABLED` | Set to `"true"` to enable HTTPS |
+
+## Architecture
+
+```
+bin/agentic-service.js       CLI entry point
+src/
+  cli/                       Setup wizard, browser launch, download state
+  detector/                  Hardware detection, model optimization, Ollama management
+    hardware.js              GPU/CPU/memory detection
+    optimizer.js             Hardware → model config mapping
+    profiles.js              CDN-backed hardware profiles
+    ollama.js                Ollama install/pull orchestration
+  runtime/                   STT, TTS, VAD, sense, profiler, embeddings
+    stt.js                   Speech-to-text (adapter-based)
+    tts.js                   Text-to-speech (adapter-based)
+    vad.js                   Voice activity detection
+    sense.js                 Vision sensing pipeline
+    profiler.js              Performance instrumentation
+    llm.js                   LLM calling engine
+  server/                    Express API server
+    api.js                   Routes + server lifecycle
+    brain.js                 LLM orchestration (Ollama + cloud fallback)
+    hub.js                   WebSocket device hub + sessions
+  store/                     Persistent KV storage
+  tunnel.js                  Internet tunnel
+  ui/admin/                  Vue 3 Admin UI
+```
 
 ## Hardware Requirements
 
 | Hardware | Model | Performance |
 |----------|-------|-------------|
-| Apple Silicon (32GB+) | gemma2:27b | Excellent |
-| Apple Silicon (16GB+) | gemma2:9b | Good |
-| NVIDIA (8GB+ VRAM) | gemma2:9b | Good |
-| CPU-only | gemma2:2b | Basic |
+| Apple Silicon 16GB+ | gemma4:26b (q8) | Excellent |
+| NVIDIA 8GB+ VRAM | gemma4:13b (q4) | Good |
+| CPU-only 8GB+ | gemma2:2b (q4) | Basic |
 
-Minimum: 4-core CPU, 8GB RAM, 10GB disk. Recommended: 8+ cores, 16GB+ RAM, GPU.
-
-## Architecture
-
-```
-agentic-service
-├── agentic-core      # LLM calling engine (streaming, tool use, retry)
-├── agentic-sense     # MediaPipe sensing (face/gesture/object)
-├── agentic-voice     # TTS + STT unified interface
-├── agentic-store     # KV storage abstraction
-└── agentic-embed     # Vector embedding (bge-m3)
-```
-
-```
-agentic-service/
-├── bin/agentic-service.js    # CLI entry point
-├── src/
-│   ├── detector/             # Hardware detection
-│   ├── runtime/              # Service runtimes (llm, stt, tts, sense, memory)
-│   ├── server/               # HTTP server (hub, brain, api)
-│   └── ui/                   # Web UI (client, admin)
-├── profiles/default.json     # Hardware profiles
-└── install/                  # Dockerfile, docker-compose, setup.sh
-```
+Minimum: Node.js 18+, 8GB RAM. Recommended: 16GB+ RAM, GPU.
 
 ## Development
 
 ```bash
-git clone https://github.com/momomo/agentic-service.git
-cd agentic-service
-npm install
-npm test
-npm start
+npm run dev          # Start server (skip setup)
+npm test             # Run tests (watch mode)
+npm run test:run     # Run tests once
+npm run build        # Build Admin UI
 ```
 
 ## License
 
 MIT
-

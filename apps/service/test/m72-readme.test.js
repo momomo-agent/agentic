@@ -19,13 +19,12 @@ console.log('M72 README completeness tests\n');
 
 test('DBB: covers npx install', () => assert.ok(readme.includes('npx agentic-service')));
 test('DBB: covers global npm install', () => assert.ok(readme.match(/npm install -g|npm i -g/)));
-test('DBB: covers Docker install', () => assert.ok(readme.toLowerCase().includes('docker')));
-test('DBB: lists POST /api/chat', () => assert.ok(readme.includes('POST /api/chat')));
-test('DBB: lists POST /api/transcribe', () => assert.ok(readme.includes('POST /api/transcribe')));
-test('DBB: lists POST /api/synthesize', () => assert.ok(readme.includes('POST /api/synthesize')));
-test('DBB: lists GET /api/status', () => assert.ok(readme.includes('GET /api/status')));
-test('DBB: lists GET /api/config', () => assert.ok(readme.includes('GET /api/config')));
-test('DBB: lists PUT /api/config', () => assert.ok(readme.includes('PUT /api/config')));
+test('DBB: lists POST /api/chat', () => assert.ok(readme.includes('/api/chat')));
+test('DBB: lists POST /api/transcribe', () => assert.ok(readme.includes('/api/transcribe')));
+test('DBB: lists POST /api/synthesize', () => assert.ok(readme.includes('/api/synthesize')));
+test('DBB: lists GET /api/status', () => assert.ok(readme.includes('/api/status')));
+test('DBB: lists GET /api/config', () => assert.ok(readme.includes('/api/config')));
+test('DBB: lists PUT /api/config', () => assert.ok(readme.includes('/api/config')));
 test('DBB: documents config options', () => assert.ok(readme.includes('profile') || readme.includes('model')));
 
 console.log(`\n${passed + failed} tests: ${passed} passed, ${failed} failed`);

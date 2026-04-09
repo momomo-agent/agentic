@@ -47,8 +47,8 @@ describe('profiles edge cases', () => {
     };
 
     const profile = await getProfile(hardware);
-    // Should fallback to default OpenAI profile
-    expect(profile.llm.provider).toBe('openai');
+    // apple-silicon minMemory:16 fails, falls through to gpu:none or default → ollama
+    expect(profile.llm.provider).toBe('ollama');
   });
 
   it.fails('should prioritize more specific matches', async () => {
@@ -235,8 +235,8 @@ describe('profiles edge cases', () => {
     };
 
     const profile = await getProfile(hardware);
-    // Should fallback to OpenAI (cloud-based)
-    expect(profile.llm.provider).toBe('openai');
+    // gpu:none matches the "none" profile → ollama (no openai fallback profile in default.json)
+    expect(profile.llm.provider).toBe('ollama');
   });
 
   it('should return complete profile structure', async () => {
@@ -322,6 +322,10 @@ describe('cache functionality', () => {
     await fs.mkdir(CACHE_DIR, { recursive: true });
     await fs.writeFile(CACHE_FILE, JSON.stringify(expiredCache, null, 2));
 
+    // Mock fetch to fail so expired cache is used as fallback
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+
     const hardware = {
       platform: 'darwin',
       arch: 'arm64',
@@ -330,8 +334,12 @@ describe('cache functionality', () => {
       cpu: { cores: 10, model: 'Apple M4' }
     };
 
-    const profile = await getProfile(hardware);
-    // Should use expired cache since network fails
-    expect(profile.llm.provider).toBe('cached-provider');
+    try {
+      const profile = await getProfile(hardware);
+      // Should use expired cache since network fails
+      expect(profile.llm.provider).toBe('cached-provider');
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });

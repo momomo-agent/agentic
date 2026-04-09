@@ -6,6 +6,26 @@ import path from 'path';
 import os from 'os';
 
 describe('profiles.getProfile()', () => {
+  const CACHE_FILE = path.join(os.homedir(), '.agentic-service', 'profiles.json');
+  let originalReadFile;
+
+  beforeEach(() => {
+    // Mock fetch to fail so getProfile falls back to builtin profiles
+    global.fetch = vi.fn().mockRejectedValue(new Error('no network'));
+    // Mock cache read only (not builtin profiles read)
+    originalReadFile = fs.readFile;
+    vi.spyOn(fs, 'readFile').mockImplementation((filePath, ...args) => {
+      if (String(filePath).includes('profiles.json') && String(filePath).includes('.agentic-service')) {
+        return Promise.reject(new Error('ENOENT'));
+      }
+      return originalReadFile.call(fs, filePath, ...args);
+    });
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    delete global.fetch;
+  });
+
   it('should match Apple Silicon profile', async () => {
     const hardware = {
       platform: 'darwin',
@@ -30,7 +50,8 @@ describe('profiles.getProfile()', () => {
     };
 
     const profile = await getProfile(hardware);
-    expect(profile.llm.provider).toBe('openai');
+    // gpu:none matches the "none" profile in default.json → ollama
+    expect(profile.llm.provider).toBe('ollama');
   });
 });
 

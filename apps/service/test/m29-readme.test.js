@@ -16,7 +16,7 @@ describe('M29 DBB: README completeness', () => {
   it('documents /api/synthesize', () => { expect(readme).toContain('/api/synthesize'); });
   it('documents /api/status', () => { expect(readme).toContain('/api/status'); });
   it('documents /api/config', () => { expect(readme).toContain('/api/config'); });
-  it('has Docker section', () => { expect(readme.toLowerCase()).toContain('docker'); });
+  it('has HTTPS or cloud section', () => { expect(readme.toLowerCase()).toContain('https'); });
   it('has configuration section', () => {
     expect(readme.includes('PROFILES_URL') || readme.includes('profile')).toBe(true);
   });

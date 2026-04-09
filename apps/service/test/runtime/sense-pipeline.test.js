@@ -1,17 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 const mockDetect = vi.fn()
 const mockPipeline = { detect: mockDetect, _video: null }
 
-vi.mock('agentic-sense', () => ({
-  AgenticSense: class { detect = mockDetect },
+vi.mock('../../src/runtime/adapters/sense.js', () => ({
   createPipeline: vi.fn(async () => mockPipeline)
 }))
-
-// stub requestAnimationFrame / cancelAnimationFrame
-let rafCallback = null
-global.requestAnimationFrame = vi.fn(cb => { rafCallback = cb; return 1 })
-global.cancelAnimationFrame = vi.fn()
 
 const { init, on, start, stop } = await import('../../src/runtime/sense.js')
 
@@ -22,8 +16,12 @@ function makeVideo(readyState = 4) {
 describe('sense pipeline (DBB-003, DBB-004)', () => {
   beforeEach(() => {
     mockDetect.mockReset()
-    rafCallback = null
     stop()
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('DBB-003: face_detected event emitted with boundingBox', async () => {
@@ -32,7 +30,7 @@ describe('sense pipeline (DBB-003, DBB-004)', () => {
     const handler = vi.fn()
     on('face_detected', handler)
     start()
-    rafCallback?.()
+    vi.advanceTimersByTime(20)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({
       type: 'face_detected',
       data: { boundingBox: { x:0,y:0,w:10,h:10 } }
@@ -45,7 +43,7 @@ describe('sense pipeline (DBB-003, DBB-004)', () => {
     const handler = vi.fn()
     on('gesture_detected', handler)
     start()
-    rafCallback?.()
+    vi.advanceTimersByTime(20)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({
       type: 'gesture_detected',
       data: { gesture: 'wave' }
@@ -58,7 +56,7 @@ describe('sense pipeline (DBB-003, DBB-004)', () => {
     const handler = vi.fn()
     on('object_detected', handler)
     start()
-    rafCallback?.()
+    vi.advanceTimersByTime(20)
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ type: 'object_detected' }))
   })
 
@@ -68,7 +66,7 @@ describe('sense pipeline (DBB-003, DBB-004)', () => {
     const handler = vi.fn()
     on('object_detected', handler)
     start()
-    rafCallback?.()
+    vi.advanceTimersByTime(20)
     expect(handler).not.toHaveBeenCalled()
   })
 
@@ -78,7 +76,7 @@ describe('sense pipeline (DBB-003, DBB-004)', () => {
     const handler = vi.fn()
     on('face_detected', handler)
     start()
-    rafCallback?.()
+    vi.advanceTimersByTime(20)
     expect(handler).not.toHaveBeenCalled()
   })
 
@@ -89,7 +87,7 @@ describe('sense pipeline (DBB-003, DBB-004)', () => {
     on('face_detected', handler)
     start()
     stop()
-    rafCallback?.()
+    vi.advanceTimersByTime(20)
     expect(handler).not.toHaveBeenCalled()
   })
 })

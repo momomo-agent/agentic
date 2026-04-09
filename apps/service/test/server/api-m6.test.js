@@ -9,6 +9,7 @@ vi.mock('../../src/detector/hardware.js', () => ({
 }));
 vi.mock('../../src/runtime/stt.js', () => ({ init: vi.fn(), transcribe: vi.fn() }));
 vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() }));
+vi.mock('../../src/runtime/vad.js', () => ({ detectVoiceActivity: vi.fn().mockReturnValue(true) }));
 
 import { chat } from '../../src/server/brain.js';
 import * as stt from '../../src/runtime/stt.js';
@@ -119,6 +120,8 @@ describe('GET /api/status', () => {
 
 // DBB-005 & DBB-006: GET/PUT /api/config
 describe('/api/config', () => {
+  beforeEach(() => fs.rm(CONFIG_PATH, { force: true }).catch(() => {}));
+  afterEach(() => fs.rm(CONFIG_PATH, { force: true }).catch(() => {}));
   it('GET returns 200 JSON (DBB-005)', async () => {
     const res = await req('GET', '/api/config');
     expect(res.status).toBe(200);

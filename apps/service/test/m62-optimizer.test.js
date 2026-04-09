@@ -4,12 +4,12 @@ import { optimize } from '../src/detector/optimizer.js';
 describe('DBB-003: optimizer.js hardware-adaptive config', () => {
   it('apple-silicon 16GB → threads=8, memoryLimit=12, model=gemma4:26b', () => {
     expect(optimize({ gpu: { type: 'apple-silicon' }, memory: 16, cpu: { cores: 8 } }))
-      .toEqual({ threads: 8, memoryLimit: 12, model: 'gemma4:26b' });
+      .toEqual({ threads: 8, memoryLimit: 12, model: 'gemma4:26b', quantization: 'q8' });
   });
 
   it('nvidia vram=8 → threads=4, memoryLimit=6, model=gemma4:13b', () => {
     expect(optimize({ gpu: { type: 'nvidia', vram: 8 }, memory: 16, cpu: { cores: 4 } }))
-      .toEqual({ threads: 4, memoryLimit: 6, model: 'gemma4:13b' });
+      .toEqual({ threads: 4, memoryLimit: 6, model: 'gemma4:13b', quantization: 'q4' });
   });
 
   it('nvidia no vram → falls back to memory*0.5', () => {
@@ -20,7 +20,7 @@ describe('DBB-003: optimizer.js hardware-adaptive config', () => {
 
   it('cpu-only 8GB 4 cores → threads=4, memoryLimit=4, model=gemma2:2b', () => {
     expect(optimize({ gpu: { type: 'none' }, memory: 8, cpu: { cores: 4 } }))
-      .toEqual({ threads: 4, memoryLimit: 4, model: 'gemma2:2b' });
+      .toEqual({ threads: 4, memoryLimit: 4, model: 'gemma2:2b', quantization: 'q4' });
   });
 
   it('cpu-only no cores → defaults to 2', () => {

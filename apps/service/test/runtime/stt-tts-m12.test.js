@@ -1,16 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('agentic-voice/sensevoice', () => ({ transcribe: vi.fn(async () => 'sv') }))
-vi.mock('agentic-voice/whisper',    () => ({ transcribe: vi.fn(async () => 'wh') }))
-vi.mock('agentic-voice/openai-whisper', () => ({ transcribe: vi.fn(async () => 'ow') }))
-vi.mock('agentic-voice/kokoro',  () => ({ synthesize: vi.fn(async () => Buffer.from('ko')) }))
-vi.mock('agentic-voice/piper',   () => ({ synthesize: vi.fn(async () => Buffer.from('pi')) }))
-vi.mock('agentic-voice/openai-tts', () => ({ synthesize: vi.fn(async () => Buffer.from('ot')) }))
+vi.mock('../../src/runtime/adapters/voice/openai-whisper.js', () => ({ transcribe: vi.fn(async () => 'ow') }))
+vi.mock('../../src/runtime/adapters/voice/openai-tts.js',    () => ({ synthesize: vi.fn(async () => Buffer.from('ot')) }))
 
 let profileData = { stt: { provider: 'default' }, tts: { provider: 'default' } }
 vi.mock('../../src/detector/profiles.js', () => ({
   getProfile: vi.fn(async () => profileData),
 }))
+vi.mock('../../src/detector/hardware.js', () => ({ detect: vi.fn(async () => ({})) }))
 
 describe('STT completeness (task-1775500434960)', () => {
   beforeEach(() => { vi.resetModules() })
@@ -24,8 +21,7 @@ describe('STT completeness (task-1775500434960)', () => {
     expect(result.length).toBeGreaterThan(0)
   })
 
-  it('DBB-002: local adapter import failure falls back to openai-whisper', async () => {
-    vi.doMock('agentic-voice/sensevoice', () => { throw new Error('not found') })
+  it('DBB-002: unknown provider falls back to openai-whisper', async () => {
     profileData = { stt: { provider: 'sensevoice' }, tts: { provider: 'default' } }
     const { init, transcribe } = await import('../../src/runtime/stt.js')
     await init()
@@ -52,8 +48,7 @@ describe('TTS completeness (task-1775500434960)', () => {
     expect(Buffer.isBuffer(result)).toBe(true)
   })
 
-  it('DBB-003: local adapter import failure falls back to openai-tts', async () => {
-    vi.doMock('agentic-voice/kokoro', () => { throw new Error('not found') })
+  it('DBB-003: unknown provider falls back to openai-tts', async () => {
     profileData = { stt: { provider: 'default' }, tts: { provider: 'kokoro' } }
     const { init, synthesize } = await import('../../src/runtime/tts.js')
     await init()

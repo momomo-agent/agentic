@@ -1,25 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('agentic-voice/kokoro', () => ({ default: { synthesize: vi.fn() } }));
-vi.mock('agentic-voice/piper', () => ({ default: { synthesize: vi.fn() } }));
-vi.mock('agentic-voice/openai-tts', () => ({ default: { synthesize: vi.fn() } }));
+vi.mock('../../src/runtime/adapters/voice/kokoro.js', () => ({ synthesize: vi.fn() }));
+vi.mock('../../src/runtime/adapters/voice/piper.js', () => ({ synthesize: vi.fn() }));
+vi.mock('../../src/runtime/adapters/voice/openai-tts.js', () => ({ synthesize: vi.fn() }));
 vi.mock('../../src/detector/hardware.js', () => ({ detect: vi.fn().mockResolvedValue({}) }));
 vi.mock('../../src/detector/profiles.js', () => ({ getProfile: vi.fn().mockResolvedValue({ tts: { provider: 'default' } }) }));
 vi.mock('../../src/runtime/profiler.js', () => ({ startMark: vi.fn(), endMark: vi.fn().mockReturnValue(0) }));
 vi.mock('../../src/runtime/latency-log.js', () => ({ record: vi.fn() }));
 
-import * as openaiTts from 'agentic-voice/openai-tts';
+import * as openaiTts from '../../src/runtime/adapters/voice/openai-tts.js';
 import * as ttsMod from '../../src/runtime/tts.js';
 
 describe('TTS runtime', () => {
   beforeEach(async () => {
-    openaiTts.default.synthesize.mockReset();
+    openaiTts.synthesize.mockReset();
     await ttsMod.init();
   });
 
   it('returns audio buffer for valid text', async () => {
     const buf = Buffer.from('audio');
-    openaiTts.default.synthesize.mockResolvedValue(buf);
+    openaiTts.synthesize.mockResolvedValue(buf);
     expect(await ttsMod.synthesize('hello')).toBe(buf);
   });
 
@@ -39,7 +39,7 @@ describe('TTS runtime', () => {
   });
 
   it('propagates provider errors', async () => {
-    openaiTts.default.synthesize.mockRejectedValue(new Error('provider error'));
+    openaiTts.synthesize.mockRejectedValue(new Error('provider error'));
     await expect(ttsMod.synthesize('hello')).rejects.toThrow('provider error');
   });
 

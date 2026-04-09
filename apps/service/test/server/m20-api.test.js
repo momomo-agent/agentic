@@ -7,7 +7,8 @@ vi.mock('../../src/server/hub.js', () => ({
   getDevices: vi.fn(() => [{ id: 'd1', name: 'test', status: 'online' }]),
   initWebSocket: vi.fn(),
   registerDevice: vi.fn(),
-  updateStatus: vi.fn()
+  updateStatus: vi.fn(),
+  startWakeWordDetection: vi.fn()
 }));
 vi.mock('../../src/detector/hardware.js', () => ({
   detect: vi.fn().mockResolvedValue({ platform: 'darwin', arch: 'arm64', gpu: {}, memory: 16 })
