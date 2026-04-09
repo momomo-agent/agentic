@@ -3,31 +3,8 @@
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <div class="logo">⚡ Agentic</div>
+        <div class="logo">⚡ Agentic Service</div>
       </div>
-      
-      <nav class="nav">
-        <a href="#overview" class="nav-item active">
-          <span class="nav-icon">📊</span>
-          <span class="nav-label">Overview</span>
-        </a>
-        <a href="#models" class="nav-item">
-          <span class="nav-icon">🤖</span>
-          <span class="nav-label">Models</span>
-        </a>
-        <a href="#devices" class="nav-item">
-          <span class="nav-icon">📱</span>
-          <span class="nav-label">Devices</span>
-        </a>
-        <a href="#config" class="nav-item">
-          <span class="nav-icon">⚙️</span>
-          <span class="nav-label">Settings</span>
-        </a>
-        <a href="#tests" class="nav-item">
-          <span class="nav-icon">🧪</span>
-          <span class="nav-label">Tests</span>
-        </a>
-      </nav>
       
       <div class="sidebar-footer">
         <div class="status-indicator" :class="{ online }">
@@ -312,43 +289,13 @@ body {
   color: rgba(0, 0, 0, 0.9);
 }
 
-.nav {
-  flex: 1;
-  padding: 12px 8px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 4px;
-  text-decoration: none;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.15s;
-  margin-bottom: 2px;
-}
-
-.nav-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.9);
-}
-
-.nav-item.active {
-  background: rgba(0, 117, 222, 0.08);
-  color: #0075de;
-}
-
-.nav-icon {
-  font-size: 18px;
-  line-height: 1;
-}
-
 .sidebar-footer {
   padding: 16px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .status-indicator {
@@ -505,7 +452,7 @@ body {
 
 .card {
   padding: 16px;
-  background: #f7f6f5;
+  background: #ffffff;
   border-radius: 6px;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
