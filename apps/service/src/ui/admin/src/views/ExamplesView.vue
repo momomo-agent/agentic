@@ -93,8 +93,7 @@
         </div>
 
         <div class="voice-info">
-          <p>使用浏览器 Web Speech API 实时语音识别</p>
-          <p v-if="!speechSupported" class="voice-warning">⚠️ 当前浏览器不支持语音识别，请使用 Chrome</p>
+          <p>使用 MediaRecorder 录音 + /api/transcribe 本地转写</p>
         </div>
       </div>
 
@@ -719,48 +718,67 @@ async function analyzeImage() {
 // ── Voice ──
 const voiceRecording = ref(false)
 const voiceText = ref('')
-let recognition = null
-const speechSupported = ref(typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window))
+let voiceMediaRecorder = null
+let voiceChunks = []
+let voiceStream = null
 
 function toggleVoice() {
   if (voiceRecording.value) stopVoice()
   else startVoice()
 }
 
-function startVoice() {
-  if (!speechSupported.value) return
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-  recognition = new SR()
-  recognition.continuous = true
-  recognition.interimResults = true
-  recognition.lang = 'zh-CN'
+async function startVoice() {
+  try {
+    voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    voiceMediaRecorder = new MediaRecorder(voiceStream)
+    voiceChunks = []
+    voiceText.value = ''
 
-  let finalText = ''
-  recognition.onresult = (e) => {
-    let interim = ''
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) {
-        finalText += e.results[i][0].transcript
-        markTested('voice')
-      } else {
-        interim += e.results[i][0].transcript
+    voiceMediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) voiceChunks.push(e.data)
+    }
+
+    voiceMediaRecorder.onstop = async () => {
+      if (!voiceChunks.length) return
+      const blob = new Blob(voiceChunks, { type: 'audio/webm' })
+      const fd = new FormData()
+      fd.append('audio', blob, 'recording.webm')
+      try {
+        const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
+        const data = await res.json()
+        if (data.text) {
+          voiceText.value += (voiceText.value ? '\n' : '') + data.text
+          markTested('voice')
+        }
+      } catch (e) {
+        voiceText.value += `\n⚠️ 转写失败: ${e.message}`
+      }
+      // If still recording, start next segment
+      if (voiceRecording.value && voiceMediaRecorder) {
+        voiceChunks = []
+        voiceMediaRecorder.start()
+        setTimeout(() => {
+          if (voiceRecording.value && voiceMediaRecorder?.state === 'recording') voiceMediaRecorder.stop()
+        }, 3000)
       }
     }
-    voiceText.value = finalText + (interim ? `\n[识别中] ${interim}` : '')
+
+    voiceMediaRecorder.start()
+    voiceRecording.value = true
+    // Stop first segment after 3s to send for transcription
+    setTimeout(() => {
+      if (voiceRecording.value && voiceMediaRecorder?.state === 'recording') voiceMediaRecorder.stop()
+    }, 3000)
+  } catch (e) {
+    voiceText.value = `⚠️ 无法访问麦克风: ${e.message}`
   }
-  recognition.onerror = (e) => {
-    if (e.error !== 'no-speech') voiceText.value += `\n⚠️ 错误: ${e.error}`
-  }
-  recognition.onend = () => {
-    if (voiceRecording.value) recognition.start() // auto-restart
-  }
-  recognition.start()
-  voiceRecording.value = true
 }
 
 function stopVoice() {
   voiceRecording.value = false
-  if (recognition) { recognition.stop(); recognition = null }
+  if (voiceMediaRecorder?.state === 'recording') voiceMediaRecorder.stop()
+  voiceMediaRecorder = null
+  if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null }
 }
 
 // ── Structured Output ──
