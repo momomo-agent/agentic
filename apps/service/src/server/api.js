@@ -389,6 +389,10 @@ function addRoutes(r) {
   // Serve examples
   const examplesDir = new URL('../../examples', import.meta.url).pathname;
   r.use('/examples', express.static(examplesDir));
+
+  // Serve packages (for examples that reference agentic-voice.js etc)
+  const packagesDir = '/Users/kenefe/LOCAL/momo-agent/projects/agentic/packages';
+  r.use('/packages', express.static(packagesDir));
   
   // Serve admin UI at root (exact match first, then static assets)
   r.get('/', (req, res) => res.sendFile(path.join(adminDist, 'index.html')));
