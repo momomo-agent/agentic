@@ -38,7 +38,11 @@ async function* chatWithTools(messages, tools) {
   } catch (err) {
     if (config.fallback?.provider) {
       console.warn(`Primary LLM failed (${err.message}), trying fallback...`);
-      yield* cloudChat(normalized, tools, config.fallback);
+      if (config.fallback.provider === 'ollama') {
+        yield* ollamaChat(normalized, tools, { ...config, llm: config.fallback });
+      } else {
+        yield* cloudChat(normalized, tools, config.fallback);
+      }
       return;
     }
     throw err;

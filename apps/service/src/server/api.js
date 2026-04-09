@@ -405,8 +405,8 @@ function addRoutes(r) {
     if (!image) return res.status(400).json({ error: 'image (base64) required' });
 
     const config = await getConfig();
-    const model = config.llm?.model || 'gemma4:e4b';
-    const host = config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+    const vis = config.vision || {};
+    const isCloud = vis.provider === 'cloud' || (vis.provider && vis.provider !== 'ollama');
 
     // Strip data URI prefix if present
     const base64 = image.replace(/^data:image\/\w+;base64,/, '');
@@ -416,31 +416,72 @@ function addRoutes(r) {
     res.setHeader('Connection', 'keep-alive');
 
     try {
-      const response = await fetch(`${host}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: 'user', content: prompt, images: [base64] }],
-          stream: true
-        })
-      });
+      if (isCloud) {
+        // Cloud vision via OpenAI-compatible API
+        const apiKey = vis.apiKey || config.llm?.apiKey || process.env.OPENAI_API_KEY;
+        const baseUrl = vis.baseUrl || config.llm?.baseUrl || 'https://api.openai.com/v1';
+        const model = vis.model || 'gpt-4o';
+        if (!apiKey) throw new Error('Vision API key not configured');
 
-      if (!response.ok) throw new Error(`Ollama vision error: ${response.status}`);
+        const response = await fetch(`${baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: [
+              { type: 'text', text: prompt },
+              { type: 'image_url', image_url: { url: `data:image/png;base64,${base64}` } }
+            ] }],
+            stream: true
+          })
+        });
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+        if (!response.ok) throw new Error(`Cloud vision error: ${response.status}`);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        for (const line of decoder.decode(value).split('\n').filter(l => l.trim())) {
-          try {
-            const data = JSON.parse(line);
-            if (data.message?.content) {
-              res.write(`data: ${JSON.stringify({ type: 'content', text: data.message.content })}\n\n`);
-            }
-          } catch {}
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          for (const line of decoder.decode(value).split('\n').filter(l => l.startsWith('data: '))) {
+            const data = line.slice(6);
+            if (data === '[DONE]') break;
+            try {
+              const text = JSON.parse(data).choices?.[0]?.delta?.content;
+              if (text) res.write(`data: ${JSON.stringify({ type: 'content', text })}\n\n`);
+            } catch {}
+          }
+        }
+      } else {
+        // Local vision via Ollama
+        const model = vis.model || config.llm?.model || 'gemma4:e4b';
+        const host = config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+
+        const response = await fetch(`${host}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt, images: [base64] }],
+            stream: true
+          })
+        });
+
+        if (!response.ok) throw new Error(`Ollama vision error: ${response.status}`);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          for (const line of decoder.decode(value).split('\n').filter(l => l.trim())) {
+            try {
+              const data = JSON.parse(line);
+              if (data.message?.content) {
+                res.write(`data: ${JSON.stringify({ type: 'content', text: data.message.content })}\n\n`);
+              }
+            } catch {}
+          }
         }
       }
       res.write('data: [DONE]\n\n');

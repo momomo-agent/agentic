@@ -7,45 +7,62 @@
       <div class="card-title">🧠 对话 (Chat)</div>
       <div class="config-form">
         <div class="field">
-          <label>模型</label>
-          <select v-model="chatModel">
-            <optgroup label="本地模型">
-              <option v-for="m in ollamaModels" :key="'ollama/'+m" :value="'ollama / '+m">ollama / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="enabledCloud('openai')" label="OpenAI">
-              <option v-for="m in cloudModels.openai" :key="'openai/'+m" :value="'openai / '+m">openai / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="enabledCloud('anthropic')" label="Anthropic">
-              <option v-for="m in cloudModels.anthropic" :key="'anthropic/'+m" :value="'anthropic / '+m">anthropic / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="enabledCloud('google')" label="Google">
-              <option v-for="m in cloudModels.google" :key="'google/'+m" :value="'google / '+m">google / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="enabledCloud('groq')" label="Groq">
-              <option v-for="m in cloudModels.groq" :key="'groq/'+m" :value="'groq / '+m">groq / {{ m }}</option>
-            </optgroup>
+          <label>Provider</label>
+          <select v-model="chatProvider">
+            <option value="ollama">Ollama (本地)</option>
+            <option value="cloud">云端</option>
           </select>
         </div>
-        <div class="field">
-          <label>回退模型 <span class="hint">(可选)</span></label>
-          <select v-model="chatFallback">
-            <option value="">不回退</option>
-            <optgroup label="本地模型">
-              <option v-for="m in ollamaModels" :key="'fb-ollama/'+m" :value="'ollama / '+m">ollama / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="enabledCloud('openai')" label="OpenAI">
-              <option v-for="m in cloudModels.openai" :key="'fb-openai/'+m" :value="'openai / '+m">openai / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="enabledCloud('anthropic')" label="Anthropic">
-              <option v-for="m in cloudModels.anthropic" :key="'fb-anthropic/'+m" :value="'anthropic / '+m">anthropic / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="enabledCloud('google')" label="Google">
-              <option v-for="m in cloudModels.google" :key="'fb-google/'+m" :value="'google / '+m">google / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="enabledCloud('groq')" label="Groq">
-              <option v-for="m in cloudModels.groq" :key="'fb-groq/'+m" :value="'groq / '+m">groq / {{ m }}</option>
-            </optgroup>
+        <div class="field" v-if="chatProvider === 'ollama'">
+          <label>模型</label>
+          <select v-model="chatModel">
+            <option v-for="m in ollamaModels" :key="m" :value="m">{{ m }}</option>
           </select>
+        </div>
+        <div class="field" v-else>
+          <label>模型 <span class="hint">(如 gpt-4o, claude-sonnet-4-20250514)</span></label>
+          <input v-model="chatModel" placeholder="gpt-4o-mini" />
+        </div>
+        <div class="field" v-if="chatProvider === 'cloud'">
+          <label>API Key</label>
+          <input v-model="chatApiKey" type="text" placeholder="sk-..." />
+        </div>
+        <div class="field" v-if="chatProvider === 'cloud'">
+          <label>Base URL <span class="hint">(默认 OpenAI)</span></label>
+          <input v-model="chatBaseUrl" placeholder="https://api.openai.com/v1" />
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔄 回退 Fallback -->
+    <div class="card">
+      <div class="card-title">🔄 回退 (Fallback) <span class="hint">主模型失败时使用</span></div>
+      <div class="config-form">
+        <div class="field">
+          <label>Provider</label>
+          <select v-model="fbProvider">
+            <option value="">不回退</option>
+            <option value="ollama">Ollama (本地)</option>
+            <option value="cloud">云端</option>
+          </select>
+        </div>
+        <div class="field" v-if="fbProvider === 'ollama'">
+          <label>模型</label>
+          <select v-model="fbModel">
+            <option v-for="m in ollamaModels" :key="m" :value="m">{{ m }}</option>
+          </select>
+        </div>
+        <div class="field" v-if="fbProvider === 'cloud'">
+          <label>模型</label>
+          <input v-model="fbModel" placeholder="gpt-4o-mini" />
+        </div>
+        <div class="field" v-if="fbProvider === 'cloud'">
+          <label>API Key <span class="hint">(留空则复用对话的 Key)</span></label>
+          <input v-model="fbApiKey" type="text" placeholder="留空复用" />
+        </div>
+        <div class="field" v-if="fbProvider === 'cloud'">
+          <label>Base URL</label>
+          <input v-model="fbBaseUrl" placeholder="留空复用" />
         </div>
       </div>
     </div>
@@ -55,15 +72,29 @@
       <div class="card-title">👁️ 视觉 (Vision)</div>
       <div class="config-form">
         <div class="field">
-          <label>模型</label>
-          <select v-model="visionModel">
-            <optgroup label="本地模型">
-              <option v-for="m in visionLocalModels" :key="'v-ollama/'+m" :value="'ollama / '+m">ollama / {{ m }}</option>
-            </optgroup>
-            <optgroup v-if="visionCloudOptions.length" label="云端模型">
-              <option v-for="o in visionCloudOptions" :key="'v-'+o.value" :value="o.value">{{ o.value }}</option>
-            </optgroup>
+          <label>Provider</label>
+          <select v-model="visProvider">
+            <option value="ollama">Ollama (本地)</option>
+            <option value="cloud">云端</option>
           </select>
+        </div>
+        <div class="field" v-if="visProvider === 'ollama'">
+          <label>模型 <span class="hint">(需支持视觉)</span></label>
+          <select v-model="visModel">
+            <option v-for="m in ollamaModels" :key="m" :value="m">{{ m }}</option>
+          </select>
+        </div>
+        <div class="field" v-else>
+          <label>模型</label>
+          <input v-model="visModel" placeholder="gpt-4o" />
+        </div>
+        <div class="field" v-if="visProvider === 'cloud'">
+          <label>API Key <span class="hint">(留空则复用对话的 Key)</span></label>
+          <input v-model="visApiKey" type="text" placeholder="留空复用" />
+        </div>
+        <div class="field" v-if="visProvider === 'cloud'">
+          <label>Base URL</label>
+          <input v-model="visBaseUrl" placeholder="留空复用" />
         </div>
       </div>
     </div>
@@ -77,13 +108,13 @@
           <select v-model="sttEngine">
             <option value="whisper">Whisper (本地)</option>
             <option value="sensevoice">SenseVoice (本地)</option>
-            <option v-if="enabledCloud('openai')" value="openai-whisper">OpenAI Whisper (云端)</option>
+            <option value="openai-whisper">OpenAI Whisper (云端)</option>
             <option value="deepgram">Deepgram (云端)</option>
           </select>
         </div>
         <div class="field" v-if="sttEngine === 'deepgram'">
           <label>API Key</label>
-          <input v-model="sttApiKey" type="password" placeholder="Deepgram API Key" />
+          <input v-model="sttApiKey" type="text" placeholder="Deepgram API Key" />
         </div>
       </div>
     </div>
@@ -95,10 +126,9 @@
         <div class="field">
           <label>引擎</label>
           <select v-model="ttsEngine">
-            <option value="macos-say">macOS Say (本地)</option>
             <option value="kokoro">Kokoro (本地)</option>
-            <option value="piper">Piper (本地)</option>
-            <option v-if="enabledCloud('openai')" value="openai">OpenAI TTS (云端)</option>
+            <option value="macos-say">macOS Say (本地)</option>
+            <option value="openai">OpenAI TTS (云端)</option>
             <option value="elevenlabs">ElevenLabs (云端)</option>
           </select>
         </div>
@@ -116,17 +146,18 @@
         </div>
         <div class="field" v-if="ttsEngine === 'elevenlabs'">
           <label>API Key</label>
-          <input v-model="ttsApiKey" type="password" placeholder="xi-..." />
+          <input v-model="ttsApiKey" type="text" placeholder="ElevenLabs API Key" />
         </div>
         <div class="field" v-if="ttsEngine === 'elevenlabs'">
-          <label>Voice ID <span class="hint">(可选)</span></label>
-          <input v-model="ttsVoiceId" placeholder="JBFqnCBsd6RMkjVDRZzb" />
+          <label>Voice ID</label>
+          <input v-model="ttsVoiceId" placeholder="Voice ID" />
         </div>
       </div>
     </div>
 
+    <!-- Actions -->
     <div class="actions">
-      <button @click="save" :disabled="saving">{{ saving ? '保存中...' : '💾 保存配置' }}</button>
+      <button @click="save" :disabled="saving">{{ saving ? '保存中...' : '💾 保存' }}</button>
       <span v-if="saved" class="saved-msg">✓ 已保存</span>
       <span v-if="error" class="error-msg">{{ error }}</span>
     </div>
@@ -134,23 +165,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
-// --- static data ---
-const cloudModels = {
-  openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1'],
-  anthropic: ['claude-sonnet-4-20250514', 'claude-haiku-35', 'claude-opus-4'],
-  google: ['gemini-2.5-flash', 'gemini-2.5-pro'],
-  groq: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768'],
-}
-const visionCapable = {
-  local: ['llava:7b', 'moondream', 'gemma4:e4b'],
-  cloud: [
-    { provider: 'openai', model: 'gpt-4o' },
-    { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
-    { provider: 'google', model: 'gemini-2.5-flash' },
-  ],
-}
 const macVoices = [
   { value: 'Samantha', label: 'Samantha' },
   { value: 'Alex', label: 'Alex' },
@@ -164,46 +180,33 @@ const openaiVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
 
 // --- state ---
 const ollamaModels = ref([])
-const providers = ref({}) // config.providers from /api/config
+
+const chatProvider = ref('ollama')
 const chatModel = ref('')
-const chatFallback = ref('')
-const visionModel = ref('')
+const chatApiKey = ref('')
+const chatBaseUrl = ref('')
+
+const fbProvider = ref('')
+const fbModel = ref('')
+const fbApiKey = ref('')
+const fbBaseUrl = ref('')
+
+const visProvider = ref('ollama')
+const visModel = ref('')
+const visApiKey = ref('')
+const visBaseUrl = ref('')
+
 const sttEngine = ref('whisper')
 const sttApiKey = ref('')
-const ttsEngine = ref('macos-say')
+
+const ttsEngine = ref('kokoro')
 const ttsVoice = ref('Samantha')
 const ttsApiKey = ref('')
 const ttsVoiceId = ref('')
+
 const saving = ref(false)
 const saved = ref(false)
 const error = ref(null)
-
-// --- helpers ---
-function enabledCloud(name) {
-  const p = providers.value[name]
-  return p && p.enabled
-}
-
-function parseSelection(str) {
-  if (!str) return { provider: '', model: '' }
-  const [provider, model] = str.split(' / ')
-  return { provider: provider.trim(), model: model.trim() }
-}
-
-function toSelection(provider, model) {
-  if (!provider || !model) return ''
-  return `${provider} / ${model}`
-}
-
-const visionLocalModels = computed(() =>
-  visionCapable.local.filter(m => ollamaModels.value.includes(m))
-)
-
-const visionCloudOptions = computed(() =>
-  visionCapable.cloud
-    .filter(c => enabledCloud(c.provider))
-    .map(c => ({ value: `${c.provider} / ${c.model}` }))
-)
 
 // --- load ---
 onMounted(async () => {
@@ -213,22 +216,32 @@ onMounted(async () => {
       fetch('/api/status').then(r => r.json()),
     ])
 
-    // ollama models from status
     ollamaModels.value = statusData?.ollama?.models || []
-
-    // providers map
-    providers.value = configData?.providers || {}
 
     // Chat
     const llm = configData?.llm || {}
-    chatModel.value = toSelection(llm.provider || 'ollama', llm.model || '')
+    chatProvider.value = llm.provider === 'ollama' ? 'ollama' : (llm.provider ? 'cloud' : 'ollama')
+    chatModel.value = llm.model || ''
+    chatApiKey.value = llm.apiKey || ''
+    chatBaseUrl.value = llm.baseUrl || ''
 
+    // Fallback
     const fb = configData?.fallback || {}
-    chatFallback.value = fb.provider ? toSelection(fb.provider, fb.model) : ''
+    if (fb.provider) {
+      fbProvider.value = fb.provider === 'ollama' ? 'ollama' : 'cloud'
+      fbModel.value = fb.model || ''
+      fbApiKey.value = fb.apiKey || ''
+      fbBaseUrl.value = fb.baseUrl || ''
+    }
 
     // Vision
     const vis = configData?.vision || {}
-    visionModel.value = vis.provider ? toSelection(vis.provider, vis.model) : ''
+    if (vis.provider) {
+      visProvider.value = vis.provider === 'ollama' ? 'ollama' : 'cloud'
+      visModel.value = vis.model || ''
+      visApiKey.value = vis.apiKey || ''
+      visBaseUrl.value = vis.baseUrl || ''
+    }
 
     // STT
     const stt = configData?.stt || {}
@@ -237,7 +250,7 @@ onMounted(async () => {
 
     // TTS
     const tts = configData?.tts || {}
-    ttsEngine.value = tts.provider || 'macos-say'
+    ttsEngine.value = tts.provider || 'kokoro'
     ttsVoice.value = tts.voice || 'Samantha'
     ttsApiKey.value = tts.apiKey || ''
     ttsVoiceId.value = tts.voiceId || ''
@@ -251,24 +264,38 @@ async function save() {
   saving.value = true
   error.value = null
   try {
-    const chat = parseSelection(chatModel.value)
-    const fallback = parseSelection(chatFallback.value)
-    const vision = parseSelection(visionModel.value)
-
     const payload = {
-      llm: { provider: chat.provider, model: chat.model },
+      llm: {
+        provider: chatProvider.value === 'ollama' ? 'ollama' : chatModel.value.split('/')[0]?.trim() || 'openai',
+        model: chatModel.value,
+      },
       stt: { provider: sttEngine.value },
       tts: { provider: ttsEngine.value },
     }
 
-    // fallback
-    if (fallback.provider) {
-      payload.fallback = { provider: fallback.provider, model: fallback.model }
+    // For cloud chat, store apiKey/baseUrl in llm
+    if (chatProvider.value === 'cloud') {
+      payload.llm.provider = 'cloud'
+      if (chatApiKey.value) payload.llm.apiKey = chatApiKey.value
+      if (chatBaseUrl.value) payload.llm.baseUrl = chatBaseUrl.value
     }
 
-    // vision
-    if (vision.provider) {
-      payload.vision = { provider: vision.provider, model: vision.model }
+    // Fallback
+    if (fbProvider.value) {
+      payload.fallback = { provider: fbProvider.value === 'ollama' ? 'ollama' : 'cloud', model: fbModel.value }
+      if (fbProvider.value === 'cloud') {
+        if (fbApiKey.value) payload.fallback.apiKey = fbApiKey.value
+        if (fbBaseUrl.value) payload.fallback.baseUrl = fbBaseUrl.value
+      }
+    } else {
+      payload.fallback = { provider: '' }
+    }
+
+    // Vision
+    payload.vision = { provider: visProvider.value === 'ollama' ? 'ollama' : 'cloud', model: visModel.value }
+    if (visProvider.value === 'cloud') {
+      if (visApiKey.value) payload.vision.apiKey = visApiKey.value
+      if (visBaseUrl.value) payload.vision.baseUrl = visBaseUrl.value
     }
 
     // STT extras
@@ -313,7 +340,7 @@ async function save() {
 }
 .field select optgroup { color: var(--text-dim); font-style: normal; }
 .field input::placeholder { color: var(--text-dim); opacity: 0.5; }
-.hint { font-weight: 400; opacity: 0.6; }
+.hint { font-weight: 400; opacity: 0.6; font-size: 12px; }
 .actions { display: flex; align-items: center; gap: 16px; padding-top: 8px; }
 .actions button {
   padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;
