@@ -51,11 +51,12 @@
           <label>Provider</label>
           <select v-model="config.stt.provider">
             <option value="whisper">Whisper (本地)</option>
+            <option value="sensevoice">SenseVoice (本地)</option>
             <option value="openai-whisper">OpenAI Whisper (云端)</option>
             <option value="deepgram">Deepgram (云端)</option>
           </select>
         </div>
-        <div class="field" v-if="config.stt.provider !== 'whisper'">
+        <div class="field" v-if="config.stt.provider !== 'whisper' && config.stt.provider !== 'sensevoice'">
           <label>API Key</label>
           <input v-model="config.stt.apiKey" type="password" placeholder="API Key" />
         </div>
@@ -71,6 +72,7 @@
             <option value="kokoro">Kokoro (本地)</option>
             <option value="piper">Piper (本地)</option>
             <option value="coqui">Coqui (本地)</option>
+            <option value="macos-say">macOS Say (本地)</option>
             <option value="openai">OpenAI TTS (云端)</option>
             <option value="elevenlabs">ElevenLabs (云端)</option>
           </select>
@@ -82,6 +84,18 @@
         <div class="field" v-if="config.tts.provider === 'elevenlabs'">
           <label>Voice ID <span class="hint">(可选)</span></label>
           <input v-model="config.tts.voiceId" placeholder="JBFqnCBsd6RMkjVDRZzb (George)" />
+        </div>
+        <div class="field" v-if="config.tts.provider === 'macos-say'">
+          <label>Voice</label>
+          <select v-model="config.tts.voice">
+            <option value="Samantha">Samantha</option>
+            <option value="Alex">Alex</option>
+            <option value="Daniel">Daniel</option>
+            <option value="Karen">Karen</option>
+            <option value="Moira">Moira</option>
+            <option value="Tessa">Tessa</option>
+            <option value="Tingting">Tingting (中文)</option>
+          </select>
         </div>
         <div class="field" v-if="config.tts.provider === 'openai'">
           <label>Voice <span class="hint">(可选)</span></label>
@@ -115,7 +129,7 @@ import { ref, onMounted } from 'vue'
 const defaults = () => ({
   llm: { provider: 'ollama', model: '', apiKey: '', baseUrl: '' },
   stt: { provider: 'whisper', apiKey: '' },
-  tts: { provider: 'coqui', apiKey: '', voiceId: '', voice: 'alloy', baseUrl: '' },
+  tts: { provider: 'coqui', apiKey: '', voiceId: '', voice: 'Samantha', baseUrl: '' },
   fallback: { provider: '', model: '', apiKey: '' },
 })
 

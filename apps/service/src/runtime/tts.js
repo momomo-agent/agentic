@@ -4,11 +4,12 @@ import { startMark, endMark } from './profiler.js';
 import { record } from './latency-log.js';
 
 const ADAPTERS = {
-  kokoro:     () => import('./adapters/voice/kokoro.js'),
-  piper:      () => import('./adapters/voice/piper.js'),
-  elevenlabs: () => import('./adapters/voice/elevenlabs.js'),
-  openai:     () => import('./adapters/voice/openai-tts.js'),
-  default:    () => import('./adapters/voice/openai-tts.js'),
+  'macos-say': () => import('./adapters/voice/macos-say.js'),
+  piper:       () => import('./adapters/voice/piper.js'),
+  kokoro:      () => import('./adapters/voice/kokoro.js'),
+  elevenlabs:  () => import('./adapters/voice/elevenlabs.js'),
+  openai:      () => import('./adapters/voice/openai-tts.js'),
+  default:     () => import('./adapters/voice/openai-tts.js'),
 };
 
 import { promises as fs } from 'fs';
@@ -16,6 +17,8 @@ import path from 'path';
 import os from 'os';
 
 let adapter = null;
+
+let currentProvider = 'default';
 
 export async function init() {
   let provider = 'default';
@@ -27,17 +30,23 @@ export async function init() {
     if (config.tts?.provider) {
       provider = config.tts.provider;
     } else {
-      // Fall back to hardware profile
-      const hardware = await detect();
-      const profile = await getProfile(hardware);
-      provider = profile?.tts?.provider ?? 'default';
+      // Fall back to hardware profile, then platform default
+      try {
+        const hardware = await detect();
+        const profile = await getProfile(hardware);
+        provider = profile?.tts?.provider ?? (process.platform === 'darwin' ? 'macos-say' : 'default');
+      } catch {
+        provider = process.platform === 'darwin' ? 'macos-say' : 'default';
+      }
     }
   } catch {
     try {
       const hardware = await detect();
       const profile = await getProfile(hardware);
-      provider = profile?.tts?.provider ?? 'default';
-    } catch {}
+      provider = profile?.tts?.provider ?? (process.platform === 'darwin' ? 'macos-say' : 'default');
+    } catch {
+      provider = process.platform === 'darwin' ? 'macos-say' : 'default';
+    }
   }
   const load = ADAPTERS[provider] ?? ADAPTERS.default;
   try {
