@@ -416,12 +416,17 @@ onUnmounted(() => clearInterval(timer))
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #ffffff;
-  color: rgba(0, 0, 0, 0.95);
-  color-scheme: light;
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+  color-scheme: light only;
 }
 
-.app { display: flex; min-height: 100vh; background: #ffffff; }
+.app { display: flex; min-height: 100vh; background: #ffffff !important; }
+
+/* Force light mode on all elements */
+*, *::before, *::after {
+  color-scheme: light only;
+}
 
 /* Sidebar */
 .sidebar {
@@ -480,9 +485,9 @@ body {
 
 /* Cards */
 .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
-.card { padding: 18px 16px; background: #f7f6f5; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; }
-.card-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(0, 0, 0, 0.4); margin-bottom: 6px; }
-.card-value { font-size: 15px; font-weight: 600; color: rgba(0, 0, 0, 0.88); line-height: 1.3; }
+.card { padding: 18px 16px; background: #ffffff !important; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; }
+.card-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(0, 0, 0, 0.45) !important; margin-bottom: 6px; }
+.card-value { font-size: 15px; font-weight: 600; color: #1a1a1a !important; line-height: 1.3; }
 
 /* Callout */
 .callout {
