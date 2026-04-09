@@ -405,6 +405,132 @@
           </div>
         </div>
       </div>
+      <!-- Voice Pipeline 语音管道 -->
+      <div v-if="activeExample === 'voice-pipeline'" class="vp-panel">
+        <p class="hint">录音后一次调用 /api/voice（STT→LLM→TTS），最低延迟语音交互</p>
+        <div class="vp-controls">
+          <button @click="toggleVp" :class="{ recording: vpRecording }" class="btn-primary">
+            {{ vpRecording ? '⏹ 停止录音' : '🎤 开始录音' }}
+          </button>
+          <span v-if="vpLatency !== null" class="vp-latency">延迟: {{ vpLatency }} ms</span>
+        </div>
+        <div v-if="vpLoading" class="vp-status">处理中...</div>
+        <div v-if="vpAudioUrl" class="vp-result">
+          <audio :src="vpAudioUrl" controls autoplay></audio>
+        </div>
+        <div v-if="vpError" class="result-text" style="color:#ef4444;">{{ vpError }}</div>
+      </div>
+
+      <!-- API Compat 兼容测试 -->
+      <div v-if="activeExample === 'api-compat'" class="compat-panel">
+        <div class="compat-tabs">
+          <button :class="{ active: compatTab === 'openai' }" @click="compatTab = 'openai'">OpenAI</button>
+          <button :class="{ active: compatTab === 'anthropic' }" @click="compatTab = 'anthropic'">Anthropic</button>
+        </div>
+
+        <div v-if="compatTab === 'openai'" class="compat-section">
+          <div class="compat-endpoint">POST /v1/chat/completions</div>
+          <textarea v-model="compatOpenaiBody" rows="8" class="compat-textarea"></textarea>
+          <div class="compat-row">
+            <label class="compat-toggle"><input type="checkbox" v-model="compatOpenaiStream" /> Stream</label>
+            <button @click="sendCompat('openai')" :disabled="compatLoading" class="btn-primary">发送</button>
+          </div>
+          <pre v-if="compatResult" class="compat-result">{{ compatResult }}</pre>
+        </div>
+
+        <div v-if="compatTab === 'anthropic'" class="compat-section">
+          <div class="compat-endpoint">POST /v1/messages</div>
+          <textarea v-model="compatAnthropicBody" rows="8" class="compat-textarea"></textarea>
+          <div class="compat-row">
+            <button @click="sendCompat('anthropic')" :disabled="compatLoading" class="btn-primary">发送</button>
+          </div>
+          <pre v-if="compatResult" class="compat-result">{{ compatResult }}</pre>
+        </div>
+      </div>
+
+      <!-- Function Calling -->
+      <div v-if="activeExample === 'function-call'" class="fc-panel">
+        <p class="hint">输入问题，AI 会自动调用合适的工具</p>
+        <div class="fc-tools">
+          <span class="fc-tool-tag" v-for="t in fcTools" :key="t.name">🔧 {{ t.name }}</span>
+        </div>
+        <div class="fc-input-row">
+          <input v-model="fcInput" @keydown.enter="sendFc" placeholder="例如：北京天气怎么样" :disabled="fcLoading" />
+          <button @click="sendFc" :disabled="fcLoading || !fcInput.trim()" class="btn-primary">发送</button>
+        </div>
+        <div v-if="fcToolCalls.length" class="fc-calls">
+          <div class="fc-call" v-for="(c, i) in fcToolCalls" :key="i">
+            <span class="fc-call-name">{{ c.name }}</span>
+            <span class="fc-call-args">{{ JSON.stringify(c.args) }}</span>
+          </div>
+        </div>
+        <div v-if="fcResult" class="result-text" style="white-space:pre-wrap;">{{ fcResult }}</div>
+      </div>
+
+      <!-- Perf 性能监控 -->
+      <div v-if="activeExample === 'perf'" class="perf-panel">
+        <div class="perf-header">
+          <button @click="fetchPerf" :disabled="perfLoading" class="btn-primary">刷新</button>
+          <label class="compat-toggle"><input type="checkbox" v-model="perfAuto" @change="togglePerfAuto" /> 自动刷新 (3s)</label>
+        </div>
+        <div v-if="perfLoading && !perfData" class="vp-status">加载中...</div>
+        <div v-if="perfData" class="perf-table">
+          <div class="perf-row perf-row-header">
+            <span class="perf-col-name">API</span>
+            <span class="perf-col-num">调用次数</span>
+            <span class="perf-col-num">平均延迟</span>
+            <span class="perf-col-num">P95</span>
+            <span class="perf-col-bar">延迟分布</span>
+          </div>
+          <div class="perf-row" v-for="(m, key) in perfData" :key="key">
+            <span class="perf-col-name">{{ key }}</span>
+            <span class="perf-col-num">{{ m.count }}</span>
+            <span class="perf-col-num">{{ m.avg_ms?.toFixed(1) ?? '-' }} ms</span>
+            <span class="perf-col-num">{{ m.p95_ms?.toFixed(1) ?? '-' }} ms</span>
+            <span class="perf-col-bar"><div class="perf-bar" :style="{ width: Math.min((m.avg_ms || 0) / perfMaxMs * 100, 100) + '%' }"></div></span>
+          </div>
+        </div>
+        <div v-if="perfError" class="result-text" style="color:#ef4444;">{{ perfError }}</div>
+      </div>
+
+      <!-- Devices 设备管理 -->
+      <div v-if="activeExample === 'devices'" class="devices-panel">
+        <div class="perf-header">
+          <button @click="fetchDevices" :disabled="devicesLoading" class="btn-primary">刷新</button>
+        </div>
+        <div v-if="devicesLoading && !devicesList.length" class="vp-status">加载中...</div>
+        <div v-if="devicesList.length" class="devices-list">
+          <div class="device-card" v-for="d in devicesList" :key="d.id">
+            <div class="device-id">{{ d.id }}</div>
+            <div class="device-type">{{ d.type || '未知' }}</div>
+            <div class="device-status" :class="d.status === 'online' ? 'online' : 'offline'">{{ d.status }}</div>
+            <div class="device-heartbeat">{{ d.last_heartbeat || '-' }}</div>
+          </div>
+        </div>
+        <div v-if="!devicesLoading && !devicesList.length && !devicesError" class="devices-empty">
+          <p>暂无设备连接</p>
+          <p class="hint">通过 POST /api/devices/register 注册设备，设备需定期发送心跳到 POST /api/devices/:id/heartbeat</p>
+        </div>
+        <div v-if="devicesError" class="result-text" style="color:#ef4444;">{{ devicesError }}</div>
+      </div>
+
+      <!-- Logs 系统日志 -->
+      <div v-if="activeExample === 'logs'" class="logs-panel">
+        <div class="perf-header">
+          <button @click="fetchLogs" :disabled="logsLoading" class="btn-primary">刷新</button>
+          <label class="compat-toggle"><input type="checkbox" v-model="logsAuto" @change="toggleLogsAuto" /> 自动刷新 (5s)</label>
+        </div>
+        <div v-if="logsLoading && !logsList.length" class="vp-status">加载中...</div>
+        <div class="logs-terminal" v-if="logsList.length">
+          <div class="log-line" v-for="(l, i) in logsList" :key="i">
+            <span class="log-ts">{{ l.timestamp || l.ts || '' }}</span>
+            <span class="log-content">{{ l.message || l.content || JSON.stringify(l) }}</span>
+          </div>
+        </div>
+        <div v-if="!logsLoading && !logsList.length && !logsError" class="hint" style="padding:20px;">暂无日志</div>
+        <div v-if="logsError" class="result-text" style="color:#ef4444;">{{ logsError }}</div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -430,6 +556,12 @@ const examples = ref([
   { id: 'storyteller', icon: '📖', title: '故事讲述', desc: '输入主题，AI 写故事并朗读', tested: false },
   { id: 'multimodal', icon: '🌈', title: '多模态对话', desc: '文字+图片+语音，全模态聊天', tested: false },
   { id: 'annotate', icon: '✏️', title: '图片批注', desc: '上传图片，AI 标注并解释各区域', tested: false },
+  { id: 'voice-pipeline', icon: '⚡', title: '语音管道', desc: '一次调用：录音→理解→语音回复', tested: false },
+  { id: 'api-compat', icon: '🔌', title: 'API 兼容', desc: '测试 OpenAI / Anthropic 兼容接口', tested: false },
+  { id: 'function-call', icon: '🔧', title: 'Function Calling', desc: '演示 AI 工具调用能力', tested: false },
+  { id: 'perf', icon: '📈', title: '性能监控', desc: '实时查看 API 延迟和吞吐', tested: false },
+  { id: 'devices', icon: '📱', title: '设备管理', desc: '查看连接的 IoT/边缘设备', tested: false },
+  { id: 'logs', icon: '📋', title: '系统日志', desc: '查看最近的 API 调用日志', tested: false },
 ])
 
 const activeExample = ref(null)
