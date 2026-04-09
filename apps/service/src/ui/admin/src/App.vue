@@ -1,11 +1,11 @@
 <template>
   <div class="app">
-    <!-- Topbar -->
-    <header class="topbar">
-      <div class="topbar-content">
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
         <div class="brand">
           <div class="brand-icon">⚡</div>
-          <div class="brand-text">
+          <div class="brand-info">
             <div class="brand-name">Agentic Service</div>
             <div class="brand-status" :class="{ online }">
               <span class="status-dot"></span>
@@ -13,96 +13,97 @@
             </div>
           </div>
         </div>
-        <a href="/examples/" class="btn-examples">Examples →</a>
+        <a href="/examples/" class="btn-link">Examples →</a>
       </div>
     </header>
 
     <!-- Main -->
     <main class="main">
-      <!-- Hero -->
-      <section class="hero">
-        <div class="hero-badge">Local AI Infrastructure</div>
-        <h1 class="hero-title">Zero-config deployment.<br>Production-ready.</h1>
-      </section>
-
-      <!-- Download Alert -->
-      <div v-if="download.inProgress" class="alert">
-        <div class="alert-content">
-          <div class="alert-icon">📦</div>
-          <div class="alert-body">
-            <div class="alert-title">Downloading {{ download.model }}</div>
-            <div class="alert-subtitle">{{ download.status }}</div>
-          </div>
-        </div>
-        <div v-if="download.total > 0" class="alert-progress">
-          <div class="progress-track">
-            <div class="progress-fill" :style="{ width: downloadPercent + '%' }"></div>
-          </div>
-          <div class="progress-label">{{ downloadPercent }}%</div>
-        </div>
-      </div>
-
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Platform</div>
-          <div class="stat-value">{{ hardware.platform || '—' }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Architecture</div>
-          <div class="stat-value">{{ hardware.arch || '—' }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Memory</div>
-          <div class="stat-value">{{ hardware.memory || '—' }} GB</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">GPU</div>
-          <div class="stat-value">{{ formatGPU(hardware.gpu) }}</div>
-        </div>
-      </div>
-
-      <!-- Models Section -->
-      <section class="section">
-        <div class="section-header">
-          <h2 class="section-title">Models</h2>
-          <div class="section-badge">{{ ollama.models.length }} installed</div>
+      <div class="container">
+        <!-- Hero -->
+        <div class="hero">
+          <div class="hero-badge">Local AI Infrastructure</div>
+          <h1 class="hero-title">Zero-config deployment. Production-ready.</h1>
         </div>
 
-        <!-- Installed Models -->
-        <div v-if="ollama.models.length > 0" class="model-group">
-          <h3 class="group-title">Installed</h3>
-          <div class="model-grid">
-            <div v-for="m in ollama.models" :key="m" class="model-card installed">
-              <div class="model-header">
-                <span class="model-icon">✓</span>
-                <span class="model-name">{{ m }}</span>
-              </div>
-              <button class="btn-secondary small" @click="deleteModel(m)">Delete</button>
+        <!-- Download Alert -->
+        <div v-if="download.inProgress" class="callout callout-info">
+          <div class="callout-icon">📦</div>
+          <div class="callout-content">
+            <div class="callout-title">Downloading {{ download.model }}</div>
+            <div class="callout-text">{{ download.status }}</div>
+            <div v-if="download.total > 0" class="progress">
+              <div class="progress-bar" :style="{ width: downloadPercent + '%' }"></div>
+              <div class="progress-label">{{ downloadPercent }}%</div>
             </div>
           </div>
         </div>
 
-        <!-- Available Models -->
-        <div class="model-group">
-          <h3 class="group-title">Available</h3>
-          <div class="model-grid">
-            <div v-for="m in recommended" :key="m.name" class="model-card">
-              <div class="model-header">
-                <span class="model-icon">{{ getModelIcon(m.name) }}</span>
-                <div class="model-info">
-                  <span class="model-name">{{ m.name }}</span>
-                  <span class="model-desc">{{ m.desc }}</span>
+        <!-- System Info -->
+        <div class="section">
+          <h2 class="section-title">System</h2>
+          <div class="grid-4">
+            <div class="info-card">
+              <div class="info-label">Platform</div>
+              <div class="info-value">{{ hardware.platform || '—' }}</div>
+            </div>
+            <div class="info-card">
+              <div class="info-label">Architecture</div>
+              <div class="info-value">{{ hardware.arch || '—' }}</div>
+            </div>
+            <div class="info-card">
+              <div class="info-label">Memory</div>
+              <div class="info-value">{{ hardware.memory || '—' }} GB</div>
+            </div>
+            <div class="info-card">
+              <div class="info-label">GPU</div>
+              <div class="info-value">{{ formatGPU(hardware.gpu) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Models -->
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title">Models</h2>
+            <div class="badge">{{ ollama.models.length }} installed</div>
+          </div>
+
+          <!-- Installed -->
+          <div v-if="ollama.models.length > 0" class="subsection">
+            <h3 class="subsection-title">Installed</h3>
+            <div class="model-list">
+              <div v-for="m in ollama.models" :key="m" class="model-item installed">
+                <div class="model-main">
+                  <span class="model-icon">✓</span>
+                  <span class="model-name">{{ m }}</span>
                 </div>
+                <button class="btn-text" @click="deleteModel(m)">Delete</button>
               </div>
-              <div v-if="progress[m.name]" class="model-progress">{{ progress[m.name] }}</div>
-              <button v-else class="btn-primary small" @click="downloadModel(m.name)" :disabled="!ollama.running">
-                Download
-              </button>
+            </div>
+          </div>
+
+          <!-- Available -->
+          <div class="subsection">
+            <h3 class="subsection-title">Available</h3>
+            <div class="model-list">
+              <div v-for="m in recommended" :key="m.name" class="model-item">
+                <div class="model-main">
+                  <span class="model-icon">{{ getModelIcon(m.name) }}</span>
+                  <div class="model-info">
+                    <div class="model-name">{{ m.name }}</div>
+                    <div class="model-desc">{{ m.desc }}</div>
+                  </div>
+                </div>
+                <div v-if="progress[m.name]" class="model-status">{{ progress[m.name] }}</div>
+                <button v-else class="btn-primary" @click="downloadModel(m.name)" :disabled="!ollama.running">
+                  Download
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </main>
   </div>
 </template>
@@ -251,29 +252,29 @@ onUnmounted(() => clearInterval(timer))
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #fafafa;
+  background: #ffffff;
+  color: rgba(0, 0, 0, 0.95);
 }
 
 .app {
   min-height: 100vh;
 }
 
-/* Topbar */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 40px;
 }
 
-.topbar-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 32px;
+/* Header */
+.header {
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.header .container {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -286,17 +287,18 @@ body {
 }
 
 .brand-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
+  font-size: 18px;
+  background: #0075de;
+  color: #ffffff;
+  border-radius: 6px;
 }
 
-.brand-text {
+.brand-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -305,7 +307,7 @@ body {
 .brand-name {
   font-size: 15px;
   font-weight: 600;
-  color: #18181b;
+  color: rgba(0, 0, 0, 0.95);
 }
 
 .brand-status {
@@ -313,11 +315,11 @@ body {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #71717a;
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .brand-status.online {
-  color: #10b981;
+  color: #1aae39;
 }
 
 .status-dot {
@@ -327,158 +329,120 @@ body {
   background: currentColor;
 }
 
-.btn-examples {
-  padding: 8px 16px;
-  background: #18181b;
-  color: #ffffff;
-  border-radius: 6px;
+.btn-link {
+  padding: 6px 12px;
+  color: #0075de;
+  text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s;
+  border-radius: 4px;
+  transition: background 0.15s;
 }
 
-.btn-examples:hover {
-  background: #27272a;
-  transform: translateY(-1px);
+.btn-link:hover {
+  background: rgba(0, 117, 222, 0.08);
 }
 
 /* Main */
 .main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 48px 32px 100px;
+  padding: 60px 0 100px;
 }
 
 /* Hero */
 .hero {
   text-align: center;
-  margin-bottom: 64px;
+  margin-bottom: 60px;
 }
 
 .hero-badge {
   display: inline-block;
-  padding: 6px 12px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #667eea;
-  margin-bottom: 20px;
-}
-
-.hero-title {
-  font-size: 48px;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -1px;
-  color: #18181b;
-  background: linear-gradient(135deg, #18181b 0%, #52525b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Alert */
-.alert {
-  padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-  border: 1px solid rgba(102, 126, 234, 0.15);
+  padding: 4px 10px;
+  background: #f6f5f4;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  margin-bottom: 32px;
-}
-
-.alert-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
   margin-bottom: 16px;
 }
 
-.alert-icon {
-  font-size: 24px;
+.hero-title {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  color: rgba(0, 0, 0, 0.95);
 }
 
-.alert-body {
+/* Callout */
+.callout {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 32px;
+}
+
+.callout-info {
+  background: #f2f9ff;
+  border: 1px solid rgba(0, 117, 222, 0.15);
+}
+
+.callout-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.callout-content {
   flex: 1;
 }
 
-.alert-title {
+.callout-title {
   font-size: 15px;
   font-weight: 600;
-  color: #18181b;
+  color: rgba(0, 0, 0, 0.95);
   margin-bottom: 4px;
 }
 
-.alert-subtitle {
+.callout-text {
   font-size: 13px;
-  color: #71717a;
+  color: rgba(0, 0, 0, 0.5);
+  margin-bottom: 12px;
 }
 
-.alert-progress {
+.progress {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.progress-track {
+.progress-bar {
   flex: 1;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.06);
-  border-radius: 3px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 2px;
+  position: relative;
   overflow: hidden;
 }
 
-.progress-fill {
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  width: var(--width, 0);
+  background: #0075de;
   transition: width 0.3s;
 }
 
 .progress-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #667eea;
-  min-width: 40px;
-  text-align: right;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  margin-bottom: 48px;
-}
-
-.stat-card {
-  padding: 20px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 12px;
-  transition: all 0.2s;
-}
-
-.stat-card:hover {
-  border-color: rgba(102, 126, 234, 0.3);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.08);
-  transform: translateY(-2px);
-}
-
-.stat-label {
   font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #71717a;
-  margin-bottom: 8px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #18181b;
+  color: #0075de;
+  min-width: 36px;
+  text-align: right;
 }
 
 /* Section */
@@ -490,67 +454,95 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .section-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
-  color: #18181b;
+  color: rgba(0, 0, 0, 0.95);
 }
 
-.section-badge {
+.badge {
   padding: 4px 10px;
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(0, 0, 0, 0.06);
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: #71717a;
+  color: rgba(0, 0, 0, 0.5);
 }
 
-/* Model Group */
-.model-group {
-  margin-bottom: 32px;
+.subsection {
+  margin-bottom: 24px;
 }
 
-.group-title {
-  font-size: 13px;
+.subsection-title {
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #71717a;
-  margin-bottom: 16px;
+  color: rgba(0, 0, 0, 0.4);
+  margin-bottom: 12px;
 }
 
-.model-grid {
+/* Grid */
+.grid-4 {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
 }
 
-.model-card {
+.info-card {
   padding: 16px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 10px;
+  background: #f6f5f4;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.info-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(0, 0, 0, 0.4);
+  margin-bottom: 6px;
+}
+
+.info-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.95);
+}
+
+/* Model List */
+.model-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.model-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  transition: all 0.2s;
+  padding: 12px 16px;
+  background: #ffffff;
+  transition: background 0.15s;
 }
 
-.model-card:hover {
-  border-color: rgba(102, 126, 234, 0.3);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+.model-item:hover {
+  background: #f6f5f4;
 }
 
-.model-card.installed {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.05));
-  border-color: rgba(16, 185, 129, 0.3);
+.model-item.installed {
+  background: rgba(26, 174, 57, 0.05);
 }
 
-.model-header {
+.model-main {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -559,7 +551,8 @@ body {
 }
 
 .model-icon {
-  font-size: 20px;
+  font-size: 18px;
+  line-height: 1;
   flex-shrink: 0;
 }
 
@@ -573,67 +566,54 @@ body {
 .model-name {
   font-size: 14px;
   font-weight: 600;
-  color: #18181b;
+  color: rgba(0, 0, 0, 0.95);
 }
 
 .model-desc {
   font-size: 12px;
-  color: #71717a;
+  color: rgba(0, 0, 0, 0.5);
 }
 
-.model-progress {
+.model-status {
   font-size: 13px;
-  font-weight: 600;
-  color: #667eea;
+  font-weight: 500;
+  color: #0075de;
 }
 
 /* Buttons */
 .btn-primary {
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 6px 14px;
+  background: #0075de;
   color: #ffffff;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 4px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s;
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  background: #005bab;
 }
 
 .btn-primary:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.btn-primary.small {
-  padding: 6px 12px;
-  font-size: 13px;
-}
-
-.btn-secondary {
-  padding: 8px 16px;
+.btn-text {
+  padding: 4px 8px;
   background: transparent;
-  color: #71717a;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  color: #18181b;
-  border-color: rgba(0, 0, 0, 0.2);
-}
-
-.btn-secondary.small {
-  padding: 6px 12px;
+  border: none;
   font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.btn-text:hover {
+  color: rgba(0, 0, 0, 0.95);
 }
 </style>
