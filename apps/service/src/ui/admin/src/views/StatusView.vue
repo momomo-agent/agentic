@@ -152,7 +152,7 @@ onUnmounted(() => clearInterval(timer))
 </script>
 
 <style scoped>
-.page-title { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+/* page-title defined in style.css */
 
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 

@@ -69,13 +69,13 @@ onUnmounted(() => clearInterval(timer))
   background: var(--surface); border-right: 1px solid var(--border);
   display: flex; flex-direction: column; padding: 16px 0;
 }
-.sidebar-brand { font-weight: 700; font-size: 15px; padding: 0 20px 12px; }
+.sidebar-brand { font-weight: 700; font-size: 15px; padding: 0 20px 12px; color: var(--text); }
 .sidebar-status {
   font-size: 12px; padding: 4px 10px; border-radius: 99px; font-weight: 500;
   margin: 0 20px 16px; display: inline-block; width: fit-content;
 }
-.online { background: rgba(16,185,129,0.15); color: var(--success); }
-.offline { background: rgba(239,68,68,0.15); color: var(--error); }
+.online { background: rgba(13,150,104,0.1); color: var(--success); }
+.offline { background: rgba(220,53,69,0.1); color: var(--error); }
 .sidebar-nav { display: flex; flex-direction: column; }
 .nav-section {
   font-size: 11px; font-weight: 600; color: var(--text-dim);
@@ -86,9 +86,13 @@ onUnmounted(() => clearInterval(timer))
   padding: 8px 20px; border: none; background: none;
   cursor: pointer; font-size: 14px; color: var(--text-dim);
   text-align: left; width: 100%; transition: all 0.15s;
+  border-left: 3px solid transparent;
 }
 .nav-item:hover { background: var(--surface-2); color: var(--text); }
-.nav-item.active { background: var(--surface-2); color: var(--text); font-weight: 600; }
+.nav-item.active {
+  background: var(--surface-2); color: var(--primary);
+  font-weight: 600; border-left-color: var(--primary);
+}
 .nav-icon { font-size: 16px; width: 24px; text-align: center; }
 .main { flex: 1; padding: 32px; overflow-y: auto; }
 </style>
