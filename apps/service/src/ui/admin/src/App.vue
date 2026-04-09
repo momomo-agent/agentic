@@ -485,8 +485,8 @@ body {
 
 /* Cards */
 .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
-.card { padding: 18px 16px; background: #ffffff !important; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 8px; overflow: hidden; }
-.card-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(0, 0, 0, 0.45) !important; margin-bottom: 6px; }
+.card { padding: 18px 16px; background: #f9f8f7 !important; border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 8px; overflow: hidden; }
+.card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(0, 0, 0, 0.5) !important; margin-bottom: 6px; }
 .card-value { font-size: 15px; font-weight: 600; color: #1a1a1a !important; line-height: 1.3; }
 
 /* Callout */
