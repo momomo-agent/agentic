@@ -1,8 +1,18 @@
 import { chat as llmChat } from '../runtime/llm.js';
 import { getSession, broadcastSession } from './hub.js';
 import { startMark, endMark } from '../runtime/profiler.js';
+import { promises as fs } from 'fs';
+import path from 'path';
+import os from 'os';
 
+const CONFIG_PATH = path.join(os.homedir(), '.agentic-service', 'config.json');
 const tools = new Map();
+
+async function loadConfig() {
+  try {
+    return JSON.parse(await fs.readFile(CONFIG_PATH, 'utf8'));
+  } catch { return {}; }
+}
 
 export function registerTool(name, fn) {
   tools.set(name, fn);
@@ -19,11 +29,33 @@ function normalizeMessages(messages) {
 
 async function* chatWithTools(messages, tools) {
   const normalized = normalizeMessages(messages);
-  // Try Ollama with tools via native API
-  const config = { llm: { provider: 'ollama', model: 'gemma4:e4b' } };
+  const userConfig = await loadConfig();
+  const config = {
+    llm: { provider: 'ollama', model: 'gemma4:e4b', ...userConfig.llm },
+    fallback: userConfig.fallback || {},
+  };
   try {
-    const body = { model: config.llm.model, messages: normalized, stream: true };
-    if (tools?.length) body.tools = tools;
+    if (config.llm.provider === 'ollama') {
+      yield* ollamaChat(normalized, tools, config.llm.model);
+      return;
+    }
+    // Cloud provider as primary
+    yield* cloudChat(normalized, tools, config.llm);
+    return;
+  } catch (err) {
+    // If primary fails and fallback is configured, try fallback
+    if (config.fallback?.provider) {
+      console.warn(`Primary LLM failed (${err.message}), trying fallback...`);
+      yield* cloudChat(normalized, tools, config.fallback);
+      return;
+    }
+    throw err;
+  }
+}
+
+async function* ollamaChat(messages, tools, model) {
+  const body = { model, messages, stream: true };
+  if (tools?.length) body.tools = tools;
 
     const response = await fetch('http://localhost:11434/api/chat', {
       method: 'POST',
@@ -53,30 +85,25 @@ async function* chatWithTools(messages, tools) {
         } catch { /* ignore */ }
       }
     }
-    return;
-  } catch (err) {
-    if (tools?.length) {
-      // Ollama doesn't support tools — fall through to cloud
-      console.warn('Ollama tool_use unsupported, falling back to cloud:', err.message);
-    } else {
-      throw err;
-    }
-  }
+}
 
-  // Cloud fallback with tools (OpenAI)
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error('OPENAI_API_KEY not set');
+async function* cloudChat(messages, tools, providerConfig) {
+  const apiKey = providerConfig.apiKey || process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error(`API key not set for ${providerConfig.provider || 'cloud'} — configure in Admin > Config`);
 
-  const body = { model: 'gpt-4o-mini', messages: normalized, stream: true };
+  const baseUrl = providerConfig.baseUrl || 'https://api.openai.com/v1';
+  const model = providerConfig.model || 'gpt-4o-mini';
+
+  const body = { model, messages, stream: true };
   if (tools?.length) body.tools = tools.map(t => ({ type: 'function', function: t }));
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
     body: JSON.stringify(body)
   });
 
-  if (!response.ok) throw new Error(`OpenAI API error: ${response.status}`);
+  if (!response.ok) throw new Error(`Cloud LLM API error: ${response.status}`);
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
