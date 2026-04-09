@@ -53,19 +53,42 @@ async function initCamera() {
 
 // 捕获当前帧为 base64
 function captureFrame() {
-  const canvas = document.createElement('canvas')
-  canvas.width = video.videoWidth
-  canvas.height = video.videoHeight
-  const ctx = canvas.getContext('2d')
-  ctx.drawImage(video, 0, 0)
-  return canvas.toDataURL('image/jpeg', 0.8).split(',')[1]
+  try {
+    if (!video.videoWidth || !video.videoHeight) {
+      console.warn('Video not ready')
+      return null
+    }
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(video, 0, 0)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+    const parts = dataUrl.split(',')
+    return parts.length > 1 ? parts[1] : null
+  } catch (e) {
+    console.error('Capture frame failed:', e)
+    return null
+  }
 }
 
 // Blob 转 base64
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onloadend = () => resolve(reader.result.split(',')[1])
+    reader.onloadend = () => {
+      const result = reader.result
+      if (!result || typeof result !== 'string') {
+        reject(new Error('Invalid blob data'))
+        return
+      }
+      const parts = result.split(',')
+      if (parts.length < 2) {
+        reject(new Error('Invalid base64 format'))
+        return
+      }
+      resolve(parts[1])
+    }
     reader.onerror = reject
     reader.readAsDataURL(blob)
   })
@@ -77,10 +100,12 @@ async function sendToLLM(text, audioBlob = null, includeImage = true) {
   
   if (includeImage && video.videoWidth > 0) {
     const imageData = captureFrame()
-    content.push({
-      type: 'image_url',
-      image_url: { url: `data:image/jpeg;base64,${imageData}` }
-    })
+    if (imageData) {
+      content.push({
+        type: 'image_url',
+        image_url: { url: `data:image/jpeg;base64,${imageData}` }
+      })
+    }
   }
   
   // 如果有音频，直接发送音频（Gemma 4 原生支持）
