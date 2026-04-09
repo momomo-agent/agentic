@@ -1,0 +1,32 @@
+{"ts":"2026-04-09T01:50:19.309Z","type":"workflow","agent":"validator","data":{"details":"[WARNING] config.dashboard: no dashboard configuration — run \"team web\" will show empty UI"}}
+{"ts":"2026-04-09T01:50:19.332Z","type":"agent_start","agent":"daemon","data":{"details":"Team daemon started (safety=600s, timeout=3900s)","performance":{"memoryMB":5,"memoryTotalMB":7,"cpuUser":0.029032,"cpuSystem":0.006863}}}
+{"ts":"2026-04-09T01:50:19.332Z","type":"workflow","agent":"monitor","data":{"details":"[HEALTH] Monitor started"}}
+{"ts":"2026-04-09T01:50:19.333Z","type":"agent_start","agent":"startup","data":{"details":"[NODE] startup - 初始化设计迭代","performance":{"memoryMB":5,"memoryTotalMB":7,"cpuUser":0.029584,"cpuSystem":0.007313}}}
+{"ts":"2026-04-09T01:50:19.333Z","type":"error","agent":"ctx","data":{"details":"iteration: fs is not defined"}}
+{"ts":"2026-04-09T01:50:19.333Z","type":"error","agent":"ctx","data":{"details":"gapScore: fs is not defined"}}
+{"ts":"2026-04-09T01:50:19.333Z","type":"workflow","agent":"startup","data":{"details":"[SHELL] mkdir -p .team/iterations && echo 0 > .team/iteration-count.txt"}}
+{"ts":"2026-04-09T01:50:19.339Z","type":"error","agent":"ctx","data":{"details":"iteration: fs is not defined"}}
+{"ts":"2026-04-09T01:50:19.339Z","type":"error","agent":"ctx","data":{"details":"gapScore: fs is not defined"}}
+{"ts":"2026-04-09T01:50:19.339Z","type":"agent_start","agent":"design-loop","data":{"details":"[NODE] design-loop - 设计迭代循环：设计 → 开发 → 审核","performance":{"memoryMB":5,"memoryTotalMB":8,"cpuUser":0.031369,"cpuSystem":0.008352}}}
+{"ts":"2026-04-09T01:50:19.340Z","type":"error","agent":"ctx","data":{"details":"iteration: fs is not defined"}}
+{"ts":"2026-04-09T01:50:19.340Z","type":"error","agent":"ctx","data":{"details":"gapScore: fs is not defined"}}
+{"ts":"2026-04-09T01:50:19.340Z","type":"workflow","agent":"design-loop","data":{"details":"[EXEC] designer"}}
+{"ts":"2026-04-09T01:50:19.340Z","type":"agent_start","agent":"designer","data":{"details":"designer","performance":{"memoryMB":6,"memoryTotalMB":8,"cpuUser":0.031785,"cpuSystem":0.008774}}}
+{"ts":"2026-04-09T01:50:19.368Z","type":"error","agent":"designer","data":{"details":"failed (code=1), retry 1/2 in 1s"}}
+{"ts":"2026-04-09T01:50:20.371Z","type":"agent_start","agent":"designer","data":{"details":"designer","performance":{"memoryMB":6,"memoryTotalMB":8,"cpuUser":0.032903,"cpuSystem":0.009472}}}
+{"ts":"2026-04-09T01:50:20.425Z","type":"error","agent":"designer","data":{"details":"failed (code=1), retry 2/2 in 2s"}}
+{"ts":"2026-04-09T01:50:22.428Z","type":"agent_start","agent":"designer","data":{"details":"designer","performance":{"memoryMB":6,"memoryTotalMB":8,"cpuUser":0.036144,"cpuSystem":0.01386}}}
+{"ts":"2026-04-09T01:50:22.479Z","type":"error","agent":"designer","data":{"details":"failed (code=1) after 2 retries, giving up"}}
+{"ts":"2026-04-09T01:50:22.479Z","type":"error","agent":"ctx","data":{"details":"iteration: fs is not defined"}}
+{"ts":"2026-04-09T01:50:22.479Z","type":"error","agent":"ctx","data":{"details":"gapScore: fs is not defined"}}
+{"ts":"2026-04-09T01:50:22.479Z","type":"workflow","agent":"design-loop","data":{"details":"[EXEC] developer"}}
+{"ts":"2026-04-09T01:50:22.480Z","type":"agent_start","agent":"developer","data":{"details":"developer","performance":{"memoryMB":6,"memoryTotalMB":8,"cpuUser":0.038562,"cpuSystem":0.017797}}}
+{"ts":"2026-04-09T01:52:03.451Z","type":"agent_complete","agent":"developer","data":{"details":"completed successfully","performance":{"memoryMB":6,"memoryTotalMB":9,"cpuUser":0.046403,"cpuSystem":0.025852}}}
+{"ts":"2026-04-09T01:52:03.451Z","type":"workflow","agent":"developer","data":{"details":"[SIGNAL] blocked: No design proposal found - designer agent failed to create .team/iterations/design-0.md"}}
+{"ts":"2026-04-09T01:52:03.451Z","type":"workflow","agent":"design-loop","data":{"details":"[AGENT-SIGNAL] developer → blocked: No design proposal found - designer agent failed to create .team/iterations/desi"}}
+{"ts":"2026-04-09T01:52:03.452Z","type":"error","agent":"ctx","data":{"details":"iteration: fs is not defined"}}
+{"ts":"2026-04-09T01:52:03.452Z","type":"error","agent":"ctx","data":{"details":"gapScore: fs is not defined"}}
+{"ts":"2026-04-09T01:52:03.452Z","type":"workflow","agent":"design-loop","data":{"details":"[EXEC] reviewer"}}
+{"ts":"2026-04-09T01:52:03.452Z","type":"agent_start","agent":"reviewer","data":{"details":"reviewer","performance":{"memoryMB":7,"memoryTotalMB":9,"cpuUser":0.046985,"cpuSystem":0.026821}}}
+{"ts":"2026-04-09T01:52:52.266Z","type":"workflow","agent":"daemon","data":{"details":"Reset stuck agent: reviewer"}}
+{"ts":"2026-04-09T01:52:52.267Z","type":"agent_complete","agent":"daemon","data":{"details":"Team daemon stopped","performance":{"memoryMB":5,"memoryTotalMB":7,"cpuUser":0.049922,"cpuSystem":0.030223}}}

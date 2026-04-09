@@ -1,0 +1,7 @@
+{
+  "agent": "reviewer",
+  "timestamp": "2026-04-09T01:52:53.064Z",
+  "exitCode": 0,
+  "status": "blocked",
+  "summary": "任务所需的翻译文档文件不存在，.team/docs/ 目录为空，无法执行校对工作"
+}

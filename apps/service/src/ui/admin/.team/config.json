@@ -1,0 +1,56 @@
+{
+  "name": "admin",
+  "description": "UI/UX 设计迭代流程：设计 → 开发 → 审核 → 循环",
+  "version": "1.0.0",
+  "workflow": {
+    "entry": "startup",
+    "context": {
+      "maxIterations": 20,
+      "gapThreshold": 20,
+      "iteration": "parseInt(fs.readFileSync('.team/iteration-count.txt', 'utf8') || '0')",
+      "gapScore": "JSON.parse(fs.readFileSync('.team/iterations/review-' + (iteration - 1) + '.json', 'utf8') || '{}').gapScore || 100"
+    },
+    "nodes": {
+      "startup": "nodes/startup.json",
+      "design-loop": "nodes/design-loop.json",
+      "complete": "nodes/complete.json"
+    }
+  },
+  "agents": {
+    "designer": {
+      "role": "UI/UX Designer",
+      "model": "claude-sonnet-4",
+      "prompt": "prompts/designer.md",
+      "capabilities": [
+        "read",
+        "write_design"
+      ]
+    },
+    "developer": {
+      "role": "Frontend Developer",
+      "model": "claude-sonnet-4",
+      "prompt": "prompts/developer.md",
+      "capabilities": [
+        "read",
+        "write_code",
+        "git"
+      ]
+    },
+    "reviewer": {
+      "role": "Design Reviewer",
+      "model": "claude-opus-4",
+      "prompt": "prompts/reviewer.md",
+      "capabilities": [
+        "read",
+        "screenshot",
+        "evaluate"
+      ]
+    }
+  },
+  "_workflow": "design-iteration",
+  "created": "2026-04-09T01:48:03.844Z",
+  "teamVersion": "2.0",
+  "goal": {
+    "description": "优化 Admin UI 设计，提升视觉层次、间距节奏、色彩对比度"
+  }
+}
