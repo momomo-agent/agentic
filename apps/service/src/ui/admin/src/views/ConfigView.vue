@@ -25,12 +25,22 @@
             <option value="deepgram">Deepgram</option>
           </select>
         </div>
+        <div class="field" v-if="config.stt.provider !== 'whisper'">
+          <label>STT API Key</label>
+          <input v-model="config.stt.apiKey" type="password" placeholder="API Key" />
+        </div>
         <div class="field">
           <label>TTS Provider</label>
           <select v-model="config.tts.provider">
+            <option value="kokoro">Kokoro (本地)</option>
             <option value="coqui">Coqui (本地)</option>
-            <option value="elevenlabs">ElevenLabs</option>
+            <option value="openai">OpenAI TTS (云端)</option>
+            <option value="elevenlabs">ElevenLabs (云端)</option>
           </select>
+        </div>
+        <div class="field" v-if="config.tts.provider === 'openai' || config.tts.provider === 'elevenlabs'">
+          <label>TTS API Key</label>
+          <input v-model="config.tts.apiKey" type="password" :placeholder="config.tts.provider === 'openai' ? 'sk-...' : 'xi-...'" />
         </div>
         <div class="actions">
           <button type="submit" :disabled="saving">{{ saving ? '保存中...' : '保存配置' }}</button>
