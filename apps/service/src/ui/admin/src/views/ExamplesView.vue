@@ -237,6 +237,174 @@
           <div class="result-text">{{ docqaResult }}</div>
         </div>
       </div>
+
+      <!-- 连续听写 -->
+      <div v-if="activeExample === 'dictation'" class="dictation-panel">
+        <div class="dictation-controls">
+          <button class="btn-voice" :class="{ active: dictRecording }" @click="toggleDictation">
+            {{ dictRecording ? '⏹ 停止听写' : '🎙️ 开始听写' }}
+          </button>
+          <button class="btn-secondary" @click="copyDictation" :disabled="!dictText">📋 复制全文</button>
+        </div>
+        <textarea class="dictation-text" :value="dictText" readonly placeholder="开始录音后，转写文字将在这里实时显示..." rows="12"></textarea>
+        <div class="dictation-footer">
+          <span>总时长：{{ dictDuration }}s</span>
+          <span>字数：{{ dictText.length }}</span>
+        </div>
+      </div>
+
+      <!-- 看图聊天 -->
+      <div v-if="activeExample === 'vision-chat'" class="vision-chat-panel">
+        <div class="vc-layout">
+          <div class="vc-image-area" @click="$refs.vcFileInput.click()" @dragover.prevent @drop.prevent="handleVcDrop">
+            <input ref="vcFileInput" type="file" accept="image/*" @change="handleVcFile" hidden />
+            <div v-if="!vcImage" class="upload-placeholder">
+              <span class="upload-icon">🖼️</span>
+              <span>点击或拖拽上传图片</span>
+            </div>
+            <img v-else :src="vcImage" class="preview-img" />
+          </div>
+          <div class="vc-chat-area">
+            <div class="chat-messages" ref="vcChatEl">
+              <div v-for="(msg, i) in vcHistory" :key="i" class="chat-msg" :class="msg.role">
+                <div class="msg-bubble">{{ msg.content }}</div>
+              </div>
+            </div>
+            <div class="chat-input-row">
+              <input v-model="vcInput" @keydown.enter="sendVcChat" placeholder="对图片提问..." :disabled="vcLoading || !vcImage" />
+              <button @click="sendVcChat" :disabled="vcLoading || !vcImage || !vcInput.trim()">发送</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 看图说话 -->
+      <div v-if="activeExample === 'vision-voice'" class="vision-voice-panel">
+        <div class="vv-controls">
+          <div class="vision-source-tabs">
+            <button :class="{ active: vvSource === 'upload' }" @click="vvSource = 'upload'">📁 上传图片</button>
+            <button :class="{ active: vvSource === 'camera' }" @click="startVvCamera">📷 拍照</button>
+          </div>
+          <div v-if="vvSource === 'upload'" class="upload-area" @click="$refs.vvFileInput.click()" @dragover.prevent @drop.prevent="handleVvDrop">
+            <input ref="vvFileInput" type="file" accept="image/*" @change="handleVvFile" hidden />
+            <div v-if="!vvImage" class="upload-placeholder">
+              <span class="upload-icon">🖼️</span>
+              <span>点击或拖拽图片到这里</span>
+            </div>
+            <img v-else :src="vvImage" class="preview-img" />
+          </div>
+          <div v-if="vvSource === 'camera'" class="camera-area">
+            <video ref="vvVideoEl" autoplay playsinline class="camera-video"></video>
+            <button class="btn-capture" @click="captureVvPhoto">📸 拍照</button>
+          </div>
+          <button @click="runVisionVoice" :disabled="!vvImage || vvLoading" class="btn-primary">
+            {{ vvLoading ? '处理中...' : '🔊 AI 描述并朗读' }}
+          </button>
+        </div>
+        <div class="vv-result" v-if="vvDescription">
+          <div class="result-label">AI 描述</div>
+          <div class="result-text">{{ vvDescription }}</div>
+          <audio v-if="vvAudioUrl" :src="vvAudioUrl" controls autoplay class="tts-audio"></audio>
+        </div>
+      </div>
+
+      <!-- 语音笔记 -->
+      <div v-if="activeExample === 'voice-note'" class="voice-note-panel">
+        <div class="vn-controls">
+          <button class="btn-voice" :class="{ active: vnRecording }" @click="toggleVoiceNote">
+            {{ vnRecording ? '⏹ 停止录音' : '🎙️ 开始录音' }}
+          </button>
+          <span v-if="vnStatus" class="vn-status">{{ vnStatus }}</span>
+        </div>
+        <div class="vn-results" v-if="vnTranscript || vnNote">
+          <div v-if="vnTranscript" class="vn-section">
+            <div class="result-label">原始转写</div>
+            <div class="result-text">{{ vnTranscript }}</div>
+          </div>
+          <div v-if="vnNote" class="vn-section">
+            <div class="result-label">AI 整理笔记</div>
+            <div class="result-text" style="white-space: pre-wrap;">{{ vnNote }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 实时字幕 -->
+      <div v-if="activeExample === 'subtitle'" class="subtitle-panel" :class="'font-' + subtitleSize">
+        <div class="subtitle-controls">
+          <button class="btn-voice" :class="{ active: subRecording }" @click="toggleSubtitle">
+            {{ subRecording ? '⏹ 停止' : '🎙️ 开始字幕' }}
+          </button>
+          <div class="subtitle-size-btns">
+            <button :class="{ active: subtitleSize === 'small' }" @click="subtitleSize = 'small'">小</button>
+            <button :class="{ active: subtitleSize === 'medium' }" @click="subtitleSize = 'medium'">中</button>
+            <button :class="{ active: subtitleSize === 'large' }" @click="subtitleSize = 'large'">大</button>
+          </div>
+        </div>
+        <div class="subtitle-display">
+          <div class="subtitle-current">{{ subCurrent || '等待语音...' }}</div>
+          <div class="subtitle-history" ref="subHistoryEl">
+            <div v-for="(line, i) in subHistory" :key="i" class="subtitle-line">{{ line }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 故事讲述 -->
+      <div v-if="activeExample === 'storyteller'" class="storyteller-panel">
+        <div class="story-controls">
+          <input v-model="storyTopic" @keydown.enter="runStory" placeholder="输入故事主题或关键词..." :disabled="storyLoading" />
+          <button @click="runStory" :disabled="!storyTopic.trim() || storyLoading">
+            {{ storyLoading ? '创作中...' : '📖 生成故事' }}
+          </button>
+        </div>
+        <div class="story-result" v-if="storyText">
+          <div class="result-label">故事</div>
+          <div class="result-text" style="white-space: pre-wrap;">{{ storyText }}</div>
+          <div class="story-audio-row" v-if="storyDone">
+            <button @click="playStory" :disabled="storyTtsLoading" class="btn-primary">
+              {{ storyTtsLoading ? '合成中...' : '🔊 朗读故事' }}
+            </button>
+            <audio v-if="storyAudioUrl" :src="storyAudioUrl" controls autoplay class="tts-audio"></audio>
+          </div>
+        </div>
+      </div>
+
+      <!-- 多模态对话 -->
+      <div v-if="activeExample === 'multimodal'" class="multimodal-panel">
+        <div class="chat-messages" ref="mmChatEl">
+          <div v-for="(msg, i) in mmHistory" :key="i" class="chat-msg" :class="msg.role">
+            <img v-if="msg.image" :src="msg.image" class="mm-msg-img" />
+            <div class="msg-bubble" v-if="msg.content">{{ msg.content }}</div>
+            <button v-if="msg.role === 'assistant' && msg.content" class="btn-play-inline" @click="mmTtsPlay(msg.content)">🔊</button>
+          </div>
+        </div>
+        <div class="mm-input-row">
+          <input v-model="mmInput" @keydown.enter="sendMmText" placeholder="输入消息..." :disabled="mmLoading" />
+          <button @click="sendMmText" :disabled="mmLoading || !mmInput.trim()">发送</button>
+          <button @click="$refs.mmFileInput.click()" :disabled="mmLoading">📷</button>
+          <input ref="mmFileInput" type="file" accept="image/*" @change="sendMmImage" hidden />
+          <button @click="sendMmVoice" :disabled="mmLoading || mmRecording">{{ mmRecording ? '识别中...' : '🎤' }}</button>
+        </div>
+      </div>
+
+      <!-- 图片批注 -->
+      <div v-if="activeExample === 'annotate'" class="annotate-panel">
+        <div class="ann-layout">
+          <div class="ann-image-area" @click="$refs.annFileInput.click()" @dragover.prevent @drop.prevent="handleAnnDrop">
+            <input ref="annFileInput" type="file" accept="image/*" @change="handleAnnFile" hidden />
+            <div v-if="!annImage" class="upload-placeholder">
+              <span class="upload-icon">🖼️</span>
+              <span>点击或拖拽上传图片</span>
+            </div>
+            <img v-else :src="annImage" class="preview-img" />
+          </div>
+          <div class="ann-result-area">
+            <button @click="runAnnotate" :disabled="!annImage || annLoading" class="btn-primary" style="align-self: flex-start;">
+              {{ annLoading ? '分析中...' : '✏️ AI 批注' }}
+            </button>
+            <div class="result-text" v-if="annResult" style="white-space: pre-wrap;">{{ annResult }}</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -254,6 +422,14 @@ const examples = ref([
   { id: 'live-vision', icon: '📹', title: '实时摄像头', desc: '摄像头持续拍帧，AI 实时描述', tested: false },
   { id: 'translate', icon: '🌐', title: '翻译助手', desc: '说话或输入文字，AI 翻译并朗读', tested: false },
   { id: 'doc-qa', icon: '📄', title: '文档问答', desc: '粘贴文档，AI 回答问题', tested: false },
+  { id: 'dictation', icon: '📝', title: '连续听写', desc: '持续录音，实时转文字，像会议记录', tested: false },
+  { id: 'vision-chat', icon: '🖼️', title: '看图聊天', desc: '上传图片，连续提问', tested: false },
+  { id: 'vision-voice', icon: '📷', title: '看图说话', desc: '拍照或上传，AI 语音描述', tested: false },
+  { id: 'voice-note', icon: '🎙️', title: '语音笔记', desc: '说话→AI 整理成结构化笔记', tested: false },
+  { id: 'subtitle', icon: '📺', title: '实时字幕', desc: '麦克风实时生成字幕，大字显示', tested: false },
+  { id: 'storyteller', icon: '📖', title: '故事讲述', desc: '输入主题，AI 写故事并朗读', tested: false },
+  { id: 'multimodal', icon: '🌈', title: '多模态对话', desc: '文字+图片+语音，全模态聊天', tested: false },
+  { id: 'annotate', icon: '✏️', title: '图片批注', desc: '上传图片，AI 标注并解释各区域', tested: false },
 ])
 
 const activeExample = ref(null)
@@ -265,6 +441,9 @@ function closeExample() {
   stopVoice()
   closeParlorWs()
   stopLiveVision()
+  stopDictation()
+  stopVvCamera()
+  stopSubtitle()
   activeExample.value = null
 }
 
@@ -865,7 +1044,609 @@ async function runDocQa() {
   docqaLoading.value = false
 }
 
-onUnmounted(() => { stopCamera(); stopVoice(); closeParlorWs(); stopLiveVision() })
+// ── Dictation 连续听写 ──
+const dictRecording = ref(false)
+const dictText = ref('')
+const dictDuration = ref(0)
+let dictRecorder = null
+let dictStream = null
+let dictInterval = null
+let dictStartTime = 0
+let dictTimerInterval = null
+
+function toggleDictation() {
+  if (dictRecording.value) stopDictation()
+  else startDictation()
+}
+
+async function startDictation() {
+  try {
+    dictStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    dictRecorder = new MediaRecorder(dictStream, { mimeType: 'audio/webm;codecs=opus' })
+    dictRecording.value = true
+    dictStartTime = Date.now()
+    dictTimerInterval = setInterval(() => { dictDuration.value = Math.floor((Date.now() - dictStartTime) / 1000) }, 500)
+
+    let chunks = []
+    dictRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data) }
+    dictRecorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: 'audio/webm' })
+      chunks = []
+      if (blob.size < 100) return
+      try {
+        const fd = new FormData()
+        fd.append('audio', blob, 'chunk.webm')
+        const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
+        const data = await res.json()
+        const text = data.text || data.transcription || ''
+        if (text) { dictText.value += text; markTested('dictation') }
+      } catch {}
+      // restart if still recording
+      if (dictRecording.value && dictRecorder && dictStream) {
+        chunks = []
+        dictRecorder.start()
+        setTimeout(() => { if (dictRecorder && dictRecorder.state === 'recording') dictRecorder.stop() }, 3000)
+      }
+    }
+    dictRecorder.start()
+    setTimeout(() => { if (dictRecorder && dictRecorder.state === 'recording') dictRecorder.stop() }, 3000)
+  } catch (e) {
+    dictText.value = `麦克风错误: ${e.message}`
+    dictRecording.value = false
+  }
+}
+
+function stopDictation() {
+  dictRecording.value = false
+  if (dictTimerInterval) { clearInterval(dictTimerInterval); dictTimerInterval = null }
+  if (dictRecorder && dictRecorder.state === 'recording') dictRecorder.stop()
+  if (dictStream) { dictStream.getTracks().forEach(t => t.stop()); dictStream = null }
+  dictRecorder = null
+}
+
+function copyDictation() {
+  navigator.clipboard.writeText(dictText.value).catch(() => {})
+}
+
+// ── Vision Chat 看图聊天 ──
+const vcImage = ref('')
+const vcHistory = ref([])
+const vcInput = ref('')
+const vcLoading = ref(false)
+const vcChatEl = ref(null)
+
+function handleVcFile(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => { vcImage.value = reader.result; vcHistory.value = [] }
+  reader.readAsDataURL(file)
+}
+
+function handleVcDrop(e) {
+  const file = e.dataTransfer.files[0]
+  if (!file || !file.type.startsWith('image/')) return
+  const reader = new FileReader()
+  reader.onload = () => { vcImage.value = reader.result; vcHistory.value = [] }
+  reader.readAsDataURL(file)
+}
+
+async function sendVcChat() {
+  const prompt = vcInput.value.trim()
+  if (!prompt || !vcImage.value || vcLoading.value) return
+  vcHistory.value.push({ role: 'user', content: prompt })
+  vcInput.value = ''
+  vcLoading.value = true
+  vcHistory.value.push({ role: 'assistant', content: '' })
+  await nextTick()
+  if (vcChatEl.value) vcChatEl.value.scrollTop = vcChatEl.value.scrollHeight
+
+  try {
+    const res = await fetch('/api/vision', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: vcImage.value, prompt })
+    })
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    const last = vcHistory.value[vcHistory.value.length - 1]
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      for (const line of decoder.decode(value).split('\n')) {
+        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
+        try {
+          const data = JSON.parse(line.slice(6))
+          if (data.error) { last.content = `错误: ${data.error}`; break }
+          last.content += data.text || ''
+        } catch {}
+      }
+      await nextTick()
+      if (vcChatEl.value) vcChatEl.value.scrollTop = vcChatEl.value.scrollHeight
+    }
+    markTested('vision-chat')
+  } catch (e) {
+    vcHistory.value[vcHistory.value.length - 1].content = `错误: ${e.message}`
+  }
+  vcLoading.value = false
+}
+
+// ── Vision Voice 看图说话 ──
+const vvImage = ref('')
+const vvSource = ref('upload')
+const vvDescription = ref('')
+const vvAudioUrl = ref(null)
+const vvLoading = ref(false)
+const vvVideoEl = ref(null)
+let vvCameraStream = null
+
+function handleVvFile(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => { vvImage.value = reader.result; vvDescription.value = ''; vvAudioUrl.value = null }
+  reader.readAsDataURL(file)
+}
+
+function handleVvDrop(e) {
+  const file = e.dataTransfer.files[0]
+  if (!file || !file.type.startsWith('image/')) return
+  const reader = new FileReader()
+  reader.onload = () => { vvImage.value = reader.result; vvDescription.value = ''; vvAudioUrl.value = null }
+  reader.readAsDataURL(file)
+}
+
+async function startVvCamera() {
+  vvSource.value = 'camera'
+  try {
+    vvCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    await nextTick()
+    if (vvVideoEl.value) vvVideoEl.value.srcObject = vvCameraStream
+  } catch {}
+}
+
+function stopVvCamera() {
+  if (vvCameraStream) { vvCameraStream.getTracks().forEach(t => t.stop()); vvCameraStream = null }
+}
+
+function captureVvPhoto() {
+  if (!vvVideoEl.value) return
+  const canvas = document.createElement('canvas')
+  canvas.width = vvVideoEl.value.videoWidth
+  canvas.height = vvVideoEl.value.videoHeight
+  canvas.getContext('2d').drawImage(vvVideoEl.value, 0, 0)
+  vvImage.value = canvas.toDataURL('image/jpeg', 0.85)
+  vvDescription.value = ''
+  vvAudioUrl.value = null
+  stopVvCamera()
+  vvSource.value = 'upload'
+}
+
+async function runVisionVoice() {
+  if (!vvImage.value || vvLoading.value) return
+  vvLoading.value = true
+  vvDescription.value = ''
+  vvAudioUrl.value = null
+
+  try {
+    // Step 1: get description
+    const res = await fetch('/api/vision', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: vvImage.value, prompt: '详细描述这张图片' })
+    })
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      for (const line of decoder.decode(value).split('\n')) {
+        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
+        try {
+          const data = JSON.parse(line.slice(6))
+          vvDescription.value += data.text || ''
+        } catch {}
+      }
+    }
+    // Step 2: TTS
+    if (vvDescription.value) {
+      const ttsRes = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: vvDescription.value })
+      })
+      const blob = await ttsRes.blob()
+      if (vvAudioUrl.value) URL.revokeObjectURL(vvAudioUrl.value)
+      vvAudioUrl.value = URL.createObjectURL(blob)
+    }
+    markTested('vision-voice')
+  } catch (e) {
+    vvDescription.value = `错误: ${e.message}`
+  }
+  vvLoading.value = false
+}
+
+// ── Voice Note 语音笔记 ──
+const vnRecording = ref(false)
+const vnTranscript = ref('')
+const vnNote = ref('')
+const vnStatus = ref('')
+let vnRecorder = null
+let vnStream = null
+
+async function toggleVoiceNote() {
+  if (vnRecording.value) {
+    vnRecording.value = false
+    vnStatus.value = '处理中...'
+    if (vnRecorder && vnRecorder.state === 'recording') vnRecorder.stop()
+  } else {
+    vnTranscript.value = ''
+    vnNote.value = ''
+    vnStatus.value = '录音中...'
+    try {
+      vnStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      vnRecorder = new MediaRecorder(vnStream, { mimeType: 'audio/webm;codecs=opus' })
+      const chunks = []
+      vnRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data) }
+      vnRecorder.onstop = async () => {
+        vnStream?.getTracks().forEach(t => t.stop())
+        vnStream = null
+        const blob = new Blob(chunks, { type: 'audio/webm' })
+        // Step 1: transcribe
+        vnStatus.value = '转写中...'
+        try {
+          const fd = new FormData()
+          fd.append('audio', blob, 'note.webm')
+          const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
+          const data = await res.json()
+          vnTranscript.value = data.text || data.transcription || ''
+          if (!vnTranscript.value) { vnStatus.value = '未识别到语音'; return }
+          // Step 2: organize with AI
+          vnStatus.value = 'AI 整理中...'
+          const chatRes = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: '把以下语音内容整理成结构化笔记，包含要点、待办事项、关键决策：\n\n' + vnTranscript.value })
+          })
+          const reader = chatRes.body.getReader()
+          const decoder = new TextDecoder()
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            for (const line of decoder.decode(value).split('\n')) {
+              if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
+              try {
+                const d = JSON.parse(line.slice(6))
+                vnNote.value += d.content || d.text || ''
+              } catch {}
+            }
+          }
+          vnStatus.value = ''
+          markTested('voice-note')
+        } catch (e) {
+          vnStatus.value = `错误: ${e.message}`
+        }
+      }
+      vnRecorder.start()
+      vnRecording.value = true
+    } catch (e) {
+      vnStatus.value = `麦克风错误: ${e.message}`
+    }
+  }
+}
+
+// ── Subtitle 实时字幕 ──
+const subRecording = ref(false)
+const subCurrent = ref('')
+const subHistory = ref([])
+const subtitleSize = ref('medium')
+const subHistoryEl = ref(null)
+let subRecorder = null
+let subStream = null
+
+function toggleSubtitle() {
+  if (subRecording.value) stopSubtitle()
+  else startSubtitle()
+}
+
+async function startSubtitle() {
+  try {
+    subStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    subRecorder = new MediaRecorder(subStream, { mimeType: 'audio/webm;codecs=opus' })
+    subRecording.value = true
+
+    let chunks = []
+    subRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data) }
+    subRecorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: 'audio/webm' })
+      chunks = []
+      if (blob.size < 100) { if (subRecording.value) restartSubRecorder(); return }
+      try {
+        const fd = new FormData()
+        fd.append('audio', blob, 'sub.webm')
+        const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
+        const data = await res.json()
+        const text = data.text || data.transcription || ''
+        if (text) {
+          if (subCurrent.value) subHistory.value.push(subCurrent.value)
+          subCurrent.value = text
+          markTested('subtitle')
+          await nextTick()
+          if (subHistoryEl.value) subHistoryEl.value.scrollTop = subHistoryEl.value.scrollHeight
+        }
+      } catch {}
+      if (subRecording.value) restartSubRecorder()
+    }
+    subRecorder.start()
+    setTimeout(() => { if (subRecorder && subRecorder.state === 'recording') subRecorder.stop() }, 2000)
+  } catch (e) {
+    subCurrent.value = `麦克风错误: ${e.message}`
+    subRecording.value = false
+  }
+}
+
+function restartSubRecorder() {
+  if (!subRecorder || !subStream) return
+  try {
+    subRecorder.start()
+    setTimeout(() => { if (subRecorder && subRecorder.state === 'recording') subRecorder.stop() }, 2000)
+  } catch {}
+}
+
+function stopSubtitle() {
+  subRecording.value = false
+  if (subRecorder && subRecorder.state === 'recording') subRecorder.stop()
+  if (subStream) { subStream.getTracks().forEach(t => t.stop()); subStream = null }
+  subRecorder = null
+}
+
+// ── Storyteller 故事讲述 ──
+const storyTopic = ref('')
+const storyText = ref('')
+const storyLoading = ref(false)
+const storyDone = ref(false)
+const storyTtsLoading = ref(false)
+const storyAudioUrl = ref(null)
+
+async function runStory() {
+  if (!storyTopic.value.trim() || storyLoading.value) return
+  storyLoading.value = true
+  storyDone.value = false
+  storyText.value = ''
+  storyAudioUrl.value = null
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: `请根据以下主题写一个有趣的短故事（300-500字）：${storyTopic.value}` })
+    })
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      for (const line of decoder.decode(value).split('\n')) {
+        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
+        try {
+          const data = JSON.parse(line.slice(6))
+          storyText.value += data.content || data.text || ''
+        } catch {}
+      }
+    }
+    storyDone.value = true
+    markTested('storyteller')
+  } catch (e) {
+    storyText.value = `错误: ${e.message}`
+  }
+  storyLoading.value = false
+}
+
+async function playStory() {
+  if (!storyText.value || storyTtsLoading.value) return
+  storyTtsLoading.value = true
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: storyText.value })
+    })
+    const blob = await res.blob()
+    if (storyAudioUrl.value) URL.revokeObjectURL(storyAudioUrl.value)
+    storyAudioUrl.value = URL.createObjectURL(blob)
+  } catch {}
+  storyTtsLoading.value = false
+}
+
+// ── Multimodal 多模态对话 ──
+const mmHistory = ref([])
+const mmInput = ref('')
+const mmLoading = ref(false)
+const mmRecording = ref(false)
+const mmChatEl = ref(null)
+
+async function scrollMm() {
+  await nextTick()
+  if (mmChatEl.value) mmChatEl.value.scrollTop = mmChatEl.value.scrollHeight
+}
+
+async function sendMmText() {
+  const msg = mmInput.value.trim()
+  if (!msg || mmLoading.value) return
+  mmHistory.value.push({ role: 'user', content: msg })
+  mmInput.value = ''
+  mmLoading.value = true
+  mmHistory.value.push({ role: 'assistant', content: '' })
+  await scrollMm()
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, history: mmHistory.value.slice(0, -1).map(m => ({ role: m.role, content: m.content })) })
+    })
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    const last = mmHistory.value[mmHistory.value.length - 1]
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      for (const line of decoder.decode(value).split('\n')) {
+        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
+        try {
+          const data = JSON.parse(line.slice(6))
+          last.content += data.content || data.text || ''
+        } catch {}
+      }
+      await scrollMm()
+    }
+    markTested('multimodal')
+  } catch (e) {
+    mmHistory.value[mmHistory.value.length - 1].content = `错误: ${e.message}`
+  }
+  mmLoading.value = false
+}
+
+async function sendMmImage(e) {
+  const file = e.target.files[0]
+  if (!file || mmLoading.value) return
+  const reader = new FileReader()
+  reader.onload = async () => {
+    const base64 = reader.result
+    mmHistory.value.push({ role: 'user', content: '(发送了图片)', image: base64 })
+    mmLoading.value = true
+    mmHistory.value.push({ role: 'assistant', content: '' })
+    await scrollMm()
+
+    try {
+      const res = await fetch('/api/vision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, prompt: '描述这张图片' })
+      })
+      const r = res.body.getReader()
+      const decoder = new TextDecoder()
+      const last = mmHistory.value[mmHistory.value.length - 1]
+      while (true) {
+        const { done, value } = await r.read()
+        if (done) break
+        for (const line of decoder.decode(value).split('\n')) {
+          if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
+          try {
+            const data = JSON.parse(line.slice(6))
+            last.content += data.text || ''
+          } catch {}
+        }
+        await scrollMm()
+      }
+      markTested('multimodal')
+    } catch (err) {
+      mmHistory.value[mmHistory.value.length - 1].content = `错误: ${err.message}`
+    }
+    mmLoading.value = false
+  }
+  reader.readAsDataURL(file)
+  e.target.value = ''
+}
+
+async function sendMmVoice() {
+  if (mmRecording.value || mmLoading.value) return
+  mmRecording.value = true
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' })
+    const chunks = []
+    recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data) }
+    await new Promise(resolve => {
+      recorder.onstop = resolve
+      recorder.start()
+      setTimeout(() => { if (recorder.state === 'recording') recorder.stop() }, 5000)
+    })
+    stream.getTracks().forEach(t => t.stop())
+    mmRecording.value = false
+
+    const blob = new Blob(chunks, { type: 'audio/webm' })
+    const fd = new FormData()
+    fd.append('audio', blob, 'voice.webm')
+    const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
+    const data = await res.json()
+    const text = data.text || data.transcription || ''
+    if (text) {
+      mmInput.value = text
+      await sendMmText()
+    }
+  } catch {
+    mmRecording.value = false
+  }
+}
+
+async function mmTtsPlay(text) {
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    })
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    new Audio(url).play().catch(() => {})
+  } catch {}
+}
+
+// ── Annotate 图片批注 ──
+const annImage = ref('')
+const annResult = ref('')
+const annLoading = ref(false)
+
+function handleAnnFile(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => { annImage.value = reader.result; annResult.value = '' }
+  reader.readAsDataURL(file)
+}
+
+function handleAnnDrop(e) {
+  const file = e.dataTransfer.files[0]
+  if (!file || !file.type.startsWith('image/')) return
+  const reader = new FileReader()
+  reader.onload = () => { annImage.value = reader.result; annResult.value = '' }
+  reader.readAsDataURL(file)
+}
+
+async function runAnnotate() {
+  if (!annImage.value || annLoading.value) return
+  annLoading.value = true
+  annResult.value = ''
+
+  try {
+    const res = await fetch('/api/vision', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: annImage.value, prompt: '详细描述图片中每个区域的内容，用编号列出' })
+    })
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      for (const line of decoder.decode(value).split('\n')) {
+        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
+        try {
+          const data = JSON.parse(line.slice(6))
+          if (data.error) { annResult.value = `错误: ${data.error}`; break }
+          annResult.value += data.text || ''
+        } catch {}
+      }
+    }
+    markTested('annotate')
+  } catch (e) {
+    annResult.value = `错误: ${e.message}`
+  }
+  annLoading.value = false
+}
+
+onUnmounted(() => { stopCamera(); stopVoice(); closeParlorWs(); stopLiveVision(); stopDictation(); stopVvCamera(); stopSubtitle() })
 </script>
 
 <style scoped>
@@ -1122,5 +1903,126 @@ onUnmounted(() => { stopCamera(); stopVoice(); closeParlorWs(); stopLiveVision()
 .docqa-question-row button:disabled { opacity: 0.5; cursor: not-allowed; }
 .docqa-result {
   background: var(--surface-2, #1e293b); border-radius: 10px; padding: 16px;
+}
+
+/* Dictation 连续听写 */
+.dictation-panel { display: flex; flex-direction: column; gap: 16px; }
+.dictation-controls { display: flex; gap: 12px; align-items: center; }
+.dictation-text {
+  width: 100%; padding: 16px; border-radius: 10px; border: 1px solid var(--border, #334155);
+  background: var(--surface-2, #1e293b); color: var(--text); font-size: 15px;
+  resize: vertical; font-family: inherit; line-height: 1.6;
+}
+.dictation-footer {
+  display: flex; gap: 20px; font-size: 13px; color: var(--text-dim);
+}
+.btn-secondary {
+  padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border, #334155);
+  background: var(--surface-2, #1e293b); color: var(--text); cursor: pointer; font-size: 14px;
+}
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Vision Chat 看图聊天 */
+.vision-chat-panel { display: flex; flex-direction: column; gap: 16px; }
+.vc-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-height: 400px; }
+.vc-image-area {
+  border: 2px dashed var(--border, #334155); border-radius: 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.vc-image-area .preview-img { width: 100%; height: 100%; object-fit: contain; }
+.vc-chat-area { display: flex; flex-direction: column; gap: 8px; }
+.vc-chat-area .chat-messages { flex: 1; min-height: 300px; }
+
+/* Vision Voice 看图说话 */
+.vision-voice-panel { display: flex; flex-direction: column; gap: 16px; }
+.vv-controls { display: flex; flex-direction: column; gap: 12px; }
+.vv-result {
+  background: var(--surface-2, #1e293b); border-radius: 10px; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.btn-primary {
+  padding: 10px 20px; border-radius: 8px; border: none;
+  background: var(--accent, #3b82f6); color: white; cursor: pointer; font-size: 14px;
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Voice Note 语音笔记 */
+.voice-note-panel { display: flex; flex-direction: column; gap: 16px; }
+.vn-controls { display: flex; gap: 12px; align-items: center; }
+.vn-status { font-size: 13px; color: var(--text-dim); }
+.vn-results { display: flex; flex-direction: column; gap: 16px; }
+.vn-section {
+  background: var(--surface-2, #1e293b); border-radius: 10px; padding: 16px;
+}
+
+/* Subtitle 实时字幕 */
+.subtitle-panel { display: flex; flex-direction: column; gap: 16px; }
+.subtitle-controls { display: flex; gap: 12px; align-items: center; }
+.subtitle-size-btns { display: flex; gap: 4px; }
+.subtitle-size-btns button {
+  padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border, #334155);
+  background: var(--surface-2, #1e293b); color: var(--text); cursor: pointer; font-size: 13px;
+}
+.subtitle-size-btns button.active { background: var(--accent, #3b82f6); border-color: var(--accent, #3b82f6); }
+.subtitle-display {
+  background: #000; border-radius: 10px; padding: 32px; min-height: 300px;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+.subtitle-current {
+  color: #fff; text-align: center; margin-bottom: 24px; font-weight: 600;
+}
+.font-small .subtitle-current { font-size: 24px; }
+.font-medium .subtitle-current { font-size: 36px; }
+.font-large .subtitle-current { font-size: 52px; }
+.subtitle-history {
+  max-height: 150px; overflow-y: auto; width: 100%; text-align: center;
+}
+.subtitle-line { color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 4px; }
+
+/* Storyteller 故事讲述 */
+.storyteller-panel { display: flex; flex-direction: column; gap: 16px; }
+.story-controls { display: flex; gap: 8px; }
+.story-controls input {
+  flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border, #334155);
+  background: var(--surface-2, #1e293b); color: var(--text); font-size: 14px;
+}
+.story-controls button {
+  padding: 10px 20px; border-radius: 8px; border: none;
+  background: var(--accent, #3b82f6); color: white; cursor: pointer; font-size: 14px; white-space: nowrap;
+}
+.story-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+.story-result {
+  background: var(--surface-2, #1e293b); border-radius: 10px; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.story-audio-row { display: flex; gap: 12px; align-items: center; }
+
+/* Multimodal 多模态对话 */
+.multimodal-panel { display: flex; flex-direction: column; gap: 8px; }
+.multimodal-panel .chat-messages { flex: 1; min-height: 350px; }
+.mm-input-row { display: flex; gap: 8px; }
+.mm-input-row input {
+  flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border, #334155);
+  background: var(--surface-2, #1e293b); color: var(--text); font-size: 14px;
+}
+.mm-input-row button {
+  padding: 10px 16px; border-radius: 8px; border: none;
+  background: var(--accent, #3b82f6); color: white; cursor: pointer; font-size: 14px;
+}
+.mm-input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+.mm-msg-img { max-width: 200px; border-radius: 8px; margin-bottom: 4px; }
+
+/* Annotate 图片批注 */
+.annotate-panel { display: flex; flex-direction: column; gap: 16px; }
+.ann-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-height: 400px; }
+.ann-image-area {
+  border: 2px dashed var(--border, #334155); border-radius: 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.ann-image-area .preview-img { width: 100%; height: 100%; object-fit: contain; }
+.ann-result-area {
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--surface-2, #1e293b); border-radius: 10px; padding: 16px;
+  overflow-y: auto;
 }
 </style>
