@@ -399,6 +399,57 @@ function addRoutes(r) {
     }
   });
 
+  // Vision — multimodal image analysis via Ollama
+  r.post('/api/vision', async (req, res) => {
+    const { image, prompt = 'Describe this image in detail.' } = req.body;
+    if (!image) return res.status(400).json({ error: 'image (base64) required' });
+
+    const config = await getConfig();
+    const model = config.llm?.model || 'gemma4:e4b';
+    const host = config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+
+    // Strip data URI prefix if present
+    const base64 = image.replace(/^data:image\/\w+;base64,/, '');
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    try {
+      const response = await fetch(`${host}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt, images: [base64] }],
+          stream: true
+        })
+      });
+
+      if (!response.ok) throw new Error(`Ollama vision error: ${response.status}`);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        for (const line of decoder.decode(value).split('\n').filter(l => l.trim())) {
+          try {
+            const data = JSON.parse(line);
+            if (data.message?.content) {
+              res.write(`data: ${JSON.stringify({ type: 'content', text: data.message.content })}\n\n`);
+            }
+          } catch {}
+        }
+      }
+      res.write('data: [DONE]\n\n');
+    } catch (e) {
+      res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
+    }
+    res.end();
+  });
+
   r.get('/api/perf', (_req, res) => res.json(getMetrics()));
 
   r.get('/api/logs', (req, res) => res.json(logBuffer.slice(-50)));
