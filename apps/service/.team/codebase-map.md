@@ -143,10 +143,10 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **905/916 tests pass** (98.8%) — 0 failures, 11 skipped, 169 test files
+- **904/916 tests pass** (98.7%) — 1 failure, 11 skipped, 169 test files
+- Failing: `test/m21-profiles.test.js` — test isolation bug: m28-profiles-cache.test.js writes real cache files with empty profiles to `~/.agentic-service/profiles.json`; when m21 runs after m28 in the same vitest process, the cached empty-profiles data causes `matchProfile()` to throw "No matching profile found". m21 passes in isolation.
 - All previously failing tests (m76-embed-wiring, m77-sense-imports, m28-profiles-cache) now pass
 - m62-sigint-integration: all 4 tests pass
-- Full green: `npx vitest run` → 169 passed, 0 failed
 
 ## Known Issues (from gap analysis)
 
@@ -168,6 +168,7 @@ src/store/index.js  → agentic-store
 - `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js, runtime/memory.js) — CR cr-1775847503256 submitted
+- Test isolation: m28-profiles-cache.test.js writes real cache to disk, polluting m21-profiles.test.js — fix: mock fs in m21 or use vitest `--isolate` per-file, or have m28 use tmp dirs instead of real `~/.agentic-service/`
 
 ### Architecture Notes (Vision references that map to different files)
 - Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js (CR cr-1775847503256 submitted to update VISION.md)
