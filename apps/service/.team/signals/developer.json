@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T20:10:03.489Z",
+  "timestamp": "2026-04-10T20:10:17.982Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No available tasks — all todo tasks with designs are assigned to architect, no unblocked/unassigned developer tasks remain."
+  "summary": "No claimable developer tasks available. 2 remaining todo tasks (task-1775847821786, task-1775849914280) are architect-scoped and target VISION.md/ARCHITECTURE.md which are outside developer write permissions. 254 tasks done, 341 cancelled, 0 in progress."
 }
