@@ -3,29 +3,29 @@
 **ARCHITECTURE.md Section:** 2. Runtime（服务运行时）
 **Status:** ready-for-review
 
-## LLM (src/runtime/llm.js)
+## LLM — lives in src/server/brain.js (NOT src/runtime/)
 
-### Verified Exports
+⚠️ There is no `src/runtime/llm.js`. All LLM chat + fallback logic is in `src/server/brain.js`.
+See `.team/designs/server.design.md` for brain.js details.
+
+### Verified Exports (src/server/brain.js)
 ```javascript
-export async function* chat(messageOrText, options = {})  // line 112
+export function registerTool(name, fn)                          // line 49
+export async function* chat(input, options = {})                // line 264
+export async function chatSession(sessionId, userMessage, options = {})  // line 279
 ```
 
-### Current Fallback Logic (lines 121-148)
-1. Try `chatWithOllama(messages)` — 30s AbortSignal timeout
-2. On ANY error → fall back to cloud
-3. Cloud provider selected from `config.fallback.provider` (openai | anthropic)
-
-### PRD-Required Fallback (task-1775793599517)
-Must add:
-- **Timeout trigger:** If Ollama first-token >5s, abort and switch to cloud
-- **Consecutive error counter:** Track errors; 3 consecutive → enter cloud mode
-- **Auto-restore:** When in cloud mode, probe Ollama every 60s; on success, restore local
-- **State:** Module-level `let _cloudMode = false; let _errorCount = 0; let _probeTimer = null`
+### Cloud Fallback — IMPLEMENTED (brain.js lines 8-47, 99-171)
+- **Timeout trigger:** `FIRST_TOKEN_TIMEOUT_MS = 5000` — AbortController aborts if no first token
+- **Consecutive errors:** `MAX_ERRORS = 3` — `_errorCount++` on failure, cloud mode at threshold
+- **Auto-restore:** `PROBE_INTERVAL_MS = 60000` — probes `${ollamaHost}/api/tags`, restores on success
+- **Config reset:** `onConfigChange` resets `_cloudMode`, `_errorCount`, stops probing
+- **Fallback slot:** `resolveModel('chatFallback')` from model pool
 
 ### Internal Dependencies
-- `../config.js` → `getConfig`, `onConfigChange`
-- `./latency-log.js` → `record`
-- `./profiler.js` → `startMark`, `endMark`
+- `../config.js` → `getConfig`, `getModelPool`, `getAssignments`, `onConfigChange`
+- `./hub.js` → `getSession`, `broadcastSession`
+- `../runtime/profiler.js` → `startMark`, `endMark`
 
 ## Memory (src/runtime/memory.js)
 

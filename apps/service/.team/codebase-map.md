@@ -18,7 +18,8 @@ bin/
   agentic-service.js          (50 lines)  CLI entry — starts server, runs setup
 
 src/
-  config.js                   (330 lines) Unified config center — getConfig/setConfig/onConfigChange/model pool
+  index.js                    (10 lines)  Package entry — re-exports startServer/detect/getProfile/matchProfile
+  config.js                   (341 lines) Unified config center — getConfig/setConfig/watchConfig/loadConfig/model pool
 
   cli/
     setup.js                  (253 lines) First-run wizard — hardware detect, profile match, Ollama install
@@ -41,32 +42,32 @@ src/
     whisper.js                (66 lines)  Whisper engine — whisper.cpp/SenseVoice STT model discovery
 
   runtime/
-    stt.js                    (39 lines)  Speech-to-text — init(config), transcribe(audioBuffer)
+    stt.js                    (51 lines)  Speech-to-text — init(config), transcribe(audioBuffer)
     tts.js                    (71 lines)  Text-to-speech — init(config), synthesize(text)
     sense.js                  (120 lines) Visual perception — detect(frame), start()/stop(), startHeadless()
-    embed.js                  (7 lines)   Vector embedding — embed(text) via agentic-embed
-    profiler.js               (30 lines)  CPU profiling — startMark/endMark/getMetrics
-    latency-log.js            (18 lines)  Latency recording — record(label, ms), getLog()
-    vad.js                    (10 lines)  Voice activity detection — detectVoiceActivity(buffer)
+    embed.js                  (9 lines)   Vector embedding — embed(text) via agentic-embed
+    profiler.js               (29 lines)  CPU profiling — startMark/endMark/getMetrics
+    latency-log.js            (17 lines)  Latency recording — record(label, ms), getLog()
+    vad.js                    (9 lines)   Voice activity detection — createVAD(options)
     adapters/
-      embed.js                (~10 lines) Stub adapter (throws 'not implemented')
-      sense.js                (~40 lines) agentic-sense adapter — createPipeline()
+      embed.js                (3 lines)   Stub adapter (throws 'not implemented')
+      sense.js                (7 lines)   agentic-sense adapter — createPipeline()
       voice/
         elevenlabs.js         (48 lines)  ElevenLabs TTS adapter
         macos-say.js          (61 lines)  macOS say command adapter
         openai-tts.js         (24 lines)  OpenAI TTS adapter
-        openai-whisper.js     (~30 lines) OpenAI Whisper STT adapter
+        openai-whisper.js     (9 lines)   OpenAI Whisper STT adapter
         piper.js              (119 lines) Piper TTS adapter (auto-downloads binary)
         sensevoice.js         (21 lines)  SenseVoice STT adapter (HTTP API)
         whisper.js            (29 lines)  Whisper.cpp STT adapter (local binary)
 
   server/
-    api.js                    (661 lines) Express routes — REST + OpenAI-compatible + admin + voice
-    brain.js                  (217 lines) LLM inference + tool calling + cloud fallback — chat(), registerTool(), chatSession()
-    hub.js                    (312 lines) WebSocket device mgmt — init(), joinSession(), broadcastSession()
-    middleware.js             (5 lines)   Error handler only
-    cert.js                   (~30 lines) Self-signed cert generation — generateCert()
-    httpsServer.js            (~20 lines) HTTPS server factory — createHttpsServer(app)
+    api.js                    (812 lines) Express routes — REST + OpenAI-compatible + Anthropic-compatible + admin + voice + /api/perf
+    brain.js                  (299 lines) LLM inference + tool calling + cloud fallback — chat(), registerTool(), chatSession()
+    hub.js                    (313 lines) WebSocket device mgmt — init(), joinSession(), broadcastSession()
+    middleware.js             (4 lines)   Error handler only
+    cert.js                   (7 lines)   Self-signed cert generation — generateCert()
+    httpsServer.js            (7 lines)   HTTPS server factory — createHttpsServer(app)
 
   store/
     index.js                  (29 lines)  KV store wrapper — get/set/del/delete via agentic-store
@@ -95,8 +96,8 @@ install/
   docker-compose.yml          Docker Compose (port 1234, OLLAMA_HOST, config + data volumes)
   docker-build.sh             Docker build helper
 
-Dockerfile                    Root Docker image (port 3000)
-docker-compose.yml            Root Docker Compose (port 3000, no OLLAMA_HOST, no data volume)
+Dockerfile                    Root Docker image (⚠️ EXPOSE 3000 — should be 1234, task pending)
+docker-compose.yml            Root Docker Compose (port 1234, OLLAMA_HOST, ./data volume)
 ```
 
 ## Module Dependencies
@@ -140,16 +141,29 @@ src/store/index.js  → agentic-store
 | selfsigned | HTTPS cert generation | ^1.10.14 |
 | node-record-lpcm16 | Microphone recording | ^1.0.1 |
 
+## Test Status
+
+- **905/916 tests pass** (98.8%) — 0 failures, 11 skipped, 169 test files
+- All previously failing m76-embed-wiring and m77-sense-imports tests now pass
+
 ## Known Issues (from gap analysis)
 
-- ~~`src/index.js` missing~~ — RESOLVED: src/index.js exists, exports startServer/detect/getProfile/chat/stt/tts/embed
-- ~~Root `docker-compose.yml` exposes port 3000~~ — RESOLVED: now maps 1234:1234 with OLLAMA_HOST and ./data volume
-- ~~Root `docker-compose.yml` missing OLLAMA_HOST env var and ./data volume~~ — RESOLVED
-- ~~Cloud fallback triggers on error only~~ — RESOLVED: brain.js now has 5s first-token timeout, 3-error threshold, 60s probe recovery
-- ~~`#agentic-voice` import map dead~~ — RESOLVED: removed in commit e699e630
-- `#agentic-embed` import map in package.json is dead — CR submitted (cr-1775840326577), task-1775840057892 in review
+### Resolved
+- ~~`src/index.js` missing~~ — src/index.js exists, exports startServer/detect/getProfile/chat/stt/tts/embed
+- ~~Root `docker-compose.yml` port 3000~~ — now maps 1234:1234 with OLLAMA_HOST and ./data volume
+- ~~`#agentic-voice` import map dead~~ — removed in commit e699e630
+- ~~`#agentic-embed` import map dead~~ — removed in commit b4c9d5ce
+- ~~Cloud fallback error-only~~ — brain.js now has 5s first-token timeout, 3-error threshold, 60s probe recovery
+- ~~ARCHITECTURE.md stale CR content~~ — cleaned up, all sections contain legitimate module docs
+- ~~ARCHITECTURE.md incomplete directory tree~~ — now lists all 80+ source files
+
+### Open
+- Root `Dockerfile` line 13 has `EXPOSE 3000` — should be `EXPOSE 1234` (CR cr-1775847210532 resolved, developer task pending)
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
-- `adapters/embed.js` is a stub that throws 'not implemented' — dead code, actual embed uses agentic-embed directly via runtime/embed.js
-- `src/detector/optimizer.js` — referenced in Vision but does not exist on disk; hardware optimization logic is in profiles.js + matcher.js
-- `src/runtime/llm.js` — referenced in Vision but does not exist; LLM logic lives in server/brain.js
-- `src/runtime/memory.js` — referenced in Vision but does not exist; store/index.js + embed.js provide the primitives
+- `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
+- mDNS/Bonjour `.local` hostname discovery not implemented — only raw LAN IP display
+
+### Architecture Notes (Vision references that map to different files)
+- Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js (CR cr-1775847503256 submitted to update VISION.md)
+- Vision's `runtime/llm.js` → LLM logic lives in server/brain.js
+- Vision's `runtime/memory.js` → store/index.js + embed.js provide the primitives

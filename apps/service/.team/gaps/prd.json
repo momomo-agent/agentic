@@ -1,6 +1,6 @@
 {
-  "match": 58,
-  "timestamp": "2026-04-10T12:00:00.000Z",
+  "match": 90,
+  "timestamp": "2026-04-11T19:20:00.000Z",
   "gaps": [
     {
       "description": "Hardware detector — detect GPU/memory/arch/OS (hardware.js)",
@@ -73,10 +73,9 @@
       "severity": "major"
     },
     {
-      "description": "Cloud fallback — llm.js tries Ollama first, falls back to cloud on error; uses profile.fallback.provider config",
-      "status": "partial",
-      "severity": "major",
-      "detail": "Fallback triggers on Ollama error only, not on timeout >5s or 3 consecutive errors as PRD specifies; no auto-restore after 60s probe"
+      "description": "Cloud fallback — brain.js implements full fallback: FIRST_TOKEN_TIMEOUT_MS=5000, MAX_ERRORS=3 consecutive errors, PROBE_INTERVAL_MS=60000 auto-restore",
+      "status": "implemented",
+      "severity": "major"
     },
     {
       "description": "Config hot-reload — watchProfiles() polls every 30s with ETag-based conditional fetching (profiles.js)",
@@ -84,7 +83,7 @@
       "severity": "major"
     },
     {
-      "description": "Docker deployment — Dockerfile + docker-compose.yml + setup.sh in install/ directory",
+      "description": "Docker deployment — Dockerfile + docker-compose.yml with port 1234, OLLAMA_HOST env var, ./data volume mount",
       "status": "implemented",
       "severity": "major"
     },
@@ -124,29 +123,25 @@
       "severity": "minor"
     },
     {
-      "description": "mDNS/Bonjour for .local hostname discovery — not implemented; only raw LAN IP display available",
+      "description": "mDNS/Bonjour for .local hostname discovery — nice-to-have; tunnel.js (ngrok/cloudflared) provides acceptable LAN access alternative",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "Root docker-compose.yml missing OLLAMA_HOST env var — required for containerized Ollama connectivity",
-      "status": "missing",
+      "description": "Documentation + README — README.md with install methods, API endpoints, architecture, troubleshooting section",
+      "status": "implemented",
       "severity": "major"
     },
     {
-      "description": "Root docker-compose.yml missing ./data volume mount — install/docker-compose.yml mounts config volume but root does not",
-      "status": "missing",
-      "severity": "major"
-    },
-    {
-      "description": "Documentation + README — README.md exists with install methods, API endpoints, architecture; missing troubleshooting section",
+      "description": "Test suite — 169 test files, 912 tests; 1 test failing (m28-profiles-cache.test.js — cache freshness check calls fetch unexpectedly)",
       "status": "partial",
-      "severity": "major"
+      "severity": "minor",
+      "detail": "1 test file fails: m28-profiles-cache.test.js asserts no fetch when cache is fresh, but fetch is being called. Previous stale embed tests (m76, m77) were fixed in task-1775847599432."
     },
     {
-      "description": "Test suite — 80+ test files exist but pass/fail status unverified; previous assessment noted ~36 failures",
-      "status": "partial",
-      "severity": "major"
+      "description": "Root Dockerfile EXPOSE 1234 — matches service default port",
+      "status": "implemented",
+      "severity": "minor"
     }
   ]
 }

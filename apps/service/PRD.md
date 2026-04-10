@@ -19,7 +19,7 @@ agentic-service 是一个本地优先的 AI 服务，自动检测硬件、选择
 3. **Profile 匹配** (`src/detector/matcher.js`) — 根据硬件检测结果匹配最优 profile
 4. **Ollama 集成** (`src/detector/ollama.js`) — 自动检测/安装 Ollama + 拉取推荐模型，显示下载进度
 5. **Sox 检测** (`src/detector/sox.js`) — 自动检测/安装 sox 音频工具（ensureSox）
-6. **基础 HTTP 服务** (`src/server/api.js`) — REST API：/api/chat (SSE streaming)、/api/transcribe、/api/synthesize、/api/voice、/api/status、/api/config、/health
+6. **基础 HTTP 服务** (`src/server/api.js`) — REST API（完整端点列表见「REST API 端点」章节）
 7. **Web UI（最小版）** (`src/ui/client/`) — Vue 3 + Vite 客户端，文本聊天对话框，SSE streaming 显示
 8. **一键安装** — `npx agentic-service` 通过 `bin/agentic-service.js` + `src/cli/setup.js` 首次启动自动配置
 
@@ -74,8 +74,8 @@ agentic-service 是一个本地优先的 AI 服务，自动检测硬件、选择
 2. **视觉感知** (`src/runtime/sense.js`) — 封装 agentic-sense，导出 init/on/start/stop/detect/startWakeWordPipeline/stopWakeWordPipeline/initHeadless/startHeadless/detectFrame
 3. **感知适配器** (`src/runtime/adapters/sense.js`) — agentic-sense 适配层
 4. **设备工具** — sendCommand() 支持 capture/speak/display，capture 支持超时处理
-5. **管理面板** (`src/ui/admin/`) — 从 GET /api/status 获取设备列表，从 GET /api/config 获取配置
-6. **记忆模块** (`src/store/index.js` + `src/runtime/embed.js`) — search(query, topK) 和 add()，使用 agentic-store + agentic-embed 向量嵌入
+5. **管理面板** (`src/ui/admin/`) — Vue 3 管理后台（完整视图列表见「管理面板」章节）
+6. **KV 存储** (`src/store/index.js`) — 封装 agentic-store，导出 get/set/del/delete；向量嵌入通过 `src/runtime/embed.js` 封装 agentic-embed
 7. **HTTPS/LAN 隧道** — `server/httpsServer.js` + `server/cert.js` 支持 HTTPS；`tunnel.js` 支持 ngrok/cloudflared 跨网络访问
 
 ### 技术规格
@@ -163,7 +163,11 @@ agentic-service 是一个本地优先的 AI 服务，自动检测硬件、选择
 - `onConfigChange(fn)` — 注册配置变更监听
 - `reloadConfig()` — 强制重新读取磁盘
 - `getModelPool()` — 获取模型池（合并 Ollama 自动发现 + 配置的云端模型）
+- `addToPool(model)` — 添加模型到池（持久化）
+- `removeFromPool(id)` — 从池中移除模型
 - `getAssignments()` — 获取能力槽位分配
+- `setAssignments(updates)` — 更新能力槽位分配
+- `CONFIG_PATH` — 配置文件路径常量
 - `CAPABILITIES` — `['chat', 'vision', 'stt', 'tts', 'embedding']`
 
 ---
@@ -229,6 +233,125 @@ CONFIG_CHANGE → 重置为 LOCAL
 
 ---
 
+## REST API 端点
+
+`src/server/api.js` 提供以下完整 REST API：
+
+### 健康检查 & 状态
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/health` | 健康检查 |
+| GET | `/api/status` | 返回硬件、配置、Ollama 状态、设备列表、下载状态 |
+| GET | `/api/devices` | 返回已连接设备列表 |
+| GET | `/api/logs` | 返回最近 50 条日志 |
+| GET | `/api/perf` | 返回性能指标（profiler 数据） |
+
+### 对话 & 聊天
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/chat` | 聊天端点，支持 SSE streaming、工具调用、session 追踪；接受 `message` 或 `messages` 格式 |
+
+### 语音 & 视觉
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/transcribe` | 语音转文字（STT） |
+| POST | `/api/synthesize` | 文字转语音（TTS） |
+| POST | `/api/tts` | `/api/synthesize` 别名 |
+| POST | `/api/voice` | 完整语音管线（STT → LLM → TTS） |
+| POST | `/api/vision` | 多模态图像分析，支持云端和本地 Ollama |
+
+### 配置管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/config` | 获取当前配置 |
+| PUT | `/api/config` | 更新配置 |
+
+### 模型池 & 能力分配
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/model-pool` | 获取模型池（合并 Ollama 自动发现 + 配置的云端模型） |
+| POST | `/api/model-pool` | 添加模型到池 |
+| DELETE | `/api/model-pool/:id` | 从池中移除模型 |
+| GET | `/api/assignments` | 获取能力槽位分配 |
+| PUT | `/api/assignments` | 更新能力槽位分配 |
+
+### 模型管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/models/pull` | 拉取/下载模型（streaming 进度） |
+| DELETE | `/api/models/:name` | 删除模型 |
+
+### 引擎发现
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/engines` | 列出可用引擎及状态 |
+| GET | `/api/engines/models` | 跨引擎发现可用模型 |
+| GET | `/api/engines/recommended` | 获取推荐模型 |
+
+### Ollama 代理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/ollama/tags` | 代理 Ollama tags API |
+| POST | `/api/ollama/pull` | 代理 Ollama pull（streaming） |
+| DELETE | `/api/ollama/delete` | 代理 Ollama delete |
+
+### OpenAI / Anthropic 兼容 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/v1/models` | OpenAI 兼容模型列表 |
+| POST | `/v1/chat/completions` | OpenAI 兼容聊天补全（支持 streaming 和工具调用） |
+| POST | `/v1/messages` | Anthropic 兼容消息端点（支持 streaming） |
+
+### 静态资源
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/` | 管理面板首页 |
+| GET | `/admin` | 管理面板（no-store 缓存） |
+| GET | `/admin/*` | 管理面板静态资源 |
+| GET | `/examples/*` | 示例文件 |
+| GET | `/packages/*` | 包文件 |
+
+---
+
+## 管理面板
+
+`src/ui/admin/` — Vue 3 管理后台，提供完整的模型管理、配置、监控界面。
+
+### 视图
+
+| 视图 | 文件 | 说明 |
+|------|------|------|
+| 状态总览 | `StatusView.vue` | 系统状态仪表盘：服务状态、Ollama、STT/TTS 配置 |
+| 统一模型管理 | `ModelsView.vue` | 已安装模型列表（含引擎标签和能力），支持删除 |
+| 本地模型 | `LocalModelsView.vue` | Ollama 本地模型管理：状态监控、安装指南、推荐模型、自定义拉取 |
+| 云端模型 | `CloudModelsView.vue` | 云端模型管理：添加/编辑/删除，支持 OpenAI/Anthropic/Google/Groq/ElevenLabs/自定义 |
+| 能力配置 | `ConfigView.vue` | 能力槽位分配：chat/vision/stt/tts/embedding + chatFallback + ollamaHost |
+| 日志 | `LogsView.vue` | 日志查看器：按级别过滤、搜索 |
+| 示例 | `ExamplesView.vue` | 示例库：分类过滤、测试状态 |
+| 测试 | `TestView.vue` | API 端点测试界面：分组测试、状态追踪 |
+
+### 组件
+
+| 组件 | 文件 | 说明 |
+|------|------|------|
+| 系统状态 | `SystemStatus.vue` | 硬件信息和当前 profile 展示 |
+| 设备列表 | `DeviceList.vue` | 已注册设备表格：ID、名称、类型、状态 |
+| 日志查看器 | `LogViewer.vue` | 可滚动日志展示，新条目自动滚动 |
+| 配置面板 | `ConfigPanel.vue` | LLM/STT/TTS 提供商编辑表单 |
+| 硬件面板 | `HardwarePanel.vue` | 硬件属性定义列表 |
+
+---
+
 ## 入口文件
 
 - `src/index.js` — 包的主入口（package.json `main` 字段），导出核心 API：
@@ -245,13 +368,15 @@ CONFIG_CHANGE → 重置为 LOCAL
 
 ## 测试
 
-- 166 个测试文件，845 个测试用例全部通过
+- 169 个测试文件，912 个测试用例（900 passed, 1 failed, 11 skipped）
+- 当前失败：`test/m28-profiles-cache.test.js` — cache 新鲜度检查中 fetch 被意外调用（待修复）
+- 之前的 stale tests（m76-embed-wiring, m77-sense-imports）已在 task-1775847599432 中修复
 - 覆盖率阈值 ≥98%（vitest 配置）
-- 关键测试领域：硬件检测、引擎注册、配置系统、brain fallback、WebSocket hub、语音管线、Docker 部署、REST API 端点
+- 关键测试领域：硬件检测、引擎注册、配置系统、brain fallback、WebSocket hub、语音管线、Docker 部署、REST API 端点、embed 构建验证
 
 ---
 
 ## 已知限制
 
-- **mDNS/Bonjour** — 未实现 `.local` 主机名发现，当前仅显示 LAN IP 地址
+- **mDNS/Bonjour** — 未实现 `.local` 主机名发现，当前通过 `tunnel.js`（ngrok/cloudflared）提供跨网络 LAN 访问作为替代方案。mDNS 为 nice-to-have，不阻塞发布
 - **embed.js 适配器** — `src/runtime/adapters/embed.js` 为 stub，实际嵌入通过 `src/runtime/embed.js` 使用 agentic-embed 包

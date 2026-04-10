@@ -6,18 +6,28 @@
     "read-spec",
     "implement",
     "self-verify-build",
+    "self-verify-test",
+    "implement",
+    "self-verify-build",
+    "self-verify-test",
+    "implement",
+    "self-verify-build",
+    "self-verify-test",
+    "implement",
+    "self-verify-build",
+    "self-verify-test",
     "implement",
     "self-verify-build",
     "self-verify-test",
     "commit"
   ],
   "loopIterations": {},
-  "transitionDepth": 7,
+  "transitionDepth": 17,
   "nodeVisitCounts": {
     "read-spec": 1,
-    "implement": 2,
-    "self-verify-build": 2,
-    "self-verify-test": 1,
+    "implement": 5,
+    "self-verify-build": 5,
+    "self-verify-test": 5,
     "commit": 1
   },
   "contextOverrides": {
@@ -25,9 +35,9 @@
     "buildPassed": 1,
     "retryCount": 0,
     "testPassed": 1,
-    "unitPassed": 1,
-    "integrationPassed": 1,
+    "unitPassed": 0,
+    "integrationPassed": 0,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T18:46:00.301Z"
+  "timestamp": "2026-04-10T19:05:43.689Z"
 }

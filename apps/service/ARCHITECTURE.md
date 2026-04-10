@@ -265,6 +265,7 @@ createApp() → { app, server }
 //   GET  /health
 //   GET  /v1/models              (OpenAI 兼容)
 //   POST /v1/chat/completions    (OpenAI 兼容)
+//   POST /v1/messages            (Anthropic 兼容)
 //   POST /api/chat               (流式聊天)
 //   POST /api/transcribe         (STT)
 //   POST /api/synthesize         (TTS)
@@ -408,8 +409,7 @@ embed(text) → number[]  // bge-m3 向量嵌入
 // runtime/adapters/sense.js — agentic-sense 适配层
 createPipeline(options?) → AgenticSense  // 创建 MediaPipe 感知管道
 
-// runtime/adapters/embed.js — stub（未使用，实际嵌入走 runtime/embed.js → agentic-embed）
-embed(text) → throws 'not implemented'
+// runtime/adapters/embed.js — ⚠️ 死代码 stub（实际嵌入走 runtime/embed.js → agentic-embed，此文件可删除）
 
 // runtime/adapters/voice/ — 语音适配器
 //   sensevoice.js  — SenseVoice STT (HTTP API, Apple Silicon 本地)
@@ -492,3 +492,10 @@ docker-compose up
 3. **零配置** — 开箱即用，首次运行自动完成所有设置
 4. **模块化** — 每个能力独立模块，统一接口，可替换适配器
 5. **流式优先** — LLM/STT/TTS 全部支持流式处理，降低感知延迟
+
+## 已知限制
+
+1. **middleware.js 仅含错误处理** — 无请求验证、速率限制或安全中间件。本地优先架构下可接受，生产部署需增强。
+2. **adapters/embed.js 是死代码** — 抛出 'not implemented'，实际嵌入通过 runtime/embed.js → agentic-embed 包。
+3. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
+4. **根 Dockerfile EXPOSE 3000** — 应为 1234（install/Dockerfile 已正确，根 Dockerfile 待修复）。

@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T18:41:37.744Z",
+  "timestamp": "2026-04-10T19:04:36.873Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Updated ARCHITECTURE.md: expanded runtime/sense.js API with full wake word pipeline functions (init/on/detect/start/stop/initHeadless/startHeadless/detectFrame/startWakeWordPipeline/stopWakeWordPipeline), added section 11 Runtime Adapters documenting sense.js adapter, embed.js stub, and all 7 voice adapters, expanded profiler.js with measurePipeline(), fixed latency-log.js exports to match actual API (record/p95/reset), added sox.js and download-state.js to CLI section. Updated codebase-map.md known issues with resolved #agentic-voice import map and latest status. Architecture now at 494 lines with 11 formal module sections covering all source files."
+  "summary": "Codebase survey verified ARCHITECTURE.md (502 lines) is accurate and comprehensive. Updated codebase-map.md with current test status (899/912 pass, 98.6%). All prior CRs for Dockerfile port fix and stale tests are already submitted and resolved with developer tasks pending. No new architecture changes or CRs needed."
 }
