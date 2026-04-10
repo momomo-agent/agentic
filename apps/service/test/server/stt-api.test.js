@@ -28,8 +28,8 @@ describe('POST /api/transcribe', () => {
   beforeEach(async () => {
     mockTranscribe.mockReset();
     const { startServer } = await import('../../src/server/api.js');
-    const port = 3300 + Math.floor(Math.random() * 100);
-    server = await startServer(port);
+    server = await startServer(0);
+    const port = server.address().port;
     baseUrl = `http://localhost:${port}`;
   });
 
