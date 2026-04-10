@@ -1,0 +1,91 @@
+{
+  "milestoneId": "m98",
+  "match": 95,
+  "timestamp": "2026-04-11T04:00:00.000Z",
+  "criteria": [
+    {
+      "criterion": "DBB-001: src/index.js exports startServer, detect, getProfile, chat, stt, tts, embed",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-002: src/index.js require does not throw",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-003: Docker port 1234 mapping",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-004: Docker OLLAMA_HOST env var",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-005: Docker data volume mount",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-006: Cloud fallback — timeout trigger >5s",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-007: Cloud fallback — consecutive error trigger (3 errors)",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-008: Cloud fallback — auto-restore probe at 60s",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-009: Cloud fallback — stays in fallback on probe failure",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-010: README troubleshooting section",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-011: ARCHITECTURE.md — no stale CR content",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-012: ARCHITECTURE.md — directory tree accuracy",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-013: Cloud fallback — single error does not trigger",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-014: Cloud fallback — timeout boundary (exactly 5s does not trigger)",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-015: ARCHITECTURE.md — store module documented",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-016: ARCHITECTURE.md — runtime adapters documented",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-017: ARCHITECTURE.md — sense.js full API documented",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-018: ARCHITECTURE.md — instrumentation utilities documented",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-019: ARCHITECTURE.md — utility modules documented",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-020: VISION.md — stale file names corrected (optimizer.js → matcher.js, runtime/llm.js → server/brain.js)",
+      "status": "fail"
+    },
+    {
+      "criterion": "DBB-021: Test suite — all 174 files pass, 0 failures",
+      "status": "pass"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-10T12:00:00Z",
+  "timestamp": "2026-04-11T08:30:00Z",
   "checks": [
     {
       "from": "vision",
@@ -26,7 +26,7 @@
           "description": "PRD M3 adds memory module (vector embedding search) which is not mentioned in Vision core features",
           "severity": "minor",
           "from_item": "Vision does not mention memory/vector search as a core feature",
-          "to_item": "M3 feature 5: memory.js 暴露 search(query, topK) 和 add()，使用 agentic-store + agentic-embed 向量嵌入"
+          "to_item": "M3 feature 6: KV 存储 + 向量嵌入 via agentic-store + agentic-embed"
         }
       ]
     },
@@ -34,49 +34,28 @@
       "from": "prd",
       "to": "architecture",
       "aligned": true,
-      "coverage": 90,
+      "coverage": 95,
       "issues": [
         {
-          "type": "contradiction",
-          "description": "PRD specifies default port 1234 (bin/agentic-service.js), Architecture Docker example uses port 3000",
-          "severity": "major",
-          "from_item": "M4 tech spec: 默认端口 — 1234 (bin/agentic-service.js)",
-          "to_item": "Architecture install flow: docker run -p 3000:3000 momomo/agentic-service; 打开浏览器 → http://localhost:3000"
+          "type": "drift",
+          "description": "PRD specifies latency-log.js with record()/p95()/reset() API, Architecture documents record(stage, ms)/p95(stage)/reset() — Architecture adds a 'stage' parameter not in PRD",
+          "severity": "minor",
+          "from_item": "PRD: latency-log.js 提供 record()、p95()、reset() 用于延迟统计",
+          "to_item": "Architecture: latencyLog.record(stage, ms), latencyLog.p95(stage), latencyLog.reset() — adds 'stage' parameter"
         },
         {
           "type": "missing",
-          "description": "PRD M2 specifies profiler.js enforcing 2000ms voice latency budget — not documented in Architecture",
+          "description": "PRD REST API table lists GET /api/devices as a dedicated endpoint, Architecture api.js route listing omits it (device info is embedded in GET /api/status instead)",
           "severity": "minor",
-          "from_item": "M2 tech spec: profiler.js 强制 2000ms 预算",
-          "to_item": "Architecture has no profiler.js module or latency enforcement mechanism documented"
+          "from_item": "PRD REST API: GET /api/devices — 返回已连接设备列表",
+          "to_item": "Architecture server/api.js routes list omits /api/devices; GET /api/status returns device info as part of status payload"
         },
         {
-          "type": "missing",
-          "description": "PRD M4 specifies package.json main as src/index.js exporting startServer, detector, runtime — Architecture does not document this entry point",
+          "type": "scope_creep",
+          "description": "Architecture config.js adds 'code' capability slot not defined in PRD CAPABILITIES list",
           "severity": "minor",
-          "from_item": "M4 tech spec: package.json main — src/index.js 导出核心 API (startServer, detector, runtime)",
-          "to_item": "Architecture does not document src/index.js as the main export entry point"
-        },
-        {
-          "type": "missing",
-          "description": "PRD M3 specifies WebSocket message format {type, deviceId, payload, ts} and registration handshake — Architecture hub.js section lacks this protocol detail",
-          "severity": "minor",
-          "from_item": "M3 tech spec: WebSocket 消息格式 — {type, deviceId, payload, ts}; 注册握手 — 客户端发送 {type: 'register', deviceId, capabilities}",
-          "to_item": "Architecture server/hub.js section says '设备管理' without specifying message format or handshake protocol"
-        },
-        {
-          "type": "missing",
-          "description": "PRD M2 specifies wake word detection in runtime/sense.js with configurable default 'hey' — Architecture sense.js section does not document wake word functionality",
-          "severity": "minor",
-          "from_item": "M2 feature 5: 唤醒词 — 可配置唤醒词（默认 'hey'），audio-level 检测 (runtime/sense.js)",
-          "to_item": "Architecture sense.js is only mentioned under agentic-sense dependency, no wake word documentation"
-        },
-        {
-          "type": "missing",
-          "description": "PRD M4 specifies profiles CDN with 4-layer fallback (fresh cache → remote → stale cache → default.json) — Architecture profiles.js only says '远程拉取 + 本地缓存'",
-          "severity": "minor",
-          "from_item": "M4 feature 5: 4 层 fallback：新鲜缓存 → 远程获取 → 过期缓存 → 内置 default.json",
-          "to_item": "Architecture detector/profiles.js: '远程拉取 + 本地缓存' — no 4-layer fallback documented"
+          "from_item": "PRD config system: CAPABILITIES — ['chat', 'vision', 'stt', 'tts', 'embedding']",
+          "to_item": "Architecture config.js: 能力槽: chat, code, vision, embedding, stt, tts — adds 'code' slot"
         }
       ]
     },
@@ -84,35 +63,21 @@
       "from": "architecture",
       "to": "tasks",
       "aligned": true,
-      "coverage": 88,
+      "coverage": 92,
       "issues": [
         {
-          "type": "missing",
-          "description": "Docker build verification task was cancelled — Architecture specifies install/Dockerfile and docker-compose.yml but no completed task validates Docker deployment",
-          "severity": "major",
-          "from_item": "Architecture: install/ directory with Dockerfile, docker-compose.yml",
-          "to_item": "Task 'Docker build and docker-compose end-to-end verification' — status: cancelled"
-        },
-        {
-          "type": "missing",
-          "description": "Test coverage threshold enforcement tasks were cancelled — no completed task ensures test quality gate",
-          "severity": "minor",
-          "from_item": "Architecture implies testable modules under test/ directory",
-          "to_item": "Tasks 'Configure vitest coverage threshold >=98%' and 'Verify test coverage >=98% threshold' — status: cancelled"
-        },
-        {
-          "type": "missing",
-          "description": "CDN real endpoint configuration task was cancelled — profiles.js CDN URL not validated against a real endpoint",
-          "severity": "minor",
-          "from_item": "Architecture: detector/profiles.js remote fetch from CDN",
-          "to_item": "Task 'CDN真实端点 + profiles.js配置' — status: cancelled (though 'CDN profiles真实端点配置' is done)"
-        },
-        {
           "type": "drift",
-          "description": "Many architecture components have duplicate completed tasks (e.g., 5+ 'Wire agentic-sense as external package' tasks marked done), suggesting rework cycles rather than clean implementation",
+          "description": "342 cancelled tasks vs 267 done tasks — high cancellation rate indicates significant rework cycles across many components (Docker, agentic-sense, optimizer.js, VAD). All components now covered by at least one done task.",
           "severity": "minor",
-          "from_item": "Architecture: clean module boundaries for agentic-sense, agentic-voice, agentic-store",
-          "to_item": "Multiple duplicate done tasks for same component wiring (agentic-sense: 5 tasks, llm.js: 4 tasks, optimizer.js: 3 tasks)"
+          "from_item": "Architecture: clean module boundaries for all components",
+          "to_item": "Task history: 342 cancelled, 267 done — many components have 3-5 cancelled variants before successful completion"
+        },
+        {
+          "type": "missing",
+          "description": "Architecture known limitation #5 mentions memory.js full-scan performance concern, but no task addresses approximate nearest neighbor indexing or search optimization",
+          "severity": "minor",
+          "from_item": "Architecture known limitation: runtime/memory.js 全量扫描 — search() 遍历所有条目计算余弦相似度",
+          "to_item": "No task for memory.js search performance optimization"
         }
       ]
     }

@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T03:53:38.310Z",
+  "timestamp": "2026-04-10T21:21:24.436Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture scan complete — match 85%, same gap profile as prior review with updated adapter inventory (piper, elevenlabs, macos-say discovered). Core modules fully aligned."
+  "summary": "Architecture match 88→95: all prior API gaps resolved in ARCHITECTURE.md, 2 minor gaps remain (voice adapter signatures, dead embed adapter)"
 }

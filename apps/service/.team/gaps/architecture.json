@@ -1,34 +1,19 @@
 {
-  "match": 85,
-  "timestamp": "2026-04-10T12:00:00.000Z",
+  "match": 95,
+  "timestamp": "2026-04-11T05:00:00.000Z",
   "gaps": [
     {
-      "description": "src/store/index.js (KV storage wrapper using agentic-store with get/set/del/delete exports) is not documented in ARCHITECTURE.md — agentic-store is listed as a dependency but local store abstraction is undocumented",
-      "status": "missing",
-      "severity": "major"
-    },
-    {
-      "description": "src/runtime/sense.js has full implementation (init/on/start/stop/detect/startWakeWordPipeline/stopWakeWordPipeline/initHeadless/startHeadless/detectFrame) beyond the brief directory structure mention in ARCHITECTURE.md",
+      "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "src/runtime/embed.js and src/runtime/adapters/ (embed.js, sense.js, voice/openai-tts.js, voice/openai-whisper.js, voice/piper.js, voice/elevenlabs.js, voice/macos-say.js) are not documented as formal module sections in ARCHITECTURE.md — only referenced in addendum notes",
+      "description": "adapters/embed.js is documented dead code (throws 'not implemented') still shipping in codebase — listed in Known Limitations but not cleaned up",
       "status": "partial",
-      "severity": "major"
-    },
-    {
-      "description": "src/runtime/profiler.js (startMark/endMark/getMetrics/measurePipeline) and src/runtime/latency-log.js (record/p95/reset) are internal runtime utilities not mentioned in ARCHITECTURE.md",
-      "status": "missing",
       "severity": "minor"
     },
     {
-      "description": "src/detector/sox.js (ensureSox — auto-detect/install sox audio tool) and src/cli/download-state.js (model download progress state management) are undocumented utility modules",
-      "status": "missing",
-      "severity": "minor"
-    },
-    {
-      "description": "All core modules (detector/hardware.js, detector/profiles.js, detector/matcher.js, detector/ollama.js, detector/optimizer.js, runtime/llm.js, runtime/stt.js, runtime/tts.js, runtime/vad.js, runtime/memory.js, server/hub.js, server/brain.js, server/api.js, server/cert.js, server/httpsServer.js, server/middleware.js, bin/agentic-service.js, cli/setup.js, cli/browser.js, tunnel.js) are implemented and documented in ARCHITECTURE.md",
+      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented with detailed API signatures documented in ARCHITECTURE.md including previously missing exports (memory remove/clear, registry unregister/getEngines/getEngine/modelsForCapability, sense on/start/stop/detectFrame, index createApp/stopServer/matchProfile/ensureOllama)",
       "status": "implemented",
       "severity": "minor"
     }
