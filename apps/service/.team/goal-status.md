@@ -18,6 +18,8 @@ Vision ≥90% + PRD ≥90%
 
 ## 📦 Recent Deliverables
 ### Commits
+5fe503b0 feat: implement task
+62d5102d feat: developer completed
 7b582b13 test: tester completed
 f68ef803 feat: developer completed
 97ca0fce feat: developer completed
@@ -26,8 +28,6 @@ f68ef803 feat: developer completed
 94ef9306 feat: developer completed
 88cabd0e fix: skip Docker build tests when workspace:* deps prevent npm ci
 7fd66748 feat: developer completed
-4bccd0a1 feat: index.js entry point, cloud fallback, Docker port fix, README troubleshooting
-a0f5e40f feat: 多引擎架构 — Engine Registry
 
 ### Completed Tasks
 (none)
