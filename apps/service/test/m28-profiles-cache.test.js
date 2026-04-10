@@ -8,17 +8,17 @@ let TEMP_HOME;
 let CACHE_DIR;
 let CACHE_FILE;
 const DAY = 24 * 60 * 60 * 1000;
+const originalFetch = globalThis.fetch;
 
 beforeAll(async () => {
   TEMP_HOME = await fs.mkdtemp(path.join(os.tmpdir(), 'm28-cache-'));
   CACHE_DIR = path.join(TEMP_HOME, '.agentic-service');
   CACHE_FILE = path.join(CACHE_DIR, 'profiles.json');
-  // Mock os.homedir so profiles.js uses our temp dir
-  vi.spyOn(os, 'homedir').mockReturnValue(TEMP_HOME);
 });
 
 afterAll(async () => {
   vi.restoreAllMocks();
+  globalThis.fetch = originalFetch;
   await fs.rm(TEMP_HOME, { recursive: true, force: true });
 });
 
@@ -31,9 +31,15 @@ async function removeCache() {
   try { await fs.unlink(CACHE_FILE); } catch {}
 }
 
+function setupMocks() {
+  vi.resetModules();
+  // Re-apply homedir mock before each dynamic import so profiles.js picks it up
+  vi.spyOn(os, 'homedir').mockReturnValue(TEMP_HOME);
+}
+
 describe('M28 DBB-005: CDN profiles cache expired → fetch and refresh', () => {
   beforeEach(async () => {
-    vi.resetModules();
+    setupMocks();
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ version: 'remote', profiles: [] })
@@ -42,7 +48,6 @@ describe('M28 DBB-005: CDN profiles cache expired → fetch and refresh', () => 
   });
 
   afterEach(async () => {
-    vi.restoreAllMocks();
     await removeCache();
   });
 
@@ -64,13 +69,12 @@ describe('M28 DBB-005: CDN profiles cache expired → fetch and refresh', () => 
 
 describe('M28 DBB-006: CDN profiles cache fresh → no fetch', () => {
   beforeEach(async () => {
-    vi.resetModules();
+    setupMocks();
     global.fetch = vi.fn();
     await writeCache({ version: 'cached', profiles: [] }, Date.now() - 1 * DAY);
   });
 
   afterEach(async () => {
-    vi.restoreAllMocks();
     await removeCache();
   });
 
@@ -83,13 +87,9 @@ describe('M28 DBB-006: CDN profiles cache fresh → no fetch', () => {
 
 describe('M28 DBB-005 edge: fetch fails + no cache → builtin', () => {
   beforeEach(async () => {
-    vi.resetModules();
+    setupMocks();
     global.fetch = vi.fn().mockRejectedValue(new Error('network error'));
     await removeCache();
-  });
-
-  afterEach(async () => {
-    vi.restoreAllMocks();
   });
 
   it('falls back to builtin profiles when fetch fails and no cache exists', async () => {
@@ -101,14 +101,13 @@ describe('M28 DBB-005 edge: fetch fails + no cache → builtin', () => {
 
 describe('M28 DBB-005 edge: fetch fails + expired cache → use expired cache', () => {
   beforeEach(async () => {
-    vi.resetModules();
+    setupMocks();
     global.fetch = vi.fn().mockRejectedValue(new Error('network error'));
     // Write expired cache with valid profile data so matchProfile can succeed
     await writeCache({ version: 'expired', profiles: [{ match: {}, config: { llm: {}, stt: {}, tts: {}, fallback: {} } }] }, Date.now() - 8 * DAY);
   });
 
   afterEach(async () => {
-    vi.restoreAllMocks();
     await removeCache();
   });
 
