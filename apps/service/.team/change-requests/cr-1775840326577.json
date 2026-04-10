@@ -6,8 +6,9 @@
   "targetFile": "package.json",
   "reason": "Dead import maps #agentic-embed and #agentic-voice in package.json 'imports' field — no source file references them (confirmed via grep). These are leftover from an earlier adapter pattern that was replaced by direct package imports. They point to stubs/adapters that are not used in the actual code path.",
   "proposedChange": "Remove the 'imports' field from package.json entirely:\n\nDelete:\n  \"imports\": {\n    \"#agentic-embed\": \"./src/runtime/adapters/embed.js\",\n    \"#agentic-voice\": \"./src/runtime/adapters/voice/openai-tts.js\"\n  }\n\nThe actual code uses direct imports: 'agentic-embed' (in runtime/embed.js) and 'agentic-voice' (in runtime/stt.js, tts.js) via the dependencies field.",
-  "status": "pending",
+  "status": "resolved",
   "createdAt": "2026-04-11T06:38:46.577Z",
-  "reviewedAt": null,
-  "reviewedBy": null
+  "reviewedAt": "2026-04-11T06:45:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Already covered by task-1775840057892 (Remove dead import maps from package.json) which is in review. #agentic-voice was removed in commit e699e630; #agentic-embed remains and will be removed when that task completes."
 }
