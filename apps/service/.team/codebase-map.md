@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — 173/173 test files pass, 972/983 tests pass, 11 skipped; all tests green)
+Updated: 2026-04-11 (architect review — 172/173 test files pass, 971/983 tests pass, 11 skipped; 1 flaky: hardware detector timing 2321ms > 2000ms threshold)
 
 ## Technology Stack
 
@@ -169,9 +169,10 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **173 test files, 173 passing** — 972 tests passed, 11 skipped (run 2026-04-11)
+- **173 test files, 172 passing, 1 failing** — 971 tests passed, 11 skipped (run 2026-04-11)
+- Failing: `hardware.test.js` (flaky timing: detect() took 2321ms > 2000ms threshold — environment-dependent)
 - Vitest coverage thresholds: 98% (statements/lines/branches/functions)
-- All previously failing tests fixed
+- Previously failing config-persistence and api-m6 tests now passing
 
 ## Known Issues (from gap analysis)
 

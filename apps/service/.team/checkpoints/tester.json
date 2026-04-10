@@ -1,0 +1,25 @@
+{
+  "workflowId": "tester",
+  "nodeId": "unit-test",
+  "stepIndex": 0,
+  "visitedNodes": [
+    "compile-check",
+    "unit-test"
+  ],
+  "loopIterations": {},
+  "transitionDepth": 2,
+  "nodeVisitCounts": {
+    "compile-check": 1,
+    "unit-test": 1
+  },
+  "contextOverrides": {
+    "refsValid": 1,
+    "buildPassed": 1,
+    "retryCount": 0,
+    "testPassed": 1,
+    "unitPassed": 0,
+    "integrationPassed": 0,
+    "e2ePassed": 1
+  },
+  "timestamp": "2026-04-10T20:34:03.111Z"
+}

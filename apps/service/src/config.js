@@ -41,35 +41,41 @@ export async function getConfig() {
 /**
  * 写入配置并通知所有监听者
  */
-export async function setConfig(updates) {
-  const current = await getConfig();
-  const merged = deepMerge(current, updates);
-  await _writeToDisk(merged);
-  _cache = merged;
-  for (const fn of _listeners) {
-    try { fn(merged); } catch (e) { console.warn('[config] listener error:', e.message); }
-  }
+export function setConfig(updates) {
+  _writeQueue = _writeQueue.then(async () => {
+    const current = await getConfig();
+    const merged = deepMerge(current, updates);
+    await _writeToDisk(merged);
+    _cache = merged;
+    for (const fn of _listeners) {
+      try { fn(merged); } catch (e) { console.warn('[config] listener error:', e.message); }
+    }
+  });
+  return _writeQueue;
 }
 
 /**
  * 用 profile 匹配结果初始化配置（仅 setup 时调用）
  */
-export async function initFromProfile(profile, hardware) {
-  let existing = null;
-  try {
-    const raw = await fs.readFile(CONFIG_PATH, 'utf8');
-    existing = JSON.parse(raw);
-  } catch { /* no existing config */ }
+export function initFromProfile(profile, hardware) {
+  _writeQueue = _writeQueue.then(async () => {
+    let existing = null;
+    try {
+      const raw = await fs.readFile(CONFIG_PATH, 'utf8');
+      existing = JSON.parse(raw);
+    } catch { /* no existing config */ }
 
-  const config = existing
-    ? deepMerge(deepMerge(DEFAULTS, profile), existing)
-    : deepMerge(DEFAULTS, profile);
+    const config = existing
+      ? deepMerge(deepMerge(DEFAULTS, profile), existing)
+      : deepMerge(DEFAULTS, profile);
 
-  config._hardware = hardware;
-  config._profileSource = 'auto';
+    config._hardware = hardware;
+    config._profileSource = 'auto';
 
-  await _writeToDisk(config);
-  _cache = config;
+    await _writeToDisk(config);
+    _cache = config;
+  });
+  return _writeQueue;
 }
 
 export function onConfigChange(fn) {

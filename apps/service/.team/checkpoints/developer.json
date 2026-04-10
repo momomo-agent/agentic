@@ -1,22 +1,16 @@
 {
   "workflowId": "developer",
-  "nodeId": "commit",
+  "nodeId": "implement",
   "stepIndex": 0,
   "visitedNodes": [
     "read-spec",
-    "implement",
-    "self-verify-build",
-    "self-verify-test",
-    "commit"
+    "implement"
   ],
   "loopIterations": {},
-  "transitionDepth": 5,
+  "transitionDepth": 2,
   "nodeVisitCounts": {
     "read-spec": 1,
-    "implement": 1,
-    "self-verify-build": 1,
-    "self-verify-test": 1,
-    "commit": 1
+    "implement": 1
   },
   "contextOverrides": {
     "refsValid": 1,
@@ -27,5 +21,5 @@
     "integrationPassed": 0,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T20:33:50.694Z"
+  "timestamp": "2026-04-10T20:34:03.110Z"
 }

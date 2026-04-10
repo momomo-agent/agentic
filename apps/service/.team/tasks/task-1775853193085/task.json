@@ -2,12 +2,12 @@
   "id": "task-1775853193085",
   "title": "Fix config.js atomic write — ENOENT on rename after mkdir",
   "description": "Test config-persistence.test.js fails: setConfig writes valid JSON to disk. Error: ENOENT on rename from config.json.tmp to config.json. The issue is in src/config.js:332 — after mkdir in the catch block, the .tmp file from the original writeFile (line 331) no longer exists because the first writeFile wrote to a path whose parent dir didn't exist yet. Fix: ensure mkdir runs BEFORE writeFile, or re-write the .tmp file after mkdir. Error log from .team/verify-errors/latest-test.log.",
-  "status": "inProgress",
+  "status": "done",
   "priority": "P0",
-  "assignee": "developer",
+  "assignee": null,
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": false,
   "created": "2026-04-10T20:33:13.085Z",
-  "updated": "2026-04-10T20:33:38.609Z"
+  "updated": "2026-04-10T20:34:07.479Z"
 }
