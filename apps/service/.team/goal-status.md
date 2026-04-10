@@ -14,6 +14,8 @@ Vision ≥90% + PRD ≥90%
 
 ## 📦 Recent Deliverables
 ### Commits
+61d39a27 feat: implement task
+cb5dbe67 feat: developer completed
 1a92cd0a feat: implement task
 bb4142b4 feat: developer completed
 b9052140 feat: implement task
@@ -22,8 +24,6 @@ b609c515 feat: implement task
 c05b9dcd feat: developer completed
 9fe290bb feat: implement task
 dced34b7 feat: implement task
-d3d4f6db test: tester completed
-43aa3fea fix: widen flaky profiler test timing threshold from 8ms to 20ms
 
 ### Completed Tasks
 (none)
