@@ -1066,10 +1066,13 @@ async function captureAndDescribe() {
   if (!lvVideoEl.value || !lvCanvasEl.value) return
   const v = lvVideoEl.value
   const c = lvCanvasEl.value
-  c.width = v.videoWidth
-  c.height = v.videoHeight
-  c.getContext('2d').drawImage(v, 0, 0)
-  const dataUrl = c.toDataURL('image/jpeg', 0.7)
+  // Downscale to max 640px wide for faster vision processing
+  const maxW = 640
+  const scale = v.videoWidth > maxW ? maxW / v.videoWidth : 1
+  c.width = Math.round(v.videoWidth * scale)
+  c.height = Math.round(v.videoHeight * scale)
+  c.getContext('2d').drawImage(v, 0, 0, c.width, c.height)
+  const dataUrl = c.toDataURL('image/jpeg', 0.6)
 
   const now = new Date()
   const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`
@@ -1832,7 +1835,220 @@ async function runAnnotate() {
   annLoading.value = false
 }
 
-onUnmounted(() => { stopCamera(); stopVoice(); closeParlorWs(); stopLiveVision(); stopDictation(); stopVvCamera(); stopSubtitle() })
+// ── API Compat ──
+const compatTab = ref('openai')
+const compatOpenaiBody = ref(JSON.stringify({ model: 'default', messages: [{ role: 'user', content: 'Hello' }], stream: false }, null, 2))
+const compatOpenaiStream = ref(false)
+const compatAnthropicBody = ref(JSON.stringify({ model: 'default', messages: [{ role: 'user', content: 'Hello' }], max_tokens: 256 }, null, 2))
+const compatLoading = ref(false)
+const compatResult = ref('')
+
+async function sendCompat(provider) {
+  compatLoading.value = true
+  compatResult.value = ''
+  try {
+    const url = provider === 'openai' ? '/v1/chat/completions' : '/v1/messages'
+    const body = provider === 'openai' ? compatOpenaiBody.value : compatAnthropicBody.value
+    const parsed = JSON.parse(body)
+    if (provider === 'openai' && compatOpenaiStream.value) parsed.stream = true
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parsed) })
+    if (parsed.stream) {
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let out = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        out += decoder.decode(value)
+      }
+      compatResult.value = out
+    } else {
+      compatResult.value = JSON.stringify(await res.json(), null, 2)
+    }
+  } catch (e) {
+    compatResult.value = `错误: ${e.message}`
+  }
+  compatLoading.value = false
+}
+
+// ── Voice Pipeline ──
+const vpRecording = ref(false)
+const vpLatency = ref(null)
+const vpAudioUrl = ref('')
+const vpError = ref('')
+let vpMediaRecorder = null
+let vpStream = null
+
+async function toggleVp() {
+  if (vpRecording.value) {
+    vpRecording.value = false
+    if (vpMediaRecorder) vpMediaRecorder.stop()
+    return
+  }
+  vpRecording.value = true
+  vpError.value = ''
+  vpAudioUrl.value = ''
+  vpLatency.value = null
+  try {
+    vpStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    vpMediaRecorder = new MediaRecorder(vpStream)
+    const chunks = []
+    vpMediaRecorder.ondataavailable = e => chunks.push(e.data)
+    vpMediaRecorder.onstop = async () => {
+      vpStream?.getTracks().forEach(t => t.stop())
+      const blob = new Blob(chunks, { type: 'audio/webm' })
+      const form = new FormData()
+      form.append('audio', blob, 'recording.webm')
+      const t0 = Date.now()
+      try {
+        const res = await fetch('/api/voice', { method: 'POST', body: form })
+        vpLatency.value = Date.now() - t0
+        const audioBlob = await res.blob()
+        vpAudioUrl.value = URL.createObjectURL(audioBlob)
+      } catch (e) {
+        vpError.value = e.message
+      }
+    }
+    vpMediaRecorder.start()
+  } catch (e) {
+    vpError.value = e.message
+    vpRecording.value = false
+  }
+}
+
+// ── Function Calling ──
+const fcTools = ref([
+  { name: 'get_weather', description: '获取天气', parameters: { type: 'object', properties: { city: { type: 'string' } }, required: ['city'] } },
+  { name: 'calculate', description: '数学计算', parameters: { type: 'object', properties: { expression: { type: 'string' } }, required: ['expression'] } },
+  { name: 'search_web', description: '搜索网页', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] } },
+])
+const fcInput = ref('')
+const fcResult = ref('')
+const fcLoading = ref(false)
+const fcToolCalls = ref([])
+
+async function sendFc() {
+  const msg = fcInput.value.trim()
+  if (!msg || fcLoading.value) return
+  fcInput.value = ''
+  fcResult.value = ''
+  fcToolCalls.value = []
+  fcLoading.value = true
+  try {
+    const tools = fcTools.value.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.parameters } }))
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, tools })
+    })
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let text = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      for (const line of decoder.decode(value).split('\n')) {
+        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
+        try {
+          const d = JSON.parse(line.slice(6))
+          const delta = d.choices?.[0]?.delta
+          if (delta?.content) text += delta.content
+          if (delta?.tool_calls) {
+            for (const tc of delta.tool_calls) {
+              if (tc.function?.name) fcToolCalls.value.push({ name: tc.function.name, args: tc.function.arguments || '' })
+            }
+          }
+        } catch {}
+      }
+    }
+    fcResult.value = text || (fcToolCalls.value.length ? '(AI 调用了工具)' : '(无响应)')
+  } catch (e) {
+    fcResult.value = `错误: ${e.message}`
+  }
+  fcLoading.value = false
+}
+
+// ── Perf 性能监控 ──
+const perfData = ref(null)
+const perfLoading = ref(false)
+const perfError = ref('')
+const perfAuto = ref(false)
+const perfMaxMs = ref(1000)
+let perfTimer = null
+
+async function fetchPerf() {
+  perfLoading.value = true
+  perfError.value = ''
+  try {
+    const res = await fetch('/api/perf')
+    perfData.value = await res.json()
+    const maxVal = Math.max(...Object.values(perfData.value).map(m => m.avg_ms || 0), 100)
+    perfMaxMs.value = maxVal
+  } catch (e) {
+    perfError.value = e.message
+  }
+  perfLoading.value = false
+}
+
+function togglePerfAuto() {
+  if (perfAuto.value) {
+    fetchPerf()
+    perfTimer = setInterval(fetchPerf, 3000)
+  } else {
+    clearInterval(perfTimer)
+  }
+}
+
+// ── Devices 设备管理 ──
+const devicesList = ref([])
+const devicesLoading = ref(false)
+const devicesError = ref('')
+
+async function fetchDevices() {
+  devicesLoading.value = true
+  devicesError.value = ''
+  try {
+    const res = await fetch('/api/devices')
+    devicesList.value = await res.json()
+  } catch (e) {
+    devicesError.value = e.message
+  }
+  devicesLoading.value = false
+}
+
+// ── Logs 系统日志 ──
+const logsList = ref([])
+const logsLoading = ref(false)
+const logsError = ref('')
+const logsAuto = ref(false)
+let logsTimer = null
+
+async function fetchLogs() {
+  logsLoading.value = true
+  logsError.value = ''
+  try {
+    const res = await fetch('/api/logs')
+    logsList.value = await res.json()
+  } catch (e) {
+    logsError.value = e.message
+  }
+  logsLoading.value = false
+}
+
+function toggleLogsAuto() {
+  if (logsAuto.value) {
+    fetchLogs()
+    logsTimer = setInterval(fetchLogs, 5000)
+  } else {
+    clearInterval(logsTimer)
+  }
+}
+
+
+onUnmounted(() => {
+  stopCamera(); stopVoice(); closeParlorWs(); stopLiveVision(); stopDictation(); stopVvCamera(); stopSubtitle()
+  clearInterval(perfTimer); clearInterval(logsTimer)
+})
 </script>
 
 <style scoped>

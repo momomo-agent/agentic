@@ -515,7 +515,10 @@ function addRoutes(r) {
           })
         });
 
-        if (!response.ok) throw new Error(`Ollama vision error: ${response.status}`);
+        if (!response.ok) {
+          const errBody = await response.text().catch(() => '');
+          throw new Error(`Ollama vision error: ${response.status} ${errBody}`);
+        }
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -569,7 +572,7 @@ export function createRouter() {
 export function createApp() {
   const app = express();
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
   app.use((req, res, next) => {
     if (draining) return res.status(503).json({ error: 'server draining' });
     inflight++;
