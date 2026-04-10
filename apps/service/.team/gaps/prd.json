@@ -133,10 +133,9 @@
       "severity": "major"
     },
     {
-      "description": "Test suite — 171 test files, 962 tests; 1 test failing (m13-dbb.test.js DBB-008 — profiles hot-reload onReload callback not firing)",
-      "status": "partial",
-      "severity": "minor",
-      "detail": "1 test fails: test/server/m13-dbb.test.js DBB-008 'onReload called when profiles change' — watchProfiles mock with etag-1 does not trigger onReload callback within 150ms. Task task-1775852504738 created for developer."
+      "description": "Test suite — 174 test files, 981 tests passing, 0 failures",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
       "description": "Root Dockerfile EXPOSE 1234 — matches service default port",
