@@ -259,10 +259,9 @@ function _guessOllamaCapabilities(name) {
   const lower = name.toLowerCase();
   const caps = ['chat'];
   if (/llava|moondream|gemma4|bakllava|cogvlm|qwen3\.5|qwen2\.5-vl|qwen-vl|minicpm-v/.test(lower)) caps.push('vision');
-  if (/whisper/.test(lower)) caps.push('stt');
-  if (/embed|nomic|mxbai|bge/.test(lower)) {
-    return ['embedding'];
-  }
+  if (/whisper/.test(lower)) return ['stt'];
+  if (/kokoro|orpheus|piper|bark/.test(lower)) return ['tts'];
+  if (/embed|nomic|mxbai|bge/.test(lower)) return ['embedding'];
   return caps;
 }
 

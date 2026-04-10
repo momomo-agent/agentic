@@ -36,7 +36,7 @@
           <div class="model-info">
             <div class="model-name">
               {{ m.name }}
-              <span class="cap-badge" v-for="c in getPoolCaps(`ollama:${m.name}`)" :key="c">{{ c }}</span>
+              <span class="cap-badge" v-for="c in getPoolCaps(`ollama:${m.name}`)" :key="c">{{ capLabel(c) }}</span>
             </div>
             <div class="model-meta" v-if="m.size">{{ formatSize(m.size) }}</div>
           </div>
@@ -75,7 +75,10 @@
                 <span class="badge-installed" v-if="isInstalled(m.name)">已安装</span>
               </div>
               <div class="model-desc">{{ m.desc }}</div>
-              <div class="model-meta">{{ m.size }}</div>
+              <div class="model-meta">
+                {{ m.size }}
+                <span class="cap-badge" v-for="c in (m.caps || [])" :key="c">{{ capLabel(c) }}</span>
+              </div>
             </div>
             <button v-if="!isInstalled(m.name)" class="btn-download" @click="pullModel(m.name)"
                     :disabled="!!downloads[m.name]">下载</button>
@@ -107,35 +110,43 @@ const pool = ref([])
 
 const modelCategories = [
   { label: '💬 对话', models: [
-    { name: 'gemma4:e4b', desc: 'Google Gemma 4 — 高效多模态', size: '~5 GB' },
-    { name: 'gemma3:4b', desc: 'Google Gemma 3 — 轻量快速', size: '~3 GB' },
-    { name: 'llama3.2:3b', desc: 'Meta Llama 3.2 — 均衡之选', size: '~2 GB' },
-    { name: 'qwen2.5:3b', desc: '通义千问 2.5 — 中文优化', size: '~2 GB' },
-    { name: 'phi3:mini', desc: 'Microsoft Phi-3 — 超轻量', size: '~2.3 GB' },
+    { name: 'gemma4:e4b', desc: 'Google Gemma 4 — 高效多模态', size: '~5 GB', caps: ['chat', 'vision'] },
+    { name: 'gemma3:4b', desc: 'Google Gemma 3 — 轻量快速', size: '~3 GB', caps: ['chat'] },
+    { name: 'llama3.2:3b', desc: 'Meta Llama 3.2 — 均衡之选', size: '~2 GB', caps: ['chat'] },
+    { name: 'qwen2.5:3b', desc: '通义千问 2.5 — 中文优化', size: '~2 GB', caps: ['chat'] },
+    { name: 'phi3:mini', desc: 'Microsoft Phi-3 — 超轻量', size: '~2.3 GB', caps: ['chat'] },
   ]},
   { label: '👁 视觉', models: [
-    { name: 'gemma4:e4b', desc: '多模态 — 支持图像理解', size: '~5 GB' },
-    { name: 'llava:7b', desc: 'LLaVA — 图像问答', size: '~4.7 GB' },
-    { name: 'moondream:latest', desc: 'Moondream — 轻量视觉', size: '~1.7 GB' },
+    { name: 'gemma4:e4b', desc: '多模态 — 支持图像理解', size: '~5 GB', caps: ['chat', 'vision'] },
+    { name: 'llava:7b', desc: 'LLaVA — 图像问答', size: '~4.7 GB', caps: ['chat', 'vision'] },
+    { name: 'moondream:latest', desc: 'Moondream — 轻量视觉', size: '~1.7 GB', caps: ['chat', 'vision'] },
   ]},
   { label: '💻 代码', models: [
-    { name: 'qwen2.5-coder:3b', desc: '通义千问 Coder — 代码生成', size: '~2 GB' },
-    { name: 'codellama:7b', desc: 'Code Llama — Meta 代码模型', size: '~3.8 GB' },
+    { name: 'qwen2.5-coder:3b', desc: '通义千问 Coder — 代码生成', size: '~2 GB', caps: ['chat'] },
+    { name: 'codellama:7b', desc: 'Code Llama — Meta 代码模型', size: '~3.8 GB', caps: ['chat'] },
   ]},
   { label: '🎤 语音识别 (STT)', models: [
-    { name: 'whisper:base', desc: 'OpenAI Whisper — 多语言语音识别', size: '~150 MB' },
-    { name: 'whisper:small', desc: 'OpenAI Whisper — 更高精度', size: '~500 MB' },
-    { name: 'whisper:medium', desc: 'OpenAI Whisper — 高精度', size: '~1.5 GB' },
+    { name: 'whisper:base', desc: 'OpenAI Whisper — 多语言语音识别', size: '~150 MB', caps: ['stt'] },
+    { name: 'whisper:small', desc: 'OpenAI Whisper — 更高精度', size: '~500 MB', caps: ['stt'] },
+    { name: 'whisper:medium', desc: 'OpenAI Whisper — 高精度', size: '~1.5 GB', caps: ['stt'] },
   ]},
   { label: '🔊 语音合成 (TTS)', models: [
-    { name: 'kokoro', desc: 'Kokoro — 高质量多语言 TTS', size: '~400 MB' },
-    { name: 'orpheus', desc: 'Orpheus — 自然语音合成', size: '~2.5 GB' },
+    { name: 'kokoro', desc: 'Kokoro — 高质量多语言 TTS', size: '~400 MB', caps: ['tts'] },
+    { name: 'orpheus', desc: 'Orpheus — 自然语音合成', size: '~2.5 GB', caps: ['tts'] },
+  ]},
+  { label: '📐 嵌入 (Embedding)', models: [
+    { name: 'nomic-embed-text', desc: 'Nomic — 高质量文本嵌入', size: '~274 MB', caps: ['embedding'] },
+    { name: 'mxbai-embed-large', desc: 'MixedBread — 大型嵌入模型', size: '~670 MB', caps: ['embedding'] },
+    { name: 'bge-m3', desc: 'BAAI BGE-M3 — 多语言嵌入', size: '~1.2 GB', caps: ['embedding'] },
   ]},
 ]
 
 function getPoolCaps(id) {
   return pool.value.find(p => p.id === id)?.capabilities || []
 }
+
+const CAP_LABELS = { chat: '对话', vision: '视觉', stt: '语音识别', tts: '语音合成', embedding: '嵌入' }
+function capLabel(c) { return CAP_LABELS[c] || c }
 
 function isInstalled(name) {
   return installedModels.value.some(m => m.name === name)
