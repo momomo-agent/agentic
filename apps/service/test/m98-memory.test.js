@@ -207,5 +207,33 @@ describe('memory.js — semantic memory API', () => {
       // Same text → same vector → cosine similarity = 1
       expect(results[0].score).toBeCloseTo(1, 5);
     });
+
+    it('search with empty-vector entry returns score 0 (denom guard)', async () => {
+      await memory.add('');  // empty vector
+      const results = await memory.search('something');
+      expect(results.length).toBe(1);
+      expect(results[0].score).toBe(0);
+    });
+  });
+
+  describe('lifecycle', () => {
+    it('add → search → remove → search returns empty', async () => {
+      const id = await memory.add('lifecycle test');
+      let results = await memory.search('lifecycle');
+      expect(results.length).toBe(1);
+      expect(results[0].id).toBe(id);
+
+      await memory.remove(id);
+      results = await memory.search('lifecycle');
+      expect(results).toEqual([]);
+    });
+
+    it('multiple adds with same text create separate entries', async () => {
+      const id1 = await memory.add('duplicate');
+      const id2 = await memory.add('duplicate');
+      expect(id1).not.toBe(id2);
+      const index = kvStore['memory:__index'];
+      expect(index.length).toBe(2);
+    });
   });
 });
