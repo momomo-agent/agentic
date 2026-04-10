@@ -1,0 +1,14 @@
+{
+  "id": "task-1775845910358",
+  "title": "Fix stale m95-architecture-docs tests — update memory.js assertions to store/embed",
+  "description": "RESOLVED: All 845 tests pass (0 failures). The m95-architecture-docs memory.js tests pass because ARCHITECTURE.md contains the required terms (memory.js, add(text), remove(key), search, score/向量, lock/串行). No code changes needed — task was based on stale test results.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": true,
+  "created": "2026-04-10T18:31:50.358Z",
+  "updated": "2026-04-10T18:37:24.540Z",
+  "milestoneId": "m98"
+}
