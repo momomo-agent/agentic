@@ -1,0 +1,13 @@
+{
+  "id": "task-1775852942672",
+  "title": "Fix server config-persistence test — rapid PUTs return 500",
+  "description": "test/server/config-persistence.test.js 'multiple rapid PUTs all persist correctly' fails: expected 500 to be 200. Five sequential PUT /api/config requests — one returns 500. Likely the atomic write from the previous fix causes a file lock or ENOENT during concurrent writes. The server config endpoint needs write serialization or retry logic.",
+  "status": "todo",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": false,
+  "created": "2026-04-10T20:29:02.672Z",
+  "updated": "2026-04-10T20:29:07.721Z"
+}

@@ -47,7 +47,7 @@ describe('config hot-reload (DBB-005)', () => {
 
     const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, () => { callCount++; }, 50);
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => setTimeout(r, 300));
     stop();
     expect(callCount).toBe(0);
   });
@@ -56,7 +56,7 @@ describe('config hot-reload (DBB-005)', () => {
     globalThis.fetch = async () => { throw new Error('network down'); };
     const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, () => {}, 50);
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => setTimeout(r, 300));
     stop();
     // if we reach here, no crash
   });
@@ -69,10 +69,10 @@ describe('config hot-reload (DBB-005)', () => {
     };
     const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, () => {}, 50);
-    await new Promise(r => setTimeout(r, 80));
+    await new Promise(r => setTimeout(r, 200));
     const countAtStop = callCount;
     stop();
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => setTimeout(r, 200));
     expect(callCount).toBe(countAtStop);
   });
 });
