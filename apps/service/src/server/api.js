@@ -547,8 +547,8 @@ function addRoutes(r) {
   r.get('/api/logs', (req, res) => res.json(logBuffer.slice(-50)));
 
   const adminDist = new URL('../../dist/admin', import.meta.url).pathname;
-  r.use('/admin', express.static(adminDist));
-  r.get('/admin', (req, res) => res.sendFile(path.join(adminDist, 'index.html')));
+  r.use('/admin', express.static(adminDist, { etag: false, maxAge: 0 }));
+  r.get('/admin', (req, res) => { res.set('Cache-Control', 'no-store'); res.sendFile(path.join(adminDist, 'index.html')); });
   
   // Serve examples
   const examplesDir = new URL('../../examples', import.meta.url).pathname;
@@ -559,8 +559,8 @@ function addRoutes(r) {
   r.use('/packages', express.static(packagesDir));
   
   // Serve admin UI at root (exact match first, then static assets)
-  r.get('/', (req, res) => res.sendFile(path.join(adminDist, 'index.html')));
-  r.use(express.static(adminDist));
+  r.get('/', (req, res) => { res.set('Cache-Control', 'no-store'); res.sendFile(path.join(adminDist, 'index.html')); });
+  r.use(express.static(adminDist, { etag: false, maxAge: 0 }));
 }
 
 export function createRouter() {
