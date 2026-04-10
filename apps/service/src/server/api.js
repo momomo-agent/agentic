@@ -501,9 +501,22 @@ function addRoutes(r) {
           }
         }
       } else {
-        // Local vision via Ollama
-        const model = vis.model || config.llm?.model || 'gemma4:e4b';
-        const host = config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+        // Local vision via Ollama — resolve model from assignments → pool → config fallback
+        const assignments = config.assignments || {};
+        const pool = config.modelPool || [];
+        let model;
+        if (fast) {
+          // Fast mode: prefer small vision model for real-time use
+          model = 'gemma4:e4b';
+        } else if (vis.model) {
+          model = vis.model;
+        } else if (assignments.vision) {
+          const poolEntry = pool.find(m => m.id === assignments.vision);
+          model = poolEntry?.name || assignments.vision.replace(/^ollama:/, '');
+        } else {
+          model = config.llm?.model || 'gemma4:e4b';
+        }
+        const host = config.ollamaHost || config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
 
         const ollamaBody = {
             model,
