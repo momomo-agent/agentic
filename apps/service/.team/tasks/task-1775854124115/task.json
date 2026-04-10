@@ -1,7 +1,7 @@
 {
   "id": "task-1775854124115",
   "title": "Document profiler.js, latency-log.js, sox.js, download-state.js in ARCHITECTURE.md",
-  "description": "Add documentation for undocumented utility modules: src/runtime/profiler.js (startMark/endMark→number|null/getMetrics→{[stage]:{last,avg,count}}/measurePipeline→{stages,total,pass}), src/runtime/latency-log.js (record/p95/reset), src/detector/sox.js (ensureSox), src/cli/download-state.js (model download progress state). Note: ARCHITECTURE.md already has updated profiler.js signatures — verify they match implementation and add the other missing modules.",
+  "description": "Add documentation for undocumented utility modules: src/detector/sox.js (ensureSox — auto-detect/install sox audio tool), src/cli/download-state.js (model download progress state management), and verify src/runtime/latency-log.js (record/p95/reset) is documented. NOTE: profiler.js signatures in ARCHITECTURE.md were already updated (endMark→number|null, getMetrics→{[stage]:{last,avg,count}}, measurePipeline→{stages,total,pass}) — just verify they match implementation and add the other missing modules.",
   "status": "todo",
   "priority": "P0",
   "assignee": "architect",
@@ -9,6 +9,6 @@
   "groupId": "m99",
   "hasDesign": true,
   "created": "2026-04-10T20:48:44.115Z",
-  "updated": "2026-04-10T21:07:18.780Z",
+  "updated": "2026-04-10T21:09:56.242Z",
   "milestoneId": "m99"
 }
