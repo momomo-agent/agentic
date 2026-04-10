@@ -1,4 +1,4 @@
-# M99 DBB Check — 2026-04-11T05:29
+# M99 DBB Check — 2026-04-11T08:28
 
 ## Milestone Match: 90%
 
@@ -19,7 +19,7 @@
 - middleware.js minimal error handler (acceptable for local-first)
 
 ### Verification Evidence
-- Test suite: 174 files, 981 passed, 0 failures, 11 skipped (verified via `npx vitest --run`)
+- Test suite: 174 files, 981 passed, 0 failures, 11 skipped (verified via vitest results.json)
 - src/index.js exports confirmed: startServer, createApp, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed
 - Docker: Dockerfile EXPOSE 1234, docker-compose.yml 1234:1234, OLLAMA_HOST, ./data volume — all confirmed
 - Cloud fallback: brain.js FIRST_TOKEN_TIMEOUT_MS=5000, MAX_ERRORS=3, PROBE_INTERVAL_MS=60000 — all confirmed
