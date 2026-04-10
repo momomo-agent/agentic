@@ -57,8 +57,8 @@ const tests = ref([
   // --- Voice ---
   { name: 'Synthesize (TTS)', method: 'POST', path: '/api/synthesize', group: 'voice', runtime: 'cloud', model: 'OpenAI TTS / ElevenLabs', status: 'idle', result: '' },
   { name: 'TTS Alias', method: 'POST', path: '/api/tts', group: 'voice', runtime: 'cloud', model: 'OpenAI TTS / ElevenLabs', status: 'idle', result: '' },
-  { name: 'Transcribe (STT)', method: 'POST', path: '/api/transcribe', group: 'voice', runtime: 'local', model: 'Whisper', status: 'idle', result: '' },
-  { name: 'Voice (STT→LLM→TTS)', method: 'POST', path: '/api/voice', group: 'voice', runtime: 'local+cloud', model: 'Whisper → Ollama → TTS', status: 'idle', result: '' },
+  { name: 'Transcribe (STT)', method: 'POST', path: '/api/transcribe', group: 'voice', runtime: 'local', model: 'SenseVoice', status: 'idle', result: '' },
+  { name: 'Voice (STT→LLM→TTS)', method: 'POST', path: '/api/voice', group: 'voice', runtime: 'local+cloud', model: 'SenseVoice → Ollama → TTS', status: 'idle', result: '' },
 
   // --- Models ---
   { name: 'Pull Model', method: 'POST', path: '/api/models/pull', group: 'models', runtime: 'local', model: 'Ollama', status: 'idle', result: '' },
@@ -111,7 +111,7 @@ function getTestBody(t) {
   }
   if (t.path === '/api/models/pull') {
     // Dry-run: pull a tiny model that's likely already present
-    return JSON.stringify({ name: 'qwen3:0.6b' })
+    return JSON.stringify({ model: 'qwen3:0.6b' })
   }
   return null
 }
