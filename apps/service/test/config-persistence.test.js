@@ -48,9 +48,10 @@ describe('config.js — atomic write persistence', () => {
   it('multiple sequential writes produce valid JSON each time', async () => {
     for (let i = 0; i < 5; i++) {
       await configModule.setConfig({ iteration: i });
-      const raw = await fs.readFile(CONFIG_PATH, 'utf8');
-      const parsed = JSON.parse(raw);
-      expect(parsed.iteration).toBe(i);
+      // Verify via reloadConfig (reads from disk) to avoid race with parallel test files
+      await configModule.reloadConfig();
+      const config = await configModule.getConfig();
+      expect(config.iteration).toBe(i);
     }
   });
 

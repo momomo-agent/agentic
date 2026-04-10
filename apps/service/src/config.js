@@ -12,7 +12,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 
-const CONFIG_DIR = path.join(os.homedir(), '.agentic-service');
+const CONFIG_DIR = process.env.AGENTIC_CONFIG_DIR || path.join(os.homedir(), '.agentic-service');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 
 const CAPABILITIES = ['chat', 'vision', 'stt', 'tts', 'embedding'];
