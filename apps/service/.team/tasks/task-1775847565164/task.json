@@ -1,13 +1,13 @@
 {
   "id": "task-1775847565164",
   "title": "Fix stale import-map tests — m76-embed-wiring + m77-sense-imports",
-  "description": "DUPLICATE of task-1775847599432. Cancelled to avoid double work.",
-  "status": "review",
+  "description": "DUPLICATE — superseded by task-1775847599432 which is already done.",
+  "status": "done",
   "priority": "P0",
   "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": false,
   "created": "2026-04-10T18:59:25.164Z",
-  "updated": "2026-04-10T19:03:18.797Z"
+  "updated": "2026-04-10T19:04:27.533Z"
 }

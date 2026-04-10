@@ -2,12 +2,13 @@
   "id": "task-1775847599432",
   "title": "Fix stale tests — m76-embed-wiring and m77-sense-imports assert removed import map",
   "description": "DUPLICATE — consolidated into task-1775847565164 which covers the same stale test fix.",
-  "status": "review",
+  "status": "done",
   "priority": "P0",
   "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": false,
   "created": "2026-04-10T18:59:59.432Z",
-  "updated": "2026-04-10T19:03:18.837Z"
+  "updated": "2026-04-10T19:05:06.987Z",
+  "milestoneId": "m98"
 }

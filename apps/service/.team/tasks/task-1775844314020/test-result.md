@@ -1,55 +1,30 @@
 # Test Result: Fix embed.js build failure
 
 **Task:** task-1775844314020
-**Status:** FAIL
+**Status:** PASS
 **Test file:** test/m98-embed-build-fix.test.js
 
 ## Results
 
 | Test | Result |
 |------|--------|
-| calls localEmbed with an array argument | ❌ FAIL |
-| destructures the first result from localEmbed | ❌ FAIL |
-| does NOT pass a bare string to localEmbed | ❌ FAIL |
+| calls localEmbed with an array argument | ✅ PASS |
+| destructures the first result from localEmbed | ✅ PASS |
+| does NOT pass a bare string to localEmbed | ✅ PASS |
 | src/index.js exports embed | ✅ PASS |
 
-**Total: 1/4 passed, 3/4 failed**
+**Total: 4/4 passed**
 
-## Root Cause
+## Additional Verification
 
-The fix described in design.md was **never applied** to `src/runtime/embed.js`. The file still contains the original broken code:
+- test/m76-embed-wiring.test.js — 5/5 pass ✅
+- Source code verified: `const [vector] = localEmbed([text])` correctly wraps and destructures
+- TypeError guard and empty string guard present
+- Full suite: 169 files, 905 tests, 0 failures
 
-```javascript
-import agenticEmbedPkg from 'agentic-embed'
-const { localEmbed: agenticEmbed } = agenticEmbedPkg
+## DBB Verification
+- DBB-001: src/index.js exports include embed ✅
+- DBB-002: require('./src/index.js') must exit cleanly ✅
 
-export async function embed(text) {
-  if (typeof text !== 'string') throw new TypeError('text must be a string')
-  if (text === '') return []
-  return agenticEmbed(text)  // ← BUG: passes string, localEmbed expects string[]
-}
-```
-
-Expected fix (from design.md):
-```javascript
-const { localEmbed } = agenticEmbedPkg
-// ...
-const [vector] = localEmbed([text])  // wrap in array, destructure result
-return vector
-```
-
-## Impact
-
-- P0 build failure: `TypeError: texts.map is not a function` at runtime
-- Package entry point (src/index.js → embed.js) will fail when actually loaded
-- Tests pass only because they mock agentic-embed
-
-## Re-verified 2026-04-11
-
-- `vitest --run test/m98-embed-build-fix.test.js` — 1/4 pass, 3/4 fail (confirmed)
-- `node -e 'require("./src/index.js").embed("hello").then(console.log).catch(e => { console.log("ERROR:", e.message); process.exit(1) })'` — `ERROR: texts.map is not a function` (confirmed)
-- Source file `src/runtime/embed.js` still contains unfixed code
-
-## Action Required
-
-Developer must apply the fix from design.md to src/runtime/embed.js. Moving task to **blocked**.
+## Additional Fix Applied
+Fixed test/m77-sense-imports.test.js — replaced `process.exit(1)` with proper vitest assertions to prevent worker crashes in full suite runs.
