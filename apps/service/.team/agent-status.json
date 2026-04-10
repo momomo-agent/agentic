@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-10T19:26:36.164Z",
+    "lastRun": "2026-04-10T19:27:25.621Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -25,14 +25,14 @@
   },
   "developer": {
     "status": "idle",
-    "lastRun": "2026-04-10T19:26:52.623Z",
+    "lastRun": "2026-04-10T19:27:27.273Z",
     "currentTask": null,
     "retryCount": 2
   },
   "tester": {
-    "status": "idle",
-    "lastRun": "2026-04-10T19:16:11.591Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-10T19:27:25.743Z",
+    "currentTask": "验证功能",
     "retryCount": 1
   },
   "tester-1": {
@@ -80,9 +80,9 @@
     "retryCount": 0
   },
   "architect": {
-    "status": "running",
-    "lastRun": "2026-04-10T19:25:34.591Z",
-    "currentTask": "设计系统架构",
+    "status": "idle",
+    "lastRun": "2026-04-10T19:27:24.672Z",
+    "currentTask": null,
     "retryCount": 0
   },
   "tech_lead": {

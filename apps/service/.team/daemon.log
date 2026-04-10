@@ -43695,3 +43695,157 @@ No new tasks needed. The goal is met. The remaining architect task is a nice-to-
 [2026-04-10 19:27:08] [workflow] self-verify-test [BRANCH] testPassed == 1 → true → commit
 [2026-04-10 19:27:08] [agent_start] commit [NODE] commit - Git commit 通过验证的代码
 [2026-04-10 19:27:08] [workflow] commit [SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1
+[2026-04-10 19:27:08] [agent_start] complete [NODE] complete - 开发完成，任务进入 review
+[2026-04-10 19:27:08] [workflow] work_loop [TEAM] ← developer done
+[2026-04-10 19:27:08] [agent_complete] pm completed successfully
+[2026-04-10 19:27:08] [workflow] pm [SIGNAL] completed: Goal met (Vision 91%, PRD 90%). M98 has 11/12 tasks done, 1 architect task remaining (VISION.md dire
+All tests pass. The PRD gap about the failing test is now stale — it's been fixed.
+
+**Current state summary:**
+
+- Vision: 91% ≥ 90% ✅ (goal met)
+- PRD: 90% ≥ 90% ✅ (goal met)
+- All 169 test files pass (905 tests, 0 failures)
+- M98 has 1 remaining task: `task-1775847821786` (architect — update VISION.md directory tree), which is a nice-to-have improvement
+- 2 test-fix tasks were already resolved by developer and marked done
+- No pending CRs
+- Architecture at 85% — has documentation gaps (store/index.js, profiler.js, sox.js undocumented in ARCHITECTURE.md) but not part of the explicit goal
+
+The goal **Vision ≥90% + PRD ≥90%** is achieved. The remaining architect task would push vision even higher but isn't blocking.
+
+```signal
+{"status": "completed", "summary": "Goal met: Vision 91% ≥ 90%, PRD 90% ≥ 90%. Marked 2 already-fixed test tasks as done (task-1775848768979, task-1775849084626). All 169 test files pass (905 tests). No pending CRs. 1 remaining task (task-1775847821786 — architect VISION.md update) is a nice-to-have. Architecture at 85% has doc gaps but is outside explicit goal scope."}
+```
+[2026-04-10T19:27:08.919Z] pm agent completed
+[2026-04-10 19:27:08] [workflow] work_loop [SKIP] write-dbb: milestoneNeedsDBB > 0
+[2026-04-10 19:27:08] [workflow] work_loop [PARALLEL-SKIP] architecture: archTaskCount > 0 || todoWithoutDesign > 0
+[2026-04-10 19:27:08] [workflow] work_loop [PARALLEL-SKIP] write-design: todoWithoutDesign > 0
+[2026-04-10 19:27:08] [workflow] work_loop [PARALLEL] implement, test
+[2026-04-10 19:27:08] [workflow] work_loop [TEAM] → developer (depth 1)
+[2026-04-10 19:27:08] [agent_start] read-spec [NODE] read-spec - 读取任务 spec、设计文档、历史错误日志
+[2026-04-10 19:27:08] [workflow] read-spec [SHELL] cat .team/verify-errors/latest-build.log 2>/dev/null || echo 'No previous build errors'
+[2026-04-10 19:27:08] [workflow] work_loop [TEAM] → tester (depth 1)
+[2026-04-10 19:27:08] [agent_start] compile-check [NODE] compile-check - 编译检查 — 代码必须能编译
+[2026-04-10 19:27:08] [workflow] compile-check [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build
+[2026-04-10 19:27:09] [agent_start] implement [NODE] implement - Developer 实现代码
+[2026-04-10 19:27:09] [workflow] implement [EXEC] developer
+[2026-04-10 19:27:09] [agent_start] developer 实现功能
+[2026-04-10 19:27:09] [workflow] compile-check [BRANCH] buildPassed == 1 → true → unit-test
+[2026-04-10 19:27:09] [agent_start] unit-test [NODE] unit-test - 单元测试 — 跑项目的 test suite
+[2026-04-10 19:27:09] [workflow] unit-test [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test
+[2026-04-10T19:27:09.065Z] Running developer agent...
+Summary of changes:
+
+**ARCHITECTURE.md** (501→525 lines):
+- Removed stale `agentic-core` from dependency tree (not in package.json, not imported anywhere)
+- Added note that LLM calls are handled directly by brain.js
+- Added "云端 Fallback" data flow section documenting the 5s timeout / 3-error / 60s probe recovery mechanism
+- Added "配置热更新" data flow section documenting the ETag-based 30s polling cycle
+- Added known limitation #4 about sense.js MediaPipe browser runtime dependency
+
+**.team/codebase-map.md** (176 lines, updated):
+- Added Vitest 98% coverage thresholds to tech stack
+- Updated sense.js description to include startWakeWordPipeline()
+- Updated vad.js description to include detectVoiceActivity(buffer)
+- Updated middleware.js description with production note
+- Updated test status to reflect current clean run (169/169 files, 905 passed, 0 failures)
+
+No new CRs needed — existing cr-1775847503256 (reviewed by PM) covers the VISION.md stale file name issue.
+
+```signal
+{"status": "completed", "summary": "Updated ARCHITECTURE.md: removed stale agentic-core dependency, added cloud fallback + config hot-reload data flows, documented sense.js MediaPipe limitation. Updated codebase-map.md with current test status (169/169 pass) and module descriptions. All gap items addressed — remaining partial items are documented acceptable limitations."}
+```
+[2026-04-10T19:27:11.314Z] architect agent completed
+[2026-04-10 19:27:24] [workflow] unit-test [BRANCH] unitPassed == 1 → true → integration-test
+[2026-04-10 19:27:24] [agent_start] integration-test [NODE] integration-test - 集成测试 — tester agent 写集成测试并运行
+[2026-04-10 19:27:24] [workflow] integration-test [EXEC] tester
+[2026-04-10 19:27:24] [agent_start] tester 验证功能
+[2026-04-10 19:27:24] [agent_complete] pm completed successfully
+[2026-04-10 19:27:24] [workflow] pm [SIGNAL] completed: Goal met: Vision 91% ≥ 90%, PRD 90% ≥ 90%. Marked 2 already-fixed test tasks as done (task-177584876
+[2026-04-10T19:27:24.581Z] Running tester agent...
+[2026-04-10 19:27:24] [workflow] work_loop [SKIP] write-dbb: milestoneNeedsDBB > 0
+[2026-04-10 19:27:24] [workflow] work_loop [PARALLEL-SKIP] architecture: archTaskCount > 0 || todoWithoutDesign > 0
+[2026-04-10 19:27:24] [workflow] work_loop [PARALLEL-SKIP] write-design: todoWithoutDesign > 0
+[2026-04-10 19:27:24] [workflow] work_loop [PARALLEL] implement, test
+[2026-04-10 19:27:24] [workflow] work_loop [TEAM] → developer (depth 1)
+[2026-04-10 19:27:24] [workflow]  [RESUME] Resuming from checkpoint: node=implement, step=0
+[2026-04-10 19:27:24] [agent_start] implement [NODE] implement - Developer 实现代码
+[2026-04-10 19:27:24] [workflow] implement [EXEC] developer
+[2026-04-10 19:27:24] [agent_start] developer 实现功能
+[2026-04-10 19:27:24] [workflow] work_loop [TEAM] → tester (depth 1)
+[2026-04-10 19:27:24] [workflow]  [RESUME] Resuming from checkpoint: node=integration-test, step=0
+[2026-04-10 19:27:24] [agent_start] integration-test [NODE] integration-test - 集成测试 — tester agent 写集成测试并运行
+[2026-04-10 19:27:24] [workflow] integration-test [EXEC] tester
+[2026-04-10 19:27:24] [agent_start] tester 验证功能
+[2026-04-10 19:27:24] [agent_complete] architect completed successfully
+[2026-04-10 19:27:24] [workflow] architect [SIGNAL] completed: Updated ARCHITECTURE.md: removed stale agentic-core dependency, added cloud fallback + config hot-re
+[2026-04-10 19:27:24] [agent_start] validate-refs [NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在
+[2026-04-10 19:27:24] [workflow] validate-refs [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js
+[2026-04-10T19:27:24.689Z] Running developer agent...
+[2026-04-10T19:27:24.711Z] Running tester agent...
+[2026-04-10 19:27:24] [agent_start] complete [NODE] complete - 架构设计完成
+[2026-04-10 19:27:24] [workflow] work_loop [TEAM] ← architect done
+[2026-04-10 19:27:24] [workflow] work_loop [SKIP] triage-blocked: blockedCount > 0
+[2026-04-10 19:27:25] [workflow] work_loop [LOOP] Iteration 17
+[2026-04-10 19:27:25] [workflow] work_loop [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/goal-check.js
+[2026-04-10 19:27:25] [workflow] work_loop [EXEC] pm
+[2026-04-10 19:27:25] [agent_start] pm 管理任务和里程碑
+[2026-04-10 19:27:25] [agent_complete] pm completed successfully
+[2026-04-10 19:27:25] [workflow] pm [SIGNAL] completed: Goal met: Vision 91% ≥ 90%, PRD 90% ≥ 90%. Marked 2 already-fixed test tasks as done (task-177584876
+[2026-04-10T19:27:25.649Z] Running pm agent...
+[2026-04-10 19:27:25] [workflow] work_loop [SKIP] write-dbb: milestoneNeedsDBB > 0
+[2026-04-10 19:27:25] [workflow] work_loop [PARALLEL-SKIP] architecture: archTaskCount > 0 || todoWithoutDesign > 0
+[2026-04-10 19:27:25] [workflow] work_loop [PARALLEL-SKIP] write-design: todoWithoutDesign > 0
+[2026-04-10 19:27:25] [workflow] work_loop [PARALLEL] implement, test
+[2026-04-10 19:27:25] [workflow] work_loop [TEAM] → developer (depth 1)
+[2026-04-10 19:27:25] [workflow]  [RESUME] Resuming from checkpoint: node=implement, step=0
+[2026-04-10 19:27:25] [agent_start] implement [NODE] implement - Developer 实现代码
+[2026-04-10 19:27:25] [workflow] implement [EXEC] developer
+[2026-04-10 19:27:25] [agent_start] developer 实现功能
+[2026-04-10 19:27:25] [workflow] work_loop [TEAM] → tester (depth 1)
+[2026-04-10 19:27:25] [workflow]  [RESUME] Resuming from checkpoint: node=integration-test, step=0
+[2026-04-10 19:27:25] [agent_start] integration-test [NODE] integration-test - 集成测试 — tester agent 写集成测试并运行
+[2026-04-10 19:27:25] [workflow] integration-test [EXEC] tester
+[2026-04-10 19:27:25] [agent_start] tester 验证功能
+[2026-04-10T19:27:25.755Z] Running developer agent...
+[2026-04-10T19:27:25.776Z] Running tester agent...
+Syntax is clean. No available tasks to claim — all tasks are either done, cancelled, in review, or assigned to other roles.
+
+```signal
+{"status": "completed", "summary": "No claimable tasks available. All tasks are done, cancelled, in review, or assigned to other roles. Codebase syntax check passes. Standing by for new tasks."}
+```
+[2026-04-10T19:27:27.269Z] developer agent completed
+[2026-04-10 19:27:27] [agent_complete] developer completed successfully
+[2026-04-10 19:27:27] [workflow] developer [SIGNAL] completed: No claimable tasks available. All tasks are done, cancelled, in review, or assigned to other roles. 
+[2026-04-10 19:27:27] [agent_start] self-verify-build [NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）
+[2026-04-10 19:27:27] [workflow] self-verify-build [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build
+[2026-04-10 19:27:27] [workflow] self-verify-build [BRANCH] buildPassed == 1 → true → self-verify-test
+[2026-04-10 19:27:27] [agent_start] self-verify-test [NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）
+[2026-04-10 19:27:27] [workflow] self-verify-test [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test
+Here's the current status:
+
+**Goal: Vision ≥90% + PRD ≥90% — ACHIEVED**
+- Vision: 91% ✅
+- PRD: 90% ✅
+- DBB: 90% ✅
+- Architecture: 85%
+
+**M98 (active milestone): 21 tasks — 20 done, 1 remaining**
+
+The one remaining task (`task-1775847821786`) is assigned to architect: "Update VISION.md directory tree to match actual file names." This is a P1 that could push vision higher but isn't blocking the goal.
+
+**No pending CRs.** All change requests have been processed.
+
+**Build: clean. Tests: 169 files, 905 passed, 11 skipped, 0 failures.**
+
+**Architecture gaps (85%)** — there are 3 "missing" items in ARCHITECTURE.md (store/index.js undocumented, profiler.js/latency-log.js undocumented, sox.js/download-state.js undocumented) and 2 "partial" items (sense.js detail, embed.js/adapters detail). These are documentation gaps, not code gaps. Since the goal is Vision ≥90% + PRD ≥90% and both are met, architecture gaps are lower priority.
+
+The goal is met. The remaining architect task is nice-to-have for pushing vision even higher. No new tasks needed — the system should detect M98 completion once that last task finishes.
+
+```signal
+{"status": "completed", "summary": "Goal achieved (Vision 91%, PRD 90%). M98 has 20/21 tasks done, 1 architect task remaining (VISION.md directory tree update). All tests pass, no pending CRs, no blocked tasks."}
+```
+[2026-04-10T19:27:32.475Z] pm agent completed
+[2026-04-10 19:27:43] [workflow] self-verify-test [BRANCH] testPassed == 1 → true → commit
+[2026-04-10 19:27:43] [agent_start] commit [NODE] commit - Git commit 通过验证的代码
+[2026-04-10 19:27:43] [workflow] commit [SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1

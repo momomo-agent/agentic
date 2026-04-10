@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T19:25:00.537Z",
+  "timestamp": "2026-04-10T19:27:11.313Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "ARCHITECTURE.md verified complete (500+ lines, mermaid diagram, full directory tree, module APIs, data flows, design principles, 3 known limitations). Codebase map updated with latest test status. All Vision/PRD/DBB gaps either implemented, documented as acceptable trade-offs, or have CRs submitted. No ARCHITECTURE.md changes needed — document is accurate and comprehensive."
+  "summary": "Updated ARCHITECTURE.md: removed stale agentic-core dependency, added cloud fallback + config hot-reload data flows, documented sense.js MediaPipe limitation. Updated codebase-map.md with current test status (169/169 pass) and module descriptions. All gap items addressed — remaining partial items are documented acceptable limitations."
 }
