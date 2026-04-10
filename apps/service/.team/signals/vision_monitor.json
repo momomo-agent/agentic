@@ -1,7 +1,7 @@
 {
   "agent": "vision_monitor",
-  "timestamp": "2026-04-10T21:38:50.884Z",
+  "timestamp": "2026-04-10T21:41:34.698Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Vision gap evaluation: 91% match confirmed, no changes to gap list"
+  "summary": "Vision monitor: 91% match stable, 2 partial gaps unchanged (MediaPipe browser dependency, minimal middleware)"
 }

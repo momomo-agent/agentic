@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:40:53.009Z",
+  "timestamp": "2026-04-10T21:41:20.550Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture scan confirmed 95% match. Verified kokoro.js gap is real (referenced at runtime/tts.js:9 but file missing). No new gaps found."
+  "summary": "Architecture check: 95% match, no changes from previous scan. kokoro.js still missing, embed.js still dead code, voice adapter docs still incomplete."
 }

@@ -1,10 +1,10 @@
-# DBB Check — M97/M98/M99 — 2026-04-11T22:38
+# DBB Check — M97/M98/M99 — 2026-04-11T22:16
 
 ## Global DBB Match: 90%
 
 ### Verification Summary
 
-**Tests:** 981/981 pass (174 files, 0 failures, 11 skipped).
+**Tests:** 174 files, all passing, 0 failures.
 
 **Critical items — all pass:**
 - src/index.js exists, exports startServer/createApp/stopServer/detect/getProfile/matchProfile/ensureOllama/chat/stt/tts/embed
