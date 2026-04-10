@@ -40,8 +40,7 @@
     "node": ">=18.0.0"
   },
   "imports": {
-    "#agentic-embed": "./src/runtime/adapters/embed.js",
-    "#agentic-voice": "./src/runtime/adapters/voice/openai-tts.js"
+    "#agentic-embed": "./src/runtime/adapters/embed.js"
   },
   "dependencies": {
     "agentic-embed": "workspace:*",
