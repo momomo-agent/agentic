@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11
+Updated: 2026-04-11 (architect review pass)
 
 ## Technology Stack
 
