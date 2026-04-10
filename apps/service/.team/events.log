@@ -270,3 +270,45 @@
 {"ts":"2026-04-10T21:00:57.696Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
 {"ts":"2026-04-10T21:00:57.696Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":20,"memoryTotalMB":33,"cpuUser":31.774809,"cpuSystem":96.672691}}}
 {"ts":"2026-04-10T21:00:57.696Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
+{"ts":"2026-04-10T21:00:57.967Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 开发完成，任务进入 review","performance":{"memoryMB":20,"memoryTotalMB":33,"cpuUser":31.775132,"cpuSystem":96.673278}}}
+{"ts":"2026-04-10T21:00:57.967Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← developer done"}}
+{"ts":"2026-04-10T21:00:58.046Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] triage-blocked: blockedCount > 0"}}
+{"ts":"2026-04-10T21:00:58.198Z","type":"workflow","agent":"work_loop","data":{"details":"[LOOP] Iteration 25"}}
+{"ts":"2026-04-10T21:00:58.212Z","type":"workflow","agent":"work_loop","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/goal-check.js"}}
+{"ts":"2026-04-10T21:00:58.496Z","type":"workflow","agent":"work_loop","data":{"details":"[EXEC] pm"}}
+{"ts":"2026-04-10T21:00:58.496Z","type":"agent_start","agent":"pm","data":{"details":"管理任务和里程碑","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.839199,"cpuSystem":96.899645}}}
+{"ts":"2026-04-10T21:00:58.559Z","type":"agent_complete","agent":"pm","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.839806,"cpuSystem":96.900615}}}
+{"ts":"2026-04-10T21:00:58.559Z","type":"workflow","agent":"pm","data":{"details":"[SIGNAL] completed: No pending CRs. M98 all done. M99 has 4 unblocked architect tasks for architecture 85%→90%. Primary "}}
+{"ts":"2026-04-10T21:00:58.633Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] write-dbb: milestoneNeedsDBB > 0"}}
+{"ts":"2026-04-10T21:00:58.633Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL-SKIP] architecture: archTaskCount > 0 || todoWithoutDesign > 0"}}
+{"ts":"2026-04-10T21:00:58.633Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL-SKIP] write-design: todoWithoutDesign > 0"}}
+{"ts":"2026-04-10T21:00:58.633Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL-SKIP] test: reviewCount > 0 || testingCount > 0"}}
+{"ts":"2026-04-10T21:00:58.634Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL] implement"}}
+{"ts":"2026-04-10T21:00:58.634Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] → developer (depth 1)"}}
+{"ts":"2026-04-10T21:00:58.634Z","type":"agent_start","agent":"read-spec","data":{"details":"[NODE] read-spec - 读取任务 spec、设计文档、历史错误日志","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.855955,"cpuSystem":96.959692}}}
+{"ts":"2026-04-10T21:00:58.634Z","type":"workflow","agent":"read-spec","data":{"details":"[SHELL] cat .team/verify-errors/latest-build.log 2>/dev/null || echo 'No previous build errors'"}}
+{"ts":"2026-04-10T21:00:58.640Z","type":"agent_start","agent":"implement","data":{"details":"[NODE] implement - Developer 实现代码","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.856192,"cpuSystem":96.960208}}}
+{"ts":"2026-04-10T21:00:58.640Z","type":"workflow","agent":"implement","data":{"details":"[EXEC] developer"}}
+{"ts":"2026-04-10T21:00:58.640Z","type":"agent_start","agent":"developer","data":{"details":"实现功能","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.856302,"cpuSystem":96.960495}}}
+{"ts":"2026-04-10T21:00:58.641Z","type":"agent_complete","agent":"pm","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.856489,"cpuSystem":96.96086}}}
+{"ts":"2026-04-10T21:00:58.641Z","type":"workflow","agent":"pm","data":{"details":"[SIGNAL] completed: No pending CRs. M98 all done. M99 has 4 unblocked architect tasks for architecture 85%→90%. Primary "}}
+{"ts":"2026-04-10T21:00:58.724Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] write-dbb: milestoneNeedsDBB > 0"}}
+{"ts":"2026-04-10T21:00:58.724Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL-SKIP] architecture: archTaskCount > 0 || todoWithoutDesign > 0"}}
+{"ts":"2026-04-10T21:00:58.724Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL-SKIP] write-design: todoWithoutDesign > 0"}}
+{"ts":"2026-04-10T21:00:58.724Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL-SKIP] test: reviewCount > 0 || testingCount > 0"}}
+{"ts":"2026-04-10T21:00:58.724Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL] implement"}}
+{"ts":"2026-04-10T21:00:58.725Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] → developer (depth 1)"}}
+{"ts":"2026-04-10T21:00:58.725Z","type":"workflow","agent":null,"data":{"details":"[RESUME] Resuming from checkpoint: node=implement, step=0"}}
+{"ts":"2026-04-10T21:00:58.740Z","type":"agent_start","agent":"implement","data":{"details":"[NODE] implement - Developer 实现代码","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.873744,"cpuSystem":97.030019}}}
+{"ts":"2026-04-10T21:00:58.741Z","type":"workflow","agent":"implement","data":{"details":"[EXEC] developer"}}
+{"ts":"2026-04-10T21:00:58.741Z","type":"agent_start","agent":"developer","data":{"details":"实现功能","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.873946,"cpuSystem":97.030445}}}
+{"ts":"2026-04-10T21:00:58.742Z","type":"agent_complete","agent":"developer","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":31.874174,"cpuSystem":97.030868}}}
+{"ts":"2026-04-10T21:00:58.742Z","type":"workflow","agent":"developer","data":{"details":"[SIGNAL] completed: No developer tasks available — all remaining todo tasks are architect-owned documentation tasks (VIS"}}
+{"ts":"2026-04-10T21:00:59.090Z","type":"agent_start","agent":"self-verify-build","data":{"details":"[NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":18,"memoryTotalMB":22,"cpuUser":31.876827,"cpuSystem":97.043478}}}
+{"ts":"2026-04-10T21:00:59.090Z","type":"workflow","agent":"self-verify-build","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build"}}
+{"ts":"2026-04-10T21:00:59.278Z","type":"workflow","agent":"self-verify-build","data":{"details":"[BRANCH] buildPassed == 1 → true → self-verify-test"}}
+{"ts":"2026-04-10T21:00:59.279Z","type":"agent_start","agent":"self-verify-test","data":{"details":"[NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":19,"memoryTotalMB":22,"cpuUser":31.877648,"cpuSystem":97.044866}}}
+{"ts":"2026-04-10T21:00:59.280Z","type":"workflow","agent":"self-verify-test","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test"}}
+{"ts":"2026-04-10T21:01:14.608Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
+{"ts":"2026-04-10T21:01:14.608Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":19,"memoryTotalMB":22,"cpuUser":31.878334,"cpuSystem":97.046197}}}
+{"ts":"2026-04-10T21:01:14.608Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
