@@ -2,13 +2,13 @@
   "id": "task-1775847933739",
   "title": "Fix m28-profiles-cache.test.js — cache expired fetch not triggering",
   "description": "2 tests failing in test/m28-profiles-cache.test.js:\n\n1. calls fetch when cache is older than 7 days — expect(global.fetch).toHaveBeenCalled() fails\n2. updates cache timestamp after successful fetch — ENOENT /Users/kenefe/.agentic-service/profiles.json\n\nThe test sets up an expired cache (>7 days old) and expects getProfile() to call fetch to refresh. But fetch is never called, meaning the cache expiry check in profiles.js is not triggering a remote fetch.\n\nError log from latest-test.log:\n  AssertionError: expected spy to be called at least once (line 37)\n  ENOENT: profiles.json not written after getProfile() (line 44)\n\nFix: check profiles.js cache freshness logic — the 7-day expiry threshold may not be comparing timestamps correctly, or the fetch path is being short-circuited.",
-  "status": "review",
+  "status": "done",
   "priority": "P0",
   "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:05:33.740Z",
-  "updated": "2026-04-10T19:15:15.004Z",
+  "updated": "2026-04-10T19:15:41.808Z",
   "milestoneId": "m98"
 }
