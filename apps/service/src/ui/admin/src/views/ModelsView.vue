@@ -6,6 +6,7 @@
     <div class="tab-bar">
       <button class="tab-btn" :class="{ active: tab === 'local' }" @click="tab = 'local'">本地模型</button>
       <button class="tab-btn" :class="{ active: tab === 'cloud' }" @click="tab = 'cloud'">云端模型</button>
+      <button class="tab-btn" :class="{ active: tab === 'config' }" @click="tab = 'config'">配置</button>
     </div>
 
     <!-- ==================== 本地模型 Tab ==================== -->
@@ -172,6 +173,47 @@
           </div>
         </div>
       </div>
+    </template>
+
+    <!-- ==================== 配置 Tab ==================== -->
+    <template v-if="tab === 'config'">
+      <!-- 能力分配 -->
+      <div class="card">
+        <div class="card-title">能力分配</div>
+        <p class="card-desc">为每个能力选择模型。在「本地模型」或「云端模型」中添加模型后，这里会自动出现。</p>
+        <div class="slots">
+          <div v-for="slot in configSlots" :key="slot.key" class="slot-row">
+            <div class="slot-label">
+              <span class="slot-icon">{{ slot.icon }}</span>
+              <div>
+                <div class="slot-name">{{ slot.name }}</div>
+                <div class="slot-desc">{{ slot.desc }}</div>
+              </div>
+            </div>
+            <select class="slot-select" :value="assignments[slot.key]" @change="updateAssignment(slot.key, $event.target.value)">
+              <option value="">未分配</option>
+              <option v-for="m in modelsForCap(slot.cap)" :key="m.id" :value="m.id">{{ m.name }} ({{ m.provider }})</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ollama 设置 -->
+      <div class="card">
+        <div class="card-title">Ollama 设置</div>
+        <div class="config-form">
+          <div class="field">
+            <label>Host</label>
+            <input v-model="ollamaHost" placeholder="http://localhost:11434" />
+          </div>
+          <div class="actions">
+            <button @click="saveOllamaHost" :disabled="savingHost">{{ savingHost ? '保存中...' : '保存' }}</button>
+            <span v-if="hostSaved" class="saved-msg">✓ 已保存</span>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="configError" class="error-banner">{{ configError }}</div>
     </template>
   </div>
 </template>
@@ -368,10 +410,79 @@ async function removeCloudModel(id) {
   }
 }
 
+// ─── 配置 Tab ───
+const configSlots = [
+  { key: 'chat', cap: 'chat', icon: '🧠', name: '对话', desc: '主要对话模型' },
+  { key: 'vision', cap: 'vision', icon: '👁️', name: '视觉', desc: '图像理解' },
+  { key: 'stt', cap: 'stt', icon: '🎤', name: '语音识别', desc: '语音转文字' },
+  { key: 'tts', cap: 'tts', icon: '🔊', name: '语音合成', desc: '文字转语音' },
+  { key: 'embedding', cap: 'embedding', icon: '📐', name: '嵌入', desc: '文本向量化' },
+  { key: 'fallback', cap: 'chat', icon: '🔄', name: '回退', desc: '主模型失败时使用' },
+]
+const assignments = reactive({ chat: '', vision: '', stt: '', tts: '', embedding: '', fallback: '' })
+const ollamaHost = ref('http://localhost:11434')
+const savingHost = ref(false)
+const hostSaved = ref(false)
+const configError = ref('')
+
+function modelsForCap(cap) {
+  return pool.value.filter(m => m.capabilities?.includes(cap))
+}
+
+async function fetchConfig() {
+  try {
+    const [assignRes, cfgRes] = await Promise.all([
+      fetch('/api/assignments'),
+      fetch('/api/config'),
+    ])
+    const assign = await assignRes.json()
+    const cfg = await cfgRes.json()
+    Object.assign(assignments, assign)
+    ollamaHost.value = cfg.ollama?.host || cfg.ollamaHost || cfg.llm?.ollamaHost || 'http://localhost:11434'
+  } catch (e) {
+    configError.value = e.message
+  }
+}
+
+async function updateAssignment(key, value) {
+  assignments[key] = value
+  try {
+    await fetch('/api/assignments', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(assignments),
+    })
+  } catch (e) {
+    configError.value = e.message
+  }
+}
+
+async function saveOllamaHost() {
+  savingHost.value = true
+  try {
+    const res = await fetch('/api/config')
+    const cfg = await res.json()
+    cfg.ollama = cfg.ollama || {}
+    cfg.ollama.host = ollamaHost.value
+    await fetch('/api/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cfg),
+    })
+    hostSaved.value = true
+    setTimeout(() => (hostSaved.value = false), 2000)
+  } catch (e) {
+    configError.value = e.message
+  } finally {
+    savingHost.value = false
+  }
+}
+
 // ─── 初始化 ───
 onMounted(() => {
   fetchStatus()
   fetchPool()
+  fetchConfig()
 })
 </script>
 
@@ -516,4 +627,27 @@ onMounted(() => {
 .actions button:disabled { opacity: 0.5; cursor: not-allowed; }
 .error-msg { color: var(--error, #ef4444); font-size: 14px; }
 .empty { color: var(--text-dim); font-size: 14px; padding: 12px 0; }
+
+/* Config tab */
+.card-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+.slots { display: flex; flex-direction: column; gap: 12px; }
+.slot-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-radius: 8px; background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.slot-label { display: flex; align-items: center; gap: 12px; }
+.slot-icon { font-size: 20px; }
+.slot-name { font-size: 14px; font-weight: 600; }
+.slot-desc { font-size: 12px; color: var(--text-dim); }
+.slot-select {
+  min-width: 240px; padding: 8px 12px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  font-size: 14px; color: var(--text);
+}
+.saved-msg { color: var(--success, #10b981); font-size: 14px; }
+.error-banner {
+  margin-top: 16px; padding: 12px 16px; border-radius: 8px;
+  background: rgba(239,68,68,0.1); color: var(--error, #ef4444); font-size: 14px;
+}
 </style>

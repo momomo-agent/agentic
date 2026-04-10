@@ -25,7 +25,6 @@
     <main class="main">
       <StatusView v-if="currentView === 'status'" />
       <ModelsView v-else-if="currentView === 'models'" />
-      <ConfigView v-else-if="currentView === 'config'" />
       <LogsView v-else-if="currentView === 'logs'" />
       <ExamplesView v-else-if="currentView === 'examples'" />
       <TestView v-else-if="currentView === 'tests'" />
@@ -37,7 +36,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import StatusView from './views/StatusView.vue'
 import ModelsView from './views/ModelsView.vue'
-import ConfigView from './views/ConfigView.vue'
 import ExamplesView from './views/ExamplesView.vue'
 import TestView from './views/TestView.vue'
 import LogsView from './views/LogsView.vue'
@@ -49,7 +47,6 @@ let timer = null
 const navItems = [
   { id: 'status', label: '系统状态', icon: '📊' },
   { id: 'models', label: '模型管理', icon: '🤖' },
-  { id: 'config', label: '配置', icon: '⚙️' },
   { id: 'logs', label: '日志', icon: '📋' },
 ]
 
