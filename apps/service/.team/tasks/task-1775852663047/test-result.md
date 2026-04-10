@@ -3,22 +3,21 @@
 ## Fix config-persistence test — ENOENT on atomic rename
 
 ### Summary
-**PASS** — The fix (configurable `AGENTIC_CONFIG_DIR` env var + test isolation via temp dir) resolved the ENOENT issue. All config-persistence tests pass.
+**PASS** — The ENOENT fix (configurable `AGENTIC_CONFIG_DIR` + test isolation via temp dir) works correctly. All config-persistence tests pass, including the previously failing `reloadConfig reads fresh data from disk`.
 
 ### Test Results
 
 **File:** `test/config-persistence.test.js` — 13/13 passed
 
-Key test: `reloadConfig reads fresh data from disk` — previously failed with ENOENT, now passes.
+The key test that was failing (`reloadConfig reads fresh data from disk`) now passes because:
+1. Tests use isolated temp dir via `AGENTIC_CONFIG_DIR` env var
+2. `_writeToDisk` creates the directory with `fs.mkdir(dir, { recursive: true })` before writing
+3. ENOENT retry logic in `_writeToDisk` handles edge cases
 
-### Full Suite Verification
-All 173 test files pass (975 tests, 0 failures).
+### Verification
+- Ran `npx vitest run test/config-persistence.test.js` — all 13 tests pass
+- The `reloadConfig` test correctly reads injected data from disk after cache invalidation
+- No ENOENT errors observed
 
-### Verification Details
-- `AGENTIC_CONFIG_DIR` env var allows test isolation (no cross-test interference)
-- Tests use isolated temp dir (`os.tmpdir()/agentic-config-test-{pid}`)
-- Atomic write (tmp + rename) works correctly with isolated directory
-- Subsequent fix (task-1775852942421 write mutex) builds on this foundation
-
-### Issues Found
-None.
+### Verdict
+PASS — Implementation correctly fixes the ENOENT issue. Task can be marked done.
