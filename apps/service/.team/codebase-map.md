@@ -7,7 +7,7 @@ Updated: 2026-04-11
 - **Runtime:** Node.js >=18, ES Modules
 - **Framework:** Express 5 + ws (WebSocket)
 - **Frontend:** Vue 3 + Vite (two apps: client + admin)
-- **Testing:** Vitest
+- **Testing:** Vitest (98% coverage thresholds)
 - **Package Manager:** pnpm workspace (workspace:* deps)
 - **External Packages:** agentic-embed, agentic-sense, agentic-store, agentic-voice
 
@@ -44,11 +44,11 @@ src/
   runtime/
     stt.js                    (51 lines)  Speech-to-text — init(config), transcribe(audioBuffer)
     tts.js                    (71 lines)  Text-to-speech — init(config), synthesize(text)
-    sense.js                  (120 lines) Visual perception — detect(frame), start()/stop(), startHeadless()
+    sense.js                  (120 lines) Visual perception — detect(frame), start()/stop(), startHeadless(), startWakeWordPipeline()
     embed.js                  (9 lines)   Vector embedding — embed(text) via agentic-embed
     profiler.js               (29 lines)  CPU profiling — startMark/endMark/getMetrics
     latency-log.js            (17 lines)  Latency recording — record(label, ms), getLog()
-    vad.js                    (9 lines)   Voice activity detection — createVAD(options)
+    vad.js                    (9 lines)   Voice activity detection — createVAD(options), detectVoiceActivity(buffer)
     adapters/
       embed.js                (3 lines)   Stub adapter (throws 'not implemented')
       sense.js                (7 lines)   agentic-sense adapter — createPipeline()
@@ -65,7 +65,7 @@ src/
     api.js                    (813 lines) Express routes — REST + OpenAI-compatible + Anthropic-compatible + admin + voice + /api/perf
     brain.js                  (299 lines) LLM inference + tool calling + cloud fallback — chat(), registerTool(), chatSession()
     hub.js                    (313 lines) WebSocket device mgmt — init(), joinSession(), broadcastSession()
-    middleware.js             (4 lines)   Error handler only
+    middleware.js             (4 lines)   Error handler only (local-first; production needs enhancement)
     cert.js                   (7 lines)   Self-signed cert generation — generateCert()
     httpsServer.js            (7 lines)   HTTPS server factory — createHttpsServer(app)
 
@@ -143,7 +143,8 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **905/916 tests pass (0 failures, 11 skipped), 169 test files** — clean run as of 2026-04-11
+- **169 test files, all passing** — 905 passed, 11 skipped, 0 failures (clean run 2026-04-11)
+- Vitest coverage thresholds: 98% (statements/lines/branches/functions)
 - profiles-edge-cases.test.js: all 14 tests pass (including expired-cache fallback)
 - All previously failing tests (m76-embed-wiring, m77-sense-imports, m28-profiles-cache) now pass
 - m62-sigint-integration: all 4 tests pass
