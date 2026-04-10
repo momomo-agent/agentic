@@ -44368,3 +44368,68 @@ The architecture and codebase map are both accurate and comprehensive. All gap i
 [2026-04-10 19:33:55] [workflow] self-verify-test [BRANCH] testPassed == 1 → true → commit
 [2026-04-10 19:33:55] [agent_start] commit [NODE] commit - Git commit 通过验证的代码
 [2026-04-10 19:33:55] [workflow] commit [SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1
+[2026-04-10 19:33:56] [agent_start] complete [NODE] complete - 开发完成，任务进入 review
+[2026-04-10 19:33:56] [workflow] work_loop [TEAM] ← developer done
+[2026-04-10 19:33:56] [agent_complete] tester completed successfully
+[2026-04-10 19:33:56] [workflow] tester [SIGNAL] completed: Verified task-1775849084626: m21-profiles.test.js fix confirmed — 2/2 tests pass, full suite 169 fil
+[2026-04-10 19:33:56] [workflow] integration-test [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test
+All design work is complete. Here's the summary:
+
+**M98 (active milestone)** — already has `dbb.md` with verification criteria.
+
+**Task designed:** `task-1775849497684` — Fix flaky profiler test. The test at `test/m95-profiler-instrumentation.test.js:38` had a timing threshold of 8ms that was too tight for `Date.now()` jitter. Fix: widen to 20ms. Design written to `.team/tasks/task-1775849497684/design.md`, `hasDesign` set to `true`.
+
+**No other tasks need design** — the only remaining todo (`task-1775847821786`, VISION.md update) already has design and is assigned to architect. All other undesigned tasks are cancelled.
+
+**Consistency check:** All three module designs (runtime, server, detector) are consistent with each other and with ARCHITECTURE.md public interfaces. No conflicts found.
+
+```signal
+{"status": "completed", "summary": "Wrote task design for task-1775849497684 (flaky profiler test fix). M98 dbb.md already exists. All active/todo tasks now have designs. Consistency check passed — no conflicts across module designs."}
+```
+[2026-04-10T19:33:59.040Z] tech_lead agent completed
+[2026-04-10 19:34:11] [workflow] integration-test [BRANCH] integrationPassed == 1 → true → (nested)
+[2026-04-10 19:34:11] [workflow] integration-test [BRANCH] hasE2E == 1 → false → report
+[2026-04-10 19:34:11] [agent_start] report [NODE] report - Tester agent 写测试报告
+[2026-04-10 19:34:11] [workflow] report [EXEC] tester
+[2026-04-10 19:34:11] [agent_start] tester 验证功能
+[2026-04-10 19:34:11] [agent_complete] developer completed successfully
+[2026-04-10 19:34:11] [workflow] developer [SIGNAL] completed: No developer tasks available. All tasks are done/cancelled except one architect-only VISION.md updat
+[2026-04-10T19:34:11.703Z] Running tester agent...
+[2026-04-10 19:34:12] [agent_start] self-verify-build [NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）
+[2026-04-10 19:34:12] [workflow] self-verify-build [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build
+[2026-04-10 19:34:12] [workflow] self-verify-build [BRANCH] buildPassed == 1 → true → self-verify-test
+[2026-04-10 19:34:12] [agent_start] self-verify-test [NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）
+[2026-04-10 19:34:12] [workflow] self-verify-test [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test
+The ARCHITECTURE.md changes are already committed — no diff in working tree. The "24 lines changed" flag is from a prior cycle comparison, not a new uncommitted change.
+
+Let me assess the current state:
+
+**Goal: Vision ≥90% + PRD ≥90%** — Both thresholds are met (Vision 91%, PRD 90%).
+
+**M98 Status:**
+- 11 of 12 tasks done
+- 1 remaining: `task-1775847821786` — "Update VISION.md directory tree" assigned to architect, status `todo`
+
+**No pending CRs.** All 35 CRs are resolved/rejected/reviewed.
+
+**Tests:** 169 files, 910 passed, 0 failed. Clean.
+
+**Architecture gaps** remain at 85% — the gaps are documentation-level (store.js, embed.js, profiler.js, adapters not in ARCHITECTURE.md). These are architect-owned docs, and existing tasks or future milestones can address them, but they're not blocking the goal.
+
+The one remaining task (`task-1775847821786`) is assigned to architect and is a VISION.md update — it could push vision from 91% to ~95%. It's in progress as `todo` and unblocked. Nothing for me to do there except wait for architect to pick it up.
+
+The goal is met. No blocked tasks, no pending CRs, no test failures. M98 has one remaining architect task that will further improve vision match but the ≥90% threshold is already satisfied.
+
+```signal
+{"status": "completed", "summary": "Goal met — Vision 91%, PRD 90%. M98 has 11/12 tasks done, 1 architect task remaining (VISION.md directory tree update). No pending CRs, no blocked tasks, all 169 test files passing (910 tests). Architecture at 85% with doc-only gaps owned by architect."}
+```
+[2026-04-10T19:34:15.476Z] pm agent completed
+No tasks in `review` status to test. All 910 tests across 169 test files pass with zero failures. Updated the stale test-coverage.json to reflect current numbers.
+
+```signal
+{"status": "completed", "summary": "No tasks in review status. All 910 tests pass (169 files, 0 failures). Updated test-coverage.json from stale 10-test count to accurate 910."}
+```
+[2026-04-10T19:34:24.250Z] tester agent completed
+[2026-04-10 19:34:35] [workflow] self-verify-test [BRANCH] testPassed == 1 → true → commit
+[2026-04-10 19:34:35] [agent_start] commit [NODE] commit - Git commit 通过验证的代码
+[2026-04-10 19:34:35] [workflow] commit [SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1

@@ -25,14 +25,14 @@
   },
   "developer": {
     "status": "idle",
-    "lastRun": "2026-04-10T19:33:35.572Z",
+    "lastRun": "2026-04-10T19:34:11.653Z",
     "currentTask": null,
     "retryCount": 2
   },
   "tester": {
-    "status": "idle",
-    "lastRun": "2026-04-10T19:32:54.641Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-10T19:34:11.653Z",
+    "currentTask": "验证功能",
     "retryCount": 1
   },
   "tester-1": {

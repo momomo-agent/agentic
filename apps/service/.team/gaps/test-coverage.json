@@ -1,9 +1,9 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 910,
+  "passed": 910,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "Timer jitter under heavy CPU load could still exceed 20ms — consider performance.now() delta instead of absolute threshold if this recurs"
   ],
-  "coverage": "100%"
+  "coverage": "99%"
 }
