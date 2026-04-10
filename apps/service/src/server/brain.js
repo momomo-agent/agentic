@@ -78,7 +78,7 @@ async function* chatWithTools(messages, tools) {
     return;
   } catch (err) {
     // Try fallback
-    const fallback = await resolveModel('fallback');
+    const fallback = await resolveModel('chatFallback');
     if (fallback) {
       console.warn(`Primary LLM failed (${err.message}), trying fallback...`);
       if (fallback.provider === 'ollama') {

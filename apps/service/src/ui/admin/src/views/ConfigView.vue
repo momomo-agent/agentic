@@ -8,32 +8,55 @@
       <p class="card-desc">为每个能力选择模型。模型在「模型管理」页添加。</p>
 
       <div class="slots">
-        <div v-for="slot in slots" :key="slot.key" class="slot-row">
-          <div class="slot-label">
-            <span class="slot-icon">{{ slot.icon }}</span>
-            <div>
-              <div class="slot-name">{{ slot.name }}</div>
-              <div class="slot-desc">{{ slot.desc }}</div>
+        <div v-for="slot in slots" :key="slot.key" class="slot-group">
+          <div class="slot-row">
+            <div class="slot-label">
+              <span class="slot-icon">{{ slot.icon }}</span>
+              <div>
+                <div class="slot-name">{{ slot.name }}</div>
+                <div class="slot-desc">{{ slot.desc }}</div>
+              </div>
+            </div>
+            <div class="slot-right">
+              <select
+                class="slot-select"
+                :value="assignments[slot.key]"
+                @change="updateAssignment(slot.key, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">未分配</option>
+                <option
+                  v-for="m in modelsForCap(slot.cap)"
+                  :key="m.id"
+                  :value="m.id"
+                >{{ m.name }} ({{ m.provider }}) {{ capIcons(m.capabilities) }}</option>
+              </select>
+              <div v-if="!assignments[slot.key] && modelsForCap(slot.cap).length === 0" class="slot-hint warn">
+                无可用模型 — 在「模型管理」中添加
+              </div>
             </div>
           </div>
-          <div class="slot-right">
-            <select
-              class="slot-select"
-              :value="assignments[slot.key]"
-              @change="updateAssignment(slot.key, ($event.target as HTMLSelectElement).value)"
-            >
-              <option value="">未分配</option>
-              <option
-                v-for="m in modelsForCap(slot.cap)"
-                :key="m.id"
-                :value="m.id"
-              >{{ m.name }} ({{ m.provider }}) {{ capIcons(m.capabilities) }}</option>
-            </select>
-            <div v-if="!assignments[slot.key] && modelsForCap(slot.cap).length === 0" class="slot-hint warn">
-              无可用模型 — 在「模型管理」中添加
+          <!-- chat 的回退模型，缩进显示 -->
+          <div v-if="slot.key === 'chat'" class="slot-row slot-sub">
+            <div class="slot-label">
+              <span class="slot-icon">🔄</span>
+              <div>
+                <div class="slot-name">回退</div>
+                <div class="slot-desc">主模型失败时自动切换</div>
+              </div>
             </div>
-            <div v-else-if="!assignments[slot.key] && fallbackModel" class="slot-hint">
-              回退到 {{ fallbackModel }}
+            <div class="slot-right">
+              <select
+                class="slot-select"
+                :value="assignments.chatFallback"
+                @change="updateAssignment('chatFallback', ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">不设置</option>
+                <option
+                  v-for="m in modelsForCap('chat').filter(m => m.id !== assignments.chat)"
+                  :key="m.id"
+                  :value="m.id"
+                >{{ m.name }} ({{ m.provider }})</option>
+              </select>
             </div>
           </div>
         </div>
@@ -71,15 +94,13 @@ const slots = [
   { key: 'stt', cap: 'stt', icon: '🎤', name: '语音识别', desc: '语音转文字' },
   { key: 'tts', cap: 'tts', icon: '🔊', name: '语音合成', desc: '文字转语音' },
   { key: 'embedding', cap: 'embedding', icon: '📐', name: '嵌入', desc: '文本向量化' },
-  { key: 'fallback', cap: 'chat', icon: '🔄', name: '回退', desc: '主模型失败时使用' },
 ]
 
 const assignments = reactive<Record<string, string>>({
-  chat: '', vision: '', stt: '', tts: '', embedding: '', fallback: ''
+  chat: '', vision: '', stt: '', tts: '', embedding: '', chatFallback: ''
 })
 const modelPool = ref<any[]>([])
 const ollamaHost = ref('http://localhost:11434')
-const fallbackModel = ref('')
 const savingHost = ref(false)
 const hostSaved = ref(false)
 const error = ref('')
@@ -107,7 +128,6 @@ async function fetchData() {
     modelPool.value = pool
     Object.assign(assignments, assign)
     ollamaHost.value = cfg.ollama?.host || 'http://localhost:11434'
-    fallbackModel.value = cfg.llm?.model || ''
   } catch (e: any) {
     error.value = e.message
   }
@@ -157,10 +177,16 @@ onMounted(fetchData)
 .card-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
 
 .slots { display: flex; flex-direction: column; gap: 12px; }
+.slot-group { display: flex; flex-direction: column; gap: 0; }
 .slot-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 12px 16px; border-radius: 8px; background: var(--surface);
   border: 1px solid var(--border);
+}
+.slot-sub {
+  margin-top: -1px; margin-left: 32px;
+  border-top-left-radius: 0; border-top-right-radius: 0;
+  background: var(--surface-2); opacity: 0.85;
 }
 .slot-label { display: flex; align-items: center; gap: 12px; }
 .slot-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }

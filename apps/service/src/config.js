@@ -4,7 +4,8 @@
  * 新架构：modelPool[] + assignments{} 替代旧的 llm/fallback 直接配置
  *
  * modelPool: 所有可用模型（本地 Ollama 自动检测 + 用户添加的云端模型）
- * assignments: 每个槽位（chat/vision/stt/tts/embedding + fallback）指向 pool 中的模型 ID
+ * assignments: 每个能力槽位指向 pool 中的模型 ID
+ * assignments.chatFallback: chat 挂了用谁顶（不是独立能力，是 chat 的属性）
  */
 
 import fs from 'fs/promises';
@@ -15,11 +16,10 @@ const CONFIG_DIR = path.join(os.homedir(), '.agentic-service');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 
 const CAPABILITIES = ['chat', 'vision', 'stt', 'tts', 'embedding'];
-const ASSIGNMENT_SLOTS = [...CAPABILITIES, 'fallback'];
 
 const DEFAULTS = {
   modelPool: [],
-  assignments: { chat: null, vision: null, stt: null, tts: null, embedding: null, fallback: null },
+  assignments: { chat: null, vision: null, stt: null, tts: null, embedding: null, chatFallback: null },
   stt: { provider: 'whisper' },
   tts: { provider: 'kokoro', voice: 'default' },
   ollamaHost: 'http://localhost:11434',
@@ -147,7 +147,7 @@ export async function removeFromPool(id) {
   const pool = (config.modelPool || []).filter(m => m.id !== id);
   // Also clear any assignments pointing to this model
   const assignments = { ...(config.assignments || {}) };
-  for (const slot of ASSIGNMENT_SLOTS) {
+  for (const slot of [...CAPABILITIES, 'chatFallback']) {
     if (assignments[slot] === id) assignments[slot] = null;
   }
   await setConfig({ modelPool: pool, assignments });
@@ -158,7 +158,18 @@ export async function removeFromPool(id) {
  */
 export async function getAssignments() {
   const config = await getConfig();
-  return config.assignments || DEFAULTS.assignments;
+  const raw = config.assignments || { ...DEFAULTS.assignments };
+
+  // Migrate old 'fallback' → 'chatFallback'
+  if ('fallback' in raw) {
+    if (raw.fallback && !raw.chatFallback) {
+      raw.chatFallback = raw.fallback;
+    }
+    delete raw.fallback;
+    await setConfig({ assignments: raw });
+  }
+
+  return raw;
 }
 
 /**
@@ -178,7 +189,7 @@ function _migrateOldFormat(parsed) {
   // Old format had: llm: { provider, model, apiKey, baseUrl, ollamaHost }, fallback: { provider, model, ... }
   if (parsed.llm && !parsed.modelPool) {
     const pool = [];
-    const assignments = { chat: null, vision: null, stt: null, tts: null, embedding: null, fallback: null };
+    const assignments = { chat: null, vision: null, stt: null, tts: null, embedding: null, chatFallback: null };
 
     const llm = parsed.llm;
     if (llm.provider === 'ollama' && llm.model) {
@@ -203,7 +214,7 @@ function _migrateOldFormat(parsed) {
         if (!pool.find(m => m.id === id)) {
           pool.push({ id, name: fb.model, provider: 'ollama', capabilities: _guessOllamaCapabilities(fb.model), source: 'migrated' });
         }
-        assignments.fallback = id;
+        assignments.chatFallback = id;
       } else if (fb.model) {
         const id = `cloud:${fb.provider}:${fb.model}`;
         if (!pool.find(m => m.id === id)) {
@@ -213,7 +224,7 @@ function _migrateOldFormat(parsed) {
             capabilities: _guessCloudCapabilities(fb.provider, fb.model), source: 'migrated',
           });
         }
-        assignments.fallback = id;
+        assignments.chatFallback = id;
       }
     }
 
@@ -327,4 +338,4 @@ function deepMerge(target, source) {
   return result;
 }
 
-export { CONFIG_PATH, CAPABILITIES, ASSIGNMENT_SLOTS };
+export { CONFIG_PATH, CAPABILITIES };

@@ -75,9 +75,9 @@
             <dt>LLM</dt>
             <dd>{{ slotDisplay('chat') }}</dd>
           </div>
-          <div v-if="slotDisplay('fallback')">
+          <div v-if="slotDisplay('chatFallback')">
             <dt>Fallback</dt>
-            <dd>{{ slotDisplay('fallback') }}</dd>
+            <dd>{{ slotDisplay('chatFallback') }}</dd>
           </div>
           <div>
             <dt>STT</dt>
