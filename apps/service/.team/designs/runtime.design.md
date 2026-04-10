@@ -229,4 +229,4 @@ export async function clear()                    // line 54 — delete all entri
 - `adapters/embed.js` is dead code — should be removed or wired up
 - Wake word pipeline requires `sox` binary — gracefully degrades if missing
 - Voice adapters with API keys will fail silently if keys not configured
-- memory.js (when implemented) will do linear scan — O(n) per search, acceptable for < 10K entries
+- memory.js does linear scan — O(n) per search, acceptable for < 10K entries
