@@ -1,26 +1,23 @@
 {
   "workflowId": "project",
   "nodeId": "work_loop",
-  "stepIndex": 1,
+  "stepIndex": 3,
   "visitedNodes": [
     "startup",
     "monitor",
     "pm_decide",
     "work_loop",
-    "work_loop",
-    "work_loop",
-    "work_loop",
     "work_loop"
   ],
   "loopIterations": {
-    "work_loop": 16
+    "work_loop": 25
   },
-  "transitionDepth": 8,
+  "transitionDepth": 5,
   "nodeVisitCounts": {
     "startup": 1,
     "monitor": 1,
     "pm_decide": 1,
-    "work_loop": 5
+    "work_loop": 2
   },
   "contextOverrides": {
     "refsValid": 1,
@@ -31,5 +28,5 @@
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T20:12:12.468Z"
+  "timestamp": "2026-04-10T20:13:39.393Z"
 }
