@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T20:57:44.752Z",
+  "timestamp": "2026-04-10T20:58:14.314Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture review complete. ARCHITECTURE.md (654 lines) fully documents all 12 modules with verified API signatures, mermaid diagram, data flows, and 5 known limitations. Codebase-map.md updated: 174/174 test files passing, 981 tests, 0 failures. All gap monitors ≥90% (vision 91%, prd 90%, dbb 90%). Remaining partial gaps are documented as known limitations (middleware minimal, adapters/embed stub, mDNS not implemented, MediaPipe browser-only, memory linear scan). VISION.md stale directory tree CR previously submitted and resolved (task-1775847821786 pending PM action)."
+  "summary": "Fixed profiler.js API signature in ARCHITECTURE.md (getMetrics return shape, endMark return type, measurePipeline signature). Updated codebase-map.md with corrected profiler and latency-log APIs. All 654 lines of ARCHITECTURE.md verified against source code. Vision 91%, PRD 90%, DBB 90% — all gaps addressed or documented as known limitations."
 }
