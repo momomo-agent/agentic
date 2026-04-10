@@ -121,7 +121,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 
-const allCaps = ['chat', 'vision', 'stt', 'tts', 'embedding', 'fallback']
+const allCaps = ['chat', 'vision', 'stt', 'tts', 'embedding']
 const pool = ref([])
 const addError = ref('')
 

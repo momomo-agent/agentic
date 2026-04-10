@@ -73,19 +73,19 @@
         <dl class="info-list">
           <div>
             <dt>LLM</dt>
-            <dd>{{ config.llm?.provider || 'ollama' }} / {{ config.llm?.model || 'gemma4:e4b' }}</dd>
+            <dd>{{ slotDisplay('chat') }}</dd>
           </div>
-          <div v-if="config.fallback?.provider">
+          <div v-if="slotDisplay('fallback')">
             <dt>Fallback</dt>
-            <dd>{{ config.fallback.provider }} / {{ config.fallback.model || '默认' }}</dd>
+            <dd>{{ slotDisplay('fallback') }}</dd>
           </div>
           <div>
             <dt>STT</dt>
-            <dd>{{ config.stt?.provider || 'whisper' }}</dd>
+            <dd>{{ slotDisplay('stt') || config.stt?.provider || 'whisper' }}</dd>
           </div>
           <div>
             <dt>TTS</dt>
-            <dd>{{ config.tts?.provider || 'coqui' }}</dd>
+            <dd>{{ slotDisplay('tts') || config.tts?.provider || 'kokoro' }}</dd>
           </div>
         </dl>
       </div>
@@ -155,6 +155,7 @@ import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 
 const status = ref({})
 const config = ref({})
+const pool = ref([])
 const hw = ref({})
 const perf = ref({})
 const logs = ref([])
@@ -168,6 +169,14 @@ let deviceTimer = null
 const sttOk = ref(false)
 const ttsOk = ref(false)
 
+function slotDisplay(slot) {
+  const id = config.value.assignments?.[slot]
+  if (!id) return ''
+  const entry = pool.value.find(p => p.id === id)
+  if (!entry) return id
+  return `${entry.provider} / ${entry.name}`
+}
+
 const downloadPct = computed(() => {
   if (!download.value.total) return 0
   return Math.round(download.value.progress / download.value.total * 100)
@@ -175,11 +184,12 @@ const downloadPct = computed(() => {
 
 async function fetchData() {
   try {
-    const [statusRes, perfRes, logsRes, cfgRes] = await Promise.all([
+    const [statusRes, perfRes, logsRes, cfgRes, poolRes] = await Promise.all([
       fetch('/api/status').then(r => r.json()),
       fetch('/api/perf').then(r => r.json()),
       fetch('/api/logs').then(r => r.json()),
       fetch('/api/config').then(r => r.json()),
+      fetch('/api/model-pool').then(r => r.json()).catch(() => []),
     ])
     status.value = statusRes
     hw.value = statusRes.hardware || {}
@@ -187,6 +197,7 @@ async function fetchData() {
     perf.value = perfRes
     logs.value = Array.isArray(logsRes) ? logsRes.slice(-50) : []
     config.value = cfgRes
+    pool.value = Array.isArray(poolRes) ? poolRes : []
 
     const sttProvider = cfgRes.stt?.provider || 'whisper'
     sttOk.value = ['whisper', 'sensevoice'].includes(sttProvider) || !!cfgRes.stt?.apiKey
