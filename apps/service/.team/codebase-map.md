@@ -51,7 +51,6 @@ src/
     latency-log.js            (17 lines)  Latency recording — record(stage, ms), p95(stage), reset()
     vad.js                    (9 lines)   Voice activity detection — createVAD(options), detectVoiceActivity(buffer)
     adapters/
-      embed.js                (3 lines)   Stub adapter (throws 'not implemented')
       sense.js                (7 lines)   agentic-sense adapter — createPipeline()
       voice/
         elevenlabs.js         (48 lines)  ElevenLabs TTS adapter — synthesize(text) → Buffer
@@ -196,7 +195,7 @@ src/store/index.js  → agentic-store
 
 ### Open
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
-- `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
+- ~~`adapters/embed.js` is a dead-code stub~~ — deleted from disk
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CR submitted (cr-1775850000000, resolved → task-1775847821786)

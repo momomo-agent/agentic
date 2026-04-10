@@ -4147,3 +4147,27 @@
 {"ts":"2026-04-10T22:04:59.952Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
 {"ts":"2026-04-10T22:04:59.952Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.321783,"cpuSystem":196.979022}}}
 {"ts":"2026-04-10T22:04:59.952Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
+{"ts":"2026-04-10T22:05:00.266Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 开发完成，任务进入 review","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.322131,"cpuSystem":196.979608}}}
+{"ts":"2026-04-10T22:05:00.266Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← developer done"}}
+{"ts":"2026-04-10T22:05:00.392Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.325219,"cpuSystem":196.991222}}}
+{"ts":"2026-04-10T22:05:00.392Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Architecture review complete. All three open tasks verified: kokoro.js adapter exists (38 lines), vo"}}
+{"ts":"2026-04-10T22:05:00.392Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.325422,"cpuSystem":196.991498}}}
+{"ts":"2026-04-10T22:05:00.392Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-10T22:05:00.422Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.325647,"cpuSystem":196.991908}}}
+{"ts":"2026-04-10T22:05:00.422Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-10T22:05:01.249Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775858113988","from":"review","to":"testing","title":"Fix missing kokoro.js adapter — runtime/tts.js references adapters/voice/kokoro.js but file does not exist"}}
+{"ts":"2026-04-10T22:05:08.624Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775858351181","from":"review","to":"testing","title":"Remove dead code adapters/embed.js — throws 'not implemented', documented dead code"}}
+{"ts":"2026-04-10T22:05:09.976Z","type":"agent_complete","agent":"tech_lead","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.325973,"cpuSystem":196.992389}}}
+{"ts":"2026-04-10T22:05:09.976Z","type":"workflow","agent":"tech_lead","data":{"details":"[SIGNAL] completed: M100 tech lead pass complete. All 3 tasks now have hasDesign=true. Updated task-1775858351181 flag ("}}
+{"ts":"2026-04-10T22:05:10.783Z","type":"agent_complete","agent":"tech_lead","data":{"details":"completed successfully","performance":{"memoryMB":12,"memoryTotalMB":17,"cpuUser":59.326295,"cpuSystem":196.992811}}}
+{"ts":"2026-04-10T22:05:10.784Z","type":"workflow","agent":"tech_lead","data":{"details":"[SIGNAL] completed: All active tasks have designs. Verified task-1775858361684 (voice adapter API signatures) is already"}}
+{"ts":"2026-04-10T22:05:12.094Z","type":"agent_complete","agent":"developer","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.331178,"cpuSystem":196.993365}}}
+{"ts":"2026-04-10T22:05:12.094Z","type":"workflow","agent":"developer","data":{"details":"[SIGNAL] completed: Completed task-1775858351181: removed dead code adapters/embed.js and cleaned vitest.config.js alias"}}
+{"ts":"2026-04-10T22:05:12.335Z","type":"agent_start","agent":"self-verify-build","data":{"details":"[NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":12,"memoryTotalMB":17,"cpuUser":59.33494,"cpuSystem":197.004496}}}
+{"ts":"2026-04-10T22:05:12.335Z","type":"workflow","agent":"self-verify-build","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build"}}
+{"ts":"2026-04-10T22:05:12.410Z","type":"workflow","agent":"self-verify-build","data":{"details":"[BRANCH] buildPassed == 1 → true → self-verify-test"}}
+{"ts":"2026-04-10T22:05:12.410Z","type":"agent_start","agent":"self-verify-test","data":{"details":"[NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.335494,"cpuSystem":197.005263}}}
+{"ts":"2026-04-10T22:05:12.410Z","type":"workflow","agent":"self-verify-test","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test"}}
+{"ts":"2026-04-10T22:05:28.250Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
+{"ts":"2026-04-10T22:05:28.250Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.335906,"cpuSystem":197.005967}}}
+{"ts":"2026-04-10T22:05:28.251Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
