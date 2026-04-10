@@ -98,7 +98,7 @@ src/
     tts.js                     # 语音合成（多提供商自适应）
     sense.js                   # 视觉感知（agentic-sense 封装）
     embed.js                   # 向量嵌入（agentic-embed 封装）
-    memory.js                  # ⚠️ 未实现 — 需要: search(query, topK) + add() 基于 store + embed
+    memory.js                  # 语义记忆 — add(text) + search(query, topK) 基于 store + embed
     profiler.js                # CPU 性能分析 — startMark/endMark/getMetrics
     latency-log.js             # 延迟记录 — record(label, ms)/getLog()
     vad.js                     # 语音活动检测（RMS 能量阈值）
@@ -220,6 +220,8 @@ createCloudEngine(provider, config) → engine
 
 ### 3. Runtime（服务运行时）
 
+运行时层封装外部包（agentic-voice、agentic-sense、agentic-embed）为统一接口。`stt.js`/`tts.js` 根据硬件 profile 自动选择本地或云端适配器；`sense.js` 提供浏览器端视觉感知和服务端唤醒词管道两条路径；`embed.js` 提供向量嵌入；`profiler.js`/`latency-log.js` 提供性能观测；`vad.js` 提供语音活动检测。
+
 ```javascript
 // runtime/stt.js
 init(config) → void           // 根据 config.stt.provider 选择适配器
@@ -243,11 +245,15 @@ stopWakeWordPipeline() → void
 // runtime/embed.js
 embed(text) → number[]        // 委托 agentic-embed
 
-// runtime/memory.js — ⚠️ 未实现
-// 需要实现: 基于 store/index.js (KV) + runtime/embed.js (向量) 的语义记忆模块
-// add(text, metadata?) → Promise<void>     // 嵌入文本 → 存入向量索引
-// search(query, topK=5) → Promise<Array<{ text, score, metadata }>>  // 语义搜索
-// 依赖: store/index.js, runtime/embed.js
+// runtime/memory.js — 语义记忆模块（基于 store + embed）
+// 内部: store/index.js (KV 持久化) + runtime/embed.js (向量嵌入)
+// 存储格式: key="memory:{id}" → { id, text, vector, createdAt }
+// 索引: key="memory:index" → [id1, id2, ...]
+add(text, metadata?) → Promise<string>   // embed(text) → 存储 { id, text, vector, ...metadata }
+search(query, topK=5) → Promise<Array<{ id, text, score, metadata }>>
+  // embed(query) → 遍历所有 memory → 余弦相似度排序 → 取 topK
+remove(id) → Promise<void>              // 删除单条记忆 + 更新索引
+clear() → Promise<void>                 // 清空所有记忆
 
 // runtime/profiler.js
 startMark(label) → void
@@ -330,10 +336,13 @@ createHttpsServer(app, options?) → https.Server
 
 ### 5. Store（数据持久化）
 
+`src/store/index.js` 封装 agentic-store 包，提供 JSON 序列化的 KV 存储。数据库文件位于 `~/.agentic-service/store.db`，首次调用时懒初始化（单例模式）。被 config.js（配置持久化）和 server 层使用。
+
 ```javascript
 // store/index.js — 封装 agentic-store
-get(key) → Promise<any>
-set(key, value) → Promise<void>
+// 内部: open(DB_PATH) 懒初始化 → 单例 _store
+get(key) → Promise<any>       // JSON.parse(store.get(key))，不存在返回 null
+set(key, value) → Promise<void>  // store.set(key, JSON.stringify(value))
 del(key) → Promise<void>
 delete(key) → Promise<void>   // del() 的别名
 ```
@@ -348,24 +357,31 @@ startTunnel(port) → void
 // SIGINT 时自动终止子进程
 ```
 
-### 7. CLI（命令行工具）
+### 7. CLI + 工具模块
+
+CLI 入口和安装辅助工具。`setup.js` 编排首次安装流程，`download-state.js` 持久化模型下载进度（断点续传），`sox.js` 确保音频录制依赖可用。
 
 ```javascript
-// cli/setup.js
+// cli/setup.js — 首次安装向导
 runSetup() → Promise<void>
-// 首次安装向导: 硬件检测 → profile 匹配 → Ollama 安装 → 模型拉取
+// 流程: 硬件检测 → profile 匹配 → Ollama 安装 → 模型拉取
 
-// cli/browser.js
+// cli/browser.js — 启动后自动打开浏览器
 openBrowser(port) → void
-// 启动后自动打开浏览器
 
-// cli/download-state.js
-getDownloadState() → object   // 读取 ~/.agentic-service/download-state.json
-setDownloadState(updates) → void
+// cli/download-state.js — 模型下载进度持久化
+// 状态文件: ~/.agentic-service/download-state.json
+// 启动时自动加载上次状态，支持断点续传
+getDownloadState() → { inProgress, model, status, progress, total }
+setDownloadState(updates) → void   // Object.assign + 写入文件
 clearDownloadState() → void
 
-// detector/sox.js
-ensureSox() → Promise<void>   // 检测/安装 sox 音频工具（brew/apt/choco）
+// detector/sox.js — SoX 音频工具自动安装
+// 被 STT 录音管道依赖（node-record-lpcm16 需要 sox）
+ensureSox() → Promise<void>
+// darwin: brew install sox
+// linux: apt-get/yum install sox
+// win32: 提示手动安装
 ```
 
 ### 8. Config（配置中心）
@@ -402,20 +418,28 @@ startWakeWordDetection()      // 服务端唤醒词管道
 // ui/client/components/WakeWord.vue — 唤醒词 UI
 ```
 
-### 10. agentic-embed（向量嵌入）
+### 10. Embed（向量嵌入）
+
+`src/runtime/embed.js` 封装 agentic-embed 包的 `localEmbed()` 函数，提供单文本向量化接口。被 server 层用于语义搜索和记忆检索。
 
 ```javascript
 // runtime/embed.js — 封装 agentic-embed 包
-embed(text) → number[]  // bge-m3 向量嵌入
+import { localEmbed } from 'agentic-embed'
+embed(text) → number[]  // localEmbed([text])[0] — bge-m3 向量嵌入
 // TypeError if text is not a string
-// 空字符串返回空数组
+// 空字符串返回空数组 []
 ```
+
+`src/runtime/adapters/embed.js` 是历史遗留 stub（抛出 'not implemented'），实际嵌入走 `runtime/embed.js → agentic-embed`。
 
 ### 11. Runtime Adapters（运行时适配器）
 
+适配器层将外部包（agentic-sense、agentic-voice）封装为统一接口，供 runtime 模块调用。
+
 ```javascript
 // runtime/adapters/sense.js — agentic-sense 适配层
-createPipeline(options?) → AgenticSense  // 创建 MediaPipe 感知管道
+import { AgenticSense } from 'agentic-sense'
+createPipeline(options?) → AgenticSense  // new AgenticSense(null, options) + init()
 
 // runtime/adapters/embed.js — ⚠️ 死代码 stub（实际嵌入走 runtime/embed.js → agentic-embed，此文件可删除）
 
@@ -427,6 +451,21 @@ createPipeline(options?) → AgenticSense  // 创建 MediaPipe 感知管道
 //   openai-tts.js  — OpenAI TTS API (云端 fallback)
 //   elevenlabs.js  — ElevenLabs TTS (云端)
 //   macos-say.js   — macOS say 命令 (本地零依赖)
+```
+
+### 12. 包入口（src/index.js）
+
+```javascript
+// src/index.js — package.json "main" 入口
+export { startServer, createApp, stopServer } from './server/api.js'
+export { detect } from './detector/hardware.js'
+export { getProfile } from './detector/profiles.js'
+export { matchProfile } from './detector/matcher.js'
+export { ensureOllama } from './detector/ollama.js'
+export { chat } from './server/brain.js'
+export * as stt from './runtime/stt.js'
+export * as tts from './runtime/tts.js'
+export { embed } from './runtime/embed.js'
 ```
 
 ## 数据流
@@ -503,23 +542,21 @@ profiles.watchProfiles(hardware, onReload, interval=30000)
 
 ### 性能监控
 
+`src/runtime/profiler.js` 和 `src/runtime/latency-log.js` 是两个独立的性能观测模块。profiler 提供标记式计时（集成在 stt.js、tts.js、brain.js 中），latency-log 提供百分位延迟统计。两者数据通过 `GET /api/perf` 端点暴露。
+
 ```
-// 语音管道延迟预算: <2000ms
-profiler.measurePipeline([
-  { name: 'stt', fn: () => stt.transcribe(audio) },
-  { name: 'llm', fn: () => brain.chat(messages) },
-  { name: 'tts', fn: () => tts.synthesize(text) }
-]) → { results: [{name, duration}], total }
-// total >= 2000 → 抛出 Error('Pipeline exceeded budget')
+// runtime/profiler.js — CPU 性能标记
+profiler.startMark(label) → void       // 记录开始时间戳
+profiler.endMark(label) → number|null  // 返回耗时 ms，更新 metrics
+profiler.getMetrics() → { [stage]: { last, avg, count } }
+profiler.measurePipeline(stages) → { stages, total, pass }  // pass = total < 2000ms
 
-// CPU 性能标记（集成在 stt.js, tts.js, brain.js 中）
-profiler.startMark('stt') → profiler.endMark('stt')
-profiler.getMetrics() → Map<label, { count, total, avg, min, max }>
+// runtime/latency-log.js — 延迟采样统计
+latencyLog.record(stage, ms) → void    // 追加采样点 + console.log
+latencyLog.p95(stage) → number         // 第 95 百分位延迟
+latencyLog.reset() → void              // 清空所有采样数据
 
-// 延迟采样
-latencyLog.record('voice', ms)
-latencyLog.p95('voice') → number  // 第 95 百分位
-
+// 语音管道延迟预算: <2000ms (STT + LLM + TTS)
 // GET /api/perf → 返回 profiler.getMetrics() + latencyLog 数据
 ```
 
@@ -545,21 +582,6 @@ hardware.detect() → { gpu, memory, arch, platform }
     模型选择完全由硬件检测结果驱动，无需独立优化器模块。
 ```
 
-### 12. 包入口（src/index.js）
-
-```javascript
-// src/index.js — package.json "main" 入口
-export { startServer, createApp, stopServer } from './server/api.js'
-export { detect } from './detector/hardware.js'
-export { getProfile } from './detector/profiles.js'
-export { matchProfile } from './detector/matcher.js'
-export { ensureOllama } from './detector/ollama.js'
-export { chat } from './server/brain.js'
-export * as stt from './runtime/stt.js'
-export * as tts from './runtime/tts.js'
-export { embed } from './runtime/embed.js'
-```
-
 ## Vision 架构映射
 
 VISION.md 中规划的部分模块在实现中采用了不同的架构拆分：
@@ -568,7 +590,7 @@ VISION.md 中规划的部分模块在实现中采用了不同的架构拆分：
 |---|---|---|
 | `detector/optimizer.js` | `profiles.js` + `matcher.js` + `config.js` | 硬件优化逻辑分散到配置匹配链中，无需独立优化器 |
 | `runtime/llm.js` | `server/brain.js` + `engine/` | LLM 推理与工具调用紧耦合，放在 server 层；引擎发现独立为 engine/ |
-| `runtime/memory.js` | ⚠️ 未实现 — 基础组件就绪: `store/index.js` (KV) + `runtime/embed.js` (向量) | 需要创建组合层: search(query, topK) + add() 语义记忆 API |
+| `runtime/memory.js` | `runtime/memory.js` — 基于 `store/index.js` (KV) + `runtime/embed.js` (向量) | 组合层: add() 存储文本+向量, search() 余弦相似度检索 |
 | — | `engine/` (6 files) | 新增引擎注册中心，支持多引擎发现和统一模型解析 |
 | — | `cli/` (3 files) | 新增 CLI 工具层，处理安装向导和浏览器启动 |
 | — | `runtime/profiler.js` + `latency-log.js` + `vad.js` | 新增性能监控和语音活动检测 |
@@ -602,4 +624,4 @@ docker-compose up
 2. **adapters/embed.js 是死代码** — 抛出 'not implemented'，实际嵌入通过 runtime/embed.js → agentic-embed 包。
 3. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
 4. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
-5. **runtime/memory.js 未实现** — PRD 要求 search(query, topK) + add() 语义记忆模块，基于 agentic-store + agentic-embed。store/index.js (KV) 和 runtime/embed.js (向量嵌入) 已就绪，但组合记忆模块尚未创建。详见 Vision 架构映射表。
+5. **runtime/memory.js 待实现** — 架构已定义 add/search/remove/clear API（见 Runtime 模块第 3 节），基础组件 store/index.js (KV) 和 runtime/embed.js (向量嵌入) 已就绪，需创建组合层。

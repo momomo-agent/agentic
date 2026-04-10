@@ -3,16 +3,12 @@
 **Task ID:** task-1775850429586
 **Module:** Runtime (ARCHITECTURE.md §3)
 **Module Design:** `.team/designs/runtime.design.md`
-**Status:** ready-for-review
-**Priority:** P2 (deprioritized — not required for Vision ≥90% + PRD ≥90% goal)
+**Status:** implemented
+**Priority:** P2
 
-## Context
+## Implementation Status
 
-ARCHITECTURE.md §3 and the Vision architecture mapping table both note that `src/runtime/memory.js` does NOT exist. The PRD does not explicitly require it. The building blocks are ready:
-- `src/store/index.js` — KV storage via agentic-store (verified: `get/set/del/delete`)
-- `src/runtime/embed.js` — vector embedding via agentic-embed (verified: `embed(text) → number[]`)
-
-This module would compose them into a semantic memory layer: store text with embeddings, retrieve by similarity.
+✅ `src/runtime/memory.js` has been implemented (59 lines). Matches this design spec with one addition: `clear()` export.
 
 ## Verified Dependencies
 

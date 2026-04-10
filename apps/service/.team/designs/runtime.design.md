@@ -202,8 +202,31 @@ export function reset()             // line 15 — clears all samples
 - Module-level `samples` object: `{ [stage]: number[] }`
 - Used by: `runtime/stt.js`, `runtime/tts.js`
 
+## Memory (src/runtime/memory.js) — IMPLEMENTED
+
+Composes `store/index.js` (KV) + `embed.js` (vector) into a semantic memory layer.
+
+### Verified Exports (59 lines)
+```javascript
+export async function add(text, metadata = {})   // line 22 — embed + store, returns UUID
+export async function search(query, topK = 5)    // line 33 — embed query + cosine similarity scan
+export async function remove(id)                 // line 47 — delete entry + update index
+export async function clear()                    // line 54 — delete all entries + index
+```
+
+### Dependencies
+- `../store/index.js` — `get`, `set`, `del` (verified)
+- `./embed.js` — `embed(text)` (verified)
+
+### Data Model
+- Entries stored as `memory:{uuid}` keys in agentic-store
+- Index stored as `memory:__index` (array of IDs)
+- Each entry: `{ id, text, vector: number[], metadata, createdAt }`
+- Search: linear scan with cosine similarity ranking
+
 ## Constraints
 - `embed()` throws TypeError on non-string — callers must validate
 - `adapters/embed.js` is dead code — should be removed or wired up
 - Wake word pipeline requires `sox` binary — gracefully degrades if missing
 - Voice adapters with API keys will fail silently if keys not configured
+- memory.js (when implemented) will do linear scan — O(n) per search, acceptable for < 10K entries

@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — memory.js gap identified, all other modules documented)
+Updated: 2026-04-11 (architect review — memory.js API spec added to ARCHITECTURE.md, all 169 tests passing)
 
 ## Technology Stack
 
@@ -46,7 +46,7 @@ src/
     tts.js                    (71 lines)  Text-to-speech — init(config), synthesize(text)
     sense.js                  (120 lines) Visual perception — detect(frame), start()/stop(), startHeadless(), startWakeWordPipeline()
     embed.js                  (9 lines)   Vector embedding — embed(text) via agentic-embed
-    [MISSING] memory.js        —           Semantic memory — search(query, topK) + add(); needs store + embed composition
+    [PENDING] memory.js        —           Semantic memory — search(query, topK) + add() + remove() + clear(); API spec defined in ARCHITECTURE.md, awaiting implementation
     profiler.js               (29 lines)  CPU profiling — startMark/endMark/getMetrics
     latency-log.js            (17 lines)  Latency recording — record(label, ms), getLog()
     vad.js                    (9 lines)   Voice activity detection — createVAD(options), detectVoiceActivity(buffer)
@@ -167,17 +167,19 @@ src/store/index.js  → agentic-store
 - ~~ARCHITECTURE.md known limitation #4 (Dockerfile EXPOSE)~~ — removed, only 3 limitations remain
 - ~~m21-profiles.test.js failing~~ — all 2 tests pass (getProfile returns correct structure + built-in fallback works)
 - ~~m28-profiles-cache.test.js failing~~ — cache timestamp now updated after successful fetch
+- ~~ARCHITECTURE.md underdocumented modules~~ — store, embed, adapters, profiler, latency-log, CLI tools now have formal module descriptions
 
 ### Open
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
 - `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
-- `runtime/memory.js` does not exist — PRD requires search(query, topK) + add() semantic memory module using store + embed; building blocks (store/index.js KV + runtime/embed.js vectors) are ready but the composition layer is missing
+- `runtime/memory.js` pending implementation — API spec defined in ARCHITECTURE.md (add/search/remove/clear), building blocks ready (store + embed)
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js, runtime/memory.js) — CRs submitted
 
 ### Architecture Notes (Vision references that map to different files)
-- Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js + config.js (documented in ARCHITECTURE.md "硬件自适应模型选择" section; CR cr-1775847503256 submitted to update VISION.md)
-- Vision's `runtime/llm.js` → LLM logic lives in server/brain.js
-- Vision's `runtime/memory.js` → store/index.js + embed.js provide the primitives
-- ARCHITECTURE.md now documents: hardware-adaptive model selection flow, CPU profiling/latency enforcement, /api/perf endpoint
+- Full mapping table now in ARCHITECTURE.md "Vision 架构映射" section
+- Vision's `optimizer.js` → profiles.js + matcher.js + config.js
+- Vision's `runtime/llm.js` → server/brain.js + engine/
+- Vision's `runtime/memory.js` → API spec defined: add/search/remove/clear using store/index.js + embed.js (implementation pending)
+- ARCHITECTURE.md now documents: src/index.js entry point, hardware-adaptive model selection, CPU profiling/latency, /api/perf endpoint, Vision mapping table, formal module sections for all runtime/store/adapter modules
