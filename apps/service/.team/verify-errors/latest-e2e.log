@@ -1,0 +1,16 @@
+🚀 Agentic Service
+
+Starting server on port 1234...
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:1234
+LAN access: http://192.168.31.211:1234
+✓ Server running at http://localhost:1234
+
+Opening browser at http://localhost:1234...
+✓ Browser opened
+
+Press Ctrl+C to stop
+{"status":"ok"}
+
+Shutting down...
+✓ Server closed

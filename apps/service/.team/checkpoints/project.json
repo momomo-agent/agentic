@@ -1,7 +1,7 @@
 {
   "workflowId": "project",
   "nodeId": "work_loop",
-  "stepIndex": 3,
+  "stepIndex": 1,
   "visitedNodes": [
     "startup",
     "monitor",
@@ -11,7 +11,7 @@
     "work_loop"
   ],
   "loopIterations": {
-    "work_loop": 1
+    "work_loop": 2
   },
   "transitionDepth": 6,
   "nodeVisitCounts": {
@@ -24,7 +24,10 @@
     "refsValid": 1,
     "buildPassed": 1,
     "retryCount": 0,
-    "testPassed": 0
+    "testPassed": 0,
+    "unitPassed": 1,
+    "integrationPassed": 1,
+    "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T16:01:43.619Z"
+  "timestamp": "2026-04-10T16:11:11.427Z"
 }
