@@ -1,4 +1,12 @@
-# Remove dead code adapters/embed.js — throws 'not implemented', documented dead code
+# Task Progress: Remove dead code adapters/embed.js
 
-## Progress
+## Status: Complete
 
+The dead code removal was already done in a prior session:
+- `src/runtime/adapters/embed.js` — already deleted (file not found)
+- `vitest.config.js` — already cleaned up (no `path` import, no `resolve.alias` block)
+- `src/runtime/adapters/` still contains `sense.js` and `voice/` directory as expected
+
+## Verification
+
+Ran `npx vitest run` — 174 test files pass, 981 tests passed, 11 skipped, 0 failures. No regressions.
