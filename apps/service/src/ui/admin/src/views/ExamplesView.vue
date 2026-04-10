@@ -1979,6 +1979,12 @@ async function sendFc() {
         if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
         try {
           const d = JSON.parse(line.slice(6))
+          // Backend uses { type: 'content', text: '...' } and { type: 'tool_use', name, input }
+          if (d.type === 'content' && (d.text || d.content)) text += d.text || d.content
+          if (d.type === 'tool_use') {
+            fcToolCalls.value.push({ name: d.name, args: d.input || '' })
+          }
+          // Also support OpenAI format for cloud models
           const delta = d.choices?.[0]?.delta
           if (delta?.content) text += delta.content
           if (delta?.tool_calls) {
@@ -1990,6 +1996,7 @@ async function sendFc() {
       }
     }
     fcResult.value = text || (fcToolCalls.value.length ? '(AI 调用了工具)' : '(无响应)')
+    markTested('function-call')
   } catch (e) {
     fcResult.value = `错误: ${e.message}`
   }
