@@ -1,9 +1,10 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 6,
+  "passed": 6,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "≤60s reload timing in real network conditions",
+    "In-flight request safety during config reload"
   ],
   "coverage": "100%"
 }
