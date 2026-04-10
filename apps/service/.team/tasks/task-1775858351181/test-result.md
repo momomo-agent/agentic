@@ -19,16 +19,15 @@
 | 5 | vitest.config.js is valid (no stale path import) | DBB-007 | ✅ PASS |
 | 6 | src/runtime/adapters/ contains only sense.js and voice/ | Integrity | ✅ PASS |
 
-## Additional Edge Case Tests (m100-dead-embed-removal.test.js)
+## Additional Edge Case Tests (m100-edge-cases.test.js)
 
 | # | Test | Result |
 |---|------|--------|
-| 1 | no .js file in src/ imports from adapters/embed | ✅ PASS |
-| 2 | no require()/import() calls reference embed adapter | ✅ PASS |
-| 3 | src/runtime/embed.js (real module) still exists and works | ✅ PASS |
-| 4 | vitest.config.js has no resolve.alias block | ✅ PASS |
-| 5 | vitest.config.js retains test coverage thresholds | ✅ PASS |
-| 6 | vitest.config.js is parseable as valid JS | ✅ PASS |
+| 1 | src/runtime/embed.js (real module) still exists | ✅ PASS |
+| 2 | src/runtime/embed.js exports embed function | ✅ PASS |
+| 3 | memory.js imports from ./embed.js not adapters/embed.js | ✅ PASS |
+| 4 | vitest.config.js has no orphaned resolve/alias block | ✅ PASS |
+| 5 | vitest.config.js retains coverage thresholds | ✅ PASS |
 
 ## Full Suite Regression
 

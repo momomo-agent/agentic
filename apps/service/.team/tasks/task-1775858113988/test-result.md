@@ -22,10 +22,22 @@ All tests passed. The kokoro.js adapter was correctly created and all DBB criter
 | 8 | adapter follows the same pattern as other voice adapters | Contract | ✅ PASS |
 | 9 | src/runtime/adapters/ contains only sense.js and voice/ | Integrity | ✅ PASS |
 
+## Additional Edge Case Tests (m100-edge-cases.test.js)
+
+| # | Test | Result |
+|---|------|--------|
+| 1 | synthesize rejects on empty string | ✅ PASS |
+| 2 | synthesize rejects on no arguments | ✅ PASS |
+| 3 | default base URL is localhost:8880 | ✅ PASS |
+| 4 | uses /v1/audio/speech endpoint | ✅ PASS |
+| 5 | sends JSON content type | ✅ PASS |
+| 6 | all TTS adapter files referenced in ADAPTERS map | ✅ PASS |
+| 7 | STT adapters (sensevoice, whisper, openai-whisper) unaffected | ✅ PASS |
+
 ## Full Suite Regression
 
 - **Before:** 174 files, 981 tests passed
-- **After:** 177 files, 1024 tests passed, 0 failures
+- **After (final):** 179 files, 1045 tests passed, 0 failures
 
 ## DBB Coverage
 
