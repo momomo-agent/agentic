@@ -1,0 +1,13 @@
+{
+  "id": "task-1775847204070",
+  "title": "Remove remaining #agentic-embed dead import map from package.json",
+  "description": "package.json still has 'imports': { '#agentic-embed': './src/runtime/adapters/embed.js' } — this is dead code, no source file references it. The #agentic-voice entry was removed in commit e699e630 but #agentic-embed was missed. Remove the entire 'imports' block from package.json.",
+  "status": "review",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": true,
+  "created": "2026-04-10T18:53:24.071Z",
+  "updated": "2026-04-10T18:57:09.905Z"
+}

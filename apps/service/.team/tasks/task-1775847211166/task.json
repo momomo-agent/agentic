@@ -1,0 +1,13 @@
+{
+  "id": "task-1775847211166",
+  "title": "Implement full cloud fallback per PRD — timeout + consecutive errors + auto-restore",
+  "description": "DUPLICATE — already implemented and verified in task-1775793599517. brain.js has FIRST_TOKEN_TIMEOUT_MS=5000, MAX_ERRORS=3, PROBE_INTERVAL_MS=60000 with full probe-restore logic.",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": true,
+  "created": "2026-04-10T18:53:31.166Z",
+  "updated": "2026-04-10T18:56:43.992Z"
+}

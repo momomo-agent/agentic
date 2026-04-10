@@ -1,7 +1,7 @@
 {
   "id": "task-1775844314020",
   "title": "Fix embed.js build failure — localEmbed import does not exist in agentic-embed",
-  "description": "BUILD IS BROKEN. src/runtime/embed.js calls localEmbed(text) with a bare string, but agentic-embed localEmbed() expects an array of texts (see node_modules/agentic-embed/agentic-embed.js:154). Also the default import + destructure pattern works but the function call is wrong.\n\nTest failures from test/m98-embed-build-fix.test.js:\n1. expects localEmbed([...]) — array argument, not bare string\n2. expects const [result] = ... — destructure array result\n3. expects NOT agenticEmbed(text) — no bare string call\n\nFix needed in src/runtime/embed.js:\n- Change `return agenticEmbed(text)` to `const [embedding] = agenticEmbed([text]); return embedding`\n- The localEmbed function signature is: localEmbed(texts, vocabSize=512) where texts is an array\n- It returns an array of embeddings, one per input text\n\nThis is P0 — the package cannot be required until this is fixed.",
+  "description": "BUILD IS BROKEN. src/runtime/embed.js calls agenticEmbed(text) with a bare string, but agentic-embed localEmbed() expects an array of texts.\n\nCurrent code (WRONG):\n  return agenticEmbed(text)\n\nRequired fix:\n  const [embedding] = await agenticEmbed([text])\n  return embedding\n\nTest failures from test/m98-embed-build-fix.test.js (3 failures):\n1. expects localEmbed([...]) — array argument, not bare string\n2. expects const [result] = ... — destructure array result  \n3. expects NOT agenticEmbed(text) — no bare string call\n\nThe localEmbed function signature is: localEmbed(texts, vocabSize=512) where texts is an array. It returns an array of embeddings, one per input text.\n\nFile to fix: src/runtime/embed.js (line 7)\nThis is P0 — 3 test failures blocking the build.\n\nLatest test log confirms: 1 failed test file, 3 failed tests, 898 passed.",
   "status": "blocked",
   "priority": "P0",
   "assignee": "developer",
@@ -9,5 +9,5 @@
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T18:05:14.020Z",
-  "updated": "2026-04-10T18:52:12.496Z"
+  "updated": "2026-04-10T18:56:30.896Z"
 }
