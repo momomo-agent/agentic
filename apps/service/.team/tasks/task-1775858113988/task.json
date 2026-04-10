@@ -2,12 +2,12 @@
   "id": "task-1775858113988",
   "title": "Fix missing kokoro.js adapter — runtime/tts.js references adapters/voice/kokoro.js but file does not exist",
   "description": "runtime/tts.js ADAPTERS map references adapters/voice/kokoro.js but the file does not exist on disk. This will throw at runtime if kokoro provider is selected. Either create the adapter file or remove the reference from the ADAPTERS map. Architecture gap: missing/major.",
-  "status": "testing",
+  "status": "done",
   "priority": "P0",
-  "assignee": "tester",
+  "assignee": null,
   "blockedBy": [],
   "groupId": "m100",
   "hasDesign": true,
   "created": "2026-04-10T21:55:13.988Z",
-  "updated": "2026-04-10T22:05:49.716Z"
+  "updated": "2026-04-10T22:07:56.114Z"
 }
