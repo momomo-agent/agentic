@@ -1,9 +1,10 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 23,
+  "passed": 23,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "Concurrent add() operations could race on index updates",
+    "Very large stores (>10K entries) — linear scan performance not tested"
   ],
-  "coverage": "100%"
+  "coverage": "95%"
 }
