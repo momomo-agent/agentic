@@ -1,7 +1,30 @@
 
  RUN  v2.1.9 /Users/kenefe/LOCAL/momo-agent/projects/agentic/apps/service
 
- ✓ test/m43-vad.test.js > m43-vad
+▶ useWakeWord
+  ✔ check returns false when no wake word set (0.30725ms)
+  ✔ check returns true when text contains wake word (0.19975ms)
+  ✔ check is case-insensitive (0.10575ms)
+  ✔ check returns false when text does not contain wake word (0.043083ms)
+  ✔ check returns false for empty text (0.054209ms)
+✔ useWakeWord (1.098333ms)
+▶ PushToTalk
+  ✔ mousedown starts MediaRecorder (0.2815ms)
+  ✔ mouseup calls POST /api/transcribe (0.100375ms)
+  ✔ emits transcribed text from API response (0.357791ms)
+  ✔ does not emit when API returns empty text (0.099708ms)
+✔ PushToTalk (0.942208ms)
+▶ ChatBox wake word integration
+  ✔ auto-submits when transcribed text matches wake word (0.075833ms)
+  ✔ fills input (no auto-submit) when wake word not matched (0.0385ms)
+  ✔ fills input when no wake word configured (0.031625ms)
+✔ ChatBox wake word integration (0.204292ms)
+ ✓ test/ui/voice-ui.test.js > voice-ui
+stdout | test/m30-vad.test.js > m30-vad
+VAD useVAD composable tests
+
+  ✓ RMS above threshold calls onStart once
+
 stdout | test/m43-vad.test.js > m43-vad
 VAD useVAD tests
   ✓ onStart fires when RMS > threshold
@@ -13,27 +36,7 @@ VAD useVAD tests
 
 6 passed, 0 failed
 
-▶ useWakeWord
-  ✔ check returns false when no wake word set (0.348208ms)
-  ✔ check returns true when text contains wake word (2.301292ms)
-  ✔ check is case-insensitive (0.386666ms)
-  ✔ check returns false when text does not contain wake word (0.067375ms)
-  ✔ check returns false for empty text (0.050042ms)
-✔ useWakeWord (3.734125ms)
-▶ PushToTalk
-  ✔ mousedown starts MediaRecorder (0.331917ms)
-  ✔ mouseup calls POST /api/transcribe (0.105625ms)
-  ✔ emits transcribed text from API response (1.141583ms)
-  ✔ does not emit when API returns empty text (0.171333ms)
-✔ PushToTalk (1.871792ms)
-▶ ChatBox wake word integration
-  ✔ auto-submits when transcribed text matches wake word (0.085458ms)
-  ✔ fills input (no auto-submit) when wake word not matched (0.04975ms)
-  ✔ fills input when no wake word configured (0.032458ms)
-✔ ChatBox wake word integration (0.209625ms)
- ✓ test/ui/voice-ui.test.js > voice-ui
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > endMark returns null when no matching startMark exists
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > endMark cleans up mark after completion
+ ✓ test/m43-vad.test.js > m43-vad
  ✓ test/ui/web-ui.test.js > Web UI - Build Output > should generate dist/ui directory with built files
  ✓ test/ui/web-ui.test.js > Web UI - Build Output > should include Vue runtime in built assets
  ✓ test/ui/web-ui.test.js > Web UI - Component Structure > should have App.vue as root component
@@ -185,29 +188,12 @@ stdout | test/m94-voice-latency-verification.test.js > m94: latency-log p95 is c
  ✓ test/m94-voice-latency-verification.test.js > m94: scripts/benchmark.js measures each stage individually
  ✓ test/m94-voice-latency-verification.test.js > m94: scripts/benchmark.js exits non-zero on failure
  ✓ test/m94-voice-latency-verification.test.js > m94: scripts/benchmark.js outputs JSON result
-stdout | test/m30-vad.test.js > m30-vad
-VAD useVAD composable tests
-
-  ✓ RMS above threshold calls onStart once
-
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > concurrent marks with different labels track independently
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > endMark returns null when no matching startMark exists
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > endMark cleans up mark after completion
 stdout | test/detector/profiles-edge-cases.test.js > profiles edge cases > should match Linux + NVIDIA profile
 Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > overwriting a startMark restarts timing
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > metrics accumulate across multiple calls
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > getMetrics output format > returns { last, avg, count } for each label
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > getMetrics output format > avg rounds to integer
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > returns pass=true when total < 2000ms
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > returns pass=false when total >= 2000ms
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > handles empty stages array
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > handles single stage
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > preserves stages array in output
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler integration with runtime modules > source: stt.js imports startMark/endMark from profiler.js
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler integration with runtime modules > source: brain.js imports startMark/endMark from profiler.js
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler integration with runtime modules > source: tts.js imports startMark/endMark from profiler.js
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler integration with runtime modules > source: api.js imports getMetrics and exposes /api/perf endpoint
- ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler labels coverage > all expected pipeline stages are profiled in source code
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > concurrent marks with different labels track independently
 stdout | test/m80-hub-cross-device-state.test.js > m80-hub-cross-device-state
 M80: Cross-device brain state sharing tests
 
@@ -227,6 +213,20 @@ M80: Cross-device brain state sharing tests
 12 passed, 0 failed
 
  ✓ test/m80-hub-cross-device-state.test.js > m80-hub-cross-device-state
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > overwriting a startMark restarts timing
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler edge cases > metrics accumulate across multiple calls
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > getMetrics output format > returns { last, avg, count } for each label
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > getMetrics output format > avg rounds to integer
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > returns pass=true when total < 2000ms
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > returns pass=false when total >= 2000ms
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > handles empty stages array
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > handles single stage
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > measurePipeline edge cases > preserves stages array in output
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler integration with runtime modules > source: stt.js imports startMark/endMark from profiler.js
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler integration with runtime modules > source: brain.js imports startMark/endMark from profiler.js
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler integration with runtime modules > source: tts.js imports startMark/endMark from profiler.js
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler integration with runtime modules > source: api.js imports getMetrics and exposes /api/perf endpoint
+ ✓ test/m95-profiler-instrumentation.test.js > m95 CPU profiling instrumentation verification > profiler labels coverage > all expected pipeline stages are profiled in source code
  ✓ test/server/m13-dbb.test.js > hub.js M13 heartbeat timeout > DBB-001: device silent 61s → offline
  ✓ test/server/m13-dbb.test.js > hub.js M13 heartbeat timeout > DBB-002: device heartbeat every 30s stays online after 120s
  ✓ test/server/m13-dbb.test.js > hub.js M13 broadcastWakeword > DBB-004: sends wakeword to all connected clients
@@ -241,37 +241,15 @@ stdout | test/server/m13-dbb.test.js > brain.js M13 tool_use text field > DBB-00
  ✓ test/server/m13-dbb.test.js > Docker M13 DBB-006/007 > DBB-006: Dockerfile exposes port 1234
  ✓ test/server/m13-dbb.test.js > Docker M13 DBB-006/007 > DBB-007: docker-compose.yml has config volume
  ✓ test/runtime/m38-llm-chat.test.js > m38-llm-chat
-stdout | test/detector/profiles.test.js > profiles.getProfile() > should match Apple Silicon profile
-Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
-
-stderr | test/detector/profiles.test.js > profiles.getProfile() > should match Apple Silicon profile
-Failed to fetch remote profiles: no network
-Using built-in default profiles
-
- ✓ test/runtime/llm.test.js > llm
-stdout | test/detector/profiles.test.js > profiles.getProfile() > should fallback to default when no match
-Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
-
-stderr | test/detector/profiles.test.js > profiles.getProfile() > should fallback to default when no match
-Failed to fetch remote profiles: no network
-Using built-in default profiles
-
-stdout | test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > re-fetches when cache is older than 7 days
-Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
-
-stdout | test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > falls back to expired cache if re-fetch fails
-Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
-
-stderr | test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > falls back to expired cache if re-fetch fails
-Failed to fetch remote profiles: Network error
-Using expired cache
-
- ✓ test/detector/profiles.test.js > profiles.getProfile() > should match Apple Silicon profile
- ✓ test/detector/profiles.test.js > profiles.getProfile() > should fallback to default when no match
- ✓ test/detector/profiles.test.js > matcher.matchProfile() > should calculate correct match score
- ✓ test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > re-fetches when cache is older than 7 days
- ✓ test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > uses cache without fetch when cache is fresh
- ✓ test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > falls back to expired cache if re-fetch fails
+▶ m38: llm.js chat() stream
+  ✖ chat is an async generator function
+  ✖ Ollama up: yields content chunks with type/content/done fields
+  ✖ Ollama down: meta chunk first, then OpenAI content
+  ✖ Ollama non-200: BUG — falls through to cloud instead of throwing
+  ✖ Missing API key: throws mentioning provider
+  ✖ Empty messages array: no crash
+  ✖ Unknown fallback provider: implementation throws
+✖ m38: llm.js chat() stream (5.170583ms)
 stdout | test/cli/cli.test.js > setup.runSetup() > saves config file on successful setup
 Setup Wizard
 
@@ -326,11 +304,49 @@ Setup Wizard
 ✓ Setup complete!
 
 
+stdout | test/detector/profiles.test.js > profiles.getProfile() > should match Apple Silicon profile
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
+
+stderr | test/detector/profiles.test.js > profiles.getProfile() > should match Apple Silicon profile
+Failed to fetch remote profiles: no network
+Using built-in default profiles
+
+ ✓ test/runtime/llm.test.js > llm
+stdout | test/detector/profiles.test.js > profiles.getProfile() > should fallback to default when no match
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
+
+stderr | test/detector/profiles.test.js > profiles.getProfile() > should fallback to default when no match
+Failed to fetch remote profiles: no network
+Using built-in default profiles
+
+stdout | test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > re-fetches when cache is older than 7 days
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
+
+stdout | test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > falls back to expired cache if re-fetch fails
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
+
+stderr | test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > falls back to expired cache if re-fetch fails
+Failed to fetch remote profiles: Network error
+Using expired cache
+
+ ✓ test/detector/profiles.test.js > profiles.getProfile() > should match Apple Silicon profile
+ ✓ test/detector/profiles.test.js > profiles.getProfile() > should fallback to default when no match
+ ✓ test/detector/profiles.test.js > matcher.matchProfile() > should calculate correct match score
+ ✓ test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > re-fetches when cache is older than 7 days
+ ✓ test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > uses cache without fetch when cache is fresh
+ ✓ test/detector/profiles.test.js > profiles cache staleness (7-day refresh) > falls back to expired cache if re-fetch fails
 stdout | test/cli/cli.test.js > browser.openBrowser() > calls open() with the given url
 Opening browser at http://localhost:3000...
 ✓ Browser opened
 
 
+▶ llm.js cloud fallback
+  ✖ DBB-001: Ollama down → OpenAI fallback returns content chunks
+  ✖ DBB-002: Anthropic SSE parser yields content chunks (unit)
+  ✖ DBB-003: No API key → error contains provider name
+  ✖ meta chunk is first yielded event on fallback
+  ✖ Anthropic API non-200 → throws with status
+✖ llm.js cloud fallback (2.27425ms)
 stdout | test/cli/cli.test.js > browser.openBrowser() > does not throw when open() fails
 Opening browser at http://localhost:3000...
 ⚠ Could not open browser automatically
@@ -344,6 +360,7 @@ Please visit: http://localhost:3000
  ✓ test/cli/cli.test.js > browser.openBrowser() > does not throw when open() fails
  ✓ test/cli/cli.test.js > checkFirstRun logic > returns true when config file does not exist
  ✓ test/cli/cli.test.js > checkFirstRun logic > returns false when config file exists
+ ✓ test/server/m13-dbb.test.js > profiles.js M13 hot reload > DBB-008: onReload called when profiles change
 stdout | test/server/rest-api-endpoints.test.js > POST /api/chat > returns 400 for missing message
 [chat] request: empty
 
@@ -353,24 +370,27 @@ stdout | test/server/rest-api-endpoints.test.js > POST /api/chat > returns text/
 stdout | test/server/rest-api-endpoints.test.js > POST /api/chat > streams data events and ends with [DONE]
 [chat] request: hello
 
- ✓ test/server/rest-api-endpoints.test.js > POST /api/chat > returns 400 for missing message
- ✓ test/server/rest-api-endpoints.test.js > POST /api/chat > returns text/event-stream content-type
- ✓ test/server/rest-api-endpoints.test.js > POST /api/chat > streams data events and ends with [DONE]
 stdout | test/server/rest-api-endpoints.test.js > POST /api/chat > passes message and history to brain.chat
 [chat] request: hi
 
- ✓ test/server/m13-dbb.test.js > profiles.js M13 hot reload > DBB-008: onReload called when profiles change
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for missing message
 [engines] registered: ollama, whisper, tts
 
+ ✓ test/server/rest-api-endpoints.test.js > POST /api/chat > returns 400 for missing message
+ ✓ test/server/rest-api-endpoints.test.js > POST /api/chat > returns text/event-stream content-type
+ ✓ test/server/rest-api-endpoints.test.js > POST /api/chat > streams data events and ends with [DONE]
  ✓ test/server/rest-api-endpoints.test.js > POST /api/chat > passes message and history to brain.chat
  ✓ test/server/rest-api-endpoints.test.js > POST /api/transcribe > returns 400 when no audio file
  ✓ test/server/rest-api-endpoints.test.js > POST /api/synthesize > returns 400 for missing text
-stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for missing message
-Server running at http://localhost:3118
-LAN access: http://192.168.31.211:3118
-
  ✓ test/server/rest-api-endpoints.test.js > POST /api/synthesize > returns audio/wav content-type on success
+stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for missing message
+Server running at http://localhost:3184
+LAN access: http://192.168.31.211:3184
+
+ ✓ test/server/rest-api-endpoints.test.js > GET /api/status > returns hardware, config, devices fields
+ ✓ test/server/rest-api-endpoints.test.js > /api/config > GET returns 200 with object
+ ✓ test/server/rest-api-endpoints.test.js > /api/config > PUT persists: GET returns updated value
+ ✓ test/server/rest-api-endpoints.test.js > /api/config > PUT returns ok:true
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for missing message
 [chat] request: empty
 
@@ -401,32 +421,32 @@ stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 fo
  ✓ test/m95-architecture-docs.test.js > m95 — CR-1775569100684 resolved > CR status is resolved
  ✓ test/m95-architecture-docs.test.js > m95 — CR-1775569100684 resolved > CR has reviewedAt timestamp
  ✓ test/m95-architecture-docs.test.js > m95 — CR-1775569100684 resolved > CR has reviewedBy field
- ✓ test/server/rest-api-endpoints.test.js > GET /api/status > returns hardware, config, devices fields
- ✓ test/server/rest-api-endpoints.test.js > /api/config > GET returns 200 with object
- ✓ test/server/rest-api-endpoints.test.js > /api/config > PUT persists: GET returns updated value
- ✓ test/server/rest-api-endpoints.test.js > /api/config > PUT returns ok:true
-▶ useVAD (M28 DBB-001/002)
-  ✖ DBB-001: onStart fires after 3 consecutive frames above SPEECH_THRESHOLD (0.765875ms)
-  ✖ DBB-001: onStart does NOT fire with only 2 consecutive frames above threshold (0.125041ms)
-  ✖ DBB-002: onStop fires after 500ms silence following speech (0.098542ms)
-  ✖ DBB-002: onStop does NOT fire before 500ms silence (0.117833ms)
-  ✖ consecutive frames reset when speech drops below threshold mid-count (0.120459ms)
-  ✔ getUserMedia denied → start() rejects with NotAllowedError (0.254834ms)
-  ✖ stop() cancels animation frame and closes audio context (0.143583ms)
-✖ useVAD (M28 DBB-001/002) (2.108917ms)
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for non-string message
 [engines] registered: ollama, whisper, tts
 
- ✓ test/ui/m28-vad.test.js > m28-vad
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for non-string message
-Server running at http://localhost:3162
-LAN access: http://192.168.31.211:3162
+Server running at http://localhost:3187
+LAN access: http://192.168.31.211:3187
 
+▶ useVAD (M28 DBB-001/002)
+  ✖ DBB-001: onStart fires after 3 consecutive frames above SPEECH_THRESHOLD (1.694542ms)
+  ✖ DBB-001: onStart does NOT fire with only 2 consecutive frames above threshold (0.152459ms)
+  ✖ DBB-002: onStop fires after 500ms silence following speech (0.1015ms)
+  ✖ DBB-002: onStop does NOT fire before 500ms silence (0.093917ms)
+  ✖ consecutive frames reset when speech drops below threshold mid-count (0.123708ms)
+  ✔ getUserMedia denied → start() rejects with NotAllowedError (0.26825ms)
+  ✖ stop() cancels animation frame and closes audio context (0.138333ms)
+✖ useVAD (M28 DBB-001/002) (3.543917ms)
+ ✓ test/ui/m28-vad.test.js > m28-vad
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for non-string message
 [chat] request: empty
 
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns SSE stream with content-type text/event-stream
 [engines] registered: ollama, whisper, tts
+
+stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns SSE stream with content-type text/event-stream
+Server running at http://localhost:3193
+LAN access: http://192.168.31.211:3193
 
  ✓ test/m98-cloud-fallback.test.js > DBB-006: Cloud fallback — timeout trigger > has FIRST_TOKEN_TIMEOUT_MS set to 5000
  ✓ test/m98-cloud-fallback.test.js > DBB-006: Cloud fallback — timeout trigger > creates AbortController with first-token timeout
@@ -448,28 +468,23 @@ stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns SSE st
  ✓ test/m98-cloud-fallback.test.js > Cloud fallback — structural integrity > uses chatFallback slot for fallback model
  ✓ test/m98-cloud-fallback.test.js > Cloud fallback — structural integrity > config change resets cloud mode
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns SSE stream with content-type text/event-stream
-Server running at http://localhost:3135
-LAN access: http://192.168.31.211:3135
-
-stdout | test/server/api.test.js > HTTP Server > POST /api/chat > returns SSE stream with content-type text/event-stream
 [chat] request: Hi
 
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > streams chunks in SSE format and ends with [DONE]
 [engines] registered: ollama, whisper, tts
 
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > streams chunks in SSE format and ends with [DONE]
-Server running at http://localhost:3121
-LAN access: http://192.168.31.211:3121
+Server running at http://localhost:3149
+LAN access: http://192.168.31.211:3149
 
+ ✓ test/server/m13-dbb.test.js > profiles.js M13 hot reload > DBB-009: malformed JSON does not crash, service stays up
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > streams chunks in SSE format and ends with [DONE]
 [chat] request: Hello
 
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > passes history to chat function
 [engines] registered: ollama, whisper, tts
-
-stdout | test/server/api.test.js > HTTP Server > POST /api/chat > passes history to chat function
-Server running at http://localhost:3151
-LAN access: http://192.168.31.211:3151
+Server running at http://localhost:3117
+LAN access: http://192.168.31.211:3117
 
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > passes history to chat function
 [chat] request: Hi
@@ -478,8 +493,8 @@ stdout | test/server/api.test.js > HTTP Server > POST /api/chat > writes error c
 [engines] registered: ollama, whisper, tts
 
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > writes error chunk on chat failure
-Server running at http://localhost:3130
-LAN access: http://192.168.31.211:3130
+Server running at http://localhost:3147
+LAN access: http://192.168.31.211:3147
 
 stdout | test/server/api.test.js > HTTP Server > POST /api/chat > writes error chunk on chat failure
 [chat] request: Hi
@@ -487,17 +502,37 @@ stdout | test/server/api.test.js > HTTP Server > POST /api/chat > writes error c
 
 stdout | test/server/api.test.js > HTTP Server > GET /api/status > returns hardware, config, ollama fields
 [engines] registered: ollama, whisper, tts
-
-stdout | test/server/api.test.js > HTTP Server > GET /api/status > returns hardware, config, ollama fields
-Server running at http://localhost:3102
-LAN access: http://192.168.31.211:3102
+Server running at http://localhost:3126
+LAN access: http://192.168.31.211:3126
 
 stdout | test/server/api.test.js > HTTP Server > GET /api/status > hardware contains required fields
 [engines] registered: ollama, whisper, tts
 
 stdout | test/server/api.test.js > HTTP Server > GET /api/status > hardware contains required fields
+Server running at http://localhost:3111
+LAN access: http://192.168.31.211:3111
+
+stdout | test/server/api.test.js > HTTP Server > GET /api/status > ollama.running is boolean (not hardcoded)
+[engines] registered: ollama, whisper, tts
+
+stdout | test/server/api.test.js > HTTP Server > GET /api/status > ollama.running is boolean (not hardcoded)
+Server running at http://localhost:3109
+LAN access: http://192.168.31.211:3109
+
+stdout | test/server/api.test.js > HTTP Server > GET /api/config > returns 200 with object
+[engines] registered: ollama, whisper, tts
+
+stdout | test/server/api.test.js > HTTP Server > GET /api/config > returns 200 with object
+Server running at http://localhost:3111
+LAN access: http://192.168.31.211:3111
+
+stdout | test/server/api.test.js > HTTP Server > GET /api/config > returns {} when config file does not exist
+[engines] registered: ollama, whisper, tts
 Server running at http://localhost:3119
 LAN access: http://192.168.31.211:3119
+
+stdout | test/server/api.test.js > HTTP Server > PUT /api/config > returns { ok: true } on success
+[engines] registered: ollama, whisper, tts
 
 stdout | test/m30-vad.test.js > m30-vad
   ✓ Silence after speech calls onStop after silenceMs
@@ -509,32 +544,29 @@ stdout | test/m30-vad.test.js > m30-vad
 6 tests: 6 passed, 0 failed
 
  ✓ test/m30-vad.test.js > m30-vad 457ms
-stdout | test/server/api.test.js > HTTP Server > GET /api/status > ollama.running is boolean (not hardcoded)
+stdout | test/server/api-m6.test.js > POST /api/chat > returns 400 for missing message
 [engines] registered: ollama, whisper, tts
-
-stdout | test/server/api.test.js > HTTP Server > GET /api/status > ollama.running is boolean (not hardcoded)
-Server running at http://localhost:3177
-LAN access: http://192.168.31.211:3177
-
-stdout | test/server/api.test.js > HTTP Server > GET /api/config > returns 200 with object
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3129
-LAN access: http://192.168.31.211:3129
-
-stdout | test/server/api.test.js > HTTP Server > GET /api/config > returns {} when config file does not exist
-[engines] registered: ollama, whisper, tts
-
-stdout | test/server/api.test.js > HTTP Server > GET /api/config > returns {} when config file does not exist
-Server running at http://localhost:3153
-LAN access: http://192.168.31.211:3153
+Server running at http://localhost:3453
+LAN access: http://192.168.31.211:3453
 
 stdout | test/server/api.test.js > HTTP Server > PUT /api/config > returns { ok: true } on success
+Server running at http://localhost:3137
+LAN access: http://192.168.31.211:3137
+
+stdout | test/server/api.test.js > HTTP Server > PUT /api/config > persists config: GET returns what was PUT
 [engines] registered: ollama, whisper, tts
 
- ✓ test/server/m13-dbb.test.js > profiles.js M13 hot reload > DBB-009: malformed JSON does not crash, service stays up
-stdout | test/server/api.test.js > HTTP Server > PUT /api/config > returns { ok: true } on success
-Server running at http://localhost:3146
-LAN access: http://192.168.31.211:3146
+stdout | test/server/api.test.js > HTTP Server > PUT /api/config > persists config: GET returns what was PUT
+Server running at http://localhost:3172
+LAN access: http://192.168.31.211:3172
+
+stdout | test/server/api-m6.test.js > POST /api/chat > returns 400 for missing message
+[chat] request: empty
+
+stdout | test/server/api-m6.test.js > POST /api/chat > returns SSE stream (DBB-001)
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3463
+LAN access: http://192.168.31.211:3463
 
  ✓ test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for missing message
  ✓ test/server/api.test.js > HTTP Server > POST /api/chat > returns 400 for non-string message
@@ -547,124 +579,93 @@ LAN access: http://192.168.31.211:3146
  ✓ test/server/api.test.js > HTTP Server > GET /api/status > ollama.running is boolean (not hardcoded)
  ✓ test/server/api.test.js > HTTP Server > GET /api/config > returns 200 with object
  ✓ test/server/api.test.js > HTTP Server > GET /api/config > returns {} when config file does not exist
-stdout | test/server/api.test.js > HTTP Server > PUT /api/config > persists config: GET returns what was PUT
-[engines] registered: ollama, whisper, tts
-
-stdout | test/server/api-m6.test.js > POST /api/chat > returns 400 for missing message
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3447
-LAN access: http://192.168.31.211:3447
-
-stdout | test/server/api.test.js > HTTP Server > PUT /api/config > persists config: GET returns what was PUT
-Server running at http://localhost:3152
-LAN access: http://192.168.31.211:3152
-
  ✓ test/server/api.test.js > HTTP Server > PUT /api/config > returns { ok: true } on success
-stdout | test/server/api-m6.test.js > POST /api/chat > returns 400 for missing message
-[chat] request: empty
-
-stdout | test/server/api.test.js > HTTP Server > startServer > resolves with a server instance
-[engines] registered: ollama, whisper, tts
-
-stdout | test/server/api-m6.test.js > POST /api/chat > returns SSE stream (DBB-001)
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3453
-LAN access: http://192.168.31.211:3453
-
 stdout | test/server/api-m6.test.js > POST /api/chat > returns SSE stream (DBB-001)
 [chat] request: hello
 
+stdout | test/server/api.test.js > HTTP Server > startServer > resolves with a server instance
+[engines] registered: ollama, whisper, tts
+
 stdout | test/server/api-m6.test.js > POST /api/chat > passes history to chat
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3434
-LAN access: http://192.168.31.211:3434
-
-stdout | test/server/api.test.js > HTTP Server > startServer > resolves with a server instance
-Server running at http://localhost:3177
-LAN access: http://192.168.31.211:3177
-[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3415
+LAN access: http://192.168.31.211:3415
 
  ✓ test/server/api.test.js > HTTP Server > PUT /api/config > persists config: GET returns what was PUT
  ✓ test/server/api-m6.test.js > POST /api/chat > returns 400 for missing message
  ✓ test/server/api-m6.test.js > POST /api/chat > returns SSE stream (DBB-001)
-stdout | test/server/api.test.js > HTTP Server > startServer > resolves with a server instance
-Server running at http://localhost:3299
-LAN access: http://192.168.31.211:3299
-
- ✓ test/server/api.test.js > HTTP Server > startServer > resolves with a server instance
 stdout | test/server/api-m6.test.js > POST /api/chat > passes history to chat
 [chat] request: hi
 
 stdout | test/server/api-m6.test.js > POST /api/chat > writes error chunk on chat failure
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3424
-LAN access: http://192.168.31.211:3424
+Server running at http://localhost:3488
+LAN access: http://192.168.31.211:3488
 
- ✓ test/server/api-m6.test.js > POST /api/chat > passes history to chat
+stdout | test/server/api.test.js > HTTP Server > startServer > resolves with a server instance
+Server running at http://localhost:3127
+LAN access: http://192.168.31.211:3127
+[engines] registered: ollama, whisper, tts
+
+stdout | test/server/api.test.js > HTTP Server > startServer > resolves with a server instance
+Server running at http://localhost:3299
+LAN access: http://192.168.31.211:3299
+
+ ✓ test/server/api.test.js > HTTP Server > startServer > resolves with a server instance
 stdout | test/server/api-m6.test.js > POST /api/chat > writes error chunk on chat failure
 [chat] request: hi
 [chat] error: LLM down
 
 stdout | test/server/api-m6.test.js > POST /api/transcribe > returns 400 when no audio file
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3469
-LAN access: http://192.168.31.211:3469
+Server running at http://localhost:3419
+LAN access: http://192.168.31.211:3419
 
+ ✓ test/server/api-m6.test.js > POST /api/chat > passes history to chat
+ ✓ test/server/api-m6.test.js > POST /api/chat > writes error chunk on chat failure
 stdout | test/server/api-m6.test.js > POST /api/transcribe > returns { text } for valid audio (DBB-002)
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3425
-LAN access: http://192.168.31.211:3425
+Server running at http://localhost:3473
+LAN access: http://192.168.31.211:3473
 
 stdout | test/server/api-m6.test.js > POST /api/synthesize > returns 400 when no text
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3465
-LAN access: http://192.168.31.211:3465
+Server running at http://localhost:3402
+LAN access: http://192.168.31.211:3402
 
 stdout | test/server/api-m6.test.js > POST /api/synthesize > returns audio/wav buffer (DBB-003)
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3407
-LAN access: http://192.168.31.211:3407
-
-stdout | test/detector/profiles-edge-cases.test.js > profiles edge cases > should reject profile when memory is insufficient
-Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
-
- ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > sense.js contains real mic capture code (not a stub)
- ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > sense.js gracefully degrades when node-record-lpcm16 unavailable
- ✓ test/server/api-m6.test.js > POST /api/chat > writes error chunk on chat failure
- ✓ test/server/api-m6.test.js > POST /api/transcribe > returns 400 when no audio file
- ✓ test/server/api-m6.test.js > POST /api/transcribe > returns { text } for valid audio (DBB-002)
- ✓ test/server/api-m6.test.js > POST /api/synthesize > returns 400 when no text
-stdout | test/m28-profiles-cache.test.js > M28 DBB-005: CDN profiles cache expired → fetch and refresh > calls fetch when cache is older than 7 days
-Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
+Server running at http://localhost:3491
+LAN access: http://192.168.31.211:3491
 
 stdout | test/server/api-m6.test.js > GET /api/status > returns hardware, config, devices (DBB-004)
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3463
-LAN access: http://192.168.31.211:3463
+Server running at http://localhost:3471
+LAN access: http://192.168.31.211:3471
 
- ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should match Linux + NVIDIA profile 616ms
+ ✓ test/server/api-m6.test.js > POST /api/transcribe > returns 400 when no audio file
+ ✓ test/server/api-m6.test.js > POST /api/transcribe > returns { text } for valid audio (DBB-002)
+ ✓ test/server/api-m6.test.js > POST /api/synthesize > returns 400 when no text
+ ✓ test/server/api-m6.test.js > POST /api/synthesize > returns audio/wav buffer (DBB-003)
 stdout | test/server/api-m6.test.js > /api/config > GET returns 200 JSON (DBB-005)
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3465
-LAN access: http://192.168.31.211:3465
+Server running at http://localhost:3488
+LAN access: http://192.168.31.211:3488
+
+stdout | test/m28-profiles-cache.test.js > M28 DBB-005: CDN profiles cache expired → fetch and refresh > calls fetch when cache is older than 7 days
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
 stdout | test/server/api-m6.test.js > /api/config > PUT persists, GET returns updated value (DBB-006)
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3480
-LAN access: http://192.168.31.211:3480
+Server running at http://localhost:3403
+LAN access: http://192.168.31.211:3403
 
- ✓ test/server/api-m6.test.js > POST /api/synthesize > returns audio/wav buffer (DBB-003)
- ✓ test/server/api-m6.test.js > GET /api/status > returns hardware, config, devices (DBB-004)
- ✓ test/server/api-m6.test.js > /api/config > GET returns 200 JSON (DBB-005)
- ✓ test/server/api-m6.test.js > /api/config > PUT persists, GET returns updated value (DBB-006)
 stdout | test/m28-profiles-cache.test.js > M28 DBB-005: CDN profiles cache expired → fetch and refresh > updates cache timestamp after successful fetch
 Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
- ✓ test/m28-profiles-cache.test.js > M28 DBB-005: CDN profiles cache expired → fetch and refresh > calls fetch when cache is older than 7 days
- ✓ test/m28-profiles-cache.test.js > M28 DBB-005: CDN profiles cache expired → fetch and refresh > updates cache timestamp after successful fetch
- ✓ test/server/m15-dbb.test.js > DBB-001/002: sense.js Node.js compat > loads without ReferenceError
- ✓ test/server/m15-dbb.test.js > DBB-001/002: sense.js Node.js compat > start/stop do not throw
- ✓ test/server/m15-dbb.test.js > DBB-001/002: sense.js Node.js compat > uses setInterval not requestAnimationFrame
+ ✓ test/server/api-m6.test.js > GET /api/status > returns hardware, config, devices (DBB-004)
+ ✓ test/server/api-m6.test.js > /api/config > GET returns 200 JSON (DBB-005)
+ ✓ test/server/api-m6.test.js > /api/config > PUT persists, GET returns updated value (DBB-006)
 stdout | test/m28-profiles-cache.test.js > M28 DBB-005 edge: fetch fails + no cache → builtin > falls back to builtin profiles when fetch fails and no cache exists
 Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
@@ -672,8 +673,16 @@ stderr | test/m28-profiles-cache.test.js > M28 DBB-005 edge: fetch fails + no ca
 Failed to fetch remote profiles: network error
 Using built-in default profiles
 
- ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline and stopWakeWordPipeline are exported
- ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > stopWakeWordPipeline without start does not throw
+ ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > sense.js contains real mic capture code (not a stub)
+ ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > sense.js gracefully degrades when node-record-lpcm16 unavailable
+ ✓ test/m28-profiles-cache.test.js > M28 DBB-005: CDN profiles cache expired → fetch and refresh > calls fetch when cache is older than 7 days
+ ✓ test/m28-profiles-cache.test.js > M28 DBB-005: CDN profiles cache expired → fetch and refresh > updates cache timestamp after successful fetch
+ ✓ test/m28-profiles-cache.test.js > M28 DBB-006: CDN profiles cache fresh → no fetch > does not call fetch when cache is within 7 days
+ ✓ test/m28-profiles-cache.test.js > M28 DBB-005 edge: fetch fails + no cache → builtin > falls back to builtin profiles when fetch fails and no cache exists
+ ✓ test/server/m15-dbb.test.js > DBB-001/002: sense.js Node.js compat > loads without ReferenceError
+stdout | test/detector/profiles-edge-cases.test.js > profiles edge cases > should reject profile when memory is insufficient
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
+
 stdout | test/m28-profiles-cache.test.js > M28 DBB-005 edge: fetch fails + expired cache → use expired cache > uses expired cache as fallback when fetch fails
 Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
@@ -681,19 +690,18 @@ stderr | test/m28-profiles-cache.test.js > M28 DBB-005 edge: fetch fails + expir
 Failed to fetch remote profiles: network error
 Using expired cache
 
- ✓ test/m28-profiles-cache.test.js > M28 DBB-006: CDN profiles cache fresh → no fetch > does not call fetch when cache is within 7 days
- ✓ test/m28-profiles-cache.test.js > M28 DBB-005 edge: fetch fails + no cache → builtin > falls back to builtin profiles when fetch fails and no cache exists
  ✓ test/m28-profiles-cache.test.js > M28 DBB-005 edge: fetch fails + expired cache → use expired cache > uses expired cache as fallback when fetch fails
- ✓ test/server/m15-dbb.test.js > DBB-003/004: store.delete alias > store.delete is a function
- ✓ test/server/m15-dbb.test.js > DBB-003/004: store.delete alias > store.del is a function
- ✓ test/server/m15-dbb.test.js > DBB-003/004: store.delete alias > store.delete calls underlying delete
- ✓ test/server/m15-dbb.test.js > DBB-003/004: store.delete alias > store.del calls underlying delete
-stderr | test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles missing node-record-lpcm16 gracefully
-[sense] node-record-lpcm16 unavailable — wake word pipeline disabled
-
+ ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should match Linux + NVIDIA profile 599ms
+ ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline and stopWakeWordPipeline are exported
+ ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > stopWakeWordPipeline without start does not throw
 stdout | test/server/server-layer.test.js > brain.js > yields tool_use chunk from Ollama tool_calls (DBB-008)
 [brain] ollama request: model=test-model host=http://localhost:11434
 
+ ✓ test/server/server-layer.test.js > hub.js > getDevices returns registered devices
+ ✓ test/server/server-layer.test.js > brain.js > yields tool_use chunk from Ollama tool_calls (DBB-008)
+ ✓ test/server/server-layer.test.js > brain.js > yields content chunk for plain response
+ ✓ test/server/server-layer.test.js > brain.js > yields error chunk on fetch failure
+ ✓ test/server/server-layer.test.js > brain.js > normalizes tool result messages to tool_result format
 stdout | test/server/server-layer.test.js > brain.js > yields content chunk for plain response
 [brain] ollama request: model=test-model host=http://localhost:11434
 
@@ -708,12 +716,15 @@ stderr | test/server/server-layer.test.js > brain.js > yields error chunk on fet
 stdout | test/server/server-layer.test.js > brain.js > normalizes tool result messages to tool_result format
 [brain] ollama request: model=test-model host=http://localhost:11434
 
- ✓ test/server/server-layer.test.js > hub.js > getDevices returns registered devices
- ✓ test/server/server-layer.test.js > brain.js > yields tool_use chunk from Ollama tool_calls (DBB-008)
- ✓ test/server/server-layer.test.js > brain.js > yields content chunk for plain response
- ✓ test/server/server-layer.test.js > brain.js > yields error chunk on fetch failure
- ✓ test/server/server-layer.test.js > brain.js > normalizes tool result messages to tool_result format
- ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles missing node-record-lpcm16 gracefully
+ ✓ test/server/m15-dbb.test.js > DBB-001/002: sense.js Node.js compat > start/stop do not throw
+ ✓ test/server/m15-dbb.test.js > DBB-001/002: sense.js Node.js compat > uses setInterval not requestAnimationFrame
+ ✓ test/server/m15-dbb.test.js > DBB-003/004: store.delete alias > store.delete is a function
+ ✓ test/server/m15-dbb.test.js > DBB-003/004: store.delete alias > store.del is a function
+ ✓ test/server/m15-dbb.test.js > DBB-003/004: store.delete alias > store.delete calls underlying delete
+ ✓ test/server/m15-dbb.test.js > DBB-003/004: store.delete alias > store.del calls underlying delete
+stderr | test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles missing node-record-lpcm16 gracefully
+[sense] node-record-lpcm16 unavailable — wake word pipeline disabled
+
 stdout | test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > DBB-005: sensevoice provider falls back to openai-whisper (adapter not installed)
 [latency] stt: 0ms
 
@@ -723,40 +734,46 @@ stdout | test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-177549824990
 stdout | test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > DBB-006: unknown provider falls back to openai-whisper
 [latency] stt: 0ms
 
+stdout | test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > profile load failure falls back to default
+[latency] stt: 0ms
+
  ✓ test/server/m15-dbb.test.js > DBB-005: hub.js wakeword broadcast > broadcasts wakeword to all connected devices
  ✓ test/server/m15-dbb.test.js > DBB-006: hub.js heartbeat 60s > uses 60000ms not 40000ms
  ✓ test/server/m15-dbb.test.js > DBB-007: brain.js tool_use text field > all tool_use yields include text field
-stdout | test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > profile load failure falls back to default
-[latency] stt: 0ms
+ ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles missing node-record-lpcm16 gracefully
+stdout | test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline calls onWakeWord when VAD fires on non-silent audio
+[sense] Wake word pipeline started
+
+ ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline calls onWakeWord when VAD fires on non-silent audio
+stdout | test/runtime/stt-tts-adaptive.test.js > TTS adaptive (task-1775498249905) > DBB-007: kokoro provider falls back to openai-tts (adapter not installed)
+[latency] tts: 0ms
+
+ ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles recorder stream error gracefully
+stdout | test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles recorder stream error gracefully
+[sense] Wake word pipeline started
+
+stderr | test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles recorder stream error gracefully
+[sense] mic error: mic disconnected
+
+stdout | test/runtime/stt-tts-adaptive.test.js > TTS adaptive (task-1775498249905) > DBB-008: unknown tts provider falls back to openai-tts
+[latency] tts: 0ms
 
  ✓ test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > DBB-005: sensevoice provider falls back to openai-whisper (adapter not installed)
  ✓ test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > whisper provider falls back to openai-whisper (adapter not installed)
  ✓ test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > DBB-006: unknown provider falls back to openai-whisper
  ✓ test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > profile load failure falls back to default
  ✓ test/runtime/stt-tts-adaptive.test.js > STT adaptive (task-1775498249905) > transcribe before init throws
-stdout | test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline calls onWakeWord when VAD fires on non-silent audio
-[sense] Wake word pipeline started
-
-stdout | test/runtime/stt-tts-adaptive.test.js > TTS adaptive (task-1775498249905) > DBB-007: kokoro provider falls back to openai-tts (adapter not installed)
-[latency] tts: 1ms
-
-stdout | test/runtime/stt-tts-adaptive.test.js > TTS adaptive (task-1775498249905) > DBB-008: unknown tts provider falls back to openai-tts
-[latency] tts: 0ms
-
  ✓ test/runtime/stt-tts-adaptive.test.js > TTS adaptive (task-1775498249905) > DBB-007: tts.js has init() export
  ✓ test/runtime/stt-tts-adaptive.test.js > TTS adaptive (task-1775498249905) > DBB-007: kokoro provider falls back to openai-tts (adapter not installed)
  ✓ test/runtime/stt-tts-adaptive.test.js > TTS adaptive (task-1775498249905) > DBB-008: unknown tts provider falls back to openai-tts
+stdout | test/server/api-m2.test.js > GET /api/status — Ollama real detection > returns ollama.running (boolean) and ollama.models (array)
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3203
+LAN access: http://192.168.31.211:3203
+
 stdout | test/detector/profiles-edge-cases.test.js > profiles edge cases > should handle low memory systems
 Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
-▶ useVAD
-  ✖ calls onStart when RMS exceeds threshold (0.839916ms)
-  ✖ does not call onStart when RMS below threshold (0.985625ms)
-  ✖ calls onStop after silenceMs when speech ends (0.371709ms)
-  ✖ stop() cleans up stream tracks and closes context (0.362208ms)
-  ✔ handles getUserMedia failure gracefully (NotAllowedError) (0.778083ms)
-✖ useVAD (4.377834ms)
- ✓ test/ui/vad.test.js > vad
  ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should reject profile when memory is insufficient
  ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should prioritize more specific matches
  ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should handle empty match criteria (default profile)
@@ -765,34 +782,14 @@ Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/mai
  ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should handle arch mismatch gracefully
  ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should handle GPU type mismatch
  ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should throw error when no profiles match
- ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline calls onWakeWord when VAD fires on non-silent audio
-stdout | test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles recorder stream error gracefully
-[sense] Wake word pipeline started
-
-stderr | test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles recorder stream error gracefully
-[sense] mic error: mic disconnected
-
- ✓ test/m93-wakeword-verify.test.js > M93 wake word pipeline verification > startWakeWordPipeline handles recorder stream error gracefully
-stdout | test/server/api-m2.test.js > GET /api/status — Ollama real detection > returns ollama.running (boolean) and ollama.models (array)
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3201
-LAN access: http://192.168.31.211:3201
-
-stdout | test/server/api-m2.test.js > GET /api/status — Ollama real detection > returns running:false when Ollama is not reachable
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3268
-LAN access: http://192.168.31.211:3268
-
- ✓ test/server/api-m2.test.js > GET /api/status — Ollama real detection > returns ollama.running (boolean) and ollama.models (array)
-stdout | test/server/api-m2.test.js > GET /api/status — Ollama real detection > does not throw when Ollama is unreachable (no 500)
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3286
-LAN access: http://192.168.31.211:3286
-
- ✓ test/server/api-m2.test.js > GET /api/status — Ollama real detection > returns running:false when Ollama is not reachable
-stdout | test/detector/profiles-edge-cases.test.js > profiles edge cases > should return complete profile structure
-Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
-
+▶ useVAD
+  ✖ calls onStart when RMS exceeds threshold (11.848542ms)
+  ✖ does not call onStart when RMS below threshold (0.136959ms)
+  ✖ calls onStop after silenceMs when speech ends (0.1035ms)
+  ✖ stop() cleans up stream tracks and closes context (0.127834ms)
+  ✔ handles getUserMedia failure gracefully (NotAllowedError) (1.362167ms)
+✖ useVAD (14.156083ms)
+ ✓ test/ui/vad.test.js > vad
  ✓ test/runtime/memory.test.js > runtime/memory.js > add() > stores text with embedding vector and returns id
  ✓ test/runtime/memory.test.js > runtime/memory.js > add() > stores metadata in entry
  ✓ test/runtime/memory.test.js > runtime/memory.js > add() > defaults metadata to empty object
@@ -803,49 +800,11 @@ Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/mai
  ✓ test/runtime/memory.test.js > runtime/memory.js > search() > respects topK parameter
  ✓ test/runtime/memory.test.js > runtime/memory.js > remove() > removes entry and updates index
  ✓ test/runtime/memory.test.js > runtime/memory.js > clear() > removes all entries and index
-stdout | test/server/api-m2.test.js > GET /api/config — persistence > returns default config when no config file exists
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3265
-LAN access: http://192.168.31.211:3265
-
-stdout | test/server/api-m2.test.js > GET /api/config — persistence > PUT then GET returns merged value
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3201
-LAN access: http://192.168.31.211:3201
-
- ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should handle low memory systems
- ✓ test/server/api-m2.test.js > GET /api/status — Ollama real detection > does not throw when Ollama is unreachable (no 500)
- ✓ test/server/api-m2.test.js > GET /api/config — persistence > returns default config when no config file exists
-stdout | test/server/api-m2.test.js > GET /api/config — persistence > config persists on disk as JSON
+stdout | test/server/api-m2.test.js > GET /api/status — Ollama real detection > returns running:false when Ollama is not reachable
 [engines] registered: ollama, whisper, tts
 Server running at http://localhost:3217
 LAN access: http://192.168.31.211:3217
 
-stderr | test/ui/wakeword.test.js > WakeWord > no SpeechRecognition support: no crash
-SpeechRecognition not supported
-
- ✓ test/ui/wakeword.test.js > WakeWord > DBB-001: emits activated when transcript includes wakeWord
- ✓ test/ui/wakeword.test.js > WakeWord > does not emit for non-matching transcript
- ✓ test/ui/wakeword.test.js > WakeWord > DBB-002: works with custom wakeWord
- ✓ test/ui/wakeword.test.js > WakeWord > case-insensitive matching
- ✓ test/ui/wakeword.test.js > WakeWord > empty wakeWord does not start listening
- ✓ test/ui/wakeword.test.js > WakeWord > no SpeechRecognition support: no crash
- ✓ test/ui/wakeword.test.js > WakeWord > onerror retries up to 3 times
- ✓ test/ui/wakeword.test.js > WakeWord > stopListening stops recognition
-stdout | test/server/api-m2.test.js > GET /api/config — persistence > GET returns default config after config file is deleted
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3272
-LAN access: http://192.168.31.211:3272
-
-stdout | test/server/api-m2.test.js > startServer — EADDRINUSE > rejects with port-in-use message when port is taken by external process
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3216
-LAN access: http://192.168.31.211:3216
-
- ✓ test/server/api-m2.test.js > GET /api/config — persistence > PUT then GET returns merged value
- ✓ test/server/api-m2.test.js > GET /api/config — persistence > config persists on disk as JSON
- ✓ test/server/api-m2.test.js > GET /api/config — persistence > GET returns default config after config file is deleted
- ✓ test/server/api-m2.test.js > startServer — EADDRINUSE > rejects with port-in-use message when port is taken by external process
 stdout | test/server/brain.test.js > brain.js — DBB-008: tool_use chunks > yields tool_use chunk when Ollama returns tool_calls
 [brain] ollama request: model=test-model host=http://localhost:11434
 
@@ -860,10 +819,14 @@ stderr | test/server/brain.test.js > brain.js — error handling > yields error 
 [brain] Ollama failed (1/3): ECONNREFUSED
 [brain] Using fallback: ollama/test-model
 
- ✓ test/server/brain.test.js > brain.js — DBB-008: tool_use chunks > yields tool_use chunk when Ollama returns tool_calls
- ✓ test/server/brain.test.js > brain.js — DBB-009: content chunks without tools > yields content chunk when no tools provided
- ✓ test/server/brain.test.js > brain.js — error handling > yields error chunk when Ollama is unreachable and no tools
- ✓ test/server/brain.test.js > brain.js — error handling > falls back to cloud when Ollama fails with tools (no API key → error chunk)
+stdout | test/server/api-m2.test.js > GET /api/status — Ollama real detection > does not throw when Ollama is unreachable (no 500)
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3281
+LAN access: http://192.168.31.211:3281
+
+stderr | test/ui/wakeword.test.js > WakeWord > no SpeechRecognition support: no crash
+SpeechRecognition not supported
+
 stdout | test/server/brain.test.js > brain.js — error handling > falls back to cloud when Ollama fails with tools (no API key → error chunk)
 [brain] ollama request: model=test-model host=http://localhost:11434
 [brain] ollama request: model=test-model host=http://localhost:11434
@@ -872,45 +835,83 @@ stderr | test/server/brain.test.js > brain.js — error handling > falls back to
 [brain] Ollama failed (2/3): Ollama tool_use unsupported
 [brain] Using fallback: ollama/test-model
 
+ ✓ test/server/brain.test.js > brain.js — DBB-008: tool_use chunks > yields tool_use chunk when Ollama returns tool_calls
+ ✓ test/server/brain.test.js > brain.js — DBB-009: content chunks without tools > yields content chunk when no tools provided
+ ✓ test/server/brain.test.js > brain.js — error handling > yields error chunk when Ollama is unreachable and no tools
+ ✓ test/server/brain.test.js > brain.js — error handling > falls back to cloud when Ollama fails with tools (no API key → error chunk)
+ ✓ test/ui/wakeword.test.js > WakeWord > DBB-001: emits activated when transcript includes wakeWord
+ ✓ test/ui/wakeword.test.js > WakeWord > does not emit for non-matching transcript
+ ✓ test/ui/wakeword.test.js > WakeWord > DBB-002: works with custom wakeWord
+ ✓ test/ui/wakeword.test.js > WakeWord > case-insensitive matching
+ ✓ test/ui/wakeword.test.js > WakeWord > empty wakeWord does not start listening
+ ✓ test/ui/wakeword.test.js > WakeWord > no SpeechRecognition support: no crash
+ ✓ test/ui/wakeword.test.js > WakeWord > onerror retries up to 3 times
+ ✓ test/ui/wakeword.test.js > WakeWord > stopListening stops recognition
+stdout | test/server/api-m2.test.js > GET /api/config — persistence > returns default config when no config file exists
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3281
+LAN access: http://192.168.31.211:3281
+
+ ✓ test/m74-docker-e2e.test.js > M74 DBB-001: Docker build succeeds > Dockerfile exists
+ ✓ test/m74-docker-e2e.test.js > M74 DBB-001: Docker build succeeds > docker-compose.yml exists
+stdout | test/server/api-m2.test.js > GET /api/config — persistence > PUT then GET returns merged value
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3247
+LAN access: http://192.168.31.211:3247
+
+stdout | test/detector/profiles-edge-cases.test.js > profiles edge cases > should return complete profile structure
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
+
+ ✓ test/server/api-m2.test.js > GET /api/status — Ollama real detection > returns ollama.running (boolean) and ollama.models (array)
+ ✓ test/server/api-m2.test.js > GET /api/status — Ollama real detection > returns running:false when Ollama is not reachable
+ ✓ test/server/api-m2.test.js > GET /api/status — Ollama real detection > does not throw when Ollama is unreachable (no 500)
+ ✓ test/server/api-m2.test.js > GET /api/config — persistence > returns default config when no config file exists
+ ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should handle low memory systems
+stdout | test/server/api-m2.test.js > GET /api/config — persistence > config persists on disk as JSON
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3298
+LAN access: http://192.168.31.211:3298
+
+ ✓ test/server/api-m2.test.js > GET /api/config — persistence > PUT then GET returns merged value
+stdout | test/server/api-m2.test.js > GET /api/config — persistence > GET returns default config after config file is deleted
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3252
+LAN access: http://192.168.31.211:3252
+
+ ✓ test/server/api-m2.test.js > GET /api/config — persistence > config persists on disk as JSON
+stdout | test/server/api-m2.test.js > startServer — EADDRINUSE > rejects with port-in-use message when port is taken by external process
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3245
+LAN access: http://192.168.31.211:3245
+
+ ✓ test/server/api-m2.test.js > GET /api/config — persistence > GET returns default config after config file is deleted
+ ✓ test/server/api-m2.test.js > startServer — EADDRINUSE > rejects with port-in-use message when port is taken by external process
 stdout | test/m33-hub-wakeword-pipeline.test.js > m33-hub-wakeword-pipeline
 PASS: init() calls sense.startHeadless()
 
 stdout | test/m33-hub-wakeword-pipeline.test.js > m33-hub-wakeword-pipeline
 PASS: wakeword event triggers brain.chat([])
 
- ✓ test/m74-docker-e2e.test.js > M74 DBB-001: Docker build succeeds > Dockerfile exists
- ✓ test/m74-docker-e2e.test.js > M74 DBB-001: Docker build succeeds > docker-compose.yml exists
 stdout | test/m33-hub-wakeword-pipeline.test.js > m33-hub-wakeword-pipeline
 PASS: wakeword response broadcast to all devices
-
-stdout | test/detector/profiles-edge-cases.test.js > cache functionality > should use built-in profiles when cache does not exist
-Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
 stdout | test/m33-hub-wakeword-pipeline.test.js > m33-hub-wakeword-pipeline
 PASS: device send error does not crash pipeline
 
- ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should return complete profile structure
+ ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > GET /api/status returns hardware, config, devices (DBB-004)
+ ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > GET /api/config returns 200 JSON (DBB-005)
 stdout | test/m33-hub-wakeword-pipeline.test.js > m33-hub-wakeword-pipeline
 PASS: all connected devices receive wakeword_response
 
 All tests passed.
 
  ✓ test/m33-hub-wakeword-pipeline.test.js > m33-hub-wakeword-pipeline
- ✓ test/m62-sigint-integration.test.js > M62 DBB-004: SIGINT graceful drain integration > completes in-flight request before drain finishes
- ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > GET /api/status returns hardware, config, devices (DBB-004)
- ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > GET /api/config returns 200 JSON (DBB-005)
- ✓ test/m62-sigint-integration.test.js > M62 DBB-004: SIGINT graceful drain integration > rejects new requests after drain starts
- ✓ test/m62-sigint-integration.test.js > M62 DBB-004: SIGINT graceful drain integration > waitDrain resolves when no in-flight requests
- ✓ test/m62-sigint-integration.test.js > M62 DBB-004: SIGINT graceful drain integration > waitDrain times out if request never completes
-stdout | test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/chat returns 400 for missing message
-[chat] request: empty
-
-stdout | test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/chat returns SSE stream (DBB-001)
-[chat] request: hello
-
-stdout | test/detector/profiles-edge-cases.test.js > cache functionality > should handle network failure gracefully
+stdout | test/detector/profiles-edge-cases.test.js > cache functionality > should use built-in profiles when cache does not exist
 Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
+ ✓ test/detector/profiles-edge-cases.test.js > profiles edge cases > should return complete profile structure
+ ✓ test/m44-hub-session.test.js > m44-hub-session
+ ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > PUT /api/config persists: GET returns updated value (DBB-006)
 stdout | test/m44-hub-session.test.js > m44-hub-session
 hub.js broadcastSession tests
   ✓ broadcastSession sends session data to registered devices
@@ -920,88 +921,62 @@ hub.js broadcastSession tests
 
 4 passed, 0 failed
 
- ✓ test/m44-hub-session.test.js > m44-hub-session
- ✓ test/server/ws-hub.test.js > hub registry > sendCommand throws for unknown device
- ✓ test/server/ws-hub.test.js > hub registry > unregisterDevice rejects pending capture
- ✓ test/detector/profiles-edge-cases.test.js > cache functionality > should use built-in profiles when cache does not exist
- ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > PUT /api/config persists: GET returns updated value (DBB-006)
+stdout | test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/chat returns 400 for missing message
+[chat] request: empty
+
+stdout | test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/chat returns SSE stream (DBB-001)
+[chat] request: hello
+
  ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/chat returns 400 for missing message
  ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/chat returns SSE stream (DBB-001)
  ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/transcribe returns 400 without audio (DBB-002)
  ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/synthesize returns 400 without text (DBB-003)
  ✓ test/server/api-layer.test.js > api.js — HTTP endpoints > POST /api/synthesize returns audio/wav (DBB-003)
+ ✓ test/m62-sigint-integration.test.js > M62 DBB-004: SIGINT graceful drain integration > completes in-flight request before drain finishes
+ ✓ test/m62-sigint-integration.test.js > M62 DBB-004: SIGINT graceful drain integration > rejects new requests after drain starts
+ ✓ test/m62-sigint-integration.test.js > M62 DBB-004: SIGINT graceful drain integration > waitDrain resolves when no in-flight requests
+ ✓ test/m62-sigint-integration.test.js > M62 DBB-004: SIGINT graceful drain integration > waitDrain times out if request never completes
+stdout | test/detector/profiles-edge-cases.test.js > cache functionality > should handle network failure gracefully
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
+
+ ✓ test/detector/profiles-edge-cases.test.js > cache functionality > should use built-in profiles when cache does not exist
  ✓ test/server/hub-ws.test.js > WebSocket device registration (DBB-007) > register → appears in getDevices()
+ ✓ test/server/ws-hub.test.js > hub registry > sendCommand throws for unknown device
+ ✓ test/server/ws-hub.test.js > hub registry > unregisterDevice rejects pending capture
+ ✓ test/server/ws-hub.test.js > WebSocket protocol > register → registered + appears in getDevices()
 stdout | test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: transcribe(validBuffer) returns string
 [latency] stt: 0ms
+
+stdout | test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: unknown provider falls back to openai-whisper
+[latency] stt: 0ms
+
+ ✓ test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: transcribe(validBuffer) returns string
+ ✓ test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: unknown provider falls back to openai-whisper
+ ✓ test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: transcribe(emptyBuffer) rejects with EMPTY_AUDIO
+stdout | test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: synthesize(text) returns Buffer
+[latency] tts: 0ms
 
  ✓ test/server/ws-hub.test.js > WebSocket protocol > register → registered + appears in getDevices()
  ✓ test/server/ws-hub.test.js > WebSocket protocol > ping → pong
  ✓ test/server/ws-hub.test.js > WebSocket protocol > sendCommand speak → device receives command
  ✓ test/server/ws-hub.test.js > WebSocket protocol > sendCommand capture → resolves with data
-stdout | test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: unknown provider falls back to openai-whisper
-[latency] stt: 0ms
-
-stdout | test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: synthesize(text) returns Buffer
-[latency] tts: 0ms
-
- ✓ test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: transcribe(validBuffer) returns string
- ✓ test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: unknown provider falls back to openai-whisper
- ✓ test/runtime/stt-tts-m12.test.js > STT completeness (task-1775500434960) > DBB-002: transcribe(emptyBuffer) rejects with EMPTY_AUDIO
- ✓ test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: synthesize(text) returns Buffer
 stdout | test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: unknown provider falls back to openai-tts
 [latency] tts: 0ms
 
- ✓ test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: unknown provider falls back to openai-tts
- ✓ test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: synthesize("") rejects with EMPTY_TEXT
  ✓ test/server/hub-ws.test.js > WebSocket device registration (DBB-007) > disconnect removes device
  ✓ test/server/hub-ws.test.js > ping/pong > server responds pong to client ping
  ✓ test/server/hub-ws.test.js > sendCommand > speak command reaches device WS
  ✓ test/server/hub-ws.test.js > sendCommand > capture resolves with image data
  ✓ test/server/hub-ws.test.js > sendCommand > throws for unknown deviceId
+ ✓ test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: synthesize(text) returns Buffer
+ ✓ test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: unknown provider falls back to openai-tts
+ ✓ test/runtime/stt-tts-m12.test.js > TTS completeness (task-1775500434960) > DBB-003: synthesize("") rejects with EMPTY_TEXT
 stdout | test/server/m20-api.test.js
 [engines] registered: ollama, whisper, tts
 Server running at http://localhost:3420
 LAN access: http://192.168.31.211:3420
 
  ✓ test/server/ws-hub.test.js > WebSocket protocol > disconnect removes device from registry
-stdout | test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-005: sensevoice provider → falls back to openai-whisper (adapter not installed)
-[latency] stt: 0ms
-
-stdout | test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-005: whisper provider → falls back to openai-whisper (adapter not installed)
-[latency] stt: 1ms
-
-stdout | test/server/m20-api.test.js > DBB-005: POST /api/chat > returns 400 for missing message
-[chat] request: empty
-
-stdout | test/server/m20-api.test.js > DBB-005: POST /api/chat > returns text/event-stream for valid message
-[chat] request: hi
-
-stdout | test/server/m20-api.test.js > DBB-005: POST /api/chat > ends stream with [DONE]
-[chat] request: hi
-
-stdout | test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-006: unknown provider → falls back to openai-whisper
-[latency] stt: 0ms
-
-stdout | test/server/m20-api.test.js > DBB-005: POST /api/chat > writes error chunk when chat throws
-[chat] request: hi
-[chat] error: llm fail
-
-stdout | test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-006: profile load failure → falls back to openai-whisper
-[latency] stt: 0ms
-
- ✓ test/server/m20-api.test.js > DBB-004: GET /api/status > returns 200 with hardware, profile, devices
- ✓ test/server/m20-api.test.js > DBB-004: GET /api/status > devices comes from getDevices()
- ✓ test/server/m20-api.test.js > DBB-005: POST /api/chat > returns 400 for missing message
- ✓ test/server/m20-api.test.js > DBB-005: POST /api/chat > returns text/event-stream for valid message
- ✓ test/server/m20-api.test.js > DBB-005: POST /api/chat > ends stream with [DONE]
- ✓ test/server/m20-api.test.js > DBB-005: POST /api/chat > writes error chunk when chat throws
- ✓ test/server/m20-api.test.js > GET /api/devices > returns device list
- ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-005: sensevoice provider → falls back to openai-whisper (adapter not installed)
- ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-005: whisper provider → falls back to openai-whisper (adapter not installed)
- ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-006: unknown provider → falls back to openai-whisper
- ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-006: profile load failure → falls back to openai-whisper
- ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > throws if transcribe called before init
- ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > throws EMPTY_AUDIO for empty buffer
 stdout | test/detector/profiles-edge-cases.test.js > cache functionality > should use expired cache when network fails
 Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
@@ -1011,10 +986,33 @@ Using expired cache
 
  ✓ test/detector/profiles-edge-cases.test.js > cache functionality > should handle network failure gracefully
  ✓ test/detector/profiles-edge-cases.test.js > cache functionality > should use expired cache when network fails
- ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-001: sense.js loads in Node.js without ReferenceError
- ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-002: sense.js start()/stop() do not throw
- ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-003: store.delete() is exported
- ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-004: store.del() still works
+stdout | test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-005: sensevoice provider → falls back to openai-whisper (adapter not installed)
+[latency] stt: 1ms
+
+stdout | test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-005: whisper provider → falls back to openai-whisper (adapter not installed)
+[latency] stt: 0ms
+
+stdout | test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-006: unknown provider → falls back to openai-whisper
+[latency] stt: 0ms
+
+stdout | test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-006: profile load failure → falls back to openai-whisper
+[latency] stt: 0ms
+
+ ✓ test/server/m20-api.test.js > DBB-004: GET /api/status > returns 200 with hardware, profile, devices
+ ✓ test/server/m20-api.test.js > DBB-004: GET /api/status > devices comes from getDevices()
+stdout | test/server/m20-api.test.js > DBB-005: POST /api/chat > returns 400 for missing message
+[chat] request: empty
+
+stdout | test/server/m20-api.test.js > DBB-005: POST /api/chat > returns text/event-stream for valid message
+[chat] request: hi
+
+stdout | test/server/m20-api.test.js > DBB-005: POST /api/chat > ends stream with [DONE]
+[chat] request: hi
+
+stdout | test/server/m20-api.test.js > DBB-005: POST /api/chat > writes error chunk when chat throws
+[chat] request: hi
+[chat] error: llm fail
+
  ✓ test/m98-index-entry.test.js > DBB-001/002: src/index.js entry point > src/index.js file exists and is non-empty
  ✓ test/m98-index-entry.test.js > DBB-001/002: src/index.js entry point > package.json main points to src/index.js
  ✓ test/m98-index-entry.test.js > DBB-001/002: src/index.js entry point > exports startServer from server/api.js
@@ -1030,6 +1028,21 @@ Using expired cache
  ✓ test/m98-index-entry.test.js > DBB-001/002: src/index.js entry point > exports embed
  ✓ test/m98-index-entry.test.js > DBB-001/002: src/index.js entry point > DBB-001: key exports are present (startServer, detector, runtime)
  ✓ test/m98-index-entry.test.js > DBB-001/002: src/index.js entry point > DBB-002: uses valid ESM export syntax
+ ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-005: sensevoice provider → falls back to openai-whisper (adapter not installed)
+ ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-005: whisper provider → falls back to openai-whisper (adapter not installed)
+ ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-006: unknown provider → falls back to openai-whisper
+ ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > DBB-006: profile load failure → falls back to openai-whisper
+ ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > throws if transcribe called before init
+ ✓ test/runtime/stt-adaptive.test.js > stt adaptive selection (DBB-005, DBB-006) > throws EMPTY_AUDIO for empty buffer
+ ✓ test/server/m20-api.test.js > DBB-005: POST /api/chat > returns 400 for missing message
+ ✓ test/server/m20-api.test.js > DBB-005: POST /api/chat > returns text/event-stream for valid message
+ ✓ test/server/m20-api.test.js > DBB-005: POST /api/chat > ends stream with [DONE]
+ ✓ test/server/m20-api.test.js > DBB-005: POST /api/chat > writes error chunk when chat throws
+ ✓ test/server/m20-api.test.js > GET /api/devices > returns device list
+ ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-001: sense.js loads in Node.js without ReferenceError
+ ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-002: sense.js start()/stop() do not throw
+ ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-003: store.delete() is exported
+ ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-004: store.del() still works
 stdout | test/detector/profiles-default.test.js > profiles-default
 === profiles/default.json tests (DBB-005 m11) ===
 
@@ -1048,9 +1061,6 @@ Results: 10 passed, 0 failed
 
 
  ✓ test/detector/profiles-default.test.js > profiles-default
- ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-005: hub.js broadcastWakeword sends to all devices
- ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-006: hub.js heartbeat timeout is 60000ms
- ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-007: brain.js tool_use yields include text field
 stdout | test/m90-tunnel-cert.test.js > m90-tunnel-cert
   PASS: src/tunnel.js exists
   PASS: exports startTunnel function
@@ -1067,6 +1077,9 @@ stdout | test/m90-tunnel-cert.test.js > m90-tunnel-cert
   PASS: selfsigned in dependencies
   PASS: httpsServer.js imports generateCert
 
+ ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-005: hub.js broadcastWakeword sends to all devices
+ ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-006: hub.js heartbeat timeout is 60000ms
+ ✓ test/server/m15-vitest.test.js > m15 DBB > DBB-007: brain.js tool_use yields include text field
  ✓ test/runtime/sense-pipeline.test.js > sense pipeline (DBB-003, DBB-004) > DBB-003: face_detected event emitted with boundingBox
  ✓ test/runtime/sense-pipeline.test.js > sense pipeline (DBB-003, DBB-004) > DBB-004: gesture_detected event emitted
  ✓ test/runtime/sense-pipeline.test.js > sense pipeline (DBB-003, DBB-004) > object confidence > 0.5 → object_detected emitted
@@ -1080,7 +1093,6 @@ stdout | test/m90-tunnel-cert.test.js > m90-tunnel-cert
  ✓ test/m86-docker-fix.test.js > M86: Docker fix — agentic-* local package resolution > docker-compose.yml build context points to project root
  ✓ test/m86-docker-fix.test.js > M86: Docker fix — agentic-* local package resolution > docker-build.sh uses set -e for fail-fast behavior
  ✓ test/m86-docker-fix.test.js > M86: Docker fix — agentic-* local package resolution > docker-build.sh checks for missing sibling packages before building
- ✓ test/runtime/m38-stt.test.js > m38-stt
 stdout | test/m90-tunnel-cert.test.js > m90-tunnel-cert
   PASS: generateCert returns object
   PASS: generateCert returns key string
@@ -1091,11 +1103,7 @@ stdout | test/m90-tunnel-cert.test.js > m90-tunnel-cert
 19 passed, 0 failed
 
  ✓ test/m90-tunnel-cert.test.js > m90-tunnel-cert
- ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-001: device silent 61s → offline (heartbeat timeout 60s)
- ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-002: device heartbeat every 30s stays online after 120s
- ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-004: broadcastWakeword sends wakeword to all registry devices
- ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-004: broadcastWakeword skips broken ws without throwing
- ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-005: SIGINT handler registered (process.once called with SIGINT)
+ ✓ test/runtime/m38-stt.test.js > m38-stt
  ✓ test/m29-ollama-detector.test.js > M29 DBB: src/detector/ollama.js structure > exports ensureOllama
  ✓ test/m29-ollama-detector.test.js > M29 DBB: src/detector/ollama.js structure > checks which ollama to detect binary
  ✓ test/m29-ollama-detector.test.js > M29 DBB: src/detector/ollama.js structure > supports darwin/linux install via curl
@@ -1112,38 +1120,18 @@ stdout | test/m90-tunnel-cert.test.js > m90-tunnel-cert
  ✓ test/runtime/sense-m8.test.js > sense (m8 API) > skips frame when video not ready
  ✓ test/runtime/sense-m8.test.js > sense (m8 API) > stop() prevents further events
  ✓ test/runtime/sense-m8.test.js > sense (m8 API) > event has ts field
- ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > broadcastSession sends data to all registered devices
- ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > broadcastSession truncates history to last 20 messages
- ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > broadcastSession silently skips unknown sessionId
- ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > disconnected device removed from registry on send error
- ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > session data persists across multiple setSessionData calls
- ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > returns empty arrays before init() — no throw
- ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > returns mapped faces/gestures/objects after init()
- ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > filters objects with confidence <= 0.5
- ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > handles undefined faces/gestures/objects gracefully
- ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > existing on()/start() event interface still works
+ ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-001: device silent 61s → offline (heartbeat timeout 60s)
+ ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-002: device heartbeat every 30s stays online after 120s
+ ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-004: broadcastWakeword sends wakeword to all registry devices
+ ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-004: broadcastWakeword skips broken ws without throwing
+ ✓ test/server/hub-m13.test.js > hub.js M13 DBB > DBB-005: SIGINT handler registered (process.once called with SIGINT)
  ✓ test/runtime/llm-adaptive-m10.test.js > llm-adaptive-m10
-stdout | test/server/m27-hub-brain-api.test.js > DBB-008: hub registerDevice + getDevices > registered device appears in getDevices()
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:0
-LAN access: http://192.168.31.211:0
-
-stdout | test/server/m27-hub-brain-api.test.js > DBB-009: brain chat returns AsyncGenerator > chat() yields at least one chunk with type field
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:0
-LAN access: http://192.168.31.211:0
-
-stdout | test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > responds with text/event-stream containing data: lines
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:0
-LAN access: http://192.168.31.211:0
-
- ✓ test/server/m27-hub-brain-api.test.js > DBB-008: hub registerDevice + getDevices > registered device appears in getDevices()
- ✓ test/server/m27-hub-brain-api.test.js > DBB-009: brain chat returns AsyncGenerator > chat() yields at least one chunk with type field
- ✓ test/m48-ollama-fallback.test.js > Ollama non-200 fallback > throws on non-200 Ollama response (triggers fallback)
- ✓ test/m48-ollama-fallback.test.js > Ollama non-200 fallback > does not throw on 200 Ollama response
- ✓ test/m48-ollama-fallback.test.js > Ollama non-200 fallback > chat() falls back to cloud when Ollama throws
- ✓ test/m48-ollama-fallback.test.js > Ollama non-200 fallback > chat() does NOT call cloud when Ollama succeeds
+▶ llm.js DBB-003: hardware-adaptive loadConfig
+  ✖ DBB-003a: loadConfig() calls detectHardware (not hardcoded gemma4:26b) (3.377042ms)
+  ✖ DBB-003b: loadConfig() caches result — detectHardware called only once (0.471333ms)
+  ✖ DBB-003c: chat() uses config.llm.model from profile (not hardcoded) (0.208417ms)
+  ✖ DBB-003d: watchProfiles triggers config reload on profile change (0.286209ms)
+✖ llm.js DBB-003: hardware-adaptive loadConfig (5.23275ms)
  ✓ test/m29-ollama-install.test.js > M29 DBB: ensureOllama export > exports ensureOllama function
  ✓ test/m29-ollama-install.test.js > M29 DBB: ensureOllama export > checks for ollama binary via which
  ✓ test/m29-ollama-install.test.js > M29 DBB: install logic > uses curl install script for darwin/linux
@@ -1154,34 +1142,6 @@ LAN access: http://192.168.31.211:0
  ✓ test/m29-ollama-install.test.js > M29 DBB: model pull > throws on non-zero exit code
  ✓ test/m29-ollama-install.test.js > M29 DBB: runtime behavior (mocked) > skips install when ollama already installed
  ✓ test/m29-ollama-install.test.js > M29 DBB: runtime behavior (mocked) > throws error when pull fails
- ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > watchProfiles is a function
- ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > watchProfiles returns a stop function
- ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-001: returns empty arrays before init()
- ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-001: does not throw before init()
- ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-002: maps faces after init()
- ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-003: maps gestures after init()
- ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-004: filters objects below 0.5 confidence
- ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-001: handles undefined faces/gestures/objects from pipeline
- ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-001: on() event interface still works after detect() added
-stdout | test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > responds with text/event-stream containing data: lines
-[chat] request: hello
-
-stdout | test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > returns 400 for missing message
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:0
-LAN access: http://192.168.31.211:0
-
-stdout | test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > returns 400 for missing message
-[chat] request: empty
-
-stdout | test/server/m27-hub-brain-api.test.js > DBB-011: GET /api/status returns hardware and devices > returns JSON with hardware, config, devices fields
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:0
-LAN access: http://192.168.31.211:0
-
- ✓ test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > responds with text/event-stream containing data: lines
- ✓ test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > returns 400 for missing message
- ✓ test/server/m27-hub-brain-api.test.js > DBB-011: GET /api/status returns hardware and devices > returns JSON with hardware, config, devices fields
  ✓ test/m98-test-suite-health.test.js > DBB-011: ARCHITECTURE.md — no stale CR content > does not contain change-request references
  ✓ test/m98-test-suite-health.test.js > DBB-011: ARCHITECTURE.md — no stale CR content > does not contain CR- prefixed blocks
  ✓ test/m98-test-suite-health.test.js > DBB-011: ARCHITECTURE.md — no stale CR content > does not contain cr- prefixed references
@@ -1200,45 +1160,69 @@ LAN access: http://192.168.31.211:0
  ✓ test/m98-test-suite-health.test.js > Test suite health — deleted test files removed > test/m27-sense-memory.test.js should be deleted (tests removed functionality)
  ✓ test/m98-test-suite-health.test.js > Test suite health — deleted test files removed > test/runtime/m38-runtime.test.js should be deleted (tests removed functionality)
  ✓ test/m98-test-suite-health.test.js > Test suite health — deleted test files removed > test/runtime/cloud-fallback-m93.test.js should be deleted (tests removed functionality)
+ ✓ test/m48-ollama-fallback.test.js > Ollama non-200 fallback > throws on non-200 Ollama response (triggers fallback)
+ ✓ test/m48-ollama-fallback.test.js > Ollama non-200 fallback > does not throw on 200 Ollama response
+ ✓ test/m48-ollama-fallback.test.js > Ollama non-200 fallback > chat() falls back to cloud when Ollama throws
+ ✓ test/m48-ollama-fallback.test.js > Ollama non-200 fallback > chat() does NOT call cloud when Ollama succeeds
+ ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > watchProfiles is a function
+ ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > watchProfiles returns a stop function
+ ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > broadcastSession sends data to all registered devices
+ ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > broadcastSession truncates history to last 20 messages
+ ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > broadcastSession silently skips unknown sessionId
+ ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > disconnected device removed from registry on send error
+ ✓ test/m44-brain-state-sharing.test.js > DBB-004: multi-device brain state sharing > session data persists across multiple setSessionData calls
+ ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > returns empty arrays before init() — no throw
+ ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > returns mapped faces/gestures/objects after init()
+ ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > filters objects with confidence <= 0.5
+ ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > handles undefined faces/gestures/objects gracefully
+ ✓ test/runtime/sense-dbb001.test.js > DBB-001: sense.js detect(frame) API > existing on()/start() event interface still works
+ ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-001: returns empty arrays before init()
+ ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-001: does not throw before init()
+ ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-002: maps faces after init()
+ ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-003: maps gestures after init()
+ ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-004: filters objects below 0.5 confidence
+ ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-001: handles undefined faces/gestures/objects from pipeline
+ ✓ test/runtime/sense-detect-m10.test.js > sense.js detect(frame) — m10 fix > DBB-001: on() event interface still works after detect() added
+stdout | test/server/m27-hub-brain-api.test.js > DBB-008: hub registerDevice + getDevices > registered device appears in getDevices()
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:0
+LAN access: http://192.168.31.211:0
+
+stdout | test/server/m27-hub-brain-api.test.js > DBB-009: brain chat returns AsyncGenerator > chat() yields at least one chunk with type field
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:0
+LAN access: http://192.168.31.211:0
+
+stdout | test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > responds with text/event-stream containing data: lines
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:0
+LAN access: http://192.168.31.211:0
+
+ ✓ test/server/m27-hub-brain-api.test.js > DBB-008: hub registerDevice + getDevices > registered device appears in getDevices()
+ ✓ test/server/m27-hub-brain-api.test.js > DBB-009: brain chat returns AsyncGenerator > chat() yields at least one chunk with type field
+stdout | test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > responds with text/event-stream containing data: lines
+[chat] request: hello
+
+stdout | test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > returns 400 for missing message
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:0
+LAN access: http://192.168.31.211:0
+
+ ✓ test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > responds with text/event-stream containing data: lines
+stdout | test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > returns 400 for missing message
+[chat] request: empty
+
+stdout | test/server/m27-hub-brain-api.test.js > DBB-011: GET /api/status returns hardware and devices > returns JSON with hardware, config, devices fields
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:0
+LAN access: http://192.168.31.211:0
+
  ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > calls onReload on new profile
+ ✓ test/server/m27-hub-brain-api.test.js > DBB-010: POST /api/chat returns SSE stream > returns 400 for missing message
+ ✓ test/server/m27-hub-brain-api.test.js > DBB-011: GET /api/status returns hardware and devices > returns JSON with hardware, config, devices fields
 stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > starts recorder with correct config
 [sense] Wake word pipeline started
 
-stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > calls onWake when audio energy exceeds threshold
-[sense] Wake word pipeline started
-
-stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > does not call onWake for silent audio
-[sense] Wake word pipeline started
-
-stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > stopWakeWordPipeline stops recorder instance
-[sense] Wake word pipeline started
-
-stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > second call while active stops previous and starts new recorder
-[sense] Wake word pipeline started
-
- ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > starts recorder with correct config
- ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > stopWakeWordPipeline is a function
- ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > calls onWake when audio energy exceeds threshold
- ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > does not call onWake for silent audio
- ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > stopWakeWordPipeline stops recorder instance
- ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > second call while active stops previous and starts new recorder
-stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > second call while active stops previous and starts new recorder
-[sense] Wake word pipeline started
-
- ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > startServer accepts https option
- ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > creates HTTPS server via httpsServer.js
- ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > listens on the given port when https enabled
- ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > logs https://localhost URL on startup
- ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > prints LAN IP for multi-device access
- ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > falls back to HTTP if cert generation fails
- ✓ test/m28-https.test.js > DBB-003: cert.js generates valid self-signed cert > uses selfsigned library
- ✓ test/m28-https.test.js > DBB-003: cert.js generates valid self-signed cert > returns key and cert
- ✓ test/m28-https.test.js > DBB-003: httpsServer.js wraps app with TLS > calls https.createServer with key and cert
- ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > creates HTTP redirect server on port 3001
- ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > responds with 301 redirect
- ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > redirect Location points to https
- ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > returns both http and https servers
- ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > handles redirect port conflict gracefully
  ✓ test/m98-architecture-cleanup.test.js > M98 DBB-011: No stale CR content in ARCHITECTURE.md > should NOT contain "Add sections to ARCHITECTURE.md"
  ✓ test/m98-architecture-cleanup.test.js > M98 DBB-011: No stale CR content in ARCHITECTURE.md > should NOT contain "change-request" text
  ✓ test/m98-architecture-cleanup.test.js > M98 DBB-011: No stale CR content in ARCHITECTURE.md > should NOT contain "CR-" block references
@@ -1296,6 +1280,39 @@ stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) >
  ✓ test/m98-architecture-cleanup.test.js > M98 DBB-012: Previously missing key files are now present > cert.js should be mentioned in ARCHITECTURE.md
  ✓ test/m98-architecture-cleanup.test.js > M98 DBB-012: Previously missing key files are now present > httpsServer.js should be mentioned in ARCHITECTURE.md
  ✓ test/m98-architecture-cleanup.test.js > M98 DBB-012: Previously missing key files are now present > middleware.js should be mentioned in ARCHITECTURE.md
+stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > calls onWake when audio energy exceeds threshold
+[sense] Wake word pipeline started
+
+stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > does not call onWake for silent audio
+[sense] Wake word pipeline started
+
+stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > stopWakeWordPipeline stops recorder instance
+[sense] Wake word pipeline started
+
+ ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > startServer accepts https option
+ ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > creates HTTPS server via httpsServer.js
+ ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > listens on the given port when https enabled
+ ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > logs https://localhost URL on startup
+ ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > prints LAN IP for multi-device access
+ ✓ test/m28-https.test.js > DBB-003: HTTPS server starts on configured port > falls back to HTTP if cert generation fails
+ ✓ test/m28-https.test.js > DBB-003: cert.js generates valid self-signed cert > uses selfsigned library
+ ✓ test/m28-https.test.js > DBB-003: cert.js generates valid self-signed cert > returns key and cert
+ ✓ test/m28-https.test.js > DBB-003: httpsServer.js wraps app with TLS > calls https.createServer with key and cert
+ ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > creates HTTP redirect server on port 3001
+ ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > responds with 301 redirect
+ ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > redirect Location points to https
+ ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > returns both http and https servers
+ ✓ test/m28-https.test.js > DBB-004: HTTP redirects to HTTPS > handles redirect port conflict gracefully
+stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > second call while active stops previous and starts new recorder
+[sense] Wake word pipeline started
+[sense] Wake word pipeline started
+
+ ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > starts recorder with correct config
+ ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > stopWakeWordPipeline is a function
+ ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > calls onWake when audio energy exceeds threshold
+ ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > does not call onWake for silent audio
+ ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > stopWakeWordPipeline stops recorder instance
+ ✓ test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) > second call while active stops previous and starts new recorder
  ✓ test/m21-profiles.test.js > profiles.js M21 DBB > DBB-001: getProfile returns llm/stt/tts/fallback for valid hardware
  ✓ test/m21-profiles.test.js > profiles.js M21 DBB > DBB-002: getProfile falls back to built-in default when network unavailable and no cache
  ✓ test/m19-https.test.js > M19 DBB-006: HTTPS server files exist > src/server/cert.js exists
@@ -1313,6 +1330,7 @@ stdout | test/runtime/sense-wakeword-m80.test.js > startWakeWordPipeline (M80) >
  ✓ test/m19-https.test.js > M19 DBB-007: --https flag wired in bin/agentic-service.js > passes https flag to startServer
  ✓ test/m19-https.test.js > M19 DBB-007: --https flag wired in bin/agentic-service.js > supports HTTPS_ENABLED env var
  ✓ test/m19-https.test.js > M19 DBB-007: --https flag wired in bin/agentic-service.js > shows https:// in console when https enabled
+ ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > 304 response does not trigger onReload
 stdout | test/detector/m26-hardware-merge.test.js > m26-hardware-merge
 === m26 gpu-detector merge tests ===
 
@@ -1325,35 +1343,32 @@ Results: 4 passed, 0 failed
 
 
  ✓ test/detector/m26-hardware-merge.test.js > m26-hardware-merge
+stdout | test/server/stt-api.test.js > POST /api/transcribe > returns 400 when no audio file
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:0
+LAN access: http://192.168.31.211:0
+
  ✓ test/matcher.test.js > matchProfile() > matches apple-silicon
  ✓ test/matcher.test.js > matchProfile() > matches nvidia
  ✓ test/matcher.test.js > matchProfile() > matches cpu-only fallback (gpu.type = none)
  ✓ test/matcher.test.js > matchProfile() > falls back to default when gpu is undefined
  ✓ test/matcher.test.js > matchProfile() > falls back to default for unknown GPU type
  ✓ test/matcher.test.js > matchProfile() > throws when no profile matches
- ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > 304 response does not trigger onReload
-stdout | test/server/stt-api.test.js > POST /api/transcribe > returns 400 when no audio file
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:0
-LAN access: http://192.168.31.211:0
-
- ✓ test/runtime/dbb-fixes.test.js > dbb-fixes
 stdout | test/server/stt-api.test.js > POST /api/transcribe > returns { text } for valid audio upload
 [engines] registered: ollama, whisper, tts
 Server running at http://localhost:0
 LAN access: http://192.168.31.211:0
 
-▶ DBB fixes
-  ✖ memory.js exports delete (not just del) (5.468625ms)
- ✓ test/server/stt-api.test.js > POST /api/transcribe > returns 400 when no audio file
 stdout | test/server/stt-api.test.js > POST /api/transcribe > returns 500 when provider throws
 [engines] registered: ollama, whisper, tts
 Server running at http://localhost:0
 LAN access: http://192.168.31.211:0
 
- ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > network error does not crash
+ ✓ test/server/stt-api.test.js > POST /api/transcribe > returns 400 when no audio file
  ✓ test/server/stt-api.test.js > POST /api/transcribe > returns { text } for valid audio upload
  ✓ test/server/stt-api.test.js > POST /api/transcribe > returns 500 when provider throws
+ ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > network error does not crash
+ ✓ test/benchmark/voice-latency.test.js > voice-latency
 stdout | test/benchmark/voice-latency.test.js > voice-latency
 PASS: p95 latency 1807ms <= 2000ms
 PASS: api.js logs [voice] latency: per request
@@ -1363,12 +1378,14 @@ PASS: benchmark exits with code 1 on failure
 
 All voice latency benchmark tests passed.
 
- ✓ test/benchmark/voice-latency.test.js > voice-latency
+ ✓ test/runtime/dbb-fixes.test.js > dbb-fixes
+▶ DBB fixes
+  ✖ memory.js exports delete (not just del) (4.63125ms)
+ ✓ test/server/hub-m11.test.js > hub-m11
  ✓ test/server/hub-m14.test.js > DBB-004: speak command routed to device > sendCommand speak → device receives action:speak
  ✓ test/server/hub-m14.test.js > DBB-005: display command routed to device > sendCommand display → device receives action:display
  ✓ test/server/hub-m14.test.js > DBB-006: capture command still works (no regression) > sendCommand capture → returns Promise
  ✓ test/server/hub-m14.test.js > DBB-007: unknown command type throws > sendCommand fly → throws Unsupported command type
- ✓ test/server/hub-m11.test.js > hub-m11
 stdout | test/m62-server-vad.test.js > m62-server-vad
 M62 server-side VAD tests
 
@@ -1386,23 +1403,23 @@ M62 server-side VAD tests
  ✓ test/m62-server-vad.test.js > m62-server-vad
 stdout | test/server/transcribe-api.test.js > POST /api/transcribe > returns 400 when no audio file
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3353
-LAN access: http://192.168.31.211:3353
+Server running at http://localhost:3371
+LAN access: http://192.168.31.211:3371
 
 stdout | test/server/transcribe-api.test.js > POST /api/transcribe > returns { text } for valid audio upload
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3394
-LAN access: http://192.168.31.211:3394
+Server running at http://localhost:3390
+LAN access: http://192.168.31.211:3390
 
 stdout | test/server/transcribe-api.test.js > POST /api/transcribe > returns 500 when provider throws
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3340
-LAN access: http://192.168.31.211:3340
+Server running at http://localhost:3306
+LAN access: http://192.168.31.211:3306
 
  ✓ test/server/transcribe-api.test.js > POST /api/transcribe > returns 400 when no audio file
  ✓ test/server/transcribe-api.test.js > POST /api/transcribe > returns { text } for valid audio upload
- ✓ test/server/transcribe-api.test.js > POST /api/transcribe > returns 500 when provider throws
  ✓ test/detector/hot-reload.test.js > config hot-reload (DBB-005) > stop() cancels further polling
+ ✓ test/server/transcribe-api.test.js > POST /api/transcribe > returns 500 when provider throws
  ✓ test/m20-hub.test.js > M20 DBB-001: hub.js registerDevice > register → getDevices includes device
  ✓ test/m20-hub.test.js > M20 DBB-001: hub.js registerDevice > registerDevice sets status to offline per design
  ✓ test/m20-hub.test.js > M20 DBB-001: hub.js registerDevice > register twice with same id → device still present
@@ -1415,6 +1432,30 @@ LAN access: http://192.168.31.211:3340
  ✓ test/server/stt.test.js > STT runtime > throws EMPTY_AUDIO for null input
  ✓ test/server/stt.test.js > STT runtime > propagates agentic-voice errors
  ✓ test/server/stt.test.js > STT runtime > throws when agentic-voice unavailable
+ ✓ test/server/tts.test.js > TTS runtime > returns audio buffer for valid text
+ ✓ test/server/tts.test.js > TTS runtime > throws EMPTY_TEXT for empty string
+ ✓ test/server/tts.test.js > TTS runtime > throws EMPTY_TEXT for whitespace-only string
+ ✓ test/server/tts.test.js > TTS runtime > throws EMPTY_TEXT for null
+ ✓ test/server/tts.test.js > TTS runtime > propagates provider errors
+ ✓ test/server/tts.test.js > TTS runtime > throws not initialized when adapter fails to load
+stdout | test/server/tts-api.test.js > POST /api/synthesize > returns 400 when no text
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3474
+LAN access: http://192.168.31.211:3474
+
+stdout | test/server/tts-api.test.js > POST /api/synthesize > returns audio/wav for valid text
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3434
+LAN access: http://192.168.31.211:3434
+
+stdout | test/server/tts-api.test.js > POST /api/synthesize > returns 500 when provider throws
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3481
+LAN access: http://192.168.31.211:3481
+
+ ✓ test/server/tts-api.test.js > POST /api/synthesize > returns 400 when no text
+ ✓ test/server/tts-api.test.js > POST /api/synthesize > returns audio/wav for valid text
+ ✓ test/server/tts-api.test.js > POST /api/synthesize > returns 500 when provider throws
  ✓ test/server/hotreload-m13.test.js > profiles.js watchProfiles M13 DBB-008/009 > DBB-008: remote profiles change → onReload fires
  ✓ test/runtime/sense.test.js > sense.detect > DBB-004: null frame returns empty result
  ✓ test/runtime/sense.test.js > sense.detect > DBB-004: undefined frame returns empty result
@@ -1422,31 +1463,6 @@ LAN access: http://192.168.31.211:3340
  ✓ test/runtime/sense.test.js > sense.detect > DBB-002: returns gestures after init
  ✓ test/runtime/sense.test.js > sense.detect > DBB-003: returns objects after init
  ✓ test/runtime/sense.test.js > sense.detect > propagates pipeline errors (no error swallowing in impl)
- ✓ test/server/tts.test.js > TTS runtime > returns audio buffer for valid text
- ✓ test/server/tts.test.js > TTS runtime > throws EMPTY_TEXT for empty string
- ✓ test/server/tts.test.js > TTS runtime > throws EMPTY_TEXT for whitespace-only string
- ✓ test/server/tts.test.js > TTS runtime > throws EMPTY_TEXT for null
- ✓ test/server/tts.test.js > TTS runtime > propagates provider errors
- ✓ test/server/tts.test.js > TTS runtime > throws not initialized when adapter fails to load
- ✓ test/m48-sigint-drain.test.js > SIGINT graceful drain > resolves immediately with no in-flight requests
-stdout | test/server/tts-api.test.js > POST /api/synthesize > returns 400 when no text
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3421
-LAN access: http://192.168.31.211:3421
-
-stdout | test/server/tts-api.test.js > POST /api/synthesize > returns audio/wav for valid text
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3495
-LAN access: http://192.168.31.211:3495
-
-stdout | test/server/tts-api.test.js > POST /api/synthesize > returns 500 when provider throws
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3422
-LAN access: http://192.168.31.211:3422
-
- ✓ test/server/tts-api.test.js > POST /api/synthesize > returns 400 when no text
- ✓ test/server/tts-api.test.js > POST /api/synthesize > returns audio/wav for valid text
- ✓ test/server/tts-api.test.js > POST /api/synthesize > returns 500 when provider throws
  ✓ test/m28-https-lan.test.js > M28 DBB-003: HTTPS服务启动 > startServer supports https option
  ✓ test/m28-https-lan.test.js > M28 DBB-003: HTTPS服务启动 > httpsServer.js creates https server with cert
  ✓ test/m28-https-lan.test.js > M28 DBB-003: HTTPS服务启动 > cert.js uses selfsigned
@@ -1459,7 +1475,21 @@ LAN access: http://192.168.31.211:3422
  ✓ test/m28-https-lan.test.js > M28 DBB-004: HTTP重定向到HTTPS > redirect responds with 301
  ✓ test/m28-https-lan.test.js > M28 DBB-004: HTTP重定向到HTTPS > redirect Location header set to https
  ✓ test/m28-https-lan.test.js > M28 DBB-004: HTTP重定向到HTTPS > redirect port conflict handled gracefully
- ✓ test/m48-sigint-drain.test.js > SIGINT graceful drain > resolves after in-flight request finishes
+ ✓ test/m48-sigint-drain.test.js > SIGINT graceful drain > resolves immediately with no in-flight requests
+stdout | test/m71-vad.test.js > m71-vad
+M71 VAD silence suppression tests
+
+  ✓ DBB: silent buffer (all zeros) → false
+  ✓ DBB: non-silent buffer → true
+  ✓ DBB: RMS below threshold (0.005) → false
+  ✓ DBB: RMS just above threshold (0.011) → true
+  ✓ edge: null → false
+  ✓ edge: 1-byte buffer → false
+  ✓ edge: 2-byte buffer with silence → false
+
+7 tests: 7 passed, 0 failed
+
+ ✓ test/m71-vad.test.js > m71-vad
 stdout | test/m61-cpu-only-profile.test.js > m61-cpu-only-profile
 M61 cpu-only profile tests
 
@@ -1477,21 +1507,8 @@ M61 cpu-only profile tests
  ✓ test/m87-sense-pipeline.test.js > M87: createPipeline export from adapters/sense.js > createPipeline returns object with detect()
  ✓ test/m87-sense-pipeline.test.js > M87: createPipeline export from adapters/sense.js > detect() returns faces/gestures/objects
  ✓ test/m87-sense-pipeline.test.js > M87: sense.js imports createPipeline from adapter > sense.js source imports from ./adapters/sense.js not agentic-sense
+ ✓ test/m48-sigint-drain.test.js > SIGINT graceful drain > resolves after in-flight request finishes
  ✓ test/server/hotreload-m13.test.js > profiles.js watchProfiles M13 DBB-008/009 > DBB-008: 304 Not Modified → onReload not called
-stdout | test/m71-vad.test.js > m71-vad
-M71 VAD silence suppression tests
-
-  ✓ DBB: silent buffer (all zeros) → false
-  ✓ DBB: non-silent buffer → true
-  ✓ DBB: RMS below threshold (0.005) → false
-  ✓ DBB: RMS just above threshold (0.011) → true
-  ✓ edge: null → false
-  ✓ edge: 1-byte buffer → false
-  ✓ edge: 2-byte buffer with silence → false
-
-7 tests: 7 passed, 0 failed
-
- ✓ test/m71-vad.test.js > m71-vad
  ✓ test/m48-sigint-drain.test.js > SIGINT graceful drain > rejects on timeout if request never completes
  ✓ test/m48-sigint-drain.test.js > SIGINT graceful drain > startDrain sets draining flag
  ✓ test/store/index.test.js > store > DBB-003: set then get returns value
@@ -1499,50 +1516,57 @@ M71 VAD silence suppression tests
  ✓ test/store/index.test.js > store > DBB-005: get nonexistent key returns null
  ✓ test/store/index.test.js > store > stores complex values as JSON
  ✓ test/store/index.test.js > store > del on missing key is no-op
- ✓ test/m48-sigint-drain.test.js > SIGINT graceful drain > shutdown waits for in-flight then closes
- ✓ test/server/hotreload-m13.test.js > profiles.js watchProfiles M13 DBB-008/009 > DBB-009: malformed JSON → error swallowed, onReload not called
 stdout | test/server/admin.test.js > GET /api/logs > returns an array
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3593
-LAN access: http://192.168.31.211:3593
+Server running at http://localhost:3534
+LAN access: http://192.168.31.211:3534
+
+stdout | test/m72-latency.test.js > m72-latency
+M72 voice latency benchmark tests
+
 
 stdout | test/server/brain-m9.test.js > brain.js - DBB-001: tool_use response format (text field) > yields chunks with text field (not content) for Ollama path
 [brain] ollama request: model=test-model host=http://localhost:11434
 
  ✓ test/server/brain-m9.test.js > brain.js - DBB-001: tool_use response format (text field) > yields chunks with text field (not content) for Ollama path
  ✓ test/server/admin.test.js > GET /api/logs > returns an array
-stdout | test/server/admin.test.js > GET /api/logs > each entry has ts (number) and msg (string)
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3546
-LAN access: http://192.168.31.211:3546
-test-log-entry
-
- ✓ test/server/admin.test.js > GET /api/logs > each entry has ts (number) and msg (string)
 stdout | test/server/brain-m13.test.js > brain.js M13 DBB-003: tool_use yields text field > Ollama path: tool_use chunk contains text field (string)
 [brain] ollama request: model=test-model host=http://localhost:11434
 
  ✓ test/server/brain-m13.test.js > brain.js M13 DBB-003: tool_use yields text field > Ollama path: tool_use chunk contains text field (string)
+stdout | test/server/admin.test.js > GET /api/logs > each entry has ts (number) and msg (string)
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3526
+LAN access: http://192.168.31.211:3526
+test-log-entry
+
+ ✓ test/server/admin.test.js > GET /api/logs > each entry has ts (number) and msg (string)
 stdout | test/server/admin.test.js > GET /api/logs > returns at most 50 entries
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3513
-LAN access: http://192.168.31.211:3513
+Server running at http://localhost:3561
+LAN access: http://192.168.31.211:3561
 
  ✓ test/server/admin.test.js > GET /api/logs > returns at most 50 entries
-stdout | test/m72-latency.test.js > m72-latency
-M72 voice latency benchmark tests
-
-
- ✓ test/server/hotreload-m13.test.js > profiles.js watchProfiles M13 DBB-008/009 > DBB-009: network error → error swallowed, onReload not called
 stdout | test/m88-api-perf.test.js > GET /api/perf > returns 200 with JSON object
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3739
-LAN access: http://192.168.31.211:3739
+Server running at http://localhost:3746
+LAN access: http://192.168.31.211:3746
 
 stdout | test/m88-api-perf.test.js > GET /api/perf > returns empty object when no metrics recorded
 [engines] registered: ollama, whisper, tts
-Server running at http://localhost:3796
-LAN access: http://192.168.31.211:3796
+Server running at http://localhost:3771
+LAN access: http://192.168.31.211:3771
 
+ ✓ test/m48-sigint-drain.test.js > SIGINT graceful drain > shutdown waits for in-flight then closes
+stdout | test/m88-api-perf.test.js > GET /api/perf > response shape has last/avg/count per stage if metrics exist
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3710
+LAN access: http://192.168.31.211:3710
+
+ ✓ test/m88-api-perf.test.js > GET /api/perf > returns 200 with JSON object
+ ✓ test/m88-api-perf.test.js > GET /api/perf > returns empty object when no metrics recorded
+ ✓ test/m88-api-perf.test.js > GET /api/perf > response shape has last/avg/count per stage if metrics exist
+ ✓ test/server/hotreload-m13.test.js > profiles.js watchProfiles M13 DBB-008/009 > DBB-009: malformed JSON → error swallowed, onReload not called
 stdout | test/cli/npx-install-m9.test.js > bin - DBB-005/006/007: npx one-click install flow > DBB-007: openBrowser called with localhost:3000
 Opening browser at http://localhost:3000...
 
@@ -1550,18 +1574,8 @@ stdout | test/cli/npx-install-m9.test.js > bin - DBB-005/006/007: npx one-click 
 ✓ Browser opened
 
 
-stdout | test/m88-api-perf.test.js > GET /api/perf > response shape has last/avg/count per stage if metrics exist
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3717
-LAN access: http://192.168.31.211:3717
-
- ✓ test/m88-api-perf.test.js > GET /api/perf > returns 200 with JSON object
- ✓ test/m88-api-perf.test.js > GET /api/perf > returns empty object when no metrics recorded
- ✓ test/m88-api-perf.test.js > GET /api/perf > response shape has last/avg/count per stage if metrics exist
 stdout | test/cli/npx-install-m9.test.js > bin - DBB-005/006/007: npx one-click install flow > DBB-007: browser open failure does not throw
 Opening browser at http://localhost:3000...
-
-stdout | test/cli/npx-install-m9.test.js > bin - DBB-005/006/007: npx one-click install flow > DBB-007: browser open failure does not throw
 ⚠ Could not open browser automatically
 Please visit: http://localhost:3000
 
@@ -1587,9 +1601,18 @@ Using built-in default profiles
  ✓ test/m25-sense-headless.test.js > M25 DBB: existing API preserved > exports start
  ✓ test/m25-sense-headless.test.js > M25 DBB: existing API preserved > exports stop
  ✓ test/m25-sense-headless.test.js > M25 DBB: existing API preserved > exports detect
+stdout | test/m72-latency.test.js > m72-latency
+    (mock elapsed: 204ms)
+  ✓ DBB: STT+LLM+TTS mock round-trip < 2s
+  ✓ DBB: latency target documented
+
+2 tests: 2 passed, 0 failed
+
+ ✓ test/m72-latency.test.js > m72-latency
  ✓ test/cli/sigint-m9.test.js > bin - DBB-004: SIGINT graceful shutdown > calls server.close() and exits on SIGINT
  ✓ test/cli/sigint-m9.test.js > bin - DBB-004: SIGINT graceful shutdown > force-exits after 5s if server.close hangs
  ✓ test/cli/sigint-m9.test.js > bin - DBB-004: SIGINT graceful shutdown > registers both SIGINT and SIGTERM handlers
+ ✓ test/m20-profiles-default.test.js > m20-profiles-default
 stdout | test/m20-profiles-default.test.js > m20-profiles-default
   ✅ DBB-007: profiles/default.json is valid JSON
   ✅ has profiles array
@@ -1598,15 +1621,7 @@ stdout | test/m20-profiles-default.test.js > m20-profiles-default
 
 Results: 4 passed, 0 failed
 
- ✓ test/m20-profiles-default.test.js > m20-profiles-default
-stdout | test/m72-latency.test.js > m72-latency
-    (mock elapsed: 209ms)
-  ✓ DBB: STT+LLM+TTS mock round-trip < 2s
-  ✓ DBB: latency target documented
-
-2 tests: 2 passed, 0 failed
-
- ✓ test/m72-latency.test.js > m72-latency
+ ✓ test/server/hotreload-m13.test.js > profiles.js watchProfiles M13 DBB-008/009 > DBB-009: network error → error swallowed, onReload not called
  ✓ test/m98-docker-config.test.js > DBB-003/004/005: Docker port, OLLAMA_HOST, data volume > root docker-compose.yml > DBB-003: port mapping is 1234 (not 3000)
  ✓ test/m98-docker-config.test.js > DBB-003/004/005: Docker port, OLLAMA_HOST, data volume > root docker-compose.yml > DBB-004: OLLAMA_HOST env var is present
  ✓ test/m98-docker-config.test.js > DBB-003/004/005: Docker port, OLLAMA_HOST, data volume > root docker-compose.yml > DBB-005: ./data volume mount is present
@@ -1615,12 +1630,18 @@ stdout | test/m72-latency.test.js > m72-latency
  ✓ test/m98-docker-config.test.js > DBB-003/004/005: Docker port, OLLAMA_HOST, data volume > install/docker-compose.yml > port mapping is 1234 (not 3000)
  ✓ test/m98-docker-config.test.js > DBB-003/004/005: Docker port, OLLAMA_HOST, data volume > install/docker-compose.yml > OLLAMA_HOST env var is present
  ✓ test/m98-docker-config.test.js > DBB-003/004/005: Docker port, OLLAMA_HOST, data volume > install/docker-compose.yml > ./data volume mount is present
- ✓ test/m90-wakeword-pipeline.test.js > M90 wake word pipeline > startWakeWordPipeline and stopWakeWordPipeline are exported
- ✓ test/m90-wakeword-pipeline.test.js > M90 wake word pipeline > stopWakeWordPipeline without start does not throw
-stdout | test/m90-wakeword-pipeline.test.js > M90 wake word pipeline > startWakeWordPipeline calls onWakeWord when VAD fires
-[sense] Wake word pipeline started
+stdout | test/api.extra.test.js > POST /api/transcribe invalid format > returns 400 when no audio file
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3572
+LAN access: http://192.168.31.211:3572
 
- ✓ test/m90-wakeword-pipeline.test.js > M90 wake word pipeline > startWakeWordPipeline calls onWakeWord when VAD fires
+stdout | test/api.extra.test.js > PUT /api/config disk write failure > returns 500 on write error
+[engines] registered: ollama, whisper, tts
+Server running at http://localhost:3549
+LAN access: http://192.168.31.211:3549
+
+ ✓ test/api.extra.test.js > POST /api/transcribe invalid format > returns 400 when no audio file
+ ✓ test/api.extra.test.js > PUT /api/config disk write failure > returns 500 on write error
 stdout | test/m72-readme.test.js > m72-readme
 M72 README completeness tests
 
@@ -1637,28 +1658,12 @@ M72 README completeness tests
 9 tests: 9 passed, 0 failed
 
  ✓ test/m72-readme.test.js > m72-readme
-stdout | test/api.extra.test.js > POST /api/transcribe invalid format > returns 400 when no audio file
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3574
-LAN access: http://192.168.31.211:3574
+ ✓ test/m90-wakeword-pipeline.test.js > M90 wake word pipeline > startWakeWordPipeline and stopWakeWordPipeline are exported
+ ✓ test/m90-wakeword-pipeline.test.js > M90 wake word pipeline > stopWakeWordPipeline without start does not throw
+stdout | test/m90-wakeword-pipeline.test.js > M90 wake word pipeline > startWakeWordPipeline calls onWakeWord when VAD fires
+[sense] Wake word pipeline started
 
-stdout | test/api.extra.test.js > PUT /api/config disk write failure > returns 500 on write error
-[engines] registered: ollama, whisper, tts
-Server running at http://localhost:3509
-LAN access: http://192.168.31.211:3509
-
- ✓ test/api.extra.test.js > POST /api/transcribe invalid format > returns 400 when no audio file
- ✓ test/api.extra.test.js > PUT /api/config disk write failure > returns 500 on write error
-stdout | test/m76-cpu-profile.test.js > m76-cpu-profile
-  PASS: cpu-only profile exists
-  PASS: cpu-only uses gemma2:2b or gemma3:1b
-  PASS: cpu-only uses q4 quantization
-  PASS: cpu-only appears before catch-all
-  PASS: apple-silicon profile intact
-  PASS: nvidia profile intact
-
-6 passed, 0 failed
-
+ ✓ test/m90-wakeword-pipeline.test.js > M90 wake word pipeline > startWakeWordPipeline calls onWakeWord when VAD fires
 stdout | test/m19-hub.test.js > m19-hub
   ✅ register → getDevices includes device
   ✅ updateStatus → device.status updated
@@ -1668,8 +1673,6 @@ stdout | test/m19-hub.test.js > m19-hub
 
 Results: 5 passed, 0 failed
 
- ✓ test/m76-cpu-profile.test.js > m76-cpu-profile
- ✓ test/m19-hub.test.js > m19-hub
  ✓ test/m25-ollama-setup.test.js > M25 DBB: isOllamaInstalled uses which > calls which ollama
  ✓ test/m25-ollama-setup.test.js > M25 DBB: getInstallCommand platform support > darwin uses brew install ollama
  ✓ test/m25-ollama-setup.test.js > M25 DBB: getInstallCommand platform support > linux uses curl install script
@@ -1680,7 +1683,18 @@ Results: 5 passed, 0 failed
  ✓ test/m25-ollama-setup.test.js > M25 DBB: runSetup Ollama block > only runs ollama block when provider is ollama
  ✓ test/m25-ollama-setup.test.js > M25 DBB: pullModel shows spinner progress > uses ora spinner for pull
  ✓ test/m25-ollama-setup.test.js > M25 DBB: pullModel shows spinner progress > succeeds spinner on completion
- ✓ test/m76-cpu-profile-matcher.test.js > m76-cpu-profile-matcher
+ ✓ test/m19-hub.test.js > m19-hub
+ ✓ test/m76-cpu-profile.test.js > m76-cpu-profile
+stdout | test/m76-cpu-profile.test.js > m76-cpu-profile
+  PASS: cpu-only profile exists
+  PASS: cpu-only uses gemma2:2b or gemma3:1b
+  PASS: cpu-only uses q4 quantization
+  PASS: cpu-only appears before catch-all
+  PASS: apple-silicon profile intact
+  PASS: nvidia profile intact
+
+6 passed, 0 failed
+
 stdout | test/m76-cpu-profile-matcher.test.js > m76-cpu-profile-matcher
   PASS: cpu-only hardware returns gemma2:2b config
   PASS: cpu-only hardware returns q4 quantization
@@ -1690,6 +1704,7 @@ stdout | test/m76-cpu-profile-matcher.test.js > m76-cpu-profile-matcher
 
 5 passed, 0 failed
 
+ ✓ test/m76-cpu-profile-matcher.test.js > m76-cpu-profile-matcher
  ✓ test/m19-benchmark.test.js > M19 DBB-004: benchmark script exists and is executable > scripts/benchmark.js exists
  ✓ test/m19-benchmark.test.js > M19 DBB-004: benchmark script exists and is executable > imports stt transcribe
  ✓ test/m19-benchmark.test.js > M19 DBB-004: benchmark script exists and is executable > imports llm chat
@@ -1703,6 +1718,15 @@ stdout | test/m76-cpu-profile-matcher.test.js > m76-cpu-profile-matcher
  ✓ test/m19-benchmark.test.js > M19 DBB-005: benchmark measures all three stages > uses Date.now() for timing
  ✓ test/m19-benchmark.test.js > M19 DBB-005: benchmark measures all three stages > collects LLM stream chunks before measuring end time
  ✓ test/m19-benchmark.test.js > M19 DBB-005: benchmark measures all three stages > prints JSON result
+ ✓ test/m24-https.test.js > M24 DBB-1: startServer(port, {https:true}) starts both HTTP and HTTPS > startServer accepts https option
+ ✓ test/m24-https.test.js > M24 DBB-1: startServer(port, {https:true}) starts both HTTP and HTTPS > HTTP redirect server on fixed port
+ ✓ test/m24-https.test.js > M24 DBB-1: startServer(port, {https:true}) starts both HTTP and HTTPS > returns {http, https} object when https enabled
+ ✓ test/m24-https.test.js > M24 DBB-1: startServer(port, {https:true}) starts both HTTP and HTTPS > returns single server when https disabled
+ ✓ test/m24-https.test.js > M24 DBB-1: cert.js generates self-signed cert > generateCert uses selfsigned
+ ✓ test/m24-https.test.js > M24 DBB-1: cert.js generates self-signed cert > generateCert returns key and cert
+ ✓ test/m24-https.test.js > M24 DBB-1: bin supports --https flag > defines --https option
+ ✓ test/m24-https.test.js > M24 DBB-1: bin supports --https flag > passes https to startServer
+ ✓ test/m24-https.test.js > M24 DBB-1: bin supports --https flag > supports HTTPS_ENABLED env var
  ✓ test/m30-cdn-profiles.test.js > M30 DBB-004: CDN endpoint is not a placeholder > does not contain cdn.example.com
  ✓ test/m30-cdn-profiles.test.js > M30 DBB-004: CDN endpoint is not a placeholder > does not contain any placeholder strings
  ✓ test/m30-cdn-profiles.test.js > M30 DBB-004: CDN endpoint is not a placeholder > default URL is a real accessible endpoint
@@ -1718,15 +1742,6 @@ stdout | test/m76-cpu-profile-matcher.test.js > m76-cpu-profile-matcher
  ✓ test/m74-setup-idempotency.test.js > setup.sh idempotency (m74 DBB) > skips global install when already installed
  ✓ test/m74-setup-idempotency.test.js > setup.sh idempotency (m74 DBB) > does not append to PATH unconditionally
  ✓ test/m74-setup-idempotency.test.js > setup.sh idempotency (m74 DBB) > exits 0 on re-run — install steps are inside guarded function
- ✓ test/m24-https.test.js > M24 DBB-1: startServer(port, {https:true}) starts both HTTP and HTTPS > startServer accepts https option
- ✓ test/m24-https.test.js > M24 DBB-1: startServer(port, {https:true}) starts both HTTP and HTTPS > HTTP redirect server on fixed port
- ✓ test/m24-https.test.js > M24 DBB-1: startServer(port, {https:true}) starts both HTTP and HTTPS > returns {http, https} object when https enabled
- ✓ test/m24-https.test.js > M24 DBB-1: startServer(port, {https:true}) starts both HTTP and HTTPS > returns single server when https disabled
- ✓ test/m24-https.test.js > M24 DBB-1: cert.js generates self-signed cert > generateCert uses selfsigned
- ✓ test/m24-https.test.js > M24 DBB-1: cert.js generates self-signed cert > generateCert returns key and cert
- ✓ test/m24-https.test.js > M24 DBB-1: bin supports --https flag > defines --https option
- ✓ test/m24-https.test.js > M24 DBB-1: bin supports --https flag > passes https to startServer
- ✓ test/m24-https.test.js > M24 DBB-1: bin supports --https flag > supports HTTPS_ENABLED env var
  ✓ test/server/docker-m13.test.js > Docker deployment M13 DBB-006/007 > Dockerfile exists
  ✓ test/server/docker-m13.test.js > Docker deployment M13 DBB-006/007 > Dockerfile uses node:20-alpine base
  ✓ test/server/docker-m13.test.js > Docker deployment M13 DBB-006/007 > Dockerfile exposes port 1234
@@ -1742,7 +1757,6 @@ stdout | test/m76-cpu-profile-matcher.test.js > m76-cpu-profile-matcher
  ✓ test/m19-profiles-cdn.test.js > M19 DBB-002: fallback to local default.json on network failure > loadBuiltinProfiles reads profiles/default.json
  ✓ test/m19-profiles-cdn.test.js > M19 DBB-002: fallback to local default.json on network failure > fetch failure path falls through to builtin profiles
  ✓ test/m19-profiles-cdn.test.js > M19 DBB-002: fallback to local default.json on network failure > profiles/default.json exists and is valid JSON
- ✓ test/detector/hardware.test.js > Hardware Detector > should detect platform and arch 525ms
  ✓ test/detector/m71-profiles-cpu-only.test.js > profiles/default.json cpu-only profile > has a cpu-only profile entry
  ✓ test/detector/m71-profiles-cpu-only.test.js > profiles/default.json cpu-only profile > cpu-only profile uses gemma2:2b model
  ✓ test/detector/m71-profiles-cpu-only.test.js > profiles/default.json cpu-only profile > cpu-only profile has quantization q4
@@ -1750,11 +1764,6 @@ stdout | test/m76-cpu-profile-matcher.test.js > m76-cpu-profile-matcher
 stderr | test/runtime/sense-wakeword-m93.test.js > startWakeWordPipeline > resolves without throwing when node-record-lpcm16 is unavailable
 [sense] node-record-lpcm16 unavailable — wake word pipeline disabled
 
- ✓ test/runtime/sense-wakeword-m93.test.js > startWakeWordPipeline > resolves without throwing when node-record-lpcm16 is unavailable
-stdout | test/runtime/sense-wakeword-m93.test.js > startWakeWordPipeline > calls onWakeWord when audio RMS exceeds threshold
-[sense] Wake word pipeline started
-
- ✓ test/runtime/sense-wakeword-m93.test.js > startWakeWordPipeline > calls onWakeWord when audio RMS exceeds threshold
  ✓ test/m88-profiler-metrics.test.js > m88 profiler getMetrics > getMetrics returns empty object before any marks
  ✓ test/m88-profiler-metrics.test.js > m88 profiler getMetrics > getMetrics accumulates last/avg/count after endMark
  ✓ test/m88-profiler-metrics.test.js > m88 profiler getMetrics > avg increases count on repeated calls
@@ -1768,8 +1777,16 @@ PASS: All audited source files exist
 
 4 passed, 0 failed
 
+ ✓ test/runtime/sense-wakeword-m93.test.js > startWakeWordPipeline > resolves without throwing when node-record-lpcm16 is unavailable
+stdout | test/runtime/sense-wakeword-m93.test.js > startWakeWordPipeline > calls onWakeWord when audio RMS exceeds threshold
+[sense] Wake word pipeline started
+
+ ✓ test/runtime/sense-wakeword-m93.test.js > startWakeWordPipeline > calls onWakeWord when audio RMS exceeds threshold
+ ✓ test/detector/hardware.test.js > Hardware Detector > should detect platform and arch 568ms
 stdout | test/server/hub-api.test.js > DBB-006: GET /api/status includes devices > returns devices array with registered device
 [engines] registered: ollama, whisper, tts
+
+stdout | test/server/hub-api.test.js > DBB-006: GET /api/status includes devices > returns devices array with registered device
 Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
  ✓ test/server/hub-m11-offline.test.js > hub-m11-offline
@@ -1798,6 +1815,13 @@ Using built-in default profiles
 
  ✓ test/profiles-fallback.test.js > profiles fallback to default.json > loadBuiltinProfiles is called when fetch fails and cache is absent
  ✓ test/profiles-fallback.test.js > profiles fallback to default.json > default.json has a cpu-only catch-all profile with llm/stt/tts
+ ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > exports initHeadless
+ ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > exports detectFrame
+ ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > initHeadless does not set _video
+ ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > detectFrame returns empty result before init
+ ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > detectFrame delegates to detect()
+ ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > existing init/start/stop/detect exports preserved
+ ✓ test/m19-profiles.test.js > m19-profiles
 stdout | test/m19-profiles.test.js > m19-profiles
   ✅ profiles/default.json is valid JSON
   ✅ has profiles array
@@ -1806,27 +1830,13 @@ stdout | test/m19-profiles.test.js > m19-profiles
 
 Results: 4 passed, 0 failed
 
- ✓ test/m19-profiles.test.js > m19-profiles
- ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > exports initHeadless
- ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > exports detectFrame
- ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > initHeadless does not set _video
- ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > detectFrame returns empty result before init
- ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > detectFrame delegates to detect()
- ✓ test/m24-sense-headless.test.js > M25 DBB: sense.js headless server mode > existing init/start/stop/detect exports preserved
 ▶ setup.js DBB: Ollama auto-install
-  ✔ installOllama uses spawn sh -c (not just print) (0.363666ms)
-  ✔ pullModel uses spawn ollama pull (0.280083ms)
-  ✖ needsInstall branch calls installOllama and pullModel (1.766959ms)
-  ✔ installOllama rejects on non-zero exit code (0.071417ms)
-✖ setup.js DBB: Ollama auto-install (3.028541ms)
+  ✔ installOllama uses spawn sh -c (not just print) (0.324875ms)
+  ✔ pullModel uses spawn ollama pull (0.245458ms)
+  ✖ needsInstall branch calls installOllama and pullModel (1.533ms)
+  ✔ installOllama rejects on non-zero exit code (0.063584ms)
+✖ setup.js DBB: Ollama auto-install (2.646667ms)
  ✓ test/cli/setup-ollama-m12.test.js > setup-ollama-m12
- ✓ test/m48-setup-sh.test.js > setup.sh structure > contains Node.js version check
- ✓ test/m48-setup-sh.test.js > setup.sh structure > contains idempotency check for agentic-service
- ✓ test/m48-setup-sh.test.js > setup.sh structure > handles macOS via brew or nvm
- ✓ test/m48-setup-sh.test.js > setup.sh structure > handles Linux via nvm or apt-get
- ✓ test/m48-setup-sh.test.js > setup.sh structure > rejects Windows with error message
- ✓ test/m48-setup-sh.test.js > setup.sh structure > uses set -e for fail-fast behavior
- ✓ test/m48-setup-sh.test.js > setup.sh idempotency (dry run) > exits 0 when agentic-service is already installed (mocked) 967ms
  ✓ test/m29-readme.test.js > M29 DBB: README completeness > has installation section
  ✓ test/m29-readme.test.js > M29 DBB: README completeness > has Quick Start section
  ✓ test/m29-readme.test.js > M29 DBB: README completeness > documents /api/chat
@@ -1837,6 +1847,7 @@ Results: 4 passed, 0 failed
  ✓ test/m29-readme.test.js > M29 DBB: README completeness > has HTTPS or cloud section
  ✓ test/m29-readme.test.js > M29 DBB: README completeness > has configuration section
  ✓ test/m29-readme.test.js > M29 DBB: README completeness > has troubleshooting section
+ ✓ test/m72-npx-entrypoint.test.js > m72-npx-entrypoint
 stdout | test/m72-npx-entrypoint.test.js > m72-npx-entrypoint
 M72 npx entrypoint tests
 
@@ -1846,8 +1857,14 @@ M72 npx entrypoint tests
 
 3 tests: 3 passed, 0 failed
 
- ✓ test/m72-npx-entrypoint.test.js > m72-npx-entrypoint
  ✓ test/runtime/m38-tts.test.js > m38-tts
+ ✓ test/m48-setup-sh.test.js > setup.sh structure > contains Node.js version check
+ ✓ test/m48-setup-sh.test.js > setup.sh structure > contains idempotency check for agentic-service
+ ✓ test/m48-setup-sh.test.js > setup.sh structure > handles macOS via brew or nvm
+ ✓ test/m48-setup-sh.test.js > setup.sh structure > handles Linux via nvm or apt-get
+ ✓ test/m48-setup-sh.test.js > setup.sh structure > rejects Windows with error message
+ ✓ test/m48-setup-sh.test.js > setup.sh structure > uses set -e for fail-fast behavior
+ ✓ test/m48-setup-sh.test.js > setup.sh idempotency (dry run) > exits 0 when agentic-service is already installed (mocked) 1027ms
  ✓ test/m98-readme-troubleshooting.test.js > DBB-010: README troubleshooting section > has a Troubleshooting heading
  ✓ test/m98-readme-troubleshooting.test.js > DBB-010: README troubleshooting section > covers Ollama not starting
  ✓ test/m98-readme-troubleshooting.test.js > DBB-010: README troubleshooting section > covers port conflicts (EADDRINUSE)
@@ -1855,7 +1872,6 @@ M72 npx entrypoint tests
  ✓ test/m98-readme-troubleshooting.test.js > DBB-010: README troubleshooting section > covers Docker Ollama connectivity
  ✓ test/m98-readme-troubleshooting.test.js > DBB-010: README troubleshooting section > covers out of memory / model too large
  ✓ test/m98-readme-troubleshooting.test.js > DBB-010: README troubleshooting section > port references use 1234 in troubleshooting section
- ✓ test/detector/hardware.test.js > Hardware Detector > should detect CPU info 649ms
  ✓ test/m27-profiles-default.test.js > M27 profiles/default.json > DBB-012: fallback profile exists (match: {})
  ✓ test/m27-profiles-default.test.js > M27 profiles/default.json > DBB-012: fallback has llm.model
  ✓ test/m27-profiles-default.test.js > M27 profiles/default.json > DBB-012: fallback model is lightweight
@@ -1867,23 +1883,10 @@ M72 npx entrypoint tests
  ✓ test/server/hub.test.js > hub.js - device registry > registerDevice upserts on duplicate id
  ✓ test/server/hub.test.js > hub.js - device registry > unregisterDevice removes device
  ✓ test/server/hub.test.js > hub.js - device registry > unregisterDevice unknown id is no-op
-stdout | test/server/hub-api.test.js > DBB-006: GET /api/status includes devices > returns devices array with registered device
-Server running at http://localhost:3328
-LAN access: http://192.168.31.211:3328
-
  ✓ test/m84-agentic-store-wiring.test.js > M84 DBB: agentic-store external package wiring > package.json has agentic-store in dependencies
  ✓ test/m84-agentic-store-wiring.test.js > M84 DBB: agentic-store external package wiring > src/store/index.js imports from agentic-store package
  ✓ test/m84-agentic-store-wiring.test.js > M84 DBB: agentic-store external package wiring > src/store/index.js does not use local stub imports
  ✓ test/m84-agentic-store-wiring.test.js > M84 DBB: agentic-store external package wiring > exports get, set, del functions
-stdout | test/server/hub-api.test.js > DBB-007: GET /api/status no devices > returns empty devices array
-[engines] registered: ollama, whisper, tts
-
-stdout | test/server/hub-api.test.js > DBB-007: GET /api/status no devices > returns empty devices array
-Server running at http://localhost:3306
-LAN access: http://192.168.31.211:3306
-
- ✓ test/server/hub-api.test.js > DBB-006: GET /api/status includes devices > returns devices array with registered device 662ms
- ✓ test/server/hub-api.test.js > DBB-007: GET /api/status no devices > returns empty devices array
  ✓ test/readme-completeness.test.js > readme-completeness
 stdout | test/readme-completeness.test.js > readme-completeness
 PASS: Install section
@@ -1901,38 +1904,26 @@ PASS: global install
 
 12 passed, 0 failed
 
-stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > each startServer call creates a fresh app instance (no singleton leak)
-[engines] registered: ollama, whisper, tts
-
+ ✓ test/detector/hardware.test.js > Hardware Detector > should detect CPU info 675ms
  ✓ test/server/eaddrinuse.test.js > EADDRINUSE detection > rejects with "Port X is already in use" when port is occupied
 stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > each startServer call creates a fresh app instance (no singleton leak)
-Server running at http://localhost:3451
-LAN access: http://192.168.31.211:3451
 [engines] registered: ollama, whisper, tts
 
 stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > each startServer call creates a fresh app instance (no singleton leak)
-Server running at http://localhost:3451
-LAN access: http://192.168.31.211:3451
-
-stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > stopServer then startServer on same port succeeds
-[engines] registered: ollama, whisper, tts
-
-stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > stopServer then startServer on same port succeeds
-Server running at http://localhost:3452
-LAN access: http://192.168.31.211:3452
-[engines] registered: ollama, whisper, tts
-
- ✓ test/server/eaddrinuse.test.js > EADDRINUSE detection > each startServer call creates a fresh app instance (no singleton leak)
- ✓ test/server/eaddrinuse.test.js > EADDRINUSE detection > stopServer then startServer on same port succeeds
-stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > stopServer then startServer on same port succeeds
-Server running at http://localhost:3452
-LAN access: http://192.168.31.211:3452
+Profiles URL: https://raw.githubusercontent.com/momomo-agent/agentic-service/main/profiles/default.json
 
  ✓ test/m24-wakeword.test.js > M24 DBB-3: hub.js startWakeWordDetection > exports startWakeWordDetection
  ✓ test/m24-wakeword.test.js > M24 DBB-3: hub.js startWakeWordDetection > uses WAKE_WORD env var
  ✓ test/m24-wakeword.test.js > M24 DBB-3: hub.js startWakeWordDetection > broadcasts {type: wake} on keyword match
  ✓ test/m24-wakeword.test.js > M24 DBB-3: hub.js startWakeWordDetection > skips in non-TTY environment
  ✓ test/m24-wakeword.test.js > M24 DBB-3: hub.js startWakeWordDetection > case-insensitive keyword match
+ ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > checks for node command
+ ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > checks Node.js version >= 18
+ ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > has install_node function
+ ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > handles macOS via brew or nvm
+ ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > handles Linux via nvm or apt
+ ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > is idempotent — checks if already installed before npm install
+ ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > exits with error on Windows
  ✓ test/m24-ollama-setup.test.js > M25 DBB: Ollama auto-install in setup.js > exports isOllamaInstalled helper
  ✓ test/m24-ollama-setup.test.js > M25 DBB: Ollama auto-install in setup.js > exports isModelPulled helper
  ✓ test/m24-ollama-setup.test.js > M25 DBB: Ollama auto-install in setup.js > getInstallCommand handles darwin
@@ -1943,22 +1934,28 @@ LAN access: http://192.168.31.211:3452
  ✓ test/m24-ollama-setup.test.js > M25 DBB: Ollama auto-install in setup.js > skips pull when model already present
  ✓ test/m24-wakeword.test.js > M24 DBB-3: hub.js startWakeWordDetection > does not throw in non-TTY env
  ✓ test/m24-wakeword.test.js > M24 DBB-3: hub.js startWakeWordDetection > accepts custom keyword
- ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > checks for node command
- ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > checks Node.js version >= 18
- ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > has install_node function
- ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > handles macOS via brew or nvm
- ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > handles Linux via nvm or apt
- ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > is idempotent — checks if already installed before npm install
- ✓ test/m48-setup-idempotency.test.js > setup.sh Node.js detection and idempotency (DBB-005) > exits with error on Windows
+stdout | test/server/hub-api.test.js > DBB-006: GET /api/status includes devices > returns devices array with registered device
+Server running at http://localhost:3316
+LAN access: http://192.168.31.211:3316
+
+stdout | test/server/hub-api.test.js > DBB-007: GET /api/status no devices > returns empty devices array
+[engines] registered: ollama, whisper, tts
+
+stdout | test/server/hub-api.test.js > DBB-007: GET /api/status no devices > returns empty devices array
+Server running at http://localhost:3366
+LAN access: http://192.168.31.211:3366
+
+ ✓ test/server/hub-api.test.js > DBB-006: GET /api/status includes devices > returns devices array with registered device 779ms
+ ✓ test/server/hub-api.test.js > DBB-007: GET /api/status no devices > returns empty devices array
+ ✓ test/m98-dead-imports.test.js > M98: dead import maps removed from package.json > package.json does NOT have #agentic-voice in imports
+ ✓ test/m98-dead-imports.test.js > M98: dead import maps removed from package.json > package.json does NOT have #agentic-embed in imports
+ ✓ test/m98-dead-imports.test.js > M98: dead import maps removed from package.json > no source files reference #agentic-voice
  ✓ test/m29-setup-npx.test.js > M29 DBB: setup.sh > supports curl-pipe global install via AGENTIC_GLOBAL=1
  ✓ test/m29-setup-npx.test.js > M29 DBB: setup.sh > checks Node >= 18
  ✓ test/m29-setup-npx.test.js > M29 DBB: setup.sh > exits on node not found
  ✓ test/m29-setup-npx.test.js > M29 DBB: package.json bin field > has bin.agentic-service pointing to bin/agentic-service.js
  ✓ test/m29-setup-npx.test.js > M29 DBB: bin/agentic-service.js > has shebang as first line
- ✓ test/m98-dead-imports.test.js > M98: dead import maps removed from package.json > package.json does NOT have #agentic-voice in imports
- ✓ test/m98-dead-imports.test.js > M98: dead import maps removed from package.json > package.json does NOT have #agentic-embed in imports
- ✓ test/m98-dead-imports.test.js > M98: dead import maps removed from package.json > no source files reference #agentic-voice
- ✓ test/latency.test.js > voice pipeline latency > STT + LLM + TTS end-to-end < 2000ms 1806ms
+ ✓ test/m17-readme.test.js > m17-readme
 stdout | test/m17-readme.test.js > m17-readme
 PASS: README.md exists
 PASS: Contains npx install method
@@ -1971,123 +1968,146 @@ PASS: Documents /api/config
 
 Total: 8 passed, 0 failed
 
- ✓ test/m17-readme.test.js > m17-readme
-stdout | test/m15-hub-wakeword.test.js > m15-hub-wakeword
-PASS: hub.js broadcastWakeword sends to all registry devices (DBB-005)
-
- ✓ test/m15-hub-wakeword.test.js > m15-hub-wakeword
  ✓ test/runtime/embed.test.js > embed > DBB-001: returns float array for normal text
  ✓ test/runtime/embed.test.js > embed > DBB-002: returns [] for empty string
  ✓ test/runtime/embed.test.js > embed > throws TypeError for non-string input
  ✓ test/runtime/embed.test.js > embed > propagates errors from agentic-embed
+stdout | test/m15-hub-wakeword.test.js > m15-hub-wakeword
+PASS: hub.js broadcastWakeword sends to all registry devices (DBB-005)
+
+ ✓ test/m15-hub-wakeword.test.js > m15-hub-wakeword
+ ✓ test/latency.test.js > voice pipeline latency > STT + LLM + TTS end-to-end < 2000ms 1807ms
  ✓ test/m74-coverage-threshold.test.js > M74: Test coverage >=98% threshold enforcement > vitest.config.js exists
  ✓ test/m74-coverage-threshold.test.js > M74: Test coverage >=98% threshold enforcement > coverage thresholds are set to >=98% in vitest.config.js
  ✓ test/m74-coverage-threshold.test.js > M74: Test coverage >=98% threshold enforcement > thresholds block is nested under coverage in vitest.config.js
- ✓ test/m80-profiler.test.js > profiler > endMark returns elapsed >= 0
- ✓ test/m80-profiler.test.js > profiler > endMark returns null for unknown label
- ✓ test/m80-profiler.test.js > profiler > measurePipeline totals stages and passes when < 2000ms
- ✓ test/m80-profiler.test.js > profiler > measurePipeline fails when >= 2000ms
  ✓ test/m77-sense-imports.test.js > m77-sense-imports > agentic-sense in dependencies
  ✓ test/m77-sense-imports.test.js > m77-sense-imports > src/runtime/adapters/sense.js exists
  ✓ test/m77-sense-imports.test.js > m77-sense-imports > sense.js imports from agentic-sense
  ✓ test/m77-sense-imports.test.js > m77-sense-imports > sense.js exports createPipeline
  ✓ test/m77-sense-imports.test.js > m77-sense-imports > runtime sense.js is importable
+ ✓ test/m80-voice-latency.test.js > m80-voice-latency
 stdout | test/m80-voice-latency.test.js > m80-voice-latency
 [latency] stt: 100ms
 [latency] stt: 200ms
 ✓ record/p95/reset work correctly
-[latency] stt: 43.5025489144082ms
-[latency] llm_total: 87.91185598548581ms
-[latency] tts: 40.8623882495841ms
-[latency] stt: 61.76967962696152ms
-[latency] llm_total: 106.39905790542927ms
-[latency] tts: 68.48399840007967ms
-[latency] stt: 44.38325042141072ms
-[latency] llm_total: 112.02062156720815ms
-[latency] tts: 66.46194922106625ms
-[latency] stt: 43.772181105466956ms
-[latency] llm_total: 116.54205335552274ms
-[latency] tts: 48.8134346286502ms
-[latency] stt: 56.96108907990144ms
-[latency] llm_total: 107.17875713008132ms
-[latency] tts: 67.15321428602871ms
-[latency] stt: 51.64501416193801ms
-[latency] llm_total: 125.39097502602957ms
-[latency] tts: 52.624055575076426ms
-[latency] stt: 46.71901074160356ms
-[latency] llm_total: 80.06237976226973ms
-[latency] tts: 64.4486102325617ms
-[latency] stt: 48.25416775247634ms
-[latency] llm_total: 91.05891031797951ms
-[latency] tts: 61.94147404023582ms
-[latency] stt: 49.75917736991465ms
-[latency] llm_total: 86.57010284597045ms
-[latency] tts: 66.82636977604301ms
-[latency] stt: 48.80570901249262ms
-[latency] llm_total: 120.12556089984335ms
-[latency] tts: 55.22802847294987ms
-[latency] stt: 61.14758951643012ms
-[latency] llm_total: 139.617737266725ms
-[latency] tts: 69.81027378174679ms
-[latency] stt: 44.55677325183783ms
-[latency] llm_total: 94.50474187853727ms
-[latency] tts: 60.59506191988206ms
-[latency] stt: 66.62161985590741ms
-[latency] llm_total: 114.07187843116685ms
-[latency] tts: 41.313064600112604ms
-[latency] stt: 68.31968338827096ms
-[latency] llm_total: 82.4417539209742ms
-[latency] tts: 58.42785024796202ms
-[latency] stt: 48.02929220280501ms
-[latency] llm_total: 122.74825646426419ms
-[latency] tts: 55.808673333749425ms
-[latency] stt: 43.9695880468695ms
-[latency] llm_total: 139.8009887038668ms
-[latency] tts: 67.55617216964946ms
-[latency] stt: 48.54847680233302ms
-[latency] llm_total: 80.19489743787678ms
-[latency] tts: 48.96694309032183ms
-[latency] stt: 65.74719879633257ms
-[latency] llm_total: 126.60068740774938ms
-[latency] tts: 40.01090090900857ms
-[latency] stt: 60.403937374291374ms
-[latency] llm_total: 124.37779957402762ms
-[latency] tts: 65.2137867234598ms
-[latency] stt: 54.72968373106394ms
-[latency] llm_total: 124.20482220150299ms
-[latency] tts: 63.43101987882748ms
-p95 pipeline: 278ms
+[latency] stt: 40.86461468615752ms
+[latency] llm_total: 128.01774816124126ms
+[latency] tts: 47.7639384439734ms
+[latency] stt: 66.5410390802139ms
+[latency] llm_total: 125.21733316139226ms
+[latency] tts: 63.35022055325311ms
+[latency] stt: 50.31199329053272ms
+[latency] llm_total: 86.03888657365113ms
+[latency] tts: 47.22054047026112ms
+[latency] stt: 43.29612453202521ms
+[latency] llm_total: 131.9244765177466ms
+[latency] tts: 63.55342520407237ms
+[latency] stt: 50.74959388188489ms
+[latency] llm_total: 111.25904383406282ms
+[latency] tts: 54.86997589504184ms
+[latency] stt: 57.82361288989543ms
+[latency] llm_total: 84.8945947578559ms
+[latency] tts: 65.95149630967313ms
+[latency] stt: 67.65065002792568ms
+[latency] llm_total: 85.69460999587125ms
+[latency] tts: 58.1521621162596ms
+[latency] stt: 56.677353563416204ms
+[latency] llm_total: 113.37428048700568ms
+[latency] tts: 63.81757543021603ms
+[latency] stt: 64.40839379663993ms
+[latency] llm_total: 85.0837234810566ms
+[latency] tts: 51.51128526441777ms
+[latency] stt: 55.02560604002611ms
+[latency] llm_total: 133.44441669180193ms
+[latency] tts: 50.3450557095841ms
+[latency] stt: 46.007649512202285ms
+[latency] llm_total: 137.87866318491203ms
+[latency] tts: 41.57986325383646ms
+[latency] stt: 56.50657343665305ms
+[latency] llm_total: 87.99136380817036ms
+[latency] tts: 48.49394047708452ms
+[latency] stt: 66.02881683730332ms
+[latency] llm_total: 112.43527490691076ms
+[latency] tts: 51.32008507240779ms
+[latency] stt: 43.50133764235782ms
+[latency] llm_total: 82.86650497266999ms
+[latency] tts: 69.15752498085514ms
+[latency] stt: 51.95553746454628ms
+[latency] llm_total: 100.86319289563505ms
+[latency] tts: 59.16352013858102ms
+[latency] stt: 62.82158564178255ms
+[latency] llm_total: 130.48337425126238ms
+[latency] tts: 43.803090606683725ms
+[latency] stt: 61.70164694390505ms
+[latency] llm_total: 139.43617387024378ms
+[latency] tts: 60.68618996343557ms
+[latency] stt: 66.59286744808928ms
+[latency] llm_total: 107.94389829010865ms
+[latency] tts: 56.94760568377601ms
+[latency] stt: 47.481442137413836ms
+[latency] llm_total: 87.67541333925537ms
+[latency] tts: 67.3668752834363ms
+[latency] stt: 41.62842191101586ms
+[latency] llm_total: 134.85568802163056ms
+[latency] tts: 66.05332693636842ms
+p95 pipeline: 276ms
 ✓ p95 voice latency < 2000ms
 
- ✓ test/m80-voice-latency.test.js > m80-voice-latency
+ ✓ test/m80-profiler.test.js > profiler > endMark returns elapsed >= 0
+ ✓ test/m80-profiler.test.js > profiler > endMark returns null for unknown label
+ ✓ test/m80-profiler.test.js > profiler > measurePipeline totals stages and passes when < 2000ms
+ ✓ test/m80-profiler.test.js > profiler > measurePipeline fails when >= 2000ms
  ✓ test/profiles-cache-staleness.test.js > profiles-cache-staleness
- ✓ test/detector/hardware.test.js > Hardware Detector > should detect memory in GB 683ms
  ✓ test/integration/agentic-sense-wiring.test.js > agentic-sense package wiring > adapters/sense.js imports from agentic-sense directly
  ✓ test/integration/agentic-sense-wiring.test.js > agentic-sense package wiring > package.json has no #agentic-sense import map entry
  ✓ test/integration/agentic-sense-wiring.test.js > agentic-sense package wiring > package.json has agentic-sense in dependencies
+ ✓ test/detector/hardware.test.js > Hardware Detector > should detect memory in GB 567ms
+ ✓ test/m98-embed-build-fix.test.js > M98: embed.js build fix — localEmbed array argument > calls localEmbed with an array argument
+ ✓ test/m98-embed-build-fix.test.js > M98: embed.js build fix — localEmbed array argument > destructures the first result from localEmbed
+ ✓ test/m98-embed-build-fix.test.js > M98: embed.js build fix — localEmbed array argument > does NOT pass a bare string to localEmbed
+ ✓ test/m98-embed-build-fix.test.js > M98: embed.js build fix — localEmbed array argument > src/index.js exports embed
  ✓ test/m47-gpu-detector-merge.test.js > gpu-detector.js merge into hardware.js > gpu-detector.js does not exist (merged or never existed)
  ✓ test/m47-gpu-detector-merge.test.js > gpu-detector.js merge into hardware.js > hardware.js exports detect()
  ✓ test/detector/m71-cpu-profile.test.js > cpu-only profile in profiles/default.json > entry with match.gpu === "none" exists
  ✓ test/detector/m71-cpu-profile.test.js > cpu-only profile in profiles/default.json > llm.model is gemma2:2b
  ✓ test/detector/m71-cpu-profile.test.js > cpu-only profile in profiles/default.json > llm.quantization is q4
  ✓ test/detector/m71-cpu-profile.test.js > cpu-only profile in profiles/default.json > includes stt, tts, and fallback fields
+stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > each startServer call creates a fresh app instance (no singleton leak)
+Server running at http://localhost:3451
+LAN access: http://192.168.31.211:3451
+[engines] registered: ollama, whisper, tts
+
+stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > each startServer call creates a fresh app instance (no singleton leak)
+Server running at http://localhost:3451
+LAN access: http://192.168.31.211:3451
+
+stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > stopServer then startServer on same port succeeds
+[engines] registered: ollama, whisper, tts
+
+stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > stopServer then startServer on same port succeeds
+Server running at http://localhost:3452
+LAN access: http://192.168.31.211:3452
+[engines] registered: ollama, whisper, tts
+
+stdout | test/server/eaddrinuse.test.js > EADDRINUSE detection > stopServer then startServer on same port succeeds
+Server running at http://localhost:3452
+LAN access: http://192.168.31.211:3452
+
+ ✓ test/server/eaddrinuse.test.js > EADDRINUSE detection > each startServer call creates a fresh app instance (no singleton leak) 639ms
+ ✓ test/server/eaddrinuse.test.js > EADDRINUSE detection > stopServer then startServer on same port succeeds
+ ✓ test/m15-brain-tool-use.test.js > m15-brain-tool-use
 stdout | test/m15-brain-tool-use.test.js > m15-brain-tool-use
 PASS: brain.js 2 tool_use yield(s) all include text field (DBB-007)
-
- ✓ test/m15-brain-tool-use.test.js > m15-brain-tool-use
- ✓ test/m98-embed-build-fix.test.js > M98: embed.js build fix — localEmbed array argument > calls localEmbed with an array argument
- ✓ test/m98-embed-build-fix.test.js > M98: embed.js build fix — localEmbed array argument > destructures the first result from localEmbed
- ✓ test/m98-embed-build-fix.test.js > M98: embed.js build fix — localEmbed array argument > does NOT pass a bare string to localEmbed
- ✓ test/m98-embed-build-fix.test.js > M98: embed.js build fix — localEmbed array argument > src/index.js exports embed
- ✓ test/m15-store-delete.test.js > m15-store-delete
-stdout | test/m15-store-delete.test.js > m15-store-delete
-PASS: store exports del as delete (DBB-003)
-PASS: store exports del function (DBB-004)
 
  ✓ test/m16-session.test.js > multi-device session sharing > joinSession creates session and adds deviceId
  ✓ test/m16-session.test.js > multi-device session sharing > setSessionData and getSessionData share across devices
  ✓ test/m16-session.test.js > multi-device session sharing > getSessionData returns null for unknown key
  ✓ test/m16-session.test.js > multi-device session sharing > broadcastSession does not throw with no connected devices
+stdout | test/m15-store-delete.test.js > m15-store-delete
+PASS: store exports del as delete (DBB-003)
+PASS: store exports del function (DBB-004)
+
+ ✓ test/m15-store-delete.test.js > m15-store-delete
  ✓ test/m20-profiles.test.js > M20 DBB-007: profiles/default.json > is valid JSON with profiles array
  ✓ test/m20-profiles.test.js > M20 DBB-007: profiles/default.json > has default profile entry
  ✓ test/m20-profiles.test.js > M20 DBB-007: profiles/default.json > default profile has llm field
@@ -2126,28 +2146,28 @@ PASS: hub.js uses 60000ms heartbeat timeout (DBB-006)
  ✓ test/m64-agentic-embed.test.js > M64 DBB: agentic-embed package verification > src/runtime/embed.js imports from agentic-embed
  ✓ test/m64-agentic-store.test.js > M64 DBB: agentic-store package verification > package.json has agentic-store dependency
  ✓ test/m64-agentic-store.test.js > M64 DBB: agentic-store package verification > src/store/index.js imports from agentic-store
- ✓ test/detector/hardware.test.js > Hardware Detector > should detect GPU type 659ms
  ✓ test/m26-readme.test.js > M26 README docs > DBB-013: README has npx agentic-service
  ✓ test/m26-readme.test.js > M26 README docs > DBB-015: README documents /api/chat
  ✓ test/m26-readme.test.js > M26 README docs > DBB-015: README shows request body with message field
+ ✓ test/m16-coverage.test.js > coverage threshold config > vitest coverage thresholds >= 98% configured in package.json
  ✓ test/m16-sigint.test.js > SIGINT graceful shutdown > calls server.close and exits 0 on SIGINT
+ ✓ test/detector/hardware.test.js > Hardware Detector > should detect GPU type 666ms
+ ✓ test/sigint.test.js > SIGINT calls server.close > calls close on SIGINT
  ✓ test/m77-store-wiring.test.js > agentic-store wiring (m77) > imports from agentic-store package
  ✓ test/m77-store-wiring.test.js > agentic-store wiring (m77) > exports get, set, del/delete
- ✓ test/m16-coverage.test.js > coverage threshold config > vitest coverage thresholds >= 98% configured in package.json
- ✓ test/sigint.test.js > SIGINT calls server.close > calls close on SIGINT
  ✓ test/profiles.edge.test.js > profiles edge cases > empty profiles array throws
- ✓ test/m47-gpu-detector-merge.test.js > gpu-detector.js merge into hardware.js > detect() returns gpu info 611ms
+ ✓ test/m47-gpu-detector-merge.test.js > gpu-detector.js merge into hardware.js > detect() returns gpu info 507ms
  ✓ test/m47-gpu-detector-merge.test.js > gpu-detector.js merge into hardware.js > no imports of gpu-detector.js in codebase
- ✓ test/m26-hardware-merge.test.js > m26-hardware-merge 493ms
- ✓ test/detector/hardware.test.js > Hardware Detector > should return all required fields 643ms
- ✓ test/detector/hardware.test.js > Hardware Detector > should complete detection within 2 seconds 533ms
- ✓ test/latency.test.js > voice pipeline latency > assertion is valid: slow pipeline fails 2102ms
+ ✓ test/m26-hardware-merge.test.js > m26-hardware-merge 709ms
+ ✓ test/detector/hardware.test.js > Hardware Detector > should return all required fields 766ms
+ ✓ test/latency.test.js > voice pipeline latency > assertion is valid: slow pipeline fails 2101ms
+ ✓ test/detector/hardware.test.js > Hardware Detector > should complete detection within 2 seconds 432ms
  ✓ test/docker-verification.test.js > Docker build and docker-compose verification > Dockerfile exists in install/
  ✓ test/docker-verification.test.js > Docker build and docker-compose verification > docker-compose.yml exists in install/
- ✓ test/docker-verification.test.js > Docker build and docker-compose verification > all package.json dependencies exist in npm registry 12199ms
+ ✓ test/docker-verification.test.js > Docker build and docker-compose verification > all package.json dependencies exist in npm registry 11815ms
 
  Test Files  170 passed (170)
       Tests  920 passed | 11 skipped (931)
-   Start at  03:55:36
-   Duration  15.20s (transform 935ms, setup 0ms, collect 4.36s, tests 31.41s, environment 25ms, prepare 7.72s)
+   Start at  03:56:08
+   Duration  14.74s (transform 768ms, setup 0ms, collect 4.26s, tests 31.64s, environment 16ms, prepare 7.33s)
 
