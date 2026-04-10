@@ -25313,3 +25313,21 @@
 {"ts":"2026-04-10T19:23:29.705Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
 {"ts":"2026-04-10T19:23:29.706Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":18,"memoryTotalMB":20,"cpuUser":11.804803,"cpuSystem":32.415455}}}
 {"ts":"2026-04-10T19:23:29.707Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
+{"ts":"2026-04-10T19:23:31.098Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 开发完成，任务进入 review","performance":{"memoryMB":18,"memoryTotalMB":20,"cpuUser":11.805313,"cpuSystem":32.416473}}}
+{"ts":"2026-04-10T19:23:31.098Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← developer done"}}
+{"ts":"2026-04-10T19:23:31.431Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":18,"memoryTotalMB":20,"cpuUser":11.839451,"cpuSystem":32.464741}}}
+{"ts":"2026-04-10T19:23:31.431Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Updated ARCHITECTURE.md (added ModelsView to admin views) and codebase-map.md (added ModelsView, upd"}}
+{"ts":"2026-04-10T19:23:31.431Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":18,"memoryTotalMB":20,"cpuUser":11.839712,"cpuSystem":32.465138}}}
+{"ts":"2026-04-10T19:23:31.432Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-10T19:23:31.569Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":18,"memoryTotalMB":20,"cpuUser":11.840331,"cpuSystem":32.466107}}}
+{"ts":"2026-04-10T19:23:31.570Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-10T19:23:31.570Z","type":"agent_complete","agent":"developer","data":{"details":"completed successfully","performance":{"memoryMB":18,"memoryTotalMB":20,"cpuUser":11.840577,"cpuSystem":32.466605}}}
+{"ts":"2026-04-10T19:23:31.570Z","type":"workflow","agent":"developer","data":{"details":"[SIGNAL] completed: Verified task-1775848768979 (profiles-edge-cases test fix) — test already passes, moved to review. F"}}
+{"ts":"2026-04-10T19:23:31.976Z","type":"agent_start","agent":"self-verify-build","data":{"details":"[NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":21,"memoryTotalMB":22,"cpuUser":11.845408,"cpuSystem":32.485497}}}
+{"ts":"2026-04-10T19:23:31.977Z","type":"workflow","agent":"self-verify-build","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build"}}
+{"ts":"2026-04-10T19:23:32.112Z","type":"workflow","agent":"self-verify-build","data":{"details":"[BRANCH] buildPassed == 1 → true → self-verify-test"}}
+{"ts":"2026-04-10T19:23:32.113Z","type":"agent_start","agent":"self-verify-test","data":{"details":"[NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":21,"memoryTotalMB":22,"cpuUser":11.846392,"cpuSystem":32.486538}}}
+{"ts":"2026-04-10T19:23:32.113Z","type":"workflow","agent":"self-verify-test","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test"}}
+{"ts":"2026-04-10T19:23:55.231Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
+{"ts":"2026-04-10T19:23:55.231Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":21,"memoryTotalMB":23,"cpuUser":11.847625,"cpuSystem":32.487807}}}
+{"ts":"2026-04-10T19:23:55.232Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
