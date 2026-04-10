@@ -1,0 +1,18 @@
+file:///Users/kenefe/LOCAL/momo-agent/projects/agentic/apps/service/src/runtime/embed.js:1
+import { embed as agenticEmbed } from 'agentic-embed'
+         ^^^^^
+
+SyntaxError: The requested module 'agentic-embed' does not provide an export named 'embed'
+    at ModuleJobSync.runSync (node:internal/modules/esm/module_job:519:17)
+    at ModuleLoader.importSyncForRequire (node:internal/modules/esm/loader:382:47)
+    at loadESMFromCJS (node:internal/modules/cjs/loader:1620:24)
+    at Module._compile (node:internal/modules/cjs/loader:1785:5)
+    at Object..js (node:internal/modules/cjs/loader:1934:10)
+    at Module.load (node:internal/modules/cjs/loader:1524:32)
+    at Module._load (node:internal/modules/cjs/loader:1326:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+    at Module.require (node:internal/modules/cjs/loader:1547:12)
+
+Node.js v25.4.0
+build check failed

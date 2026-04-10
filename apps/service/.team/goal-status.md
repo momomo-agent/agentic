@@ -16,27 +16,24 @@ Vision ≥90% + PRD ≥90%
 
 **2 CRITICAL GAPS REMAIN — focus here first!**
 
-## 🚧 Active Milestone: M98 — PRD Gap Closure
-5 tasks, all `todo`, waiting for team pickup:
-- **P0** Create src/index.js entry point (developer) — CRITICAL DBB gap
-- **P0** Fix Docker port + OLLAMA_HOST + data volume (developer) — CRITICAL DBB gap
-- **P0** Implement full cloud fallback per PRD (developer)
-- **P1** Add README troubleshooting section (developer)
-- **P1** Clean up ARCHITECTURE.md (architect)
-
 ## 📦 Recent Deliverables
 ### Commits
-5fc63045 feat(client): structured streaming, tool support, Anthropic protocol
-a302f83d fix: add qwen3.5/qwen-vl/minicpm-v to vision detection
-71703ab7 fix: proper capability detection for migrated + cloud models
-9e90b028 feat: model pool + capability assignments architecture
-0d6363c3 config: rewrite model selection — cloud providers fully configurable
+7fd66748 feat: developer completed
+4bccd0a1 feat: index.js entry point, cloud fallback, Docker port fix, README troubleshooting
+a0f5e40f feat: 多引擎架构 — Engine Registry
+fe8ca16a fix: 移除不存在的 Ollama 模型推荐（whisper/kokoro/orpheus）
+adc9d3e7 refactor: fallback 从独立槽位降级为 chat 的属性
+e21f881e chore: 清理 5 个死文件（1226 行）
+fab0c594 refactor: 全面清理 fallback 残留
+2251f9f3 refactor: 分离 CAPABILITIES 和 ASSIGNMENT_SLOTS
+e55d3f23 feat: 推荐模型加 embedding 类别 + 能力标签
+817096e7 fix: Ollama timeout 30s→120s, TTS error handling, OpenAI stream tool_use
 
 ### Completed Tasks
-(none — M98 just started)
+(none)
 
 ## 🏗️ Project Artifacts
-- Source files: 873 | Test files: 250 | Source LOC: 1034996
+- Source files: 879 | Test files: 241 | Source LOC: 1035511
 - README: ✅
 - Exports: src/index.js
 

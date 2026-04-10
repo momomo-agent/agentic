@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T04:10:53.315Z",
+  "timestamp": "2026-04-10T15:34:20.374Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Rewrote ARCHITECTURE.md (removed stale content, added all 30+ source files, 9 module sections with verified APIs, Mermaid diagram, data flows). Created .team/codebase-map.md. Submitted 2 CRs for PRD-level port and fallback spec mismatches."
+  "summary": "Added engine/ multi-engine registry module to ARCHITECTURE.md and codebase-map.md — Mermaid diagram, directory tree, core module section (§2 Engine), data flow updates, missing voice adapters (sensevoice.js, whisper.js). All sections renumbered 1-10."
 }

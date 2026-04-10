@@ -1,2 +1,4 @@
 {"ts":"2026-04-10T03:52:40.164Z","event":"start","pid":17388,"reason":"manual","uptime":0}
 {"ts":"2026-04-10T04:06:10.750Z","event":"stop","pid":17388,"reason":"sigterm","uptime":811}
+{"ts":"2026-04-10T15:26:55.294Z","event":"start","pid":39981,"reason":"manual","uptime":0}
+{"ts":"2026-04-10T15:56:56.148Z","event":"watchdog_reset","pid":39981,"reason":"busy_30min","uptime":1801}

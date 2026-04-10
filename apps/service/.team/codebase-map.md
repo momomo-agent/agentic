@@ -33,6 +33,14 @@ src/
     ollama.js                 (40 lines)  Ollama auto-install + model pull — ensureOllama(model, onProgress)
     sox.js                    (28 lines)  SoX audio utility detection
 
+  engine/
+    registry.js               (116 lines) Engine registry — register/unregister/discoverModels/resolveModel/modelsForCapability
+    init.js                   (45 lines)  Engine bootstrap — initEngines() registers ollama, whisper, tts, cloud engines
+    ollama.js                 (95 lines)  Ollama engine — status/models/run for chat/vision/embedding
+    cloud.js                  (59 lines)  Cloud engine factory — createCloudEngine(provider, config) for OpenAI/Anthropic/Google
+    tts.js                    (41 lines)  TTS engine — kokoro/piper/macos-say model discovery
+    whisper.js                (66 lines)  Whisper engine — whisper.cpp/SenseVoice STT model discovery
+
   runtime/
     llm.js                    (149 lines) LLM chat streaming — chat(messages, options) → async generator
     stt.js                    (39 lines)  Speech-to-text — init(config), transcribe(audioBuffer)
@@ -52,6 +60,8 @@ src/
         openai-tts.js         (24 lines)  OpenAI TTS adapter
         openai-whisper.js     (~30 lines) OpenAI Whisper STT adapter
         piper.js              (119 lines) Piper TTS adapter (auto-downloads binary)
+        sensevoice.js         (21 lines)  SenseVoice STT adapter (HTTP API)
+        whisper.js            (29 lines)  Whisper.cpp STT adapter (local binary)
 
   server/
     api.js                    (661 lines) Express routes — REST + OpenAI-compatible + admin + voice
@@ -71,7 +81,7 @@ src/
       src/App.vue             (101 lines) Router + sidebar layout
       src/main.js             Vue app bootstrap
       src/components/         ConfigPanel, DeviceList, HardwarePanel, LogViewer, SystemStatus
-      src/views/              Dashboard, Config, Logs, Models, Status, Test, Examples
+      src/views/              CloudModelsView, ConfigView, ExamplesView, LocalModelsView, LogsView, StatusView, TestView
       vite.config.js          Build config → dist/admin
     client/                   Chat UI (Vue 3 + Vite)
       src/App.vue             (73 lines)  Chat interface
@@ -88,6 +98,7 @@ install/
   docker-compose.yml          Docker Compose (port 3000, config volume)
   docker-build.sh             Docker build helper
 
+Dockerfile                    Root Docker image (port 3000)
 docker-compose.yml            Root Docker Compose (port 3000, no OLLAMA_HOST, no data volume)
 ```
 
@@ -96,9 +107,17 @@ docker-compose.yml            Root Docker Compose (port 3000, no OLLAMA_HOST, no
 ```
 bin/agentic-service.js
   → src/cli/setup.js → src/detector/{hardware, profiles, ollama, matcher}
+  → src/engine/init.js → src/engine/{registry, ollama, whisper, tts, cloud}
   → src/server/api.js → src/server/{brain, hub, middleware}
                        → src/runtime/{stt, tts, profiler, vad}
                        → src/config.js
+
+src/engine/registry.js  — central model pool, resolveModel() routes to correct engine
+src/engine/init.js      → src/engine/{registry, ollama, whisper, tts, cloud}, src/config.js
+src/engine/ollama.js    → src/config.js
+src/engine/cloud.js     — factory, no imports
+src/engine/tts.js       — self-contained model list
+src/engine/whisper.js   — checks local binaries + SenseVoice HTTP
 
 src/server/brain.js → src/config.js, src/server/hub.js, src/runtime/{llm, profiler}
 src/server/hub.js   → src/server/brain.js, src/runtime/{stt, tts, vad}
