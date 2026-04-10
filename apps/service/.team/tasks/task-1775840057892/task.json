@@ -2,12 +2,12 @@
   "id": "task-1775840057892",
   "title": "Remove dead import maps from package.json",
   "description": "package.json has unused import maps #agentic-embed and #agentic-voice — no source file references them. Remove the entire 'imports' block from package.json. This is a DBB gap (dead code).",
-  "status": "review",
+  "status": "done",
   "priority": "P1",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T16:54:17.892Z",
-  "updated": "2026-04-10T16:57:41.759Z"
+  "updated": "2026-04-10T18:49:02.668Z"
 }
