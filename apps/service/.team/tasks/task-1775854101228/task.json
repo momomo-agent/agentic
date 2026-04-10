@@ -2,13 +2,13 @@
   "id": "task-1775854101228",
   "title": "Document store/index.js module in ARCHITECTURE.md",
   "description": "Add formal module section for src/store/index.js (KV storage wrapper using agentic-store with get/set/del/delete exports) to ARCHITECTURE.md. Currently listed as dependency but local store abstraction is undocumented. This is a 'missing' gap at 'major' severity blocking architecture match from reaching 90%.",
-  "status": "todo",
+  "status": "done",
   "priority": "P0",
   "assignee": "architect",
   "blockedBy": [],
   "groupId": "m99",
   "hasDesign": true,
   "created": "2026-04-10T20:48:21.228Z",
-  "updated": "2026-04-10T20:55:22.167Z",
+  "updated": "2026-04-10T21:13:23.638Z",
   "milestoneId": "m99"
 }

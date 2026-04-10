@@ -2,13 +2,13 @@
   "id": "task-1775854114383",
   "title": "Document embed.js and runtime adapters in ARCHITECTURE.md",
   "description": "Add formal module sections for src/runtime/embed.js and src/runtime/adapters/ (embed.js, sense.js, voice/openai-tts.js, voice/openai-whisper.js, voice/piper.js, voice/elevenlabs.js, voice/macos-say.js) to ARCHITECTURE.md. Currently only referenced in addendum notes, not as formal module sections. This is a 'partial' gap at 'major' severity.",
-  "status": "todo",
+  "status": "done",
   "priority": "P0",
   "assignee": "architect",
   "blockedBy": [],
   "groupId": "m99",
   "hasDesign": true,
   "created": "2026-04-10T20:48:34.383Z",
-  "updated": "2026-04-10T20:55:22.200Z",
+  "updated": "2026-04-10T21:13:23.669Z",
   "milestoneId": "m99"
 }
