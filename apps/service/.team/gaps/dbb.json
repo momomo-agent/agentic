@@ -1,6 +1,6 @@
 {
   "match": 90,
-  "timestamp": "2026-04-11T05:30:00.000Z",
+  "timestamp": "2026-04-11T06:15:00.000Z",
   "gaps": [
     {
       "description": "src/index.js — package.json 'main' entry point exists and exports core API",
@@ -49,10 +49,10 @@
       "severity": "minor"
     },
     {
-      "description": "VISION.md directory tree still references phantom files (detector/optimizer.js line 39, runtime/llm.js line 41) — missing engine/ directory and matcher.js",
+      "description": "VISION.md directory tree still references phantom files (detector/optimizer.js, runtime/llm.js) — missing engine/ directory, store/, cli/, and many actual src/ files",
       "status": "partial",
       "severity": "minor",
-      "detail": "ARCHITECTURE.md documents the divergence table. Cosmetic doc alignment issue — VISION.md tree not updated to match actual codebase."
+      "detail": "VISION.md tree is substantially out of sync with actual codebase. ARCHITECTURE.md documents the divergence. Cosmetic doc alignment issue."
     },
     {
       "description": "src/runtime/adapters/embed.js is a stub that throws 'not implemented' — dead code",
