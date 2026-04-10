@@ -303,7 +303,7 @@ All voice adapters follow one of two contracts:
 - Model: `eleven_flash_v2_5`
 - Streaming endpoint: `/v1/text-to-speech/{voiceId}/stream`
 
-**kokoro.js** (~30 lines) — M100: NEW
+**kokoro.js** (35 lines) — M100: IMPLEMENTED
 - Local HTTP adapter for kokoro-tts server
 - Default base URL: `http://localhost:8880`
 - Config overrides: `tts.baseUrl`, `tts.voice` from `~/.agentic-service/config.json`
@@ -336,7 +336,7 @@ export function reset()                             // line 15 — clears all sa
 
 ## Constraints
 - `embed()` throws TypeError on non-string — callers must validate
-- `adapters/embed.js` — M100: removed (dead code, threw 'not implemented', zero imports)
+- `adapters/embed.js` — M100: removed ✅ (dead code deleted, vitest alias cleaned up)
 - Wake word pipeline requires `sox` binary — gracefully degrades if missing
 - Voice adapters with API keys will fail silently if keys not configured
 - memory.js does linear scan — O(n) per search, acceptable for < 10K entries
