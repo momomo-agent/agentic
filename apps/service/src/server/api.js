@@ -449,7 +449,7 @@ function addRoutes(r) {
 
   // Vision — multimodal image analysis via Ollama
   r.post('/api/vision', async (req, res) => {
-    const { image, prompt = 'Describe this image in detail.', fast = false } = req.body;
+    const { image, prompt = 'Describe this image in detail.', fast = false, history = [] } = req.body;
     if (!image) return res.status(400).json({ error: 'image (base64) required' });
 
     const config = await getConfig();
@@ -458,6 +458,7 @@ function addRoutes(r) {
 
     // Strip data URI prefix if present
     const base64 = image.replace(/^data:image\/\w+;base64,/, '');
+    console.log(`[vision] model=${fast ? 'gemma4:e4b(fast)' : 'auto'} prompt="${prompt.slice(0,50)}" image=${Math.round(base64.length/1024)}KB`);
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -520,7 +521,10 @@ function addRoutes(r) {
 
         const ollamaBody = {
             model,
-            messages: [{ role: 'user', content: prompt, images: [base64] }],
+            messages: [
+              ...history.map(m => ({ role: m.role, content: m.content })),
+              { role: 'user', content: prompt, images: [base64] }
+            ],
             stream: true
           };
         if (fast) {
@@ -541,6 +545,7 @@ function addRoutes(r) {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let inThink = false;
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -548,7 +553,19 @@ function addRoutes(r) {
             try {
               const data = JSON.parse(line);
               if (data.message?.content) {
-                res.write(`data: ${JSON.stringify({ type: 'content', text: data.message.content })}\n\n`);
+                let text = data.message.content;
+                // Filter out <think>...</think> blocks from thinking models
+                if (text.includes('<think>')) inThink = true;
+                if (inThink) {
+                  if (text.includes('</think>')) {
+                    text = text.split('</think>').pop();
+                    inThink = false;
+                    if (!text.trim()) continue;
+                  } else {
+                    continue;
+                  }
+                }
+                if (text) res.write(`data: ${JSON.stringify({ type: 'content', text })}\n\n`);
               }
             } catch {}
           }

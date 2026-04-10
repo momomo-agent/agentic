@@ -1735,7 +1735,11 @@ async function sendMmImage(e) {
       const res = await fetch('/api/vision', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64, prompt: '描述这张图片' })
+        body: JSON.stringify({
+          image: base64,
+          prompt: '描述这张图片',
+          history: mmHistory.value.slice(0, -2).filter(m => !m.image).map(m => ({ role: m.role, content: m.content }))
+        })
       })
       const r = res.body.getReader()
       const decoder = new TextDecoder()
