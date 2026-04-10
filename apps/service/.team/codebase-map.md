@@ -143,12 +143,13 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **169 test files, all passing** — 905 passed, 11 skipped, 0 failures (clean run 2026-04-11)
+- **169 test files, 168 passing, 1 failing** — 904 passed, 11 skipped, 1 failed (run 2026-04-11)
 - Vitest coverage thresholds: 98% (statements/lines/branches/functions)
 - profiles-edge-cases.test.js: all 14 tests pass (including expired-cache fallback)
 - m21-profiles.test.js: all 2 tests pass (getProfile + built-in fallback)
-- All previously failing tests (m76-embed-wiring, m77-sense-imports, m28-profiles-cache) now pass
+- m76-embed-wiring, m77-sense-imports: fixed and passing
 - m62-sigint-integration: all 4 tests pass
+- **m28-profiles-cache.test.js: 1 test fails** — "updates cache timestamp after successful fetch" gets ENOENT on profiles.json (cache file not written to disk during test)
 
 ## Known Issues (from gap analysis)
 
@@ -162,7 +163,6 @@ src/store/index.js  → agentic-store
 - ~~ARCHITECTURE.md stale CR content~~ — cleaned up, all sections contain legitimate module docs
 - ~~ARCHITECTURE.md incomplete directory tree~~ — now lists all 80+ source files
 - ~~Root `Dockerfile` EXPOSE 3000~~ — now EXPOSE 1234, matching service default port
-- ~~m28-profiles-cache.test.js failing~~ — all 5 tests now pass (cache freshness, expired fetch, fallback)
 - ~~ARCHITECTURE.md known limitation #4 (Dockerfile EXPOSE)~~ — removed, only 3 limitations remain
 - ~~m21-profiles.test.js failing~~ — all 2 tests pass (getProfile returns correct structure + built-in fallback works)
 
@@ -171,6 +171,7 @@ src/store/index.js  → agentic-store
 - `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js, runtime/memory.js) — CR cr-1775847503256 submitted
+- m28-profiles-cache.test.js: 1 test fails — cache file not written to disk during expired-cache fetch test (ENOENT)
 
 ### Architecture Notes (Vision references that map to different files)
 - Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js (CR cr-1775847503256 submitted to update VISION.md)
