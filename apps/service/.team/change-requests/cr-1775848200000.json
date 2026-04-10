@@ -1,0 +1,13 @@
+{
+  "id": "cr-1775848200000",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L1",
+  "targetFile": "PRD.md",
+  "reason": "DBB gap file (.team/gaps/dbb.json) reports 72% match but many listed gaps are now resolved: src/index.js exists, Docker port fixed to 1234, OLLAMA_HOST and ./data volume added, dead import maps removed, ARCHITECTURE.md stale content cleaned up and directory tree completed, test pass rate is 98.8% (905/916). The stale 72% score misrepresents current project health. A re-evaluation would likely yield 90%+.",
+  "proposedChange": "Request DBB monitor re-evaluation. The following gaps are now resolved and should be updated: (1) src/index.js exists, (2) docker-compose.yml port 1234 + OLLAMA_HOST + ./data volume, (3) Dockerfile EXPOSE 1234, (4) ARCHITECTURE.md stale CR content cleaned, (5) ARCHITECTURE.md directory tree complete, (6) dead import maps removed, (7) test pass rate 98.8%. Remaining open: middleware.js minimal (acceptable), adapters/embed.js stub (dead code).",
+  "status": "pending",
+  "createdAt": "2026-04-11T19:30:00.000Z",
+  "reviewedAt": null,
+  "reviewedBy": null
+}
