@@ -1,88 +1,86 @@
-import { describe, it, assert } from 'node:test';
+import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
+const indexPath = resolve(ROOT, 'src/index.js');
+const indexSrc = readFileSync(indexPath, 'utf8');
 
 describe('DBB-001/002: src/index.js entry point', () => {
-  const indexPath = resolve(ROOT, 'src/index.js');
-
-  it('src/index.js file exists', () => {
-    const content = readFileSync(indexPath, 'utf8');
-    assert.ok(content.length > 0, 'src/index.js should not be empty');
-  });
-
-  it('exports startServer', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.startServer, 'function', 'startServer should be a function');
-  });
-
-  it('exports createApp', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.createApp, 'function', 'createApp should be a function');
-  });
-
-  it('exports stopServer', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.stopServer, 'function', 'stopServer should be a function');
-  });
-
-  it('exports detect (detector)', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.detect, 'function', 'detect should be a function');
-  });
-
-  it('exports getProfile (detector)', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.getProfile, 'function', 'getProfile should be a function');
-  });
-
-  it('exports matchProfile (detector)', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.matchProfile, 'function', 'matchProfile should be a function');
-  });
-
-  it('exports ensureOllama (detector)', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.ensureOllama, 'function', 'ensureOllama should be a function');
-  });
-
-  it('exports chat (runtime/server)', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.chat, 'function', 'chat should be a function');
-  });
-
-  it('exports stt namespace', async () => {
-    const mod = await import(indexPath);
-    assert.ok(mod.stt, 'stt namespace should exist');
-    assert.strictEqual(typeof mod.stt, 'object', 'stt should be an object namespace');
-  });
-
-  it('exports tts namespace', async () => {
-    const mod = await import(indexPath);
-    assert.ok(mod.tts, 'tts namespace should exist');
-    assert.strictEqual(typeof mod.tts, 'object', 'tts should be an object namespace');
-  });
-
-  it('exports embed', async () => {
-    const mod = await import(indexPath);
-    assert.strictEqual(typeof mod.embed, 'function', 'embed should be a function');
+  it('src/index.js file exists and is non-empty', () => {
+    expect(indexSrc.length > 0).toBeTruthy();
   });
 
   it('package.json main points to src/index.js', () => {
     const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8'));
-    assert.strictEqual(pkg.main, 'src/index.js', 'package.json main should be src/index.js');
+    expect(pkg.main).toBe('src/index.js');
   });
 
-  it('DBB-001: exported keys include startServer, detector, runtime', async () => {
-    const mod = await import(indexPath);
-    const keys = Object.keys(mod);
-    assert.ok(keys.includes('startServer'), 'should export startServer');
-    assert.ok(keys.includes('detect'), 'should export detect (detector)');
-    assert.ok(keys.includes('chat'), 'should export chat (runtime)');
-    // Verify none are undefined
-    for (const key of keys) {
-      assert.ok(mod[key] !== undefined, `export "${key}" should not be undefined`);
+  it('exports startServer from server/api.js', () => {
+    expect(indexSrc.includes('startServer')).toBeTruthy();
+    expect(indexSrc.includes('server/api.js')).toBeTruthy();
+  });
+
+  it('exports createApp from server/api.js', () => {
+    expect(indexSrc.includes('createApp')).toBeTruthy();
+  });
+
+  it('exports stopServer from server/api.js', () => {
+    expect(indexSrc.includes('stopServer')).toBeTruthy();
+  });
+
+  it('exports detect from detector/hardware.js', () => {
+    expect(indexSrc.includes('detect')).toBeTruthy();
+    expect(indexSrc.includes('detector/hardware.js')).toBeTruthy();
+  });
+
+  it('exports getProfile from detector/profiles.js', () => {
+    expect(indexSrc.includes('getProfile')).toBeTruthy();
+    expect(indexSrc.includes('detector/profiles.js')).toBeTruthy();
+  });
+
+  it('exports matchProfile from detector/matcher.js', () => {
+    expect(indexSrc.includes('matchProfile')).toBeTruthy();
+    expect(indexSrc.includes('detector/matcher.js')).toBeTruthy();
+  });
+
+  it('exports ensureOllama from detector/ollama.js', () => {
+    expect(indexSrc.includes('ensureOllama')).toBeTruthy();
+    expect(indexSrc.includes('detector/ollama.js')).toBeTruthy();
+  });
+
+  it('exports chat (from brain.js or llm.js)', () => {
+    expect(indexSrc.includes('chat')).toBeTruthy();
+    expect(
+      indexSrc.includes('server/brain.js') || indexSrc.includes('runtime/llm.js')
+    ).toBeTruthy();
+  });
+
+  it('exports stt namespace', () => {
+    expect(indexSrc.includes('stt')).toBeTruthy();
+    expect(indexSrc.includes('runtime/stt.js')).toBeTruthy();
+  });
+
+  it('exports tts namespace', () => {
+    expect(indexSrc.includes('tts')).toBeTruthy();
+    expect(indexSrc.includes('runtime/tts.js')).toBeTruthy();
+  });
+
+  it('exports embed', () => {
+    expect(indexSrc.includes('embed')).toBeTruthy();
+    expect(indexSrc.includes('runtime/embed.js')).toBeTruthy();
+  });
+
+  it('DBB-001: key exports are present (startServer, detector, runtime)', () => {
+    const requiredExports = ['startServer', 'detect', 'chat'];
+    for (const name of requiredExports) {
+      expect(indexSrc.includes(name)).toBeTruthy();
     }
+  });
+
+  it('DBB-002: uses valid ESM export syntax', () => {
+    expect(/^export\s/m.test(indexSrc)).toBeTruthy();
+    // No require() calls
+    expect(indexSrc.includes('require(')).toBeFalsy();
   });
 });

@@ -2,13 +2,13 @@
   "id": "task-1775793599556",
   "title": "Add README troubleshooting section",
   "description": "README.md is missing a troubleshooting section. Add a section covering: (1) Ollama not starting — check ollama serve, port 11434, (2) Port already in use — EADDRINUSE on 1234, (3) Model download stuck — network/proxy issues, (4) Docker connectivity — OLLAMA_HOST config, (5) Memory issues — model too large for hardware. Keep it concise and practical.",
-  "status": "testing",
+  "status": "done",
   "priority": "P1",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T03:59:59.556Z",
-  "updated": "2026-04-10T16:03:49.905Z",
+  "updated": "2026-04-10T16:09:49.858Z",
   "milestoneId": "m98"
 }

@@ -2,13 +2,13 @@
   "id": "task-1775793599479",
   "title": "Fix Docker port mismatch + add OLLAMA_HOST + data volume",
   "description": "CRITICAL: docker-compose.yml exposes port 3000 but bin/agentic-service.js defaults to 1234. Fix: (1) Change docker-compose.yml port mapping to 1234:1234, (2) Add OLLAMA_HOST=http://host.docker.internal:11434 env var, (3) Add ./data:/app/data volume mount. Also fix ARCHITECTURE.md install section port references from 3000 to 1234.",
-  "status": "testing",
+  "status": "done",
   "priority": "P0",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T03:59:59.479Z",
-  "updated": "2026-04-10T16:03:49.842Z",
+  "updated": "2026-04-10T16:09:49.799Z",
   "milestoneId": "m98"
 }

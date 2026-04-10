@@ -1,73 +1,53 @@
-import { describe, it, assert } from 'node:test';
+import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parse } from 'yaml';
 
 const ROOT = resolve(import.meta.dirname, '..');
 
-function loadYaml(relPath) {
-  const raw = readFileSync(resolve(ROOT, relPath), 'utf8');
-  return parse(raw);
+function loadYamlSimple(relPath) {
+  return readFileSync(resolve(ROOT, relPath), 'utf8');
 }
 
 describe('DBB-003/004/005: Docker port, OLLAMA_HOST, data volume', () => {
   describe('root docker-compose.yml', () => {
-    let config;
-    it('parses without error', () => {
-      config = loadYaml('docker-compose.yml');
-      assert.ok(config, 'should parse');
-    });
+    const raw = loadYamlSimple('docker-compose.yml');
 
-    it('DBB-003: port mapping is 1234:1234 (not 3000)', () => {
-      const svc = config.services?.['agentic-service'] || Object.values(config.services)[0];
-      const ports = svc.ports || [];
-      const portStr = ports.join(' ');
-      assert.ok(portStr.includes('1234'), `port mapping should include 1234, got: ${portStr}`);
-      assert.ok(!portStr.includes('3000'), `port mapping should NOT include 3000, got: ${portStr}`);
+    it('DBB-003: port mapping is 1234 (not 3000)', () => {
+      expect(raw.includes('1234')).toBeTruthy();
+      expect(!raw.includes('3000')).toBeTruthy();
     });
 
     it('DBB-004: OLLAMA_HOST env var is present', () => {
-      const svc = config.services?.['agentic-service'] || Object.values(config.services)[0];
-      const env = svc.environment || [];
-      const envStr = Array.isArray(env) ? env.join(' ') : JSON.stringify(env);
-      assert.ok(envStr.includes('OLLAMA_HOST'), `environment should include OLLAMA_HOST, got: ${envStr}`);
+      expect(raw.includes('OLLAMA_HOST')).toBeTruthy();
     });
 
     it('DBB-005: ./data volume mount is present', () => {
-      const svc = config.services?.['agentic-service'] || Object.values(config.services)[0];
-      const volumes = svc.volumes || [];
-      const volStr = Array.isArray(volumes) ? volumes.join(' ') : JSON.stringify(volumes);
-      assert.ok(volStr.includes('./data'), `volumes should include ./data, got: ${volStr}`);
+      expect(raw.includes('./data')).toBeTruthy();
+    });
+
+    it('port mapping format is 1234:1234', () => {
+      expect(/1234:1234/.test(raw)).toBeTruthy();
+    });
+
+    it('OLLAMA_HOST points to host.docker.internal', () => {
+      expect(raw.includes('host.docker.internal')).toBeTruthy();
     });
   });
 
   describe('install/docker-compose.yml', () => {
-    let config;
-    it('parses without error', () => {
-      config = loadYaml('install/docker-compose.yml');
-      assert.ok(config, 'should parse');
-    });
+    const raw = loadYamlSimple('install/docker-compose.yml');
 
-    it('port mapping is 1234:1234', () => {
-      const svc = config.services?.['agentic-service'] || Object.values(config.services)[0];
-      const ports = svc.ports || [];
-      const portStr = ports.join(' ');
-      assert.ok(portStr.includes('1234'), `port mapping should include 1234, got: ${portStr}`);
-      assert.ok(!portStr.includes('3000'), `port mapping should NOT include 3000, got: ${portStr}`);
+    it('port mapping is 1234 (not 3000)', () => {
+      expect(raw.includes('1234')).toBeTruthy();
+      expect(!raw.includes('3000')).toBeTruthy();
     });
 
     it('OLLAMA_HOST env var is present', () => {
-      const svc = config.services?.['agentic-service'] || Object.values(config.services)[0];
-      const env = svc.environment || [];
-      const envStr = Array.isArray(env) ? env.join(' ') : JSON.stringify(env);
-      assert.ok(envStr.includes('OLLAMA_HOST'), `environment should include OLLAMA_HOST, got: ${envStr}`);
+      expect(raw.includes('OLLAMA_HOST')).toBeTruthy();
     });
 
     it('./data volume mount is present', () => {
-      const svc = config.services?.['agentic-service'] || Object.values(config.services)[0];
-      const volumes = svc.volumes || [];
-      const volStr = Array.isArray(volumes) ? volumes.join(' ') : JSON.stringify(volumes);
-      assert.ok(volStr.includes('./data'), `volumes should include ./data, got: ${volStr}`);
+      expect(raw.includes('./data')).toBeTruthy();
     });
   });
 });

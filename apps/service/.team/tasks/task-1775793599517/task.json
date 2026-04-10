@@ -2,13 +2,13 @@
   "id": "task-1775793599517",
   "title": "Implement full cloud fallback per PRD spec",
   "description": "Cloud fallback is implemented in brain.js (not llm.js which was refactored away). brain.js has: (1) FIRST_TOKEN_TIMEOUT_MS=5000 — timeout trigger, (2) MAX_ERRORS=3 — consecutive error trigger, (3) PROBE_INTERVAL_MS=60000 — auto-restore probe. Tester should verify these three behaviors in brain.js lines 8-43.",
-  "status": "testing",
+  "status": "done",
   "priority": "P0",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T03:59:59.518Z",
-  "updated": "2026-04-10T16:03:49.875Z",
+  "updated": "2026-04-10T16:09:49.828Z",
   "milestoneId": "m98"
 }
