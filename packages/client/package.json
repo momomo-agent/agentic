@@ -1,0 +1,27 @@
+{
+  "name": "agentic-client",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "JavaScript SDK for agentic-service — think, listen, speak, see, converse",
+  "main": "agentic-client.cjs",
+  "module": "src/client.js",
+  "exports": {
+    ".": {
+      "import": "./src/client.js",
+      "require": "./agentic-client.cjs"
+    }
+  },
+  "files": ["src/", "agentic-client.cjs", "agentic-client.js", "README.md"],
+  "keywords": ["ai", "llm", "sdk", "local-first", "agentic"],
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "devDependencies": {
+    "vitest": "^3.0.0",
+    "esbuild": "^0.25.0"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  }
+}

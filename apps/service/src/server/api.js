@@ -12,7 +12,7 @@ import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
 import { errorHandler } from './middleware.js';
 import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession } from './hub.js';
-import { getConfig, setConfig, reloadConfig, CONFIG_PATH } from '../config.js';
+import { getConfig, setConfig, reloadConfig, CONFIG_PATH, getModelPool, addToPool, removeFromPool, getAssignments, setAssignments } from '../config.js';
 
 function getLanIp() {
   for (const ifaces of Object.values(os.networkInterfaces())) {
@@ -264,6 +264,54 @@ function addRoutes(r) {
     try {
       await setConfig(req.body);
       res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  // ─── Model Pool & Assignments ─────────────────────────────
+  r.get('/api/model-pool', async (req, res) => {
+    try {
+      res.json(await getModelPool());
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  r.post('/api/model-pool', async (req, res) => {
+    try {
+      const model = req.body;
+      if (!model.id || !model.name || !model.provider) {
+        return res.status(400).json({ error: 'id, name, provider required' });
+      }
+      const result = await addToPool(model);
+      res.json(result);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  r.delete('/api/model-pool/:id', async (req, res) => {
+    try {
+      await removeFromPool(decodeURIComponent(req.params.id));
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  r.get('/api/assignments', async (req, res) => {
+    try {
+      res.json(await getAssignments());
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  r.put('/api/assignments', async (req, res) => {
+    try {
+      const result = await setAssignments(req.body);
+      res.json(result);
     } catch (e) {
       res.status(500).json({ error: e.message });
     }

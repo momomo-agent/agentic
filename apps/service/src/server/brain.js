@@ -1,19 +1,55 @@
-import { getConfig, onConfigChange } from '../config.js';
+import { getConfig, getModelPool, getAssignments, onConfigChange } from '../config.js';
 import { getSession, broadcastSession } from './hub.js';
 import { startMark, endMark } from '../runtime/profiler.js';
 
 const tools = new Map();
 let _config = null;
 
-// 启动时加载 + 监听变更
 async function ensureConfig() {
   if (!_config) _config = await getConfig();
   return _config;
 }
-onConfigChange(c => { _config = c; console.log('[brain] config reloaded:', c.llm?.model); });
+onConfigChange(c => { _config = c; console.log('[brain] config reloaded'); });
 
 export function registerTool(name, fn) {
   tools.set(name, fn);
+}
+
+/**
+ * Resolve a model from the pool by assignment slot.
+ * Returns { provider, model, apiKey, baseUrl, ollamaHost } or null.
+ */
+async function resolveModel(slot = 'chat') {
+  const config = await ensureConfig();
+  const assignments = config.assignments || {};
+  const modelId = assignments[slot];
+
+  if (modelId) {
+    const pool = await getModelPool();
+    const entry = pool.find(m => m.id === modelId);
+    if (entry) {
+      return {
+        provider: entry.provider,
+        model: entry.name,
+        apiKey: entry.apiKey,
+        baseUrl: entry.baseUrl,
+        ollamaHost: config.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434',
+      };
+    }
+  }
+
+  // Fallback to old config.llm format for backward compat
+  if (config.llm?.model) {
+    return {
+      provider: config.llm.provider || 'ollama',
+      model: config.llm.model,
+      apiKey: config.llm.apiKey,
+      baseUrl: config.llm.baseUrl,
+      ollamaHost: config.llm.ollamaHost || config.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434',
+    };
+  }
+
+  return null;
 }
 
 function normalizeMessages(messages) {
@@ -27,21 +63,28 @@ function normalizeMessages(messages) {
 
 async function* chatWithTools(messages, tools) {
   const normalized = normalizeMessages(messages);
-  const config = await ensureConfig();
+  const primary = await resolveModel('chat');
+
+  if (!primary) {
+    throw new Error('No chat model configured — assign a model in Admin > Config');
+  }
+
   try {
-    if (config.llm.provider === 'ollama') {
-      yield* ollamaChat(normalized, tools, config);
+    if (primary.provider === 'ollama') {
+      yield* ollamaChat(normalized, tools, primary);
       return;
     }
-    yield* cloudChat(normalized, tools, config.llm);
+    yield* cloudChat(normalized, tools, primary);
     return;
   } catch (err) {
-    if (config.fallback?.provider) {
+    // Try fallback
+    const fallback = await resolveModel('fallback');
+    if (fallback) {
       console.warn(`Primary LLM failed (${err.message}), trying fallback...`);
-      if (config.fallback.provider === 'ollama') {
-        yield* ollamaChat(normalized, tools, { ...config, llm: config.fallback });
+      if (fallback.provider === 'ollama') {
+        yield* ollamaChat(normalized, tools, fallback);
       } else {
-        yield* cloudChat(normalized, tools, config.fallback);
+        yield* cloudChat(normalized, tools, fallback);
       }
       return;
     }
@@ -49,9 +92,8 @@ async function* chatWithTools(messages, tools) {
   }
 }
 
-async function* ollamaChat(messages, tools, config) {
-  const model = config.llm.model;
-  const ollamaHost = config.llm.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+async function* ollamaChat(messages, tools, resolved) {
+  const { model, ollamaHost } = resolved;
   console.log(`[brain] ollama request: model=${model} host=${ollamaHost}`);
 
   const body = { model, messages, stream: true };
@@ -87,12 +129,13 @@ async function* ollamaChat(messages, tools, config) {
   }
 }
 
-async function* cloudChat(messages, tools, providerConfig) {
-  const apiKey = providerConfig.apiKey || process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error(`API key not set for ${providerConfig.provider || 'cloud'} — configure in Admin > Config`);
+async function* cloudChat(messages, tools, resolved) {
+  const { apiKey: cfgKey, baseUrl: cfgBase, model: cfgModel } = resolved;
+  const apiKey = cfgKey || process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error(`API key not set for ${resolved.provider || 'cloud'} — configure in Admin > Models`);
 
-  const baseUrl = providerConfig.baseUrl || 'https://api.openai.com/v1';
-  const model = providerConfig.model || 'gpt-4o-mini';
+  const baseUrl = cfgBase || 'https://api.openai.com/v1';
+  const model = cfgModel || 'gpt-4o-mini';
 
   const body = { model, messages, stream: true };
   if (tools?.length) body.tools = tools.map(t => ({ type: 'function', function: t }));

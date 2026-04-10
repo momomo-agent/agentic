@@ -44,12 +44,13 @@
         <div v-else class="model-list">
           <div v-for="m in installedModels" :key="m.name" class="model-item installed">
             <div class="model-info">
-              <div class="model-name">{{ m.name }}</div>
+              <div class="model-name">
+                {{ m.name }}
+                <span class="cap-badge" v-for="c in getPoolCaps(`ollama:${m.name}`)" :key="c">{{ c }}</span>
+              </div>
               <div class="model-meta" v-if="m.size">{{ formatSize(m.size) }}</div>
             </div>
             <div class="model-actions">
-              <button class="btn-use" v-if="currentModel !== m.name" @click="setAsDefault(m.name)">设为默认</button>
-              <span class="badge-active" v-else>当前使用</span>
               <button class="btn-danger" @click="deleteModel(m.name)" :disabled="deleting === m.name">
                 {{ deleting === m.name ? '删除中...' : '删除' }}
               </button>
@@ -58,15 +59,15 @@
         </div>
       </div>
 
-      <!-- 下载进度 -->
-      <div class="card" v-if="downloadProgress">
-        <div class="card-title">下载中: {{ downloadProgress.model }}</div>
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: downloadProgress.percent + '%' }"></div>
-        </div>
-        <div class="progress-text">
-          {{ downloadProgress.status }}
-          <span v-if="downloadProgress.percent > 0">{{ downloadProgress.percent.toFixed(1) }}%</span>
+      <!-- 下载进度 (multiple simultaneous) -->
+      <div class="card" v-if="Object.keys(downloads).length > 0">
+        <div class="card-title">下载中</div>
+        <div v-for="(dl, name) in downloads" :key="name" class="download-item">
+          <div class="download-name">{{ name }}</div>
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: dl.percent + '%' }"></div>
+          </div>
+          <div class="progress-text">{{ dl.status }} <span v-if="dl.percent > 0">{{ dl.percent.toFixed(1) }}%</span></div>
         </div>
       </div>
 
@@ -87,7 +88,7 @@
                 <div class="model-meta">{{ m.size }}</div>
               </div>
               <button v-if="!isInstalled(m.name)" class="btn-download" @click="pullModel(m.name)"
-                      :disabled="!!downloadProgress">下载</button>
+                      :disabled="!!downloads[m.name]">下载</button>
             </div>
           </div>
         </div>
@@ -98,76 +99,111 @@
         <div class="card-title">自定义下载</div>
         <div class="custom-pull">
           <input v-model="customModel" placeholder="模型名称，如 llama3:8b" @keyup.enter="pullModel(customModel)" />
-          <button @click="pullModel(customModel)" :disabled="!customModel || !!downloadProgress">下载</button>
+          <button @click="pullModel(customModel)" :disabled="!customModel || !!downloads[customModel]">下载</button>
         </div>
       </div>
     </template>
 
     <!-- ==================== 云端模型 Tab ==================== -->
     <template v-if="tab === 'cloud'">
-      <div class="provider-grid">
-        <div v-for="p in providerList" :key="p.id" class="card provider-card">
-          <div class="card-header">
-            <div class="provider-title">
-              <span class="provider-logo">{{ p.logo }}</span>
-              <span>{{ p.label }}</span>
+      <!-- 添加云端模型 -->
+      <div class="card">
+        <div class="card-title">添加云端模型</div>
+        <div class="config-form">
+          <div class="field-row">
+            <div class="field">
+              <label>Provider</label>
+              <select v-model="newCloud.provider">
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="google">Google (Gemini)</option>
+                <option value="groq">Groq</option>
+                <option value="custom">自定义</option>
+              </select>
             </div>
-            <div class="provider-status">
-              <label class="toggle">
-                <input type="checkbox" v-model="providers[p.id].enabled" />
-                <span class="toggle-label">{{ providers[p.id].enabled ? '已启用' : '未启用' }}</span>
+            <div class="field">
+              <label>模型名称</label>
+              <input v-model="newCloud.name" placeholder="gpt-4o, claude-sonnet-4-20250514, ..." />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>API Key</label>
+              <input v-model="newCloud.apiKey" type="text" placeholder="sk-..." />
+            </div>
+            <div class="field">
+              <label>Base URL <span class="hint">(可选)</span></label>
+              <input v-model="newCloud.baseUrl" :placeholder="defaultBaseUrl" />
+            </div>
+          </div>
+          <div class="field">
+            <label>能力</label>
+            <div class="cap-checkboxes">
+              <label v-for="cap in allCaps" :key="cap" class="cap-check">
+                <input type="checkbox" :value="cap" v-model="newCloud.capabilities" />
+                <span>{{ cap }}</span>
               </label>
             </div>
           </div>
-
-          <div class="config-form" v-if="providers[p.id].enabled">
-            <!-- 自定义 provider 需要名称 -->
-            <div class="field" v-if="p.id === 'custom'">
-              <label>名称</label>
-              <input v-model="providers[p.id].name" placeholder="My Provider" />
-            </div>
-            <div class="field">
-              <label>API Key</label>
-              <input v-model="providers[p.id].apiKey" type="text" :placeholder="p.keyPlaceholder" />
-            </div>
-            <div class="field" v-if="p.showBaseUrl">
-              <label>Base URL <span v-if="p.id !== 'custom'" class="hint">(可选)</span></label>
-              <input v-model="providers[p.id].baseUrl" :placeholder="p.defaultBaseUrl" />
-            </div>
-            <div class="provider-actions">
-              <button class="btn-test" @click="testProvider(p.id)" :disabled="testing === p.id || !providers[p.id].apiKey">
-                {{ testing === p.id ? '测试中...' : '测试连接' }}
-              </button>
-              <span v-if="testResults[p.id] === 'ok'" class="test-ok">✓ 已连接</span>
-              <span v-else-if="testResults[p.id] === 'fail'" class="test-fail">✗ 连接失败</span>
-              <span v-else-if="!testResults[p.id]" class="test-untested"></span>
-            </div>
+          <div class="actions">
+            <button @click="addCloudModel" :disabled="!newCloud.name || !newCloud.apiKey">添加</button>
+            <span v-if="addError" class="error-msg">{{ addError }}</span>
           </div>
         </div>
       </div>
 
-      <!-- 保存按钮 -->
-      <div class="actions">
-        <button @click="saveProviders" :disabled="savingProviders">{{ savingProviders ? '保存中...' : '保存' }}</button>
-        <span v-if="providersSaved" class="saved-msg">✓ 已保存</span>
-        <span v-if="providersError" class="error-msg">{{ providersError }}</span>
+      <!-- 已添加的云端模型 -->
+      <div class="card">
+        <div class="card-title">云端模型 ({{ cloudModels.length }})</div>
+        <div v-if="cloudModels.length === 0" class="empty">暂无云端模型</div>
+        <div v-else class="model-list">
+          <div v-for="m in cloudModels" :key="m.id" class="model-item installed">
+            <div class="model-info">
+              <div class="model-name">
+                {{ m.name }}
+                <span class="provider-tag">{{ m.provider }}</span>
+                <span class="cap-badge" v-for="c in (m.capabilities || [])" :key="c">{{ c }}</span>
+              </div>
+              <div class="model-meta" v-if="m.baseUrl">{{ m.baseUrl }}</div>
+            </div>
+            <div class="model-actions">
+              <button class="btn-danger" @click="removeCloudModel(m.id)">删除</button>
+            </div>
+          </div>
+        </div>
       </div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 
 const tab = ref('local')
+const allCaps = ['chat', 'vision', 'stt', 'tts', 'embedding', 'fallback']
 
-// ─── 本地模型 (原有逻辑) ───
+// ─── Model Pool ───
+const pool = ref([])
+
+async function fetchPool() {
+  try {
+    pool.value = await (await fetch('/api/model-pool')).json()
+  } catch {}
+}
+
+const cloudModels = computed(() => pool.value.filter(m => m.provider !== 'ollama'))
+
+function getPoolCaps(id) {
+  const m = pool.value.find(p => p.id === id)
+  return m?.capabilities || []
+}
+
+// ─── 本地模型 ───
 const ollama = reactive({ running: false, models: [] })
 const installedModels = ref([])
-const currentModel = ref('')
-const downloadProgress = ref(null)
 const deleting = ref(null)
 const customModel = ref('')
+const downloads = reactive({})
 
 const modelCategories = [
   { label: '💬 对话', models: [
@@ -204,14 +240,9 @@ async function fetchStatus() {
     const data = await res.json()
     ollama.running = data.ollama?.running ?? false
     ollama.models = data.ollama?.models ?? []
-    currentModel.value = data.config?.llm?.model || ''
-    if (data.download?.active) {
-      downloadProgress.value = data.download
-    }
-    // 获取详细模型信息
     if (ollama.running) {
       try {
-        const host = data.config?.llm?.ollamaHost || 'http://localhost:11434'
+        const host = data.config?.ollamaHost || data.config?.llm?.ollamaHost || 'http://localhost:11434'
         const tagsRes = await fetch(`${host}/api/tags`)
         const tags = await tagsRes.json()
         installedModels.value = tags.models || []
@@ -225,11 +256,11 @@ async function fetchStatus() {
 }
 
 async function pullModel(name) {
-  if (!name) return
-  downloadProgress.value = { model: name, status: '准备中...', percent: 0 }
+  if (!name || downloads[name]) return
+  downloads[name] = { status: '准备中...', percent: 0 }
   try {
     const config = await (await fetch('/api/config')).json()
-    const host = config?.llm?.ollamaHost || 'http://localhost:11434'
+    const host = config?.ollamaHost || config?.llm?.ollamaHost || 'http://localhost:11434'
     const res = await fetch(`${host}/api/pull`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -248,19 +279,19 @@ async function pullModel(name) {
         if (!line.trim()) continue
         try {
           const j = JSON.parse(line)
-          downloadProgress.value = {
-            model: name,
+          downloads[name] = {
             status: j.status || '',
-            percent: j.total ? (j.completed / j.total) * 100 : downloadProgress.value.percent,
+            percent: j.total ? (j.completed / j.total) * 100 : (downloads[name]?.percent || 0),
           }
         } catch {}
       }
     }
-    downloadProgress.value = null
+    delete downloads[name]
     customModel.value = ''
     await fetchStatus()
+    await fetchPool()
   } catch (e) {
-    downloadProgress.value = null
+    delete downloads[name]
     alert('下载失败: ' + e.message)
   }
 }
@@ -270,13 +301,14 @@ async function deleteModel(name) {
   deleting.value = name
   try {
     const config = await (await fetch('/api/config')).json()
-    const host = config?.llm?.ollamaHost || 'http://localhost:11434'
+    const host = config?.ollamaHost || config?.llm?.ollamaHost || 'http://localhost:11434'
     await fetch(`${host}/api/delete`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
     })
     await fetchStatus()
+    await fetchPool()
   } catch (e) {
     alert('删除失败: ' + e.message)
   } finally {
@@ -284,117 +316,62 @@ async function deleteModel(name) {
   }
 }
 
-async function setAsDefault(name) {
-  try {
-    const config = await (await fetch('/api/config')).json()
-    config.llm = { ...config.llm, model: name }
-    await fetch('/api/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) })
-    currentModel.value = name
-  } catch (e) {
-    alert('设置失败: ' + e.message)
-  }
-}
-
 // ─── 云端模型 ───
-const providerList = [
-  { id: 'openai', label: 'OpenAI', logo: '⬡', keyPlaceholder: 'sk-...', showBaseUrl: true, defaultBaseUrl: 'https://api.openai.com/v1' },
-  { id: 'anthropic', label: 'Anthropic', logo: '◈', keyPlaceholder: 'sk-ant-...', showBaseUrl: true, defaultBaseUrl: 'https://api.anthropic.com' },
-  { id: 'google', label: 'Google (Gemini)', logo: '◆', keyPlaceholder: 'AIza...', showBaseUrl: false, defaultBaseUrl: '' },
-  { id: 'groq', label: 'Groq', logo: '⚡', keyPlaceholder: 'gsk_...', showBaseUrl: true, defaultBaseUrl: 'https://api.groq.com/openai/v1' },
-  { id: 'custom', label: '自定义 OpenAI 兼容', logo: '🔧', keyPlaceholder: 'API Key', showBaseUrl: true, defaultBaseUrl: 'http://localhost:8080/v1' },
-]
+const newCloud = reactive({
+  provider: 'openai',
+  name: '',
+  apiKey: '',
+  baseUrl: '',
+  capabilities: ['chat'],
+})
+const addError = ref('')
 
-const providers = reactive({
-  openai: { apiKey: '', baseUrl: '', enabled: false },
-  anthropic: { apiKey: '', baseUrl: '', enabled: false },
-  google: { apiKey: '', baseUrl: '', enabled: false },
-  groq: { apiKey: '', baseUrl: '', enabled: false },
-  custom: { apiKey: '', baseUrl: '', enabled: false, name: '' },
+const defaultBaseUrl = computed(() => {
+  const map = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com', groq: 'https://api.groq.com/openai/v1', google: '', custom: 'http://localhost:8080/v1' }
+  return map[newCloud.provider] || ''
 })
 
-const testing = ref(null)
-const testResults = reactive({})
-const savingProviders = ref(false)
-const providersSaved = ref(false)
-const providersError = ref('')
-
-async function loadProviders() {
+async function addCloudModel() {
+  addError.value = ''
+  const id = `cloud:${newCloud.provider}:${newCloud.name}`
   try {
-    const config = await (await fetch('/api/config')).json()
-    if (config.providers) {
-      for (const [id, val] of Object.entries(config.providers)) {
-        if (providers[id]) {
-          Object.assign(providers[id], val)
-        }
-      }
-    }
-  } catch {}
-}
-
-async function testProvider(id) {
-  testing.value = id
-  delete testResults[id]
-  try {
-    // 先保存当前配置
-    await saveProviders(true)
-    const res = await fetch('/api/chat', {
+    await fetch('/api/model-pool', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'say ok', history: [] }),
+      body: JSON.stringify({
+        id,
+        name: newCloud.name,
+        provider: newCloud.provider,
+        apiKey: newCloud.apiKey,
+        baseUrl: newCloud.baseUrl || defaultBaseUrl.value,
+        capabilities: [...newCloud.capabilities],
+        source: 'user',
+      }),
     })
-    testResults[id] = res.ok ? 'ok' : 'fail'
-  } catch {
-    testResults[id] = 'fail'
-  } finally {
-    testing.value = null
+    newCloud.name = ''
+    newCloud.apiKey = ''
+    newCloud.baseUrl = ''
+    newCloud.capabilities = ['chat']
+    await fetchPool()
+  } catch (e) {
+    addError.value = e.message
   }
 }
 
-async function saveProviders(silent = false) {
-  savingProviders.value = true
-  providersError.value = ''
+async function removeCloudModel(id) {
+  if (!confirm('确定删除？')) return
   try {
-    const config = await (await fetch('/api/config')).json()
-    // 构建 providers 对象，只保存有意义的字段
-    const clean = {}
-    for (const [id, val] of Object.entries(providers)) {
-      clean[id] = { enabled: val.enabled }
-      if (val.apiKey) clean[id].apiKey = val.apiKey
-      if (val.baseUrl) clean[id].baseUrl = val.baseUrl
-      if (val.name) clean[id].name = val.name
-    }
-    config.providers = clean
-    await fetch('/api/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) })
-    if (!silent) {
-      providersSaved.value = true
-      setTimeout(() => providersSaved.value = false, 2000)
-    }
+    await fetch(`/api/model-pool/${encodeURIComponent(id)}`, { method: 'DELETE' })
+    await fetchPool()
   } catch (e) {
-    providersError.value = e.message
-  } finally {
-    savingProviders.value = false
+    alert('删除失败: ' + e.message)
   }
 }
 
 // ─── 初始化 ───
 onMounted(() => {
   fetchStatus()
-  loadProviders()
-  // 轮询下载进度
-  const timer = setInterval(async () => {
-    if (downloadProgress.value) {
-      try {
-        const res = await fetch('/api/status')
-        const data = await res.json()
-        if (data.download?.active) {
-          downloadProgress.value = data.download
-        } else if (downloadProgress.value) {
-          downloadProgress.value = null
-          await fetchStatus()
-        }
-      } catch {}
-    }
-  }, 2000)
+  fetchPool()
 })
 </script>
 
@@ -429,90 +406,107 @@ onMounted(() => {
 .status-dot.on { background: var(--success, #10b981); box-shadow: 0 0 6px var(--success, #10b981); }
 .status-dot.off { background: var(--error, #ef4444); }
 
-.ollama-guide { margin-top: 16px; font-size: 14px; color: var(--text-dim); }
-.install-steps { margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+.ollama-guide { font-size: 14px; color: var(--text-dim); }
+.ollama-guide p { margin-bottom: 12px; }
+.install-steps { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .step { display: flex; align-items: center; gap: 10px; }
 .step-num {
   width: 22px; height: 22px; border-radius: 50%; background: var(--surface-3);
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 600; flex-shrink: 0;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
 }
 .step code { background: var(--surface-3); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
 .btn-check {
-  margin-top: 12px; padding: 8px 16px; border-radius: 6px; border: none;
-  background: var(--surface-3); color: var(--text); font-size: 13px; cursor: pointer;
+  padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--surface-2); cursor: pointer; font-size: 13px;
 }
 
 /* Model list */
 .model-list { display: flex; flex-direction: column; gap: 8px; }
-.model-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 8px; }
-.model-item.installed { background: var(--surface-2); }
-.model-item.recommend { background: var(--surface-2); }
-.model-item.is-installed { opacity: 0.6; }
+.model-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; border-radius: 8px; background: var(--surface-2);
+}
 .model-info { flex: 1; min-width: 0; }
-.model-name { font-size: 14px; font-weight: 600; }
+.model-name { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .model-desc { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
 .model-meta { font-size: 12px; color: var(--text-dim); opacity: 0.7; margin-top: 2px; }
-.model-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
-.empty { font-size: 14px; color: var(--text-dim); padding: 12px 0; }
+.model-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: 12px; }
 
 .badge-installed {
-  font-size: 11px; padding: 1px 6px; border-radius: 4px;
-  background: rgba(16,185,129,0.15); color: var(--success, #10b981);
+  font-size: 11px; padding: 2px 8px; border-radius: 10px;
+  background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-weight: 500;
 }
-.badge-active { font-size: 12px; color: var(--success, #10b981); font-weight: 500; }
 
-button {
+/* Capability badges */
+.cap-badge {
+  font-size: 10px; padding: 2px 7px; border-radius: 10px;
+  background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);
+  font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.provider-tag {
+  font-size: 10px; padding: 2px 7px; border-radius: 10px;
+  background: rgba(168,85,247,0.12); color: #a855f7;
+  font-weight: 600; text-transform: uppercase;
+}
+
+/* Download progress */
+.download-item { margin-bottom: 12px; }
+.download-name { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.progress-bar {
+  height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 3px; background: var(--primary, #3b82f6);
+  transition: width 0.3s;
+}
+.progress-text { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+/* Buttons */
+.btn-download {
   padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
-  border: none; cursor: pointer; transition: opacity 0.15s;
+  background: var(--primary, #3b82f6); color: #fff; border: none; cursor: pointer;
 }
-button:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-download { background: var(--primary, #3b82f6); color: #fff; }
-.btn-use { background: var(--surface-3, #374151); color: var(--text); }
-.btn-danger { background: rgba(239,68,68,0.15); color: var(--error, #ef4444); }
+.btn-download:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-danger {
+  padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  background: rgba(239,68,68,0.1); color: var(--error, #ef4444); border: none; cursor: pointer;
+}
+.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.progress-bar { height: 6px; background: var(--surface-3); border-radius: 3px; overflow: hidden; margin-top: 12px; }
-.progress-fill { height: 100%; background: var(--primary, #3b82f6); border-radius: 3px; transition: width 0.3s ease; }
-.progress-text { font-size: 13px; color: var(--text-dim); margin-top: 8px; }
-
+/* Model grid */
 .model-grid { display: flex; flex-direction: column; gap: 20px; }
-.category-label { font-size: 13px; font-weight: 600; color: var(--text-dim); margin-bottom: 8px; }
+.category-label { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.model-item.recommend { background: var(--surface-2); }
+.model-item.is-installed { opacity: 0.6; }
 
+/* Custom pull */
 .custom-pull { display: flex; gap: 8px; }
 .custom-pull input {
   flex: 1; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);
   background: var(--surface-2); font-size: 14px; color: var(--text);
 }
-.custom-pull button { background: var(--primary, #3b82f6); color: #fff; padding: 8px 20px; }
+.custom-pull button {
+  padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  background: var(--primary, #3b82f6); color: #fff; border: none; cursor: pointer;
+}
+.custom-pull button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ─── 云端 Provider 卡片 ─── */
-.provider-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.provider-card { background: var(--surface-2); }
-.provider-card .card-header { margin-bottom: 16px; }
-.provider-title { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 600; }
-.provider-logo { font-size: 20px; }
-
-.toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
-.toggle input { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
-.toggle-label { color: var(--text-dim); }
-
+/* Cloud form */
 .config-form { display: flex; flex-direction: column; gap: 14px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 13px; color: var(--text-dim); font-weight: 500; }
-.field input {
+.field input, .field select {
   padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border);
   background: var(--surface-2); font-size: 14px; color: var(--text);
 }
 .field input::placeholder { color: var(--text-dim); opacity: 0.5; }
-.hint { font-weight: 400; opacity: 0.6; }
+.hint { font-weight: 400; opacity: 0.6; font-size: 12px; }
 
-.provider-actions { display: flex; align-items: center; gap: 12px; padding-top: 4px; }
-.btn-test {
-  padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 500;
-  background: var(--surface-3); color: var(--text); border: none; cursor: pointer;
-}
-.test-ok { font-size: 13px; color: var(--success, #10b981); }
-.test-fail { font-size: 13px; color: var(--error, #ef4444); }
+.cap-checkboxes { display: flex; gap: 12px; flex-wrap: wrap; }
+.cap-check { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; }
+.cap-check input { accent-color: var(--primary); }
 
 .actions { display: flex; align-items: center; gap: 16px; padding-top: 8px; }
 .actions button {
@@ -520,6 +514,6 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   background: var(--primary, #0075de); color: #fff; border: none; cursor: pointer;
 }
 .actions button:disabled { opacity: 0.5; cursor: not-allowed; }
-.saved-msg { color: var(--success, #10b981); font-size: 14px; }
 .error-msg { color: var(--error, #ef4444); font-size: 14px; }
+.empty { color: var(--text-dim); font-size: 14px; padding: 12px 0; }
 </style>
