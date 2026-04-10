@@ -87,3 +87,23 @@ watchProfiles(hw, cb) → fetch + matchProfile + saveCache
 - Remote timeout: 5 seconds (AbortSignal.timeout)
 - `matchProfile` is a pure function — no side effects, no I/O
 - `default.json` must always contain a `match: {}` fallback profile to prevent "No matching profile" errors on unknown hardware
+
+## Utility Modules
+
+### sox.js (src/detector/sox.js)
+```javascript
+export async function ensureSox()  // line 25 — checks + auto-installs sox
+```
+- `isSoxInstalled()` → `which sox`
+- `installSox()` → `brew install sox` (darwin) / `apt-get install -y sox` (linux) / throws on Windows
+- Used by: wake word pipeline setup (indirectly via sense.js sox check)
+
+### download-state.js (src/cli/download-state.js)
+```javascript
+export function getDownloadState()       // line 32 — returns { inProgress, model, status, progress, total }
+export function setDownloadState(updates) // line 36 — merges updates, persists to disk
+export function clearDownloadState()     // line 41 — resets state, deletes state file
+```
+- State file: `~/.agentic-service/download-state.json`
+- Module-level singleton object, loaded from disk on import
+- Used by: `cli/setup.js` during Ollama model pull progress tracking

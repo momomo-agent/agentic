@@ -494,6 +494,50 @@ profiles.watchProfiles(hardware, onReload, interval=30000)
   → config.setConfig(newConfig) → onConfigChange 回调触发
 ```
 
+### 性能监控
+
+```
+// 语音管道延迟预算: <2000ms
+profiler.measurePipeline([
+  { name: 'stt', fn: () => stt.transcribe(audio) },
+  { name: 'llm', fn: () => brain.chat(messages) },
+  { name: 'tts', fn: () => tts.synthesize(text) }
+]) → { results: [{name, duration}], total }
+// total >= 2000 → 抛出 Error('Pipeline exceeded budget')
+
+// CPU 性能标记（集成在 stt.js, tts.js, brain.js 中）
+profiler.startMark('stt') → profiler.endMark('stt')
+profiler.getMetrics() → Map<label, { count, total, avg, min, max }>
+
+// 延迟采样
+latencyLog.record('voice', ms)
+latencyLog.p95('voice') → number  // 第 95 百分位
+
+// GET /api/perf → 返回 profiler.getMetrics() + latencyLog 数据
+```
+
+### 硬件自适应模型选择
+
+```
+hardware.detect() → { gpu, memory, arch, platform }
+  → profiles.getProfile(hardware)
+    → matcher.matchProfile(profiles, hardware)
+      → 权重评分: platform=30, gpu=30, arch=20, minMemory=20
+      → 返回最优 profile: { llm, stt, tts, fallback }
+  → config.setConfig(profile)
+    → config.assignments 映射能力槽 → 模型 ID
+  → engine/init.initEngines()
+    → registry.register('ollama', ...) — 本地 Ollama 引擎
+    → registry.register('cloud:openai', ...) — 云端引擎
+  → brain.chat() 运行时:
+    → config.getAssignments() → 获取 chat 槽分配的模型
+    → registry.resolveModel(modelId) → 找到引擎 + 模型
+    → 本地优先 → 云端 fallback（超时/错误自动切换）
+
+注: VISION.md 中的 optimizer.js 功能由 profiles.js + matcher.js + config.js 三者协作实现。
+    模型选择完全由硬件检测结果驱动，无需独立优化器模块。
+```
+
 ## 安装方式
 
 ```bash

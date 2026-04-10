@@ -27,21 +27,9 @@ export async function chatSession(sessionId, userMessage, options = {})  // line
 - `./hub.js` → `getSession`, `broadcastSession`
 - `../runtime/profiler.js` → `startMark`, `endMark`
 
-## Memory (src/runtime/memory.js)
+## Memory
 
-### Verified Exports
-```javascript
-export async function add(text)                    // line 12
-export async function remove(key)                  // line 26
-export { remove as delete }                        // line 33
-export async function search(query, topK = 5)      // line 35
-```
-
-### Internal Data Flow
-- `embed(text)` → vector via `./embed.js`
-- `get/set/del` → KV via `../store/index.js`
-- Index stored at key `mem:__index__` as array of IDs
-- Write serialization via `_lock` promise chain
+⚠️ `src/runtime/memory.js` does NOT exist in the codebase. No file imports it. If a vector memory layer is needed, it would compose `runtime/embed.js` + `store/index.js`, but this module has not been implemented.
 
 ## Embed (src/runtime/embed.js)
 
@@ -214,7 +202,6 @@ export function reset()             // line 15 — clears all samples
 - Used by: `runtime/stt.js`, `runtime/tts.js`
 
 ## Constraints
-- `_lock` in memory.js ensures serial writes — must not be bypassed
 - `embed()` throws TypeError on non-string — callers must validate
 - `adapters/embed.js` is dead code — should be removed or wired up
 - Wake word pipeline requires `sox` binary — gracefully degrades if missing

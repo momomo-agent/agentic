@@ -15,25 +15,28 @@ ARCHITECTURE.md is at 85%. After auditing the actual source files against the cu
 **Current state in ARCHITECTURE.md:** Section 5 exists with basic signatures (`get/set/del/delete`).
 
 **What's missing:** Internal implementation details:
-- Uses `agentic-store` with `createStore({ path: '~/.agentic-service/db' })`
-- JSON serialization: `set()` calls `JSON.stringify()`, `get()` calls `JSON.parse()`
+- Uses `open` from `agentic-store` (NOT `createStore`)
+- Lazy singleton: `let _store = null; async function getStore() { if (!_store) _store = await open(DB_PATH); return _store }`
+- JSON serialization: `set()` calls `JSON.stringify()`, `get()` calls `JSON.parse()` (returns `null` for missing keys)
 - `delete` is a named re-export alias for `del`
-- Store path: `~/.agentic-service/db` (derived from `os.homedir()`)
+- Store path: `~/.agentic-service/store.db` (derived from `os.homedir()`)
 
-**Verified exports:**
+**Verified exports (re-verified 2026-04-11):**
 ```javascript
-// src/store/index.js (30 lines)
-import { createStore } from 'agentic-store'
-import os from 'os'
-import path from 'path'
+// src/store/index.js (29 lines)
+import { open } from 'agentic-store'
+import { homedir } from 'os'
+import { join } from 'path'
 
-export async function get(key)        // → JSON.parse(raw) or null
+const DB_PATH = join(homedir(), '.agentic-service', 'store.db')
+
+export async function get(key)        // → JSON.parse(val) or null
 export async function set(key, value) // → store.set(key, JSON.stringify(value))
-export async function del(key)        // → store.del(key)
+export async function del(key)        // → store.delete(key)
 export { del as delete }
 ```
 
-**Action:** Expand §5 with store path, JSON serialization detail, and import.
+**Action:** Expand §5 with store path, lazy init pattern, JSON serialization detail, and correct import (`open`, not `createStore`).
 
 ### 2. [MAJOR/partial] src/runtime/adapters/ — Voice Adapters Detail
 

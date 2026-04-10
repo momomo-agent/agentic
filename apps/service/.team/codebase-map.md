@@ -174,6 +174,7 @@ src/store/index.js  → agentic-store
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js, runtime/memory.js) — CR cr-1775847503256 submitted
 
 ### Architecture Notes (Vision references that map to different files)
-- Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js (CR cr-1775847503256 submitted to update VISION.md)
+- Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js + config.js (documented in ARCHITECTURE.md "硬件自适应模型选择" section; CR cr-1775847503256 submitted to update VISION.md)
 - Vision's `runtime/llm.js` → LLM logic lives in server/brain.js
 - Vision's `runtime/memory.js` → store/index.js + embed.js provide the primitives
+- ARCHITECTURE.md now documents: hardware-adaptive model selection flow, CPU profiling/latency enforcement, /api/perf endpoint
