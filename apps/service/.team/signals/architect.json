@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T19:21:35.206Z",
+  "timestamp": "2026-04-10T19:23:21.314Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Verified ARCHITECTURE.md (500 lines) and codebase-map.md are current. Updated test status in codebase-map to reflect intermittent transcribe-api port conflict. Confirmed profiles-edge-cases.test.js (task-1775848768979) now passes all 14 tests. All Vision/PRD/DBB gaps are either implemented or documented as acceptable known limitations. No architecture changes needed."
+  "summary": "Updated ARCHITECTURE.md (added ModelsView to admin views) and codebase-map.md (added ModelsView, updated test status to reflect m21-profiles.test.js isolation bug caused by m28 writing real cache files, added test isolation issue to Open issues). All gap items are either implemented or documented as known limitations. The pending task-1775848768979 (profiles test fix) is a developer-level test isolation issue, not an architecture concern."
 }
