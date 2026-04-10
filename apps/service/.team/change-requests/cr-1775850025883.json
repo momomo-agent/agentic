@@ -6,8 +6,9 @@
   "targetFile": "PRD.md",
   "reason": "PRD requires 'Memory module — memory.js with search(query, topK) and add() using agentic-store + agentic-embed vector embedding' and the gap tracker marks it as 'implemented', but src/runtime/memory.js does not exist in the codebase. The building blocks are ready (store/index.js provides KV storage, runtime/embed.js provides vector embedding), but the composition layer that combines them into a semantic memory module with search(query, topK) and add() has never been created. The PRD gap status should be corrected to 'partial' or a developer task should be created to implement the module.",
   "proposedChange": "Either: (1) Create a developer task to implement src/runtime/memory.js with the specified API: add(text, metadata?) and search(query, topK=5) using store/index.js + runtime/embed.js, OR (2) Update the PRD gap tracker to mark the memory module as 'partial' with detail explaining the file is missing.",
-  "status": "pending",
+  "status": "resolved",
   "createdAt": "2026-04-11T20:00:00.000Z",
-  "reviewedAt": null,
-  "reviewedBy": null
+  "reviewedAt": "2026-04-11T20:15:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Duplicate of cr-1775849950000. Same issue — memory.js missing. Developer task created to implement it."
 }

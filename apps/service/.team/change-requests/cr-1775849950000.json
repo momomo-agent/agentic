@@ -6,8 +6,9 @@
   "targetFile": "PRD.md",
   "reason": "PRD specifies memory.js with search(query, topK) and add() using agentic-store + agentic-embed. The file src/runtime/memory.js does not exist. The underlying primitives (store/index.js for KV, runtime/embed.js for vector embedding) are implemented and tested. A developer task is needed to create the memory.js module that composes these two primitives into a semantic memory API.",
   "proposedChange": "Create task for developer to implement src/runtime/memory.js with: add(text, metadata?) → embed + store, search(query, topK=5) → embed query + vector similarity search. Dependencies: store/index.js, runtime/embed.js (both already working).",
-  "status": "pending",
+  "status": "resolved",
   "createdAt": "2026-04-11T19:45:00.000Z",
-  "reviewedAt": null,
-  "reviewedBy": null
+  "reviewedAt": "2026-04-11T20:15:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Valid — src/runtime/memory.js does not exist. Creating developer task to implement it. PRD gap status will be corrected to partial."
 }
