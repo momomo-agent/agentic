@@ -16,18 +16,17 @@ All tests pass. The config persistence fix (atomic write pattern in `src/config.
 - POST /api/synthesize returns audio/wav (DBB-003) ✅
 
 ### test/server/api-m2.test.js — 8/8 passed
-- GET /api/status — Ollama real detection: returns ollama.running and ollama.models ✅
 - GET /api/status — returns running:false when Ollama not reachable ✅
 - GET /api/status — does not throw when Ollama unreachable (no 500) ✅
 - GET /api/config — returns default config when no config file exists ✅
 - GET /api/config — PUT then GET returns merged value ✅
 - GET /api/config — config persists on disk as JSON ✅
 - GET /api/config — GET returns default config after config file deleted ✅
-- startServer — rejects with port-in-use message when port is taken ✅
+- startServer — EADDRINUSE: rejects with port-in-use message ✅
 
-## Full Suite
+## Full Suite (DBB-021)
 - 171 test files, 951 tests passed, 11 skipped, 0 failures
-- Duration: 22.75s
+- Duration: 31.09s
 
 ## Config Persistence Verification
 The atomic write pattern (write to .tmp then rename) prevents:
@@ -37,7 +36,10 @@ The atomic write pattern (write to .tmp then rename) prevents:
 
 PUT → GET round-trip confirmed working. File-deleted recovery confirmed working.
 
-## Edge Cases Identified
-- All edge cases covered by existing tests (no config file, deleted config file, concurrent access via atomic write)
+## Edge Cases Covered
+- No config file on disk → returns defaults
+- Config file deleted mid-session → returns defaults
+- PUT then GET round-trip → merged value persisted
+- Concurrent write safety via atomic rename
 
 ## Verdict: PASS
