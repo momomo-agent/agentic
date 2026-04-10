@@ -15,6 +15,7 @@ vi.mock('../../src/runtime/stt.js', () => ({ init: vi.fn(), transcribe: vi.fn() 
 vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() }));
 
 import { startServer } from '../../src/server/api.js';
+import { reloadConfig } from '../../src/config.js';
 
 const CONFIG_DIR = path.join(os.homedir(), '.agentic-service');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
@@ -32,8 +33,9 @@ beforeEach(async () => {
   server = await startServer(port);
   baseUrl = `http://localhost:${port}`;
   await fs.rm(CONFIG_PATH, { force: true });
-  // Also remove any leftover .tmp file from atomic writes
   await fs.rm(CONFIG_PATH + '.tmp', { force: true });
+  // Reset config cache to ensure clean state between test files
+  await reloadConfig();
 });
 
 afterEach(() => server?.close());
