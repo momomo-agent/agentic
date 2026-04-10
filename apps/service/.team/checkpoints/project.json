@@ -12,7 +12,7 @@
     "work_loop"
   ],
   "loopIterations": {
-    "work_loop": 12
+    "work_loop": 7
   },
   "transitionDepth": 7,
   "nodeVisitCounts": {
@@ -25,10 +25,10 @@
     "refsValid": 1,
     "buildPassed": 1,
     "retryCount": 0,
-    "testPassed": 1,
+    "testPassed": 0,
     "unitPassed": 0,
     "integrationPassed": 0,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T20:22:50.340Z"
+  "timestamp": "2026-04-10T20:26:08.701Z"
 }
