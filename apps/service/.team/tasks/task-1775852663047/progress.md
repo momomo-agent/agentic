@@ -12,4 +12,5 @@ Added `AGENTIC_CONFIG_DIR` env var support to `src/config.js` so tests can use i
 ## Verification
 - `test/config-persistence.test.js` — 10/10 pass (isolated and full suite)
 - `test/server/config-persistence.test.js` — 11/11 pass
-- Full suite: 971 passed, 1 unrelated flaky failure (`m13-dbb.test.js` watchProfiles timing — passes in isolation)
+- Full suite: 8 consecutive runs, all 972 tests pass (173 test files, 0 failures)
+- Test is now stable — no flakiness observed

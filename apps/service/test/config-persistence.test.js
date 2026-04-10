@@ -114,6 +114,45 @@ describe('config.js — atomic write persistence', () => {
   });
 });
 
+describe('config.js — concurrent write mutex', () => {
+  it('concurrent setConfig calls all produce valid JSON (no corruption)', async () => {
+    // Fire 10 concurrent writes without awaiting individually
+    const promises = [];
+    for (let i = 0; i < 10; i++) {
+      promises.push(configModule.setConfig({ concurrentField: i }));
+    }
+    await Promise.all(promises);
+
+    // Disk must contain valid JSON
+    const raw = await fs.readFile(CONFIG_PATH, 'utf8');
+    const parsed = JSON.parse(raw); // should not throw
+    expect(parsed.concurrentField).toBe(9); // last write wins
+  });
+
+  it('concurrent setConfig calls to different keys preserve all keys', async () => {
+    await Promise.all([
+      configModule.setConfig({ keyA: 'a' }),
+      configModule.setConfig({ keyB: 'b' }),
+      configModule.setConfig({ keyC: 'c' }),
+    ]);
+
+    const raw = await fs.readFile(CONFIG_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    // With mutex serialization, each write reads the latest state,
+    // so all keys should be present
+    expect(parsed.keyA).toBe('a');
+    expect(parsed.keyB).toBe('b');
+    expect(parsed.keyC).toBe('c');
+  });
+
+  it('no .tmp file remains after concurrent writes', async () => {
+    await Promise.all(
+      Array.from({ length: 5 }, (_, i) => configModule.setConfig({ burst: i }))
+    );
+    await expect(fs.access(CONFIG_PATH + '.tmp')).rejects.toThrow();
+  });
+});
+
 describe('config.js — listener notifications', () => {
   it('onConfigChange listener fires on setConfig', async () => {
     let received = null;
