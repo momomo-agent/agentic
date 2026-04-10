@@ -1,7 +1,7 @@
 {
   "id": "task-1775847821786",
   "title": "Update VISION.md directory tree to match actual file names",
-  "description": "Update VISION.md directory tree (lines 34-57) to match actual codebase structure. Current tree lists files that do not exist (detector/optimizer.js, runtime/llm.js, runtime/memory.js) and omits modules that do exist (engine/ directory, cli/ files, store/, config.js, tunnel.js, runtime adapters). Replace with accurate tree per CR cr-1775850000000 proposed change. See CR for full proposed tree.",
+  "description": "Update VISION.md directory tree to match actual file names — part of documentation gap closure",
   "status": "todo",
   "priority": "P0",
   "assignee": "architect",
@@ -9,6 +9,6 @@
   "groupId": "m99",
   "hasDesign": true,
   "created": "2026-04-10T19:03:41.786Z",
-  "updated": "2026-04-10T21:00:00.600Z",
+  "updated": "2026-04-10T21:00:05.791Z",
   "milestoneId": "m99"
 }
