@@ -3,19 +3,31 @@
  *
  * Root cause: _writeToDisk() previously produced invalid JSON (append vs overwrite).
  * Fix: atomic write via tmp file + rename.
+ *
+ * Uses isolated temp dir via AGENTIC_CONFIG_DIR to avoid races with parallel tests.
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 
-const CONFIG_DIR = path.join(os.homedir(), '.agentic-service');
-const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
+const TEMP_DIR = path.join(os.tmpdir(), `agentic-config-test-${process.pid}`);
+const CONFIG_PATH = path.join(TEMP_DIR, 'config.json');
 
 let configModule;
 
+beforeAll(async () => {
+  process.env.AGENTIC_CONFIG_DIR = TEMP_DIR;
+  await fs.mkdir(TEMP_DIR, { recursive: true });
+});
+
+afterAll(async () => {
+  delete process.env.AGENTIC_CONFIG_DIR;
+  await fs.rm(TEMP_DIR, { recursive: true, force: true });
+});
+
 async function freshImport() {
-  // Dynamic import to get a fresh module (vitest caches, but we reload state)
+  vi.resetModules();
   configModule = await import('../src/config.js');
   await configModule.reloadConfig();
   return configModule;
@@ -48,10 +60,9 @@ describe('config.js — atomic write persistence', () => {
   it('multiple sequential writes produce valid JSON each time', async () => {
     for (let i = 0; i < 5; i++) {
       await configModule.setConfig({ iteration: i });
-      // Verify through module API — raw disk reads are racy when parallel test files
-      // share the same config path (test/server/config-persistence.test.js)
-      const config = await configModule.getConfig();
-      expect(config.iteration).toBe(i);
+      const raw = await fs.readFile(CONFIG_PATH, 'utf8');
+      const parsed = JSON.parse(raw);
+      expect(parsed.iteration).toBe(i);
     }
   });
 
@@ -94,7 +105,7 @@ describe('config.js — atomic write persistence', () => {
   });
 
   it('getConfig returns defaults when config file contains invalid JSON', async () => {
-    await fs.mkdir(CONFIG_DIR, { recursive: true });
+    await fs.mkdir(TEMP_DIR, { recursive: true });
     await fs.writeFile(CONFIG_PATH, '{{not valid json');
     await configModule.reloadConfig();
     const config = await configModule.getConfig();
