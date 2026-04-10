@@ -348,14 +348,15 @@
     {
       "id": "m99",
       "name": "M99: Architecture Documentation Gap Closure — 85% → 90%+",
-      "status": "active",
+      "status": "completed",
       "tasks": [
         "task-1775847821786",
         "task-1775854101228",
         "task-1775854114383",
         "task-1775854124115"
       ],
-      "created": "2026-04-11T19:28:00.000Z"
+      "created": "2026-04-11T19:28:00.000Z",
+      "completedAt": "2026-04-10T21:16:04.490Z"
     }
   ]
 }
