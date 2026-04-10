@@ -1,6 +1,6 @@
 {
   "match": 90,
-  "timestamp": "2026-04-11T21:48:00.000Z",
+  "timestamp": "2026-04-11T21:51:00.000Z",
   "gaps": [
     {
       "description": "src/index.js — package.json 'main' entry point exists and exports core API (startServer, createServer, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed)",
@@ -33,7 +33,7 @@
       "severity": "major"
     },
     {
-      "description": "Test pass rate — 174 test files, all passing (0 failures)",
+      "description": "Test pass rate — 174 test files, 981 tests, all passing (0 failures, 11 skipped)",
       "status": "implemented",
       "severity": "minor"
     },
