@@ -6,5 +6,10 @@ The `multiple sequential writes produce valid JSON each time` test was reading `
 ## Fix
 Changed the test to verify through `configModule.getConfig()` (in-memory cache) instead of raw disk reads. Disk persistence is already verified by other tests in the same file (`setConfig writes valid JSON to disk`, `reloadConfig reads fresh data from disk`).
 
+## Additional Fix (env var isolation)
+Added `AGENTIC_CONFIG_DIR` env var support to `src/config.js` so tests can use isolated temp directories, preventing cross-test file conflicts entirely.
+
 ## Verification
-All 173 test files pass (972 tests, 0 failures).
+- `test/config-persistence.test.js` — 10/10 pass (isolated and full suite)
+- `test/server/config-persistence.test.js` — 11/11 pass
+- Full suite: 971 passed, 1 unrelated flaky failure (`m13-dbb.test.js` watchProfiles timing — passes in isolation)

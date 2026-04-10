@@ -2,12 +2,12 @@
   "id": "task-1775852942421",
   "title": "Fix config-persistence test — JSON parse error on atomic write",
   "description": "test/config-persistence.test.js 'reloadConfig reads fresh data from disk' fails with SyntaxError: Unexpected non-whitespace character after JSON at position 327. The atomic write in config.js is producing corrupt JSON (likely partial write or double-write). Error at line 79: JSON.parse(await fs.readFile(CONFIG_PATH, 'utf8')). Previous fix (task-1775852663047) resolved ENOENT but introduced JSON corruption. Investigate writeFile/rename race.",
-  "status": "inProgress",
+  "status": "done",
   "priority": "P0",
   "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": false,
   "created": "2026-04-10T20:29:02.421Z",
-  "updated": "2026-04-10T20:29:44.002Z"
+  "updated": "2026-04-10T20:30:22.402Z"
 }

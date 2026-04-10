@@ -2,7 +2,7 @@
 
 **Module:** Server / Config (ARCHITECTURE.md — config.js)
 **Module Design:** `.team/designs/server.design.md`
-**Status:** ready-for-review
+**Status:** merged (fix committed as 57986a64)
 
 ## Problem
 
@@ -131,7 +131,22 @@ async function _writeToDisk(data) → Promise<void>  // internal
 4. ❌ `reloadConfig reads fresh data from disk` — fix needed
 5. ✅ All other config-persistence tests — already passing
 
-## ⚠️ Unverified Assumptions
+## Actual Fix (commit 57986a64)
 
-- The ENOENT described in the task title may have been the original error, now partially fixed. The current failure is `expected undefined to be 'yes'` which suggests `_readFromDisk` falls through to DEFAULTS.
-- Need to verify whether `_cache` invalidation in `reloadConfig` is correct (line 80: `_cache = await _readFromDisk()` — looks correct).
+The developer implemented a two-part fix:
+
+### 1. src/config.js line 15 — configurable CONFIG_DIR
+```javascript
+// Before:
+const CONFIG_DIR = path.join(os.homedir(), '.agentic-service');
+// After:
+const CONFIG_DIR = process.env.AGENTIC_CONFIG_DIR || path.join(os.homedir(), '.agentic-service');
+```
+Allows tests to isolate via `AGENTIC_CONFIG_DIR` env var, preventing cross-test interference.
+
+### 2. test/config-persistence.test.js lines 48-55 — avoid direct file read race
+Changed "multiple sequential writes" test to verify via `reloadConfig()` + `getConfig()` instead of direct `fs.readFile`, eliminating race conditions with parallel test files.
+
+## Verification
+- All 10 tests in `config-persistence.test.js` pass
+- Full suite: 171 files, 973 tests pass
