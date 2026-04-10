@@ -1,13 +1,13 @@
 {
   "id": "task-1775844314020",
   "title": "Fix embed.js build failure — localEmbed import does not exist in agentic-embed",
-  "description": "BUILD IS BROKEN. src/runtime/embed.js line 1 imports { localEmbed as agenticEmbed } from 'agentic-embed' but agentic-embed does not export 'localEmbed'. This breaks the package entry point (src/index.js → embed.js).\n\nError from build check:\n```\nSyntaxError: The requested module 'agentic-embed' does not provide an export named 'localEmbed'\n```\n\nFix: Check what agentic-embed actually exports and update the import in src/runtime/embed.js to use the correct export name. Tests pass because they mock this module, but the real build fails.\n\nThis is P0 — the package cannot be required until this is fixed.",
-  "status": "blocked",
+  "description": "BUILD IS BROKEN. src/runtime/embed.js calls localEmbed(text) with a bare string, but agentic-embed localEmbed() expects an array of texts (see node_modules/agentic-embed/agentic-embed.js:154). Also the default import + destructure pattern works but the function call is wrong.\n\nTest failures from test/m98-embed-build-fix.test.js:\n1. expects localEmbed([...]) — array argument, not bare string\n2. expects const [result] = ... — destructure array result\n3. expects NOT agenticEmbed(text) — no bare string call\n\nFix needed in src/runtime/embed.js:\n- Change `return agenticEmbed(text)` to `const [embedding] = agenticEmbed([text]); return embedding`\n- The localEmbed function signature is: localEmbed(texts, vocabSize=512) where texts is an array\n- It returns an array of embeddings, one per input text\n\nThis is P0 — the package cannot be required until this is fixed.",
+  "status": "todo",
   "priority": "P0",
-  "assignee": "tester",
+  "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T18:05:14.020Z",
-  "updated": "2026-04-10T18:50:23.707Z"
+  "updated": "2026-04-10T18:51:31.818Z"
 }

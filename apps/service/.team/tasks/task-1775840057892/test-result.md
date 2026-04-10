@@ -14,10 +14,17 @@
 
 **Total: 3/3 passed**
 
+## Additional Verification (2026-04-11)
+
+- `vitest --run test/m98-dead-imports.test.js` — 3/3 pass ✅
+- `vitest --run test/m76-embed-wiring.test.js` — 5/5 pass (no regression) ✅
+- `grep -r '#agentic-voice'` — zero matches in source/test files ✅
+- `package.json` imports: `{ "#agentic-embed": "./src/runtime/adapters/embed.js" }` — only valid entry remains
+- Runtime verification: `node -e "require('./src/index.js')"` — loads successfully
+
 ## Verification
 
 - Design recommended Option A (remove only #agentic-voice, keep #agentic-embed) — correctly implemented
-- All 838 existing tests still pass
 - No regressions detected
 
 ## Edge Cases
