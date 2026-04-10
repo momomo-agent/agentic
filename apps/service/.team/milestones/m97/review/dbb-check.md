@@ -1,6 +1,6 @@
-# DBB Check — M97/M98/M99 — 2026-04-11T23:50Z
+# DBB Check — M97/M98/M99 — 2026-04-11T04:55Z
 
-## Global DBB Match: 90% (stable)
+## Global DBB Match: 90% (stable — no change from prior evaluation)
 
 ### Verification Summary
 
@@ -13,12 +13,12 @@
 - Cloud fallback: FIRST_TOKEN_TIMEOUT_MS=5000, MAX_ERRORS=3, PROBE_INTERVAL_MS=60000 in server/brain.js
 
 **Major items — all pass:**
-- ARCHITECTURE.md: clean (no stale CR), directory tree covers 100% of src/, all module sections present (store, embed, sense, profiler, latency-log, tunnel, CLI, HTTPS/middleware, VAD)
+- ARCHITECTURE.md: clean (no stale CR), directory tree covers 100% of src/, all module sections present
 - Import maps removed (no #agentic-embed or #agentic-voice in package.json)
 - README troubleshooting section present
 
 **Remaining minor gaps (3 partial):**
-1. VISION.md directory tree references phantom files (detector/optimizer.js, runtime/llm.js, runtime/memory.js) and is missing engine/, store/, cli/ directories
+1. VISION.md directory tree references phantom files (detector/optimizer.js, runtime/llm.js) and is missing engine/, store/, cli/ directories
 2. src/runtime/adapters/embed.js is dead code stub — harmless but not cleaned up
 3. src/server/middleware.js is minimal (error handler only) — acceptable for local-first
 

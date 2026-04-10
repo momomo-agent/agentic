@@ -1,7 +1,7 @@
 {
   "agent": "dbb_monitor",
-  "timestamp": "2026-04-10T21:49:33.654Z",
+  "timestamp": "2026-04-10T21:51:02.537Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "DBB check: 90% match (stable). M97=100%, M98=95%, M99=90%. All critical/major gaps resolved. 3 minor partial gaps remain (VISION.md tree, dead embed stub, minimal middleware). Tests: 981/992 passing, 0 failures."
+  "summary": "DBB verification complete. Global 90%, M97 100%, M98 95%, M99 90%. Stable — 3 minor partial gaps remain (VISION.md phantom files, embed stub, minimal middleware). All critical/major items pass."
 }

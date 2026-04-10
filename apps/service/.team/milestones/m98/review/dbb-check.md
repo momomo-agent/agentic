@@ -1,4 +1,4 @@
-# M98 DBB Check — 2026-04-11T23:50Z
+# M98 DBB Check — 2026-04-11T04:55Z
 
 ## Result: 95% (20/21 pass, 1 fail — DBB-020 VISION.md stale references)
 
@@ -10,4 +10,4 @@ All M98 criteria verified against actual codebase:
 - **Documentation**: ARCHITECTURE.md clean — no stale CR content, directory tree covers all src/ files, store/adapters/profiler/latency-log/sox/download-state all formally documented.
 - **sense.js API**: All 10 exported functions documented. Matches actual code.
 - **Tests**: 174 test files, 992 tests, 981 passing, 0 failures, 11 skipped.
-- **FAIL — DBB-020**: VISION.md still references phantom files: `detector/optimizer.js`, `runtime/llm.js`. Missing `engine/` directory. ARCHITECTURE.md documents the divergence but VISION.md tree not updated.
+- **FAIL — DBB-020**: VISION.md still references phantom files: `detector/optimizer.js` (line 39), `runtime/llm.js` (line 41). Missing `engine/`, `store/`, `cli/` directories. ARCHITECTURE.md documents the divergence but VISION.md tree not updated.
