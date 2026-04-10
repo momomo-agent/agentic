@@ -2,7 +2,7 @@
 // Integration test: send request + SIGINT, confirm response received
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createApp, startDrain, resetDrain, waitDrain } from '../src/server/api.js';
+import { createApp, startDrain, waitDrain } from '../src/server/api.js';
 import http from 'http';
 
 // We create the app and server manually to avoid startServer's side-effects
