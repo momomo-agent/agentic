@@ -1,11 +1,26 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 
-const CACHE_DIR = path.join(os.homedir(), '.agentic-service');
-const CACHE_FILE = path.join(CACHE_DIR, 'profiles.json');
+// Use a unique temp dir so parallel tests don't share the cache file
+let TEMP_HOME;
+let CACHE_DIR;
+let CACHE_FILE;
 const DAY = 24 * 60 * 60 * 1000;
+
+beforeAll(async () => {
+  TEMP_HOME = await fs.mkdtemp(path.join(os.tmpdir(), 'm28-cache-'));
+  CACHE_DIR = path.join(TEMP_HOME, '.agentic-service');
+  CACHE_FILE = path.join(CACHE_DIR, 'profiles.json');
+  // Mock os.homedir so profiles.js uses our temp dir
+  vi.spyOn(os, 'homedir').mockReturnValue(TEMP_HOME);
+});
+
+afterAll(async () => {
+  vi.restoreAllMocks();
+  await fs.rm(TEMP_HOME, { recursive: true, force: true });
+});
 
 async function writeCache(data, timestamp) {
   await fs.mkdir(CACHE_DIR, { recursive: true });
