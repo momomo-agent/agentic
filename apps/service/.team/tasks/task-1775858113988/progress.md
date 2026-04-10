@@ -2,8 +2,7 @@
 
 ## Status: Complete
 
-- `src/runtime/adapters/voice/kokoro.js` already exists on disk (35 lines)
+- `src/runtime/adapters/voice/kokoro.js` already existed on disk (created by prior session)
 - Exports `synthesize(text)` matching the adapter contract
-- Uses `http://localhost:8880/v1/audio/speech` (OpenAI-compatible endpoint)
-- Reads config from `~/.agentic-service/config.json` for baseUrl/voice overrides
-- All TTS tests pass: m38-tts (1/1), server/tts (6/6)
+- Fixed `test/server/tts.test.js` — added `fs` mock to isolate from real config file (was causing 2 test failures)
+- Full suite: 174/174 files pass, 981 tests passed, 0 failures
