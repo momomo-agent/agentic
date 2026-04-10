@@ -192,6 +192,53 @@ npm run test:run     # Run tests once
 npm run build        # Build Admin UI
 ```
 
+## Troubleshooting
+
+### Ollama not starting
+
+```bash
+# Check if Ollama is running
+curl http://localhost:11434/api/tags
+
+# Start Ollama manually
+ollama serve
+```
+
+If Ollama isn't installed, agentic-service will attempt to install it on first run.
+
+### Port already in use (EADDRINUSE)
+
+```bash
+# Find what's using port 1234
+lsof -i :1234
+
+# Use a different port
+agentic-service --port 3456
+```
+
+### Model download stuck
+
+- Check your network connection and proxy settings
+- Try pulling the model manually: `ollama pull <model-name>`
+- For slow connections, the download may take several minutes for larger models
+
+### Docker: can't connect to Ollama
+
+Ensure `OLLAMA_HOST` is set in your docker-compose.yml:
+
+```yaml
+environment:
+  - OLLAMA_HOST=http://host.docker.internal:11434
+```
+
+On Linux without Docker Desktop, you may need `--add-host=host.docker.internal:host-gateway`.
+
+### Out of memory / model too large
+
+- Run `agentic-service` without arguments — it auto-selects a model sized for your hardware
+- For low-memory systems, the optimizer picks smaller quantized models
+- Set a specific smaller model: `agentic-service --model gemma3:4b-q4`
+
 ## License
 
 MIT

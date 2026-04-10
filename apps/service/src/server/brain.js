@@ -5,11 +5,46 @@ import { startMark, endMark } from '../runtime/profiler.js';
 const tools = new Map();
 let _config = null;
 
+// Cloud fallback state
+let _cloudMode = false;
+let _errorCount = 0;
+let _probeTimer = null;
+const FIRST_TOKEN_TIMEOUT_MS = 5000;
+const MAX_ERRORS = 3;
+const PROBE_INTERVAL_MS = 60000;
+
 async function ensureConfig() {
   if (!_config) _config = await getConfig();
   return _config;
 }
-onConfigChange(c => { _config = c; console.log('[brain] config reloaded'); });
+onConfigChange(c => {
+  _config = c;
+  _cloudMode = false;
+  _errorCount = 0;
+  stopProbing();
+  console.log('[brain] config reloaded');
+});
+
+function startProbing() {
+  if (_probeTimer) return;
+  _probeTimer = setInterval(async () => {
+    try {
+      const config = await ensureConfig();
+      const ollamaHost = config.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+      const res = await fetch(`${ollamaHost}/api/tags`, { signal: AbortSignal.timeout(3000) });
+      if (res.ok) {
+        console.log('[brain] Ollama probe succeeded, restoring local');
+        _cloudMode = false;
+        _errorCount = 0;
+        stopProbing();
+      }
+    } catch { /* probe failed, stay in cloud mode */ }
+  }, PROBE_INTERVAL_MS);
+}
+
+function stopProbing() {
+  if (_probeTimer) { clearInterval(_probeTimer); _probeTimer = null; }
+}
 
 export function registerTool(name, fn) {
   tools.set(name, fn);
@@ -69,18 +104,62 @@ async function* chatWithTools(messages, tools) {
     throw new Error('No chat model configured — assign a model in Admin > Config');
   }
 
-  try {
-    if (primary.provider === 'ollama') {
-      yield* ollamaChat(normalized, tools, primary);
-      return;
+  // If in cloud mode or primary is not Ollama, skip Ollama attempt
+  if (_cloudMode || primary.provider !== 'ollama') {
+    if (_cloudMode) {
+      // Use fallback model when in cloud mode
+      const fallback = await resolveModel('chatFallback');
+      if (fallback) {
+        if (fallback.provider === 'ollama') {
+          yield* ollamaChat(normalized, tools, fallback);
+        } else {
+          yield* cloudChat(normalized, tools, fallback);
+        }
+        return;
+      }
     }
-    yield* cloudChat(normalized, tools, primary);
+    yield* primary.provider === 'ollama'
+      ? ollamaChat(normalized, tools, primary)
+      : cloudChat(normalized, tools, primary);
     return;
+  }
+
+  // Try Ollama with first-token timeout
+  try {
+    let gotFirstToken = false;
+    const ac = new AbortController();
+    const firstTokenTimer = setTimeout(() => {
+      if (!gotFirstToken) ac.abort();
+    }, FIRST_TOKEN_TIMEOUT_MS);
+
+    try {
+      for await (const chunk of ollamaChat(normalized, tools, primary, ac.signal)) {
+        if (!gotFirstToken) {
+          gotFirstToken = true;
+          clearTimeout(firstTokenTimer);
+          _errorCount = 0; // reset on success
+        }
+        yield chunk;
+      }
+      clearTimeout(firstTokenTimer);
+      return;
+    } finally {
+      clearTimeout(firstTokenTimer);
+    }
   } catch (err) {
-    // Try fallback
+    _errorCount++;
+    const isTimeout = err.name === 'TimeoutError' || err.name === 'AbortError';
+    console.warn(`[brain] Ollama failed (${_errorCount}/${MAX_ERRORS}): ${err.message}`);
+    if (isTimeout || _errorCount >= MAX_ERRORS) {
+      _cloudMode = true;
+      console.warn('[brain] Entering cloud fallback mode');
+      startProbing();
+    }
+
+    // Try fallback for this request
     const fallback = await resolveModel('chatFallback');
     if (fallback) {
-      console.warn(`Primary LLM failed (${err.message}), trying fallback...`);
+      console.warn(`[brain] Using fallback: ${fallback.provider}/${fallback.model}`);
       if (fallback.provider === 'ollama') {
         yield* ollamaChat(normalized, tools, fallback);
       } else {
@@ -92,18 +171,21 @@ async function* chatWithTools(messages, tools) {
   }
 }
 
-async function* ollamaChat(messages, tools, resolved) {
+async function* ollamaChat(messages, tools, resolved, externalSignal) {
   const { model, ollamaHost } = resolved;
   console.log(`[brain] ollama request: model=${model} host=${ollamaHost}`);
 
   const body = { model, messages, stream: true };
   if (tools?.length) body.tools = tools;
 
+  // Use external signal if provided, otherwise default 120s timeout
+  const signal = externalSignal || AbortSignal.timeout(120000);
+
   const response = await fetch(`${ollamaHost}/api/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(120000)
+    signal
   });
 
   if (!response.ok) throw new Error(`Ollama API error: ${response.status} (model=${model})`);

@@ -1,0 +1,10 @@
+// src/index.js — package entry point
+export { startServer, createApp, stopServer } from './server/api.js'
+export { detect } from './detector/hardware.js'
+export { getProfile } from './detector/profiles.js'
+export { matchProfile } from './detector/matcher.js'
+export { ensureOllama } from './detector/ollama.js'
+export { chat } from './server/brain.js'
+export * as stt from './runtime/stt.js'
+export * as tts from './runtime/tts.js'
+export { embed } from './runtime/embed.js'

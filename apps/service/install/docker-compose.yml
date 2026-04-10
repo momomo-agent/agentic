@@ -2,9 +2,12 @@ services:
   agentic-service:
     build: ..
     ports:
-      - "3000:3000"
+      - "1234:1234"
+    environment:
+      - OLLAMA_HOST=http://host.docker.internal:11434
     volumes:
       - config:/root/.agentic-service
+      - ./data:/app/data
     restart: unless-stopped
 
 volumes:

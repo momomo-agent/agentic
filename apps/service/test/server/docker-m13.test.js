@@ -14,9 +14,9 @@ describe('Docker deployment M13 DBB-006/007', () => {
     expect(content).toMatch(/FROM node:20-alpine/);
   });
 
-  it('Dockerfile exposes port 3000', () => {
+  it('Dockerfile exposes port 1234', () => {
     const content = readFileSync(`${ROOT}/Dockerfile`, 'utf8');
-    expect(content).toMatch(/EXPOSE 3000/);
+    expect(content).toMatch(/EXPOSE 1234/);
   });
 
   it('Dockerfile CMD starts agentic-service', () => {
@@ -28,9 +28,9 @@ describe('Docker deployment M13 DBB-006/007', () => {
     expect(existsSync(`${ROOT}/docker-compose.yml`)).toBe(true);
   });
 
-  it('docker-compose.yml maps port 3000', () => {
+  it('docker-compose.yml maps port 1234', () => {
     const content = readFileSync(`${ROOT}/docker-compose.yml`, 'utf8');
-    expect(content).toMatch(/3000:3000/);
+    expect(content).toMatch(/1234:1234/);
   });
 
   it('docker-compose.yml mounts config volume for persistence (DBB-007)', () => {

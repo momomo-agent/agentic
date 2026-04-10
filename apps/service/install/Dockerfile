@@ -5,5 +5,5 @@ COPY vendor/ ./vendor/
 COPY src/ui/admin/package*.json src/ui/admin/
 RUN npm ci && npm run build && npm prune --omit=dev
 COPY . .
-EXPOSE 3000
+EXPOSE 1234
 CMD ["node", "bin/agentic-service.js"]
