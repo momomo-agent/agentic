@@ -1,7 +1,7 @@
 {
   "milestoneId": "m97",
   "match": 100,
-  "timestamp": "2026-04-11T23:10:00.000Z",
+  "timestamp": "2026-04-11T23:50:00.000Z",
   "criteria": [
     { "criterion": "M97-1: ARCHITECTURE.md directory structure covers ≥95% of actual source files", "status": "pass" },
     { "criterion": "M97-2: ARCHITECTURE.md has no stale CR content; all implemented modules documented", "status": "pass" },
@@ -10,7 +10,7 @@
     { "criterion": "M97-5: PRD match score ≥90%", "status": "pass" },
     { "criterion": "M97-6: Fresh dbb.json evaluation run with match score recorded", "status": "pass" },
     { "criterion": "M97-7: All 4 agentic-* packages resolve from package.json deps (no import map refs in src/)", "status": "pass" },
-    { "criterion": "M97-8: Test pass rate ≥90% (current: 100% — 174/174 test files pass, 0 fail)", "status": "pass" },
+    { "criterion": "M97-8: Test pass rate ≥90% (all test files pass, 0 fail)", "status": "pass" },
     { "criterion": "M97-9: src/index.js entry point exists (package.json main field points to src/index.js)", "status": "pass" },
     { "criterion": "M97-10: README default port matches code default (1234)", "status": "pass" }
   ]

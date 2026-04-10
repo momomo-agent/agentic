@@ -1,7 +1,7 @@
 {
   "milestoneId": "m99",
   "match": 90,
-  "timestamp": "2026-04-11T23:14:00.000Z",
+  "timestamp": "2026-04-11T23:50:00.000Z",
   "criteria": [
     { "criterion": "ARCHITECTURE.md contains formal module section for src/store/index.js with get/set/del/delete, lazy init, DB path, consumer", "status": "pass" },
     { "criterion": "ARCHITECTURE.md contains formal module sections for src/runtime/embed.js, adapters/embed.js, adapters/sense.js, adapters/voice/* (7 adapters)", "status": "pass" },
