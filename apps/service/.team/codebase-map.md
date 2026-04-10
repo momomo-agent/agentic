@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — adapters/embed.js deleted from disk; kokoro.js confirmed functional (35 lines); voice adapter API signatures in ARCHITECTURE.md; all gap monitors ≥90%)
+Updated: 2026-04-11 (architect review — adapters/embed.js deleted; kokoro.js confirmed (35 lines); voice adapter API signatures in ARCHITECTURE.md; known-limitations numbering fixed; all gap monitors ≥90%)
 
 ## Technology Stack
 

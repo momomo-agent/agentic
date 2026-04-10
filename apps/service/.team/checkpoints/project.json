@@ -1,7 +1,7 @@
 {
   "workflowId": "project",
-  "nodeId": "work_loop",
-  "stepIndex": 3,
+  "nodeId": "milestone_qg",
+  "stepIndex": 5,
   "visitedNodes": [
     "startup",
     "monitor",
@@ -9,9 +9,6 @@
     "work_loop",
     "work_loop",
     "work_loop",
-    "milestone_qg",
-    "monitor",
-    "pm_decide",
     "work_loop",
     "milestone_qg",
     "monitor",
@@ -24,18 +21,23 @@
     "milestone_qg",
     "monitor",
     "pm_decide",
-    "work_loop"
+    "work_loop",
+    "milestone_qg",
+    "monitor",
+    "pm_decide",
+    "work_loop",
+    "milestone_qg"
   ],
   "loopIterations": {
-    "work_loop": 3
+    "work_loop": 2
   },
-  "transitionDepth": 22,
+  "transitionDepth": 24,
   "nodeVisitCounts": {
     "startup": 1,
     "monitor": 5,
     "pm_decide": 5,
-    "work_loop": 7,
-    "milestone_qg": 4
+    "work_loop": 8,
+    "milestone_qg": 5
   },
   "contextOverrides": {
     "refsValid": 1,
@@ -46,5 +48,5 @@
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T22:06:39.240Z"
+  "timestamp": "2026-04-10T22:15:38.832Z"
 }

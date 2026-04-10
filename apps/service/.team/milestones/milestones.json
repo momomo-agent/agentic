@@ -361,13 +361,14 @@
     {
       "id": "m100",
       "name": "M100: Runtime Safety — Fix Missing Adapter + Dead Code Cleanup",
-      "status": "active",
+      "status": "completed",
       "tasks": [
         "task-1775858113988",
         "task-1775858351181",
         "task-1775858361684"
       ],
-      "created": "2026-04-10T21:55:00.000Z"
+      "created": "2026-04-10T21:55:00.000Z",
+      "completedAt": "2026-04-10T22:15:38.599Z"
     }
   ]
 }
