@@ -1041,7 +1041,7 @@ async function toggleLiveVision() {
       await nextTick()
       if (lvVideoEl.value) lvVideoEl.value.srcObject = lvStream
       lvRunning.value = true
-      lvInterval = setInterval(captureAndDescribe, 3000)
+      lvLoop()
     } catch (e) {
       console.error('Camera error:', e)
     }
@@ -1050,8 +1050,16 @@ async function toggleLiveVision() {
 
 function stopLiveVision() {
   lvRunning.value = false
-  if (lvInterval) { clearInterval(lvInterval); lvInterval = null }
+  if (lvInterval) { clearTimeout(lvInterval); lvInterval = null }
   if (lvStream) { lvStream.getTracks().forEach(t => t.stop()); lvStream = null }
+}
+
+async function lvLoop() {
+  if (!lvRunning.value) return
+  await captureAndDescribe()
+  if (lvRunning.value) {
+    lvInterval = setTimeout(lvLoop, 3000)
+  }
 }
 
 async function captureAndDescribe() {
