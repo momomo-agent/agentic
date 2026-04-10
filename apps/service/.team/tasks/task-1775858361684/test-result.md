@@ -2,13 +2,13 @@
 
 **Tester:** tester
 **Date:** 2026-04-11
-**Test File:** `test/m100-voice-adapter-signatures.test.js`
+**Test Files:** `test/m100-voice-adapter-signatures.test.js`, `test/m100-voice-adapter-docs.test.js`
 
 ## Summary
 
-**PASS** — All 23 tests pass. ARCHITECTURE.md §11 voice adapter API signatures verified correct against source code.
+**PASS** — All 32 tests pass. ARCHITECTURE.md §11 voice adapter API signatures verified correct against source code.
 
-## Test Results (23 passed, 0 failed)
+## Test Results (32 passed, 0 failed)
 
 | # | Test | Result |
 |---|------|--------|
@@ -24,11 +24,15 @@
 | 19-21 | macos-say.js: importable, exports synthesize, listVoices | ✅ PASS |
 | 22 | §11 contains all STT adapter signature lines | ✅ PASS |
 | 23 | §11 contains all TTS adapter signature lines | ✅ PASS |
-
-## Full Suite Regression
-
-- **181 test files**, **1077 tests passed**, **0 failures**, 11 skipped
-- No regressions introduced
+| 24 | §11 Runtime Adapters section exists | ✅ PASS |
+| 25 | All STT adapters documented with transcribe signature | ✅ PASS |
+| 26 | All TTS adapters documented with synthesize signature | ✅ PASS |
+| 27 | macosSay.listVoices documented | ✅ PASS |
+| 28 | sensevoice.check and whisper.check documented | ✅ PASS |
+| 29 | All TTS adapters exist and export synthesize | ✅ PASS |
+| 30 | All STT adapters exist and export transcribe | ✅ PASS |
+| 31 | sensevoice and whisper export check() | ✅ PASS |
+| 32 | macos-say exports listVoices() | ✅ PASS |
 
 ## Adapter Signature Verification
 
