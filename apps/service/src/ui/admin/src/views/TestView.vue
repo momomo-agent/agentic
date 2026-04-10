@@ -26,9 +26,12 @@
             <span v-if="t.model" class="tag model">{{ t.model }}</span>
           </div>
           <div v-if="t.result" class="test-result">{{ t.result }}</div>
-          <button class="btn-test" @click="runTest(t)" :disabled="t.status === 'running'">
-            {{ t.status === 'running' ? '...' : '测试' }}
-          </button>
+          <div class="test-footer">
+            <button class="btn-test" @click="runTest(t)" :disabled="t.status === 'running'">
+              {{ t.status === 'running' ? '...' : '测试' }}
+            </button>
+            <span v-if="t.ms != null" class="test-time">{{ t.ms }}ms</span>
+          </div>
         </div>
       </div>
     </div>
@@ -40,29 +43,29 @@ import { ref, computed } from 'vue'
 
 const tests = ref([
   // --- System ---
-  { name: 'Health Check', method: 'GET', path: '/health', group: 'system', runtime: 'local', model: '', status: 'idle', result: '' },
-  { name: 'System Status', method: 'GET', path: '/api/status', group: 'system', runtime: 'local', model: '', status: 'idle', result: '' },
-  { name: 'Performance', method: 'GET', path: '/api/perf', group: 'system', runtime: 'local', model: '', status: 'idle', result: '' },
-  { name: 'Logs', method: 'GET', path: '/api/logs', group: 'system', runtime: 'local', model: '', status: 'idle', result: '' },
-  { name: 'Devices', method: 'GET', path: '/api/devices', group: 'system', runtime: 'local', model: '', status: 'idle', result: '' },
-  { name: 'Get Config', method: 'GET', path: '/api/config', group: 'system', runtime: 'local', model: '', status: 'idle', result: '' },
-  { name: 'Put Config', method: 'PUT', path: '/api/config', group: 'system', runtime: 'local', model: '', status: 'idle', result: '' },
+  { name: 'Health Check', method: 'GET', path: '/health', group: 'system', runtime: 'local', model: '', status: 'idle', result: '', ms: null },
+  { name: 'System Status', method: 'GET', path: '/api/status', group: 'system', runtime: 'local', model: '', status: 'idle', result: '', ms: null },
+  { name: 'Performance', method: 'GET', path: '/api/perf', group: 'system', runtime: 'local', model: '', status: 'idle', result: '', ms: null },
+  { name: 'Logs', method: 'GET', path: '/api/logs', group: 'system', runtime: 'local', model: '', status: 'idle', result: '', ms: null },
+  { name: 'Devices', method: 'GET', path: '/api/devices', group: 'system', runtime: 'local', model: '', status: 'idle', result: '', ms: null },
+  { name: 'Get Config', method: 'GET', path: '/api/config', group: 'system', runtime: 'local', model: '', status: 'idle', result: '', ms: null },
+  { name: 'Put Config', method: 'PUT', path: '/api/config', group: 'system', runtime: 'local', model: '', status: 'idle', result: '', ms: null },
 
   // --- LLM ---
-  { name: 'OpenAI Models', method: 'GET', path: '/v1/models', group: 'llm', runtime: 'local', model: 'Ollama', status: 'idle', result: '' },
-  { name: 'OpenAI Chat', method: 'POST', path: '/v1/chat/completions', group: 'llm', runtime: 'local', model: 'Ollama', status: 'idle', result: '' },
-  { name: 'Anthropic Messages', method: 'POST', path: '/v1/messages', group: 'llm', runtime: 'local', model: 'Ollama', status: 'idle', result: '' },
-  { name: 'Chat API (SSE)', method: 'POST', path: '/api/chat', group: 'llm', runtime: 'local', model: 'Ollama', status: 'idle', result: '' },
+  { name: 'OpenAI Models', method: 'GET', path: '/v1/models', group: 'llm', runtime: 'local', model: 'Ollama', status: 'idle', result: '', ms: null },
+  { name: 'OpenAI Chat', method: 'POST', path: '/v1/chat/completions', group: 'llm', runtime: 'local', model: 'Ollama', status: 'idle', result: '', ms: null },
+  { name: 'Anthropic Messages', method: 'POST', path: '/v1/messages', group: 'llm', runtime: 'local', model: 'Ollama', status: 'idle', result: '', ms: null },
+  { name: 'Chat API (SSE)', method: 'POST', path: '/api/chat', group: 'llm', runtime: 'local', model: 'Ollama', status: 'idle', result: '', ms: null },
 
   // --- Voice ---
-  { name: 'Synthesize (TTS)', method: 'POST', path: '/api/synthesize', group: 'voice', runtime: 'cloud', model: 'OpenAI TTS / ElevenLabs', status: 'idle', result: '' },
-  { name: 'TTS Alias', method: 'POST', path: '/api/tts', group: 'voice', runtime: 'cloud', model: 'OpenAI TTS / ElevenLabs', status: 'idle', result: '' },
-  { name: 'Transcribe (STT)', method: 'POST', path: '/api/transcribe', group: 'voice', runtime: 'local', model: 'SenseVoice', status: 'idle', result: '' },
-  { name: 'Voice (STT→LLM→TTS)', method: 'POST', path: '/api/voice', group: 'voice', runtime: 'local+cloud', model: 'SenseVoice → Ollama → TTS', status: 'idle', result: '' },
+  { name: 'Synthesize (TTS)', method: 'POST', path: '/api/synthesize', group: 'voice', runtime: 'cloud', model: 'OpenAI TTS / ElevenLabs', status: 'idle', result: '', ms: null },
+  { name: 'TTS Alias', method: 'POST', path: '/api/tts', group: 'voice', runtime: 'cloud', model: 'OpenAI TTS / ElevenLabs', status: 'idle', result: '', ms: null },
+  { name: 'Transcribe (STT)', method: 'POST', path: '/api/transcribe', group: 'voice', runtime: 'local', model: 'SenseVoice', status: 'idle', result: '', ms: null },
+  { name: 'Voice (STT→LLM→TTS)', method: 'POST', path: '/api/voice', group: 'voice', runtime: 'local+cloud', model: 'SenseVoice → Ollama → TTS', status: 'idle', result: '', ms: null },
 
   // --- Models ---
-  { name: 'Pull Model', method: 'POST', path: '/api/models/pull', group: 'models', runtime: 'local', model: 'Ollama', status: 'idle', result: '' },
-  { name: 'Delete Model', method: 'DELETE', path: '/api/models/dummy', group: 'models', runtime: 'local', model: 'Ollama', status: 'idle', result: '' },
+  { name: 'Pull Model', method: 'POST', path: '/api/models/pull', group: 'models', runtime: 'local', model: 'Ollama', status: 'idle', result: '', ms: null },
+  { name: 'Delete Model', method: 'DELETE', path: '/api/models/dummy', group: 'models', runtime: 'local', model: 'Ollama', status: 'idle', result: '', ms: null },
 ])
 
 const groupLabels = {
@@ -90,7 +93,9 @@ const testSummary = computed(() => {
   const fail = tests.value.filter(t => t.status === 'fail').length
   const total = tests.value.length
   if (pass + fail === 0) return ''
-  return `${pass}/${total} passed` + (fail ? `, ${fail} failed` : '')
+  const totalMs = tests.value.reduce((s, t) => s + (t.ms || 0), 0)
+  const timeStr = totalMs >= 1000 ? `${(totalMs / 1000).toFixed(1)}s` : `${totalMs}ms`
+  return `${pass}/${total} passed` + (fail ? `, ${fail} failed` : '') + ` · ${timeStr}`
 })
 
 function getTestBody(t) {
@@ -119,6 +124,8 @@ function getTestBody(t) {
 async function runTest(t) {
   t.status = 'running'
   t.result = ''
+  t.ms = null
+  const t0 = performance.now()
   try {
     const opts = { method: t.method, headers: {} }
     const body = getTestBody(t)
@@ -182,6 +189,8 @@ async function runTest(t) {
   } catch (e) {
     t.status = 'fail'
     t.result = e.message
+  } finally {
+    t.ms = Math.round(performance.now() - t0)
   }
 }
 
@@ -267,8 +276,13 @@ async function runAllTests() {
   margin: 4px 0; max-height: 60px; overflow: hidden; text-overflow: ellipsis; word-break: break-all;
 }
 .btn-test {
-  margin-top: 6px; padding: 4px 12px; border-radius: 4px; font-size: 12px;
+  padding: 4px 12px; border-radius: 4px; font-size: 12px;
   background: var(--surface-3); border: 1px solid var(--border); cursor: pointer;
 }
 .btn-test:disabled { opacity: 0.5; cursor: not-allowed; }
+.test-footer { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.test-time {
+  font-family: 'SF Mono', Monaco, monospace; font-size: 11px;
+  color: var(--text-dim); opacity: 0.8;
+}
 </style>
