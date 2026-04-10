@@ -318,7 +318,7 @@ function _guessCloudCapabilities(provider, model) {
 
 async function _readFromDisk() {
   try {
-    const raw = await fs.readFile(CONFIG_PATH, 'utf8');
+    const raw = await fs.readFile(_configPath(), 'utf8');
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
       // 兼容旧格式：setup.js 写的 { hardware, profile } 结构
@@ -335,16 +335,18 @@ async function _readFromDisk() {
 async function _writeToDisk(data) {
   const { _hardware, _profileSource, ...clean } = data;
   const json = JSON.stringify(clean, null, 2);
-  await fs.mkdir(CONFIG_DIR, { recursive: true });
-  const tmp = CONFIG_PATH + '.tmp';
+  const dir = _configDir();
+  const cfgPath = _configPath();
+  await fs.mkdir(dir, { recursive: true });
+  const tmp = cfgPath + '.tmp';
   await fs.writeFile(tmp, json);
   try {
-    await fs.rename(tmp, CONFIG_PATH);
+    await fs.rename(tmp, cfgPath);
   } catch (err) {
     if (err.code === 'ENOENT') {
-      await fs.mkdir(CONFIG_DIR, { recursive: true });
+      await fs.mkdir(dir, { recursive: true });
       await fs.writeFile(tmp, json);
-      await fs.rename(tmp, CONFIG_PATH);
+      await fs.rename(tmp, cfgPath);
     } else {
       throw err;
     }
