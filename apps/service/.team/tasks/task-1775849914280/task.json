@@ -1,7 +1,7 @@
 {
   "id": "task-1775849914280",
   "title": "Document missing modules in ARCHITECTURE.md — close 85% → 90% gap",
-  "description": "ARCHITECTURE.md has been significantly updated (store docs, embed docs, adapters section, CLI section, package entry). Remaining items:\n\n1. [STALE] Known limitation #5 (line 627) says memory.js is 待实现 but it IS implemented with 26 passing tests. Remove or update this limitation.\n2. [MINOR] profiler.js + latency-log.js have overview mention but no formal API section — add brief entries.\n3. [MINOR] sense.js full API (init/on/start/stop/detect etc.) could use a more complete listing.\n\nItem 1 is the critical blocker for closing the architecture gap. Items 2-3 are minor polish.",
+  "description": "ARCHITECTURE.md has been significantly updated (102 lines changed) and now documents most previously-missing modules. Remaining work:\n\n1. [STALE] Known limitation #5 says \"runtime/memory.js 待实现\" but memory.js IS implemented with 26 passing tests. Remove this limitation.\n\n2. Review if any remaining architecture gaps (embed.js adapters formal API section, sense.js full API) still need brief additions.\n\nThe 85% → 90% gap should close once the stale limitation is removed and a re-evaluation is triggered.",
   "status": "todo",
   "priority": "P0",
   "assignee": "architect",
@@ -9,6 +9,6 @@
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:38:34.280Z",
-  "updated": "2026-04-10T20:03:31.648Z",
+  "updated": "2026-04-10T20:03:55.140Z",
   "milestoneId": "m98"
 }

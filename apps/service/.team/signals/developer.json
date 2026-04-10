@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T20:03:46.430Z",
+  "timestamp": "2026-04-10T20:04:04.815Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No available tasks — all todo tasks with designs are assigned to architect. No unblocked, unassigned tasks with hasDesign=true exist."
+  "summary": "No claimable tasks found. 254 tasks done, 341 cancelled, 2 todo assigned to architect. Syntax check passes. Awaiting new tasks with designs."
 }
