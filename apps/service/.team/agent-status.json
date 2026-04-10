@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:16:46.004Z",
+    "lastRun": "2026-04-10T21:17:18.069Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -57,25 +57,25 @@
   },
   "vision_monitor": {
     "status": "running",
-    "lastRun": "2026-04-10T21:16:46.002Z",
+    "lastRun": "2026-04-10T21:16:51.221Z",
     "currentTask": "评估愿景匹配度",
     "retryCount": 0
   },
   "prd_monitor": {
-    "status": "running",
-    "lastRun": "2026-04-10T21:16:46.002Z",
-    "currentTask": "评估PRD匹配度",
+    "status": "idle",
+    "lastRun": "2026-04-10T21:17:16.536Z",
+    "currentTask": null,
     "retryCount": 0
   },
   "dbb_monitor": {
     "status": "running",
-    "lastRun": "2026-04-10T21:16:46.003Z",
+    "lastRun": "2026-04-10T21:16:51.222Z",
     "currentTask": "评估DBB匹配度",
     "retryCount": 0
   },
   "arch_monitor": {
     "status": "running",
-    "lastRun": "2026-04-10T21:16:46.003Z",
+    "lastRun": "2026-04-10T21:16:51.222Z",
     "currentTask": "评估架构匹配度",
     "retryCount": 0
   },
@@ -93,7 +93,7 @@
   },
   "alignment_monitor": {
     "status": "running",
-    "lastRun": "2026-04-10T21:16:46.004Z",
+    "lastRun": "2026-04-10T21:16:51.223Z",
     "currentTask": "检查层间一致性（Vision→PRD→Architecture→Tasks）",
     "retryCount": 0
   }
