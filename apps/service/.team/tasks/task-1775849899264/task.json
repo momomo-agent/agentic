@@ -2,12 +2,12 @@
   "id": "task-1775849899264",
   "title": "Fix m28-profiles-cache.test.js — cache timestamp not updated after fetch (regression)",
   "description": "STILL FAILING — 1 test in test/m28-profiles-cache.test.js:\\n\\nFAIL: 'updates cache timestamp after successful fetch'\\nAssertionError: expected 1775158639329 to be greater than or equal to 1775849839330\\n\\nThe test creates an expired cache (>7 days old), calls getProfile(), and expects the cache file to be rewritten with a fresh timestamp. But the timestamp in the written file is still the old value (1775158639329), not a new Date.now().\\n\\nThis means profiles.js IS fetching (test 1 passes now) but is NOT updating the timestamp when writing the refreshed cache. Check the cache write path in profiles.js — after a successful remote fetch, the written JSON must include timestamp: Date.now(), not the old cached timestamp.\\n\\nPrevious task (task-1775847933739) was marked done but this test still fails.",
-  "status": "review",
+  "status": "done",
   "priority": "P0",
   "assignee": null,
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": false,
   "created": "2026-04-10T19:38:19.265Z",
-  "updated": "2026-04-10T19:38:58.474Z"
+  "updated": "2026-04-10T19:39:08.322Z"
 }
