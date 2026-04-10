@@ -1,7 +1,7 @@
 # Module Design: Store（KV 存储）
 
 **ARCHITECTURE.md Section:** Store (currently undocumented — see task-1775849914280 item #1)
-**Status:** draft
+**Status:** ready-for-review
 
 ## Overview
 
