@@ -9,17 +9,18 @@
     "work_loop",
     "work_loop",
     "work_loop",
+    "work_loop",
     "work_loop"
   ],
   "loopIterations": {
-    "work_loop": 22
+    "work_loop": 2
   },
-  "transitionDepth": 7,
+  "transitionDepth": 8,
   "nodeVisitCounts": {
     "startup": 1,
     "monitor": 1,
     "pm_decide": 1,
-    "work_loop": 4
+    "work_loop": 5
   },
   "contextOverrides": {
     "refsValid": 1,
@@ -30,5 +31,5 @@
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T21:07:44.602Z"
+  "timestamp": "2026-04-10T21:08:00.964Z"
 }
