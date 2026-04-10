@@ -24,8 +24,8 @@ describe('M98: dead import maps removed from package.json', () => {
     expect(imports).not.toHaveProperty('#agentic-voice')
   })
 
-  it('package.json still has #agentic-embed in imports', () => {
-    expect(imports).toHaveProperty('#agentic-embed')
+  it('package.json does NOT have #agentic-embed in imports', () => {
+    expect(imports).not.toHaveProperty('#agentic-embed')
   })
 
   it('no source files reference #agentic-voice', () => {
