@@ -27,6 +27,7 @@ const DEFAULTS = {
 
 let _cache = null;
 const _listeners = new Set();
+let _writeQueue = Promise.resolve();
 
 /**
  * 读取当前配置（带缓存）

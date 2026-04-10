@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — 171/173 test files pass, 970/983 tests pass; 2 failures: config-persistence ENOENT + api-m6 port collision)
+Updated: 2026-04-11 (architect review — 173/173 test files pass, 972/983 tests pass, 11 skipped; all tests green)
 
 ## Technology Stack
 
@@ -19,7 +19,7 @@ bin/
 
 src/
   index.js                    (10 lines)  Package entry — re-exports startServer/detect/getProfile/matchProfile
-  config.js                   (341 lines) Unified config center — getConfig/setConfig/watchConfig/loadConfig/model pool
+  config.js                   (352 lines) Unified config center — getConfig/setConfig/watchConfig/loadConfig/model pool
 
   cli/
     setup.js                  (253 lines) First-run wizard — hardware detect, profile match, Ollama install
@@ -78,6 +78,22 @@ src/
   ui/
     admin/                    Admin dashboard (Vue 3 + Vite)
       src/App.vue             (101 lines) Router + sidebar layout
+      src/main.js             (5 lines)   Vue app mount
+      src/components/
+        ConfigPanel.vue       (30 lines)  LLM/STT/TTS config editor
+        DeviceList.vue        (23 lines)  Connected device table
+        HardwarePanel.vue     (11 lines)  Hardware info display
+        LogViewer.vue         (14 lines)  Scrollable log viewer
+        SystemStatus.vue      (22 lines)  System status summary
+      src/views/
+        StatusView.vue        (318 lines) Dashboard overview
+        ConfigView.vue        (223 lines) Config management
+        ModelsView.vue        (307 lines) Model management
+        LocalModelsView.vue   (308 lines) Local model browser
+        CloudModelsView.vue   (276 lines) Cloud model browser
+        LogsView.vue          (136 lines) Log viewer
+        TestView.vue          (288 lines) API test console
+        ExamplesView.vue      (2485 lines) Usage examples
       src/main.js             Vue app bootstrap
       src/components/         ConfigPanel, DeviceList, HardwarePanel, LogViewer, SystemStatus
       src/views/              CloudModelsView, ConfigView, ExamplesView, LocalModelsView, LogsView, ModelsView, StatusView, TestView
@@ -142,12 +158,20 @@ src/store/index.js  → agentic-store
 | selfsigned | HTTPS cert generation | ^1.10.14 |
 | node-record-lpcm16 | Microphone recording | ^1.0.1 |
 
+## External Package APIs (verified from node_modules source)
+
+| Package | Exports | Usage in Service |
+|---------|---------|-----------------|
+| agentic-embed | `create(opts)`, `chunkText(text, opts)`, `cosineSimilarity(a, b)`, `localEmbed(text)` | runtime/embed.js → `localEmbed(text)` |
+| agentic-sense | `AgenticSense(videoEl)`, `AgenticAudio`, `IDX`, `extractFrame(video)` | adapters/sense.js → `new AgenticSense()` |
+| agentic-store | `createStore(name)` → `{get, set, delete, keys, clear, exec, run, all}` | store/index.js → `createStore()` |
+| agentic-voice | `createSTT(opts)`, `createTTS(opts)`, `createVoice(opts)` | stt.js/tts.js → adapters use these |
+
 ## Test Status
 
-- **173 test files, 171 passing, 2 failing** — 970 tests passed, 11 skipped (run 2026-04-11)
-- Failing: `config-persistence.test.js` (ENOENT on atomic rename), `api-m6.test.js` (port 3401 collision)
+- **173 test files, 173 passing** — 972 tests passed, 11 skipped (run 2026-04-11)
 - Vitest coverage thresholds: 98% (statements/lines/branches/functions)
-- All previously failing tests fixed: profiles-edge-cases, m21-profiles, m76-embed-wiring, m77-sense-imports, m62-sigint, m28-profiles-cache
+- All previously failing tests fixed
 
 ## Known Issues (from gap analysis)
 
@@ -174,8 +198,7 @@ src/store/index.js  → agentic-store
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CRs submitted
-- `config-persistence.test.js` — ENOENT on atomic rename (developer task exists)
-- `api-m6.test.js` — port 3401 collision in test isolation
+- 3 in-progress developer tasks: config-persistence JSON parse, rapid PUTs 500, hardware detector timing flaky
 
 ### Architecture Notes (Vision references that map to different files)
 - Full mapping table now in ARCHITECTURE.md "Vision 架构映射" section

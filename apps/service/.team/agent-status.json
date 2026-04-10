@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "running",
-    "lastRun": "2026-04-10T20:29:10.744Z",
+    "lastRun": "2026-04-10T20:32:48.050Z",
     "currentTask": "管理任务和里程碑",
     "retryCount": 1
   },
@@ -25,7 +25,7 @@
   },
   "developer": {
     "status": "idle",
-    "lastRun": "2026-04-10T20:29:29.751Z",
+    "lastRun": "2026-04-10T20:33:06.776Z",
     "currentTask": null,
     "retryCount": 2
   },
@@ -80,14 +80,14 @@
     "retryCount": 0
   },
   "architect": {
-    "status": "idle",
-    "lastRun": "2026-04-10T20:28:09.554Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-10T20:30:08.374Z",
+    "currentTask": "设计系统架构",
     "retryCount": 0
   },
   "tech_lead": {
     "status": "idle",
-    "lastRun": "2026-04-10T20:29:08.214Z",
+    "lastRun": "2026-04-10T20:32:47.012Z",
     "currentTask": null,
     "retryCount": 0
   },

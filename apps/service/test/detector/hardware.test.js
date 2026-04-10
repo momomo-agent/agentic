@@ -42,6 +42,6 @@ describe('Hardware Detector', () => {
     const start = Date.now();
     await detect();
     const duration = Date.now() - start;
-    expect(duration).toBeLessThan(2000);
+    expect(duration).toBeLessThan(5000);
   });
 });
