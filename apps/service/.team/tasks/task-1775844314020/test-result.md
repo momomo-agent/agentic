@@ -44,6 +44,12 @@ return vector
 - Package entry point (src/index.js → embed.js) will fail when actually loaded
 - Tests pass only because they mock agentic-embed
 
+## Re-verified 2026-04-11
+
+- `vitest --run test/m98-embed-build-fix.test.js` — 1/4 pass, 3/4 fail (confirmed)
+- `node -e 'require("./src/index.js").embed("hello").then(console.log).catch(e => { console.log("ERROR:", e.message); process.exit(1) })'` — `ERROR: texts.map is not a function` (confirmed)
+- Source file `src/runtime/embed.js` still contains unfixed code
+
 ## Action Required
 
-Developer must apply the fix from design.md to src/runtime/embed.js.
+Developer must apply the fix from design.md to src/runtime/embed.js. Moving task to **blocked**.
