@@ -1,6 +1,6 @@
 {
   "workflowId": "developer",
-  "nodeId": "self-verify-test",
+  "nodeId": "commit",
   "stepIndex": 0,
   "visitedNodes": [
     "read-spec",
@@ -12,15 +12,17 @@
     "self-verify-test",
     "implement",
     "self-verify-build",
-    "self-verify-test"
+    "self-verify-test",
+    "commit"
   ],
   "loopIterations": {},
-  "transitionDepth": 10,
+  "transitionDepth": 11,
   "nodeVisitCounts": {
     "read-spec": 1,
     "implement": 3,
     "self-verify-build": 3,
-    "self-verify-test": 3
+    "self-verify-test": 3,
+    "commit": 1
   },
   "contextOverrides": {
     "refsValid": 1,
@@ -31,5 +33,5 @@
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T20:39:49.011Z"
+  "timestamp": "2026-04-10T20:40:04.579Z"
 }
