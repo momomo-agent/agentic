@@ -83,7 +83,7 @@ export async function synthesize(text)      // line 61 — returns audio buffer
 const ADAPTERS = {
   'macos-say': () => import('./adapters/voice/macos-say.js'),
   piper:       () => import('./adapters/voice/piper.js'),
-  kokoro:      () => import('./adapters/voice/kokoro.js'),
+  kokoro:      () => import('./adapters/voice/kokoro.js'),  // ⚠️ FILE MISSING — will throw at runtime, falls back to default
   elevenlabs:  () => import('./adapters/voice/elevenlabs.js'),
   openai:      () => import('./adapters/voice/openai-tts.js'),
   default:     () => import('./adapters/voice/openai-tts.js'),

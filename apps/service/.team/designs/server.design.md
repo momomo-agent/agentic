@@ -6,12 +6,13 @@
 ## Verified Exports (from src/server/api.js)
 
 ```javascript
-export function startDrain()                          // line 40
-export function waitDrain(timeout = 10_000)           // line 42
-export function createRouter()                        // line 563
-export function createApp()                           // line 569
-export async function startServer(port = 3000, opts)  // line 594
-export function stopServer(server)                    // line 657
+export function startDrain()                          // line 41
+export function resetDrain()                          // line 42
+export function waitDrain(timeout = 10_000)           // line 44
+export function createRouter()                        // line 712
+export function createApp()                           // line 718
+export async function startServer(port = 3000, { https: useHttps = false } = {})  // line 743
+export function stopServer(server)                    // line 809
 ```
 
 ## Internal Dependencies

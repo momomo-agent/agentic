@@ -98,6 +98,7 @@ src/
     tts.js                     # 语音合成（多提供商自适应）
     sense.js                   # 视觉感知（agentic-sense 封装）
     embed.js                   # 向量嵌入（agentic-embed 封装）
+    memory.js                  # ⚠️ 未实现 — 需要: search(query, topK) + add() 基于 store + embed
     profiler.js                # CPU 性能分析 — startMark/endMark/getMetrics
     latency-log.js             # 延迟记录 — record(label, ms)/getLog()
     vad.js                     # 语音活动检测（RMS 能量阈值）
@@ -241,6 +242,12 @@ stopWakeWordPipeline() → void
 
 // runtime/embed.js
 embed(text) → number[]        // 委托 agentic-embed
+
+// runtime/memory.js — ⚠️ 未实现
+// 需要实现: 基于 store/index.js (KV) + runtime/embed.js (向量) 的语义记忆模块
+// add(text, metadata?) → Promise<void>     // 嵌入文本 → 存入向量索引
+// search(query, topK=5) → Promise<Array<{ text, score, metadata }>>  // 语义搜索
+// 依赖: store/index.js, runtime/embed.js
 
 // runtime/profiler.js
 startMark(label) → void
@@ -567,3 +574,5 @@ docker-compose up
 2. **adapters/embed.js 是死代码** — 抛出 'not implemented'，实际嵌入通过 runtime/embed.js → agentic-embed 包。
 3. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
 4. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
+5. **runtime/memory.js 未实现** — PRD 要求 search(query, topK) + add() 语义记忆模块，基于 agentic-store + agentic-embed。store/index.js (KV) 和 runtime/embed.js (向量嵌入) 已就绪，但组合记忆模块尚未创建。
+6. **detector/optimizer.js 未实现** — VISION.md 中列出的独立优化器模块不存在。其功能由 profiles.js + matcher.js + config.js 三者协作实现（见模型选择流程说明）。

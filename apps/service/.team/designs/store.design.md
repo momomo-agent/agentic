@@ -53,8 +53,9 @@ async function getStore() {
 
 ## Consumers
 
-- `src/runtime/memory.js` — uses `get/set/del` for memory index + entries (key prefix `mem:`)
-- `src/server/brain.js` — indirect via memory.js
+- `src/server/brain.js` — indirect (if memory layer is implemented in future)
+
+⚠️ Note: `src/runtime/memory.js` does NOT exist. No current consumer of store/index.js has been verified in the codebase.
 
 ## Constraints
 
