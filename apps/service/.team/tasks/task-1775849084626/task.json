@@ -2,12 +2,12 @@
   "id": "task-1775849084626",
   "title": "Fix m21-profiles.test.js — loadBuiltinProfiles fails under fs mock",
   "description": "2 tests failing in test/m21-profiles.test.js (DBB-001 and DBB-002). Both throw 'No matching profile found' because loadBuiltinProfiles() returns { profiles: [] } when fs/promises is mocked. The test mocks readFile to throw for .agentic-service paths and delegates to actual.readFile for others, but loadBuiltinProfiles() uses new URL('../../profiles/default.json', import.meta.url) which produces a file:// URL — the mocked readFile may not handle this correctly, causing the catch block to return empty profiles. Fix options: (a) fix the test mock to properly pass through non-cache readFile calls with URL objects, or (b) adjust loadBuiltinProfiles to use a string path instead of URL. Error log: test/m21-profiles.test.js:34 and :61 — Error: No matching profile found at matcher.js:18",
-  "status": "testing",
+  "status": "done",
   "priority": "P1",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:24:44.627Z",
-  "updated": "2026-04-10T19:28:05.385Z"
+  "updated": "2026-04-10T19:29:03.834Z"
 }
