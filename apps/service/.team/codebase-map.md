@@ -47,7 +47,7 @@ src/
     sense.js                  (120 lines) Visual perception — detect(frame), start()/stop(), startHeadless(), startWakeWordPipeline()
     embed.js                  (9 lines)   Vector embedding — embed(text) via agentic-embed
     memory.js               (58 lines)  Semantic memory — add(text, metadata), search(query, topK), remove(id), clear(); uses store + embed
-    profiler.js               (29 lines)  CPU profiling — startMark/endMark/getMetrics
+    profiler.js               (29 lines)  CPU profiling — startMark/endMark(→ms)/getMetrics(→{last,avg,count})/measurePipeline
     latency-log.js            (17 lines)  Latency recording — record(stage, ms), p95(stage), reset()
     vad.js                    (9 lines)   Voice activity detection — createVAD(options), detectVoiceActivity(buffer)
     adapters/
