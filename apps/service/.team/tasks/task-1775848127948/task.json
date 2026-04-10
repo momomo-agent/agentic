@@ -2,13 +2,13 @@
   "id": "task-1775848127948",
   "title": "Remove stale ARCHITECTURE.md known limitation #4 — root Dockerfile already fixed",
   "description": "ARCHITECTURE.md 已知限制 #4 says '根 Dockerfile EXPOSE 3000 — 应为 1234'. This is already fixed (Dockerfile line 13: EXPOSE 1234, commit da942ee7). Remove this limitation entry.",
-  "status": "todo",
+  "status": "done",
   "priority": "P1",
   "assignee": "architect",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:08:47.948Z",
-  "updated": "2026-04-10T19:14:26.805Z",
+  "updated": "2026-04-10T19:15:59.088Z",
   "milestoneId": "m98"
 }
