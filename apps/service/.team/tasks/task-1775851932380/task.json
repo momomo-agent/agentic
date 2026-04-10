@@ -3,11 +3,11 @@
   "title": "Fix config persistence — api-layer and api-m2 tests failing",
   "description": "Two config persistence tests are failing:\\n\\n1. test/server/api-layer.test.js:52 — PUT /api/config then GET /api/config does not return the saved testKey\\n2. test/server/api-m2.test.js:83 — config file on disk contains malformed JSON (SyntaxError: Unexpected non-whitespace character after JSON at position 348 line 20 column 2)\\n\\nBoth failures suggest the config write path is producing invalid JSON on disk. Investigate src/server/api.js PUT /api/config handler and the config persistence mechanism. The JSON file is likely being appended to rather than overwritten, or multiple writes are racing.\\n\\nError from latest-test.log:\\n```\\nFAIL test/server/api-layer.test.js > api-layer > PUT then GET /api/config round-trips\\nexpect(body.testKey).toBe(cfg.testKey)\\n\\nFAIL test/server/api-m2.test.js > GET /api/config — persistence > config persists on disk as JSON\\nSyntaxError: Unexpected non-whitespace character after JSON at position 348\\n```\\n\\nFix the config write to produce valid JSON and ensure round-trip works.",
   "status": "todo",
-  "priority": "P1",
-  "assignee": null,
+  "priority": "P0",
+  "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": false,
   "created": "2026-04-10T20:12:12.380Z",
-  "updated": "2026-04-10T20:12:12.381Z"
+  "updated": "2026-04-10T20:12:24.328Z"
 }
