@@ -1,7 +1,7 @@
 {
   "id": "task-1775793599594",
   "title": "Clean up ARCHITECTURE.md — remove stale content + update directory tree",
-  "description": "ARCHITECTURE.md cleanup (port 3000→1234 already fixed). Remaining: (1) Directory tree only lists ~14 src/ files but 20+ exist (missing: embed.js, vad.js, profiler.js, latency-log.js, store/index.js, adapters/*, cli/*, tunnel.js, cert.js, httpsServer.js, middleware.js), (2) Document src/store/index.js module (flagged as missing in architecture gaps), (3) Document src/runtime/embed.js and adapters/ as formal module sections (flagged as partial). These are the top architecture gaps blocking 85%→90%.",
+  "description": "CRITICAL for architecture 85%→90%. ARCHITECTURE.md cleanup: (1) Directory tree only lists ~14 src/ files but 20+ exist — add missing: embed.js, vad.js, profiler.js, latency-log.js, store/index.js, adapters/*, cli/*, tunnel.js, cert.js, httpsServer.js, middleware.js, sox.js, download-state.js. (2) Document src/store/index.js module (KV storage wrapper using agentic-store with get/set/del/delete exports). (3) Document src/runtime/embed.js and src/runtime/adapters/ as formal module sections. (4) Remove any stale CR content from lines 191-252 if still present. These are the top architecture gaps blocking 85%→90%.",
   "status": "todo",
   "priority": "P0",
   "assignee": "architect",
@@ -9,6 +9,6 @@
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T03:59:59.594Z",
-  "updated": "2026-04-10T17:12:28.463Z",
+  "updated": "2026-04-10T17:15:47.618Z",
   "milestoneId": "m98"
 }

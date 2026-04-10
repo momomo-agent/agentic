@@ -14,6 +14,18 @@ vi.mock('../../src/detector/hardware.js', () => ({
 }));
 vi.mock('../../src/runtime/stt.js', () => ({ init: vi.fn(), transcribe: vi.fn() }));
 vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() }));
+
+// Mock config to avoid filesystem race conditions with other test files
+let _store = {};
+vi.mock('../../src/config.js', async (importOriginal) => {
+  const orig = await importOriginal();
+  return {
+    ...orig,
+    getConfig: async () => ({ ..._store }),
+    setConfig: async (updates) => { Object.assign(_store, updates); },
+    reloadConfig: async () => ({ ..._store }),
+  };
+});
 vi.mock('multer', () => {
   const m = () => ({ single: () => (req, _res, next) => { req.file = req._mockFile; next(); } });
   m.memoryStorage = () => ({});
@@ -30,6 +42,7 @@ let server, base;
 
 beforeEach(() => new Promise((resolve, reject) => {
   vi.resetAllMocks();
+  _store = {};
   chat.mockImplementation(async function* () {});
   const port = 3700 + Math.floor(Math.random() * 200);
   server = createApp().listen(port);
