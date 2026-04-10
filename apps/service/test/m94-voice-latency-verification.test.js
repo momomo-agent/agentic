@@ -19,11 +19,9 @@ test('m94: tts.js wraps synthesize with profiler startMark/endMark', () => {
 });
 
 test('m94: llm.js or brain.js wraps chat with profiler startMark/endMark', () => {
-  const llmSrc = readFileSync(new URL('../src/runtime/llm.js', import.meta.url), 'utf8');
   const brainSrc = readFileSync(new URL('../src/server/brain.js', import.meta.url), 'utf8');
-  const hasLlmProfiler = llmSrc.includes("startMark('llm')") && llmSrc.includes("endMark('llm')");
   const hasBrainProfiler = brainSrc.includes("startMark('llm')") && brainSrc.includes("endMark('llm')");
-  assert.ok(hasLlmProfiler || hasBrainProfiler, 'Either llm.js or brain.js must profile llm stage');
+  assert.ok(hasBrainProfiler, 'brain.js must profile llm stage');
 });
 
 // ─── DBB 3.2: Latency-log.js records per-stage latency ───

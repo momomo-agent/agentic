@@ -4,6 +4,10 @@ vi.mock('../../src/server/brain.js', () => ({ chat: vi.fn() }));
 vi.mock('../../src/server/hub.js', () => ({
   getDevices: vi.fn().mockReturnValue([]),
   initWebSocket: vi.fn(),
+  startWakeWordDetection: vi.fn(),
+  broadcastWakeword: vi.fn(),
+  setSessionData: vi.fn(),
+  broadcastSession: vi.fn(),
 }));
 vi.mock('../../src/detector/hardware.js', () => ({
   detect: vi.fn().mockResolvedValue({ platform: 'darwin', arch: 'arm64', gpu: {}, memory: 16, cpu: {} }),
@@ -101,13 +105,13 @@ describe('POST /api/synthesize', () => {
 
 // DBB-004: GET /api/status
 describe('GET /api/status', () => {
-  it('returns hardware, profile, devices fields', async () => {
+  it('returns hardware, config, devices fields', async () => {
     getDevices.mockReturnValue([{ id: 'dev-1' }]);
     const res = await json('GET', '/api/status');
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveProperty('hardware');
-    expect(body).toHaveProperty('profile');
+    expect(body).toHaveProperty('config');
     expect(body).toHaveProperty('devices');
     expect(Array.isArray(body.devices)).toBe(true);
   });

@@ -2,8 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('../../src/runtime/adapters/voice/openai-whisper.js', () => ({ transcribe: vi.fn(async () => 'openai-whisper result') }))
 vi.mock('../../src/runtime/adapters/voice/openai-tts.js',    () => ({ synthesize: vi.fn(async () => Buffer.from('openai-tts')) }))
-vi.mock('../../src/runtime/adapters/voice/kokoro.js',        () => ({ synthesize: vi.fn(async () => Buffer.from('kokoro')) }))
-vi.mock('../../src/runtime/adapters/voice/piper.js',         () => ({ synthesize: vi.fn(async () => Buffer.from('piper')) }))
+// Simulate adapters not installed — throw on import to force fallback
+vi.mock('../../src/runtime/adapters/voice/kokoro.js',        () => { throw new Error('kokoro not installed') })
+vi.mock('../../src/runtime/adapters/voice/piper.js',         () => { throw new Error('piper not installed') })
+vi.mock('../../src/runtime/adapters/voice/macos-say.js',     () => { throw new Error('macos-say not available') })
+vi.mock('../../src/runtime/adapters/voice/sensevoice.js',    () => { throw new Error('sensevoice not available') })
+vi.mock('../../src/runtime/adapters/voice/whisper.js',       () => { throw new Error('whisper not available') })
 
 let profileData = { stt: { provider: 'default' }, tts: { provider: 'default' } }
 vi.mock('../../src/detector/profiles.js', () => ({

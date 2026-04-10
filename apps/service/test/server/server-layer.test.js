@@ -3,6 +3,18 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+vi.mock('../../src/config.js', () => ({
+  getConfig: vi.fn(async () => ({
+    llm: { provider: 'ollama', model: 'test-model' },
+    ollamaHost: 'http://localhost:11434',
+    assignments: { chat: null, chatFallback: null },
+    modelPool: [],
+  })),
+  getModelPool: vi.fn(async () => []),
+  getAssignments: vi.fn(async () => ({ chat: null, chatFallback: null })),
+  onConfigChange: vi.fn(),
+}));
+
 // ── hub.js ───────────────────────────────────────────────────────────────────
 import { registerDevice, unregisterDevice, getDevices } from '../../src/server/hub.js';
 

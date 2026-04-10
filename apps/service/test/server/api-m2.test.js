@@ -3,10 +3,12 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 
-vi.mock('../../src/runtime/llm.js', () => ({ chat: vi.fn() }));
+vi.mock('../../src/server/brain.js', () => ({ chat: vi.fn() }));
 vi.mock('../../src/detector/hardware.js', () => ({
   detect: vi.fn().mockResolvedValue({ platform: 'darwin', arch: 'arm64', gpu: {}, memory: 16, cpu: {} })
 }));
+vi.mock('../../src/runtime/stt.js', () => ({ init: vi.fn(), transcribe: vi.fn() }));
+vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() }));
 
 import { startServer } from '../../src/server/api.js';
 
@@ -59,33 +61,37 @@ describe('GET /api/config — persistence', () => {
     const res = await req('GET', '/api/config');
     expect(res.status).toBe(200);
     const config = await res.json();
-    expect(config.llm.provider).toBe('ollama');
-    expect(config.llm.model).toBe('gemma2:2b');
+    // Default config has modelPool and assignments, not llm.provider
+    expect(config).toHaveProperty('modelPool');
+    expect(config).toHaveProperty('assignments');
   });
 
-  it('PUT then GET returns same value', async () => {
+  it('PUT then GET returns merged value', async () => {
     const config = { model: 'llama3', temperature: 0.7 };
     const put = await req('PUT', '/api/config', config);
     expect(put.status).toBe(200);
     expect(await put.json()).toEqual({ ok: true });
 
     const get = await req('GET', '/api/config');
-    expect(await get.json()).toEqual(config);
+    expect(await get.json()).toMatchObject(config);
   });
 
   it('config persists on disk as JSON', async () => {
     const config = { key: 'value' };
     await req('PUT', '/api/config', config);
     const raw = await fs.readFile(CONFIG_PATH, 'utf8');
-    expect(JSON.parse(raw)).toEqual(config);
+    expect(JSON.parse(raw)).toMatchObject(config);
   });
 
   it('GET returns default config after config file is deleted', async () => {
     await req('PUT', '/api/config', { x: 1 });
     await fs.rm(CONFIG_PATH, { force: true });
+    // Force config cache to reload
+    const { reloadConfig } = await import('../../src/config.js');
+    await reloadConfig();
     const res = await req('GET', '/api/config');
     const config = await res.json();
-    expect(config.llm.provider).toBe('ollama');
+    expect(config).toHaveProperty('modelPool');
   });
 });
 

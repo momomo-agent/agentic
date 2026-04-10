@@ -17,11 +17,7 @@ describe('bin - DBB-005/006/007: npx one-click install flow', () => {
     await expect(openBrowser('http://localhost:3000')).resolves.not.toThrow();
   });
 
-  it('DBB-006: pullModel progress callback receives increasing percent', async () => {
-    const { setupOllama } = await import('../../src/detector/optimizer.js');
-    // Just verify the module exports the function (integration tested via optimizer)
-    expect(typeof setupOllama).toBe('function');
-  });
+  // optimizer.js was removed — setupOllama no longer exists as a separate export
 
   it('DBB-003: profiles.js falls back to local on CDN 404', async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 });

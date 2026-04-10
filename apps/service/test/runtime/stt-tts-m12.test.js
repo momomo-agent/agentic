@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('../../src/runtime/adapters/voice/openai-whisper.js', () => ({ transcribe: vi.fn(async () => 'ow') }))
 vi.mock('../../src/runtime/adapters/voice/openai-tts.js',    () => ({ synthesize: vi.fn(async () => Buffer.from('ot')) }))
+// Simulate sensevoice/whisper not available — throw on import to force fallback
+vi.mock('../../src/runtime/adapters/voice/sensevoice.js', () => { throw new Error('sensevoice not available') })
+vi.mock('../../src/runtime/adapters/voice/whisper.js', () => { throw new Error('whisper not available') })
+vi.mock('../../src/runtime/adapters/voice/macos-say.js', () => { throw new Error('macos-say not available') })
+vi.mock('../../src/runtime/adapters/voice/kokoro.js', () => { throw new Error('kokoro not available') })
 
 let profileData = { stt: { provider: 'default' }, tts: { provider: 'default' } }
 vi.mock('../../src/detector/profiles.js', () => ({

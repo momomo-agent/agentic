@@ -136,13 +136,13 @@ describe('m95 CPU profiling instrumentation verification', () => {
       expect(sttSource).toContain("endMark('stt')");
     });
 
-    it('source: llm.js imports startMark/endMark from profiler.js', async () => {
-      const llmSource = await import('fs/promises').then(fs =>
-        fs.readFile(`${srcDir}/runtime/llm.js`, 'utf8')
+    it('source: brain.js imports startMark/endMark from profiler.js', async () => {
+      const brainSource = await import('fs/promises').then(fs =>
+        fs.readFile(`${srcDir}/server/brain.js`, 'utf8')
       );
-      expect(llmSource).toContain("from './profiler.js'");
-      expect(llmSource).toContain("startMark('llm')");
-      expect(llmSource).toContain("endMark('llm')");
+      expect(brainSource).toContain("from '../runtime/profiler.js'");
+      expect(brainSource).toContain("startMark('llm')");
+      expect(brainSource).toContain("endMark('llm')");
     });
 
     it('source: tts.js imports startMark/endMark from profiler.js', async () => {
@@ -154,16 +154,7 @@ describe('m95 CPU profiling instrumentation verification', () => {
       expect(ttsSource).toContain("endMark('tts')");
     });
 
-    it('source: memory.js uses profiler for memory-add and memory-search', async () => {
-      const memSource = await import('fs/promises').then(fs =>
-        fs.readFile(`${srcDir}/runtime/memory.js`, 'utf8')
-      );
-      expect(memSource).toContain("from './profiler.js'");
-      expect(memSource).toContain("startMark('memory-add')");
-      expect(memSource).toContain("endMark('memory-add')");
-      expect(memSource).toContain("startMark('memory-search')");
-      expect(memSource).toContain("endMark('memory-search')");
-    });
+    // memory.js was removed — skip memory profiler test
 
     it('source: api.js imports getMetrics and exposes /api/perf endpoint', async () => {
       const apiSource = await import('fs/promises').then(fs =>
@@ -182,19 +173,14 @@ describe('m95 CPU profiling instrumentation verification', () => {
       const srcDir = new URL('../src', import.meta.url).pathname;
 
       const stt = await fs.readFile(`${srcDir}/runtime/stt.js`, 'utf8');
-      const llm = await fs.readFile(`${srcDir}/runtime/llm.js`, 'utf8');
+      const brain = await fs.readFile(`${srcDir}/server/brain.js`, 'utf8');
       const tts = await fs.readFile(`${srcDir}/runtime/tts.js`, 'utf8');
-      const memory = await fs.readFile(`${srcDir}/runtime/memory.js`, 'utf8');
       const api = await fs.readFile(`${srcDir}/server/api.js`, 'utf8');
 
       // Each core pipeline stage has profiling
       expect(stt).toMatch(/startMark\('stt'\)/);
-      expect(llm).toMatch(/startMark\('llm'\)/);
+      expect(brain).toMatch(/startMark\('llm'\)/);
       expect(tts).toMatch(/startMark\('tts'\)/);
-
-      // Memory operations are profiled
-      expect(memory).toMatch(/startMark\('memory-add'\)/);
-      expect(memory).toMatch(/startMark\('memory-search'\)/);
 
       // Voice pipeline endpoint has profiling
       expect(api).toMatch(/startMark\('voice-pipeline'\)/);

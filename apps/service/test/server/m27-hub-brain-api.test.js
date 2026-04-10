@@ -72,12 +72,12 @@ describe('DBB-010: POST /api/chat returns SSE stream', () => {
 
 // DBB-011
 describe('DBB-011: GET /api/status returns hardware and devices', () => {
-  it('returns JSON with hardware, profile, devices fields', async () => {
+  it('returns JSON with hardware, config, devices fields', async () => {
     const res = await fetch(`${baseUrl}/api/status`);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveProperty('hardware');
-    expect(body).toHaveProperty('profile');
+    expect(body).toHaveProperty('config');
     expect(body).toHaveProperty('devices');
   });
 });

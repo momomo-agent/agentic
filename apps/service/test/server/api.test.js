@@ -99,12 +99,12 @@ describe('HTTP Server', () => {
   });
 
   describe('GET /api/status', () => {
-    it('returns hardware, profile, ollama fields', async () => {
+    it('returns hardware, config, ollama fields', async () => {
       const res = await req('GET', '/api/status');
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body).toHaveProperty('hardware');
-      expect(body).toHaveProperty('profile');
+      expect(body).toHaveProperty('config');
       expect(body).toHaveProperty('ollama');
       expect(body.ollama).toHaveProperty('running');
       expect(body.ollama).toHaveProperty('models');
@@ -155,7 +155,7 @@ describe('HTTP Server', () => {
       const config = { llm: { model: 'llama3' }, theme: 'dark' };
       await req('PUT', '/api/config', config);
       const res = await req('GET', '/api/config');
-      expect(await res.json()).toEqual(config);
+      expect(await res.json()).toMatchObject(config);
     });
   });
 

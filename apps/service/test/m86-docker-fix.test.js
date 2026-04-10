@@ -6,12 +6,12 @@ const ROOT = resolve(import.meta.dirname, '..');
 const INSTALL = resolve(ROOT, 'install');
 
 describe('M86: Docker fix — agentic-* local package resolution', () => {
-  it('package.json uses file: references for all agentic-* deps', () => {
+  it('package.json uses workspace: references for all agentic-* deps', () => {
     const pkg = JSON.parse(readFileSync(`${ROOT}/package.json`, 'utf8'));
     const deps = pkg.dependencies || {};
     for (const name of ['agentic-embed', 'agentic-sense', 'agentic-store', 'agentic-voice']) {
       expect(deps[name], `${name} missing from dependencies`).toBeDefined();
-      expect(deps[name], `${name} should use file: reference`).toMatch(/^file:/);
+      expect(deps[name], `${name} should use workspace: reference`).toMatch(/^workspace:/);
     }
   });
 

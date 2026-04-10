@@ -30,12 +30,12 @@ describe('api.js — HTTP endpoints', () => {
 
   afterEach(() => new Promise(r => server.close(r)));
 
-  it('GET /api/status returns hardware, profile, devices (DBB-004)', async () => {
+  it('GET /api/status returns hardware, config, devices (DBB-004)', async () => {
     const res = await fetch(`${baseUrl}/api/status`);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveProperty('hardware');
-    expect(body).toHaveProperty('profile');
+    expect(body).toHaveProperty('config');
     expect(body).toHaveProperty('devices');
     expect(Array.isArray(body.devices)).toBe(true);
   });

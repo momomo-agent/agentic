@@ -70,9 +70,19 @@ describe('brain.js M13 tool_use text field', () => {
   beforeEach(() => vi.resetModules());
 
   it('DBB-003: Ollama path yields tool_use with text field', async () => {
+    vi.doMock('../../src/config.js', () => ({
+      getConfig: vi.fn(async () => ({
+        llm: { provider: 'ollama', model: 'test-model' },
+        ollamaHost: 'http://localhost:11434',
+        assignments: { chat: null, chatFallback: null },
+        modelPool: [],
+      })),
+      getModelPool: vi.fn(async () => []),
+      getAssignments: vi.fn(async () => ({ chat: null, chatFallback: null })),
+      onConfigChange: vi.fn(),
+    }));
     const line = JSON.stringify({ message: { tool_calls: [{ function: { name: 'fn', arguments: '{}' } }] }, done: true });
     const enc = new TextEncoder();
-    let done = false;
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       body: { getReader: () => ({ read: vi.fn()
@@ -101,9 +111,9 @@ describe('Docker M13 DBB-006/007', () => {
     expect(existsSync('install/docker-compose.yml')).toBe(true);
   });
 
-  it('DBB-006: Dockerfile exposes port 3000', () => {
+  it('DBB-006: Dockerfile exposes port 1234', () => {
     const content = readFileSync('install/Dockerfile', 'utf8');
-    expect(content).toMatch(/EXPOSE\s+3000/);
+    expect(content).toMatch(/EXPOSE\s+1234/);
   });
 
   it('DBB-007: docker-compose.yml has config volume', () => {

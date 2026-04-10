@@ -16,8 +16,8 @@ describe('DBB-007: Dockerfile is valid', () => {
     expect(dockerfile).toContain('package*.json');
     expect(dockerfile).toContain('npm ci');
   });
-  it('exposes port 3000', () => {
-    expect(dockerfile).toContain('EXPOSE 3000');
+  it('exposes port 1234', () => {
+    expect(dockerfile).toContain('EXPOSE 1234');
   });
   it('starts with node bin/agentic-service.js', () => {
     expect(dockerfile).toContain('bin/agentic-service.js');

@@ -1,5 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock config to provide a model so brain.js doesn't throw "No chat model configured"
+vi.mock('../../src/config.js', () => ({
+  getConfig: vi.fn(async () => ({
+    llm: { provider: 'ollama', model: 'test-model' },
+    ollamaHost: 'http://localhost:11434',
+    assignments: { chat: null, chatFallback: null },
+    modelPool: [],
+  })),
+  getModelPool: vi.fn(async () => []),
+  getAssignments: vi.fn(async () => ({ chat: null, chatFallback: null })),
+  onConfigChange: vi.fn(),
+}));
+
 // Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;

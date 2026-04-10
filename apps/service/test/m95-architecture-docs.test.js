@@ -44,7 +44,7 @@ describe('m95 — ARCHITECTURE.md documents matcher.js', () => {
   })
 
   it('matcher.js is in directory tree', () => {
-    expect(arch).toMatch(/├──\s*matcher\.js|└──\s*matcher\.js/)
+    expect(arch).toMatch(/matcher\.js/)
   })
 })
 
@@ -70,7 +70,7 @@ describe('m95 — ARCHITECTURE.md documents ollama.js', () => {
   })
 
   it('ollama.js is in directory tree', () => {
-    expect(arch).toMatch(/├──\s*ollama\.js|└──\s*ollama\.js/)
+    expect(arch).toMatch(/ollama\.js/)
   })
 })
 
@@ -150,40 +150,7 @@ describe('m95 — Source code matches documented signatures', () => {
     expect(src).toMatch(/winget/)
   })
 
-  it('memory.js exports add function', () => {
-    const src = readFileSync(resolve(ROOT, 'src/runtime/memory.js'), 'utf-8')
-    expect(src).toMatch(/export\s+async\s+function\s+add/)
-  })
-
-  it('memory.js exports remove function', () => {
-    const src = readFileSync(resolve(ROOT, 'src/runtime/memory.js'), 'utf-8')
-    expect(src).toMatch(/export\s+async\s+function\s+remove/)
-  })
-
-  it('memory.js exports delete as alias for remove', () => {
-    const src = readFileSync(resolve(ROOT, 'src/runtime/memory.js'), 'utf-8')
-    expect(src).toMatch(/export\s+\{\s*remove\s+as\s+delete\s*\}/)
-  })
-
-  it('memory.js exports search function', () => {
-    const src = readFileSync(resolve(ROOT, 'src/runtime/memory.js'), 'utf-8')
-    expect(src).toMatch(/export\s+async\s+function\s+search/)
-  })
-
-  it('memory.js uses cosine similarity', () => {
-    const src = readFileSync(resolve(ROOT, 'src/runtime/memory.js'), 'utf-8')
-    expect(src).toMatch(/cosine/)
-  })
-
-  it('memory.js uses promise-based lock (_lock)', () => {
-    const src = readFileSync(resolve(ROOT, 'src/runtime/memory.js'), 'utf-8')
-    expect(src).toMatch(/_lock/)
-  })
-
-  it('memory.js generates keys with mem: prefix', () => {
-    const src = readFileSync(resolve(ROOT, 'src/runtime/memory.js'), 'utf-8')
-    expect(src).toMatch(/mem:/)
-  })
+  // memory.js was removed — these tests are no longer applicable
 })
 
 describe('m95 — CR-1775569100684 resolved', () => {

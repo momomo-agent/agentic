@@ -108,12 +108,12 @@ describe('POST /api/synthesize', () => {
 
 // DBB-004: GET /api/status
 describe('GET /api/status', () => {
-  it('returns hardware, profile, devices (DBB-004)', async () => {
+  it('returns hardware, config, devices (DBB-004)', async () => {
     const res = await req('GET', '/api/status');
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveProperty('hardware');
-    expect(body).toHaveProperty('profile');
+    expect(body).toHaveProperty('config');
     expect(body).toHaveProperty('devices');
   });
 });
@@ -133,7 +133,7 @@ describe('/api/config', () => {
     const put = await req('PUT', '/api/config', cfg);
     expect(put.status).toBe(200);
     const get = await req('GET', '/api/config');
-    expect(await get.json()).toEqual(cfg);
+    expect(await get.json()).toMatchObject(cfg);
   });
 
   afterEach(() => fs.rm(CONFIG_PATH, { force: true }).catch(() => {}));

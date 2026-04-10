@@ -69,7 +69,19 @@ vi.mock('http', () => ({
   },
 }));
 
-// Mock fs to avoid writing real config files
+// Track what initFromProfile receives
+const initFromProfileSpy = vi.fn();
+vi.mock('../../src/config.js', () => ({
+  initFromProfile: (...args) => { initFromProfileSpy(...args); },
+  getConfig: vi.fn(async () => ({
+    ollamaHost: 'http://localhost:11434',
+    assignments: { chat: null },
+    modelPool: [],
+  })),
+  onConfigChange: vi.fn(),
+}));
+
+// Mock fs to avoid writing real files (for other modules)
 vi.mock('fs', async (importOriginal) => {
   const actual = await importOriginal();
   return {
@@ -99,13 +111,10 @@ describe('setup.runSetup()', () => {
     const { runSetup } = await import('../../src/cli/setup.js');
     await runSetup({ skipModelDownload: true });
 
-    const { promises } = await import('fs');
-    expect(promises.writeFile).toHaveBeenCalled();
-    const callArgs = promises.writeFile.mock.calls[0];
-    const saved = JSON.parse(callArgs[1]);
-    expect(saved).toHaveProperty('hardware');
-    expect(saved).toHaveProperty('profile');
-    expect(saved.hardware.platform).toBe('darwin');
+    expect(initFromProfileSpy).toHaveBeenCalled();
+    const [profile, hardware] = initFromProfileSpy.mock.calls[0];
+    expect(hardware).toHaveProperty('platform');
+    expect(profile).toHaveProperty('llm');
   });
 
   it('calls detect() and getProfile()', async () => {

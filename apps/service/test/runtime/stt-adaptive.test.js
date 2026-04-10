@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const mockOpenAI = { transcribe: vi.fn(async () => 'openai result') }
+const { mockOpenAI, mockGetProfile } = vi.hoisted(() => ({
+  mockOpenAI: { transcribe: vi.fn(async () => 'openai result') },
+  mockGetProfile: vi.fn(),
+}))
 
 vi.mock('../../src/runtime/adapters/voice/openai-whisper.js', () => mockOpenAI)
-
-const mockGetProfile = vi.fn()
 vi.mock('../../src/detector/profiles.js', () => ({ getProfile: mockGetProfile }))
 vi.mock('../../src/detector/hardware.js', () => ({ detect: vi.fn(async () => ({})) }))
+// Simulate adapters not installed — throw on import to force fallback
+vi.mock('../../src/runtime/adapters/voice/sensevoice.js', () => { throw new Error('sensevoice not available') })
+vi.mock('../../src/runtime/adapters/voice/whisper.js', () => { throw new Error('whisper not available') })
 
 const audio = Buffer.from('audio')
 
