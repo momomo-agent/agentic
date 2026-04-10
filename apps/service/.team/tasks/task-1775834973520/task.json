@@ -1,14 +1,14 @@
 {
   "id": "task-1775834973520",
   "title": "Fix test suite — get critical tests passing",
-  "description": "PRD gap: test suite has ~29 failures across 11 files. CRITICAL BUILD BLOCKER: src/runtime/embed.js imports { embed } from agentic-embed but agentic-embed only exports: create, chunkText, cosineSimilarity, localEmbed. Fix the import to use the correct export (likely localEmbed or create). Then fix remaining test failures. Focus: (1) Fix embed.js import, (2) Fix broken imports/stale references from recent refactors, (3) Target: core module tests pass (llm, stt, tts, brain, hub, api). Do NOT write new tests — fix existing broken ones.",
-  "status": "review",
+  "description": "STILL BROKEN — build fails. src/runtime/embed.js line 1 imports { embed } from agentic-embed but agentic-embed does NOT export embed. Build error:\n\nSyntaxError: The requested module agentic-embed does not provide an export named embed\n\nTests pass (161 files, 777 passed) because they mock the import, but node src/index.js crashes.\n\nFix: change the import to use a valid export from agentic-embed (likely localEmbed or create). Check what agentic-embed actually exports and use the correct one.\n\nThis is a P0 build blocker — the service cannot start.",
+  "status": "todo",
   "priority": "P0",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T15:29:33.520Z",
-  "updated": "2026-04-10T16:02:10.985Z",
+  "updated": "2026-04-10T16:04:24.527Z",
   "milestoneId": "m98"
 }
