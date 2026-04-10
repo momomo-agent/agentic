@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review pass)
+Updated: 2026-04-11 (architect review — all modules documented, test suite green)
 
 ## Technology Stack
 
@@ -158,20 +158,20 @@ src/store/index.js  → agentic-store
 - ~~Root `docker-compose.yml` port 3000~~ — now maps 1234:1234 with OLLAMA_HOST and ./data volume
 - ~~`#agentic-voice` import map dead~~ — removed in commit e699e630
 - ~~`#agentic-embed` import map dead~~ — removed in commit b4c9d5ce
-- ~~m76/m77 test failures~~ — tests updated, all 905/916 pass (0 failures)
+- ~~m76/m77 test failures~~ — tests updated, all passing
 - ~~Cloud fallback error-only~~ — brain.js now has 5s first-token timeout, 3-error threshold, 60s probe recovery
 - ~~ARCHITECTURE.md stale CR content~~ — cleaned up, all sections contain legitimate module docs
 - ~~ARCHITECTURE.md incomplete directory tree~~ — now lists all 80+ source files
 - ~~Root `Dockerfile` EXPOSE 3000~~ — now EXPOSE 1234, matching service default port
 - ~~ARCHITECTURE.md known limitation #4 (Dockerfile EXPOSE)~~ — removed, only 3 limitations remain
 - ~~m21-profiles.test.js failing~~ — all 2 tests pass (getProfile returns correct structure + built-in fallback works)
+- ~~m28-profiles-cache.test.js failing~~ — cache timestamp now updated after successful fetch
 
 ### Open
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
 - `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js, runtime/memory.js) — CR cr-1775847503256 submitted
-- m28-profiles-cache.test.js: 1 test fails — cache file not written to disk during expired-cache fetch test (ENOENT)
 
 ### Architecture Notes (Vision references that map to different files)
 - Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js (CR cr-1775847503256 submitted to update VISION.md)

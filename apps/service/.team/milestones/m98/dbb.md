@@ -83,3 +83,45 @@
 - Given: LLM request takes exactly 5 seconds
 - Expect: System does NOT trigger fallback (only >5s triggers)
 - Verify: Request completes via local provider
+
+## DBB-015: ARCHITECTURE.md — store module documented
+- Requirement: task-1775849914280 item #1 (MAJOR/missing)
+- Given: Read ARCHITECTURE.md
+- Expect: Contains a formal section for src/store/index.js with exports: get(key), set(key, value), del(key), delete alias
+- Verify: Section documents agentic-store dependency, DB_PATH, lazy init pattern
+
+## DBB-016: ARCHITECTURE.md — runtime adapters documented
+- Requirement: task-1775849914280 item #2 (MAJOR/partial)
+- Given: Read ARCHITECTURE.md
+- Expect: Contains formal documentation for runtime/adapters layer: embed.js (stub), sense.js (createPipeline), voice/* adapters
+- Verify: Each adapter's exports and external dependency are listed
+
+## DBB-017: ARCHITECTURE.md — sense.js full API
+- Requirement: task-1775849914280 item #3 (MINOR/partial)
+- Given: Read ARCHITECTURE.md sense section
+- Expect: Documents all 11 exports: init, on, start, stop, detect, startWakeWordPipeline, stopWakeWordPipeline, initHeadless, startHeadless, detectFrame
+- Verify: Browser vs headless modes are distinguished
+
+## DBB-018: ARCHITECTURE.md — instrumentation utilities
+- Requirement: task-1775849914280 item #4 (MINOR/missing)
+- Given: Read ARCHITECTURE.md
+- Expect: Documents profiler.js (startMark/endMark/getMetrics/measurePipeline) and latency-log.js (record/p95/reset)
+- Verify: Exports and data structures are listed
+
+## DBB-019: ARCHITECTURE.md — utility modules
+- Requirement: task-1775849914280 item #5 (MINOR/missing)
+- Given: Read ARCHITECTURE.md
+- Expect: Documents sox.js (ensureSox) and download-state.js (getDownloadState/setDownloadState/clearDownloadState)
+- Verify: At minimum listed in directory tree with brief description
+
+## DBB-020: VISION.md — stale file names corrected
+- Requirement: task-1775847821786
+- Given: Read VISION.md architecture diagram
+- Expect: References matcher.js (not optimizer.js), server/brain.js (not runtime/llm.js), store/index.js (not runtime/memory.js)
+- Verify: engine/ directory is present in the diagram
+
+## DBB-021: Test suite — all 169 files pass
+- Requirement: M98 overall
+- Given: Run `pnpm test --run`
+- Expect: 0 failures
+- Verify: m28-profiles-cache.test.js passes (regression fixed)
