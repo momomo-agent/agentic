@@ -1,6 +1,6 @@
 {
   "match": 90,
-  "timestamp": "2026-04-11T05:55:00.000Z",
+  "timestamp": "2026-04-11T06:02:00.000Z",
   "gaps": [
     {
       "description": "src/index.js — package.json 'main' entry point exists and exports core API (startServer, createApp, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed)",
@@ -33,7 +33,7 @@
       "severity": "major"
     },
     {
-      "description": "Test pass rate — 174 test files, 992 tests, 981 passing, 0 failures, 11 skipped",
+      "description": "Test pass rate — 181 test files, all passing, 0 failures",
       "status": "implemented",
       "severity": "minor"
     },
@@ -52,12 +52,6 @@
       "status": "partial",
       "severity": "minor",
       "detail": "VISION.md tree is substantially out of sync with actual codebase. ARCHITECTURE.md documents the divergence. Cosmetic doc alignment issue."
-    },
-    {
-      "description": "src/runtime/adapters/embed.js is a stub that throws 'not implemented' — dead code",
-      "status": "partial",
-      "severity": "minor",
-      "detail": "Dead code but harmless. Actual embed path works correctly via runtime/embed.js → agentic-embed."
     },
     {
       "description": "Server middleware (src/server/middleware.js) is a 4-line error handler — no request validation, rate limiting, or security middleware",

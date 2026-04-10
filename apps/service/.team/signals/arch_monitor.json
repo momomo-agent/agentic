@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:54:10.591Z",
+  "timestamp": "2026-04-10T22:18:43.753Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture scan: 95% match. Resolved sox.js doc gap. 3 remaining gaps (1 major: missing kokoro.js, 2 minor: dead embed.js + incomplete voice adapter docs)."
+  "summary": "Architecture check: 97% match. Kokoro adapter gap resolved (file now exists). adapters/embed.js dead code resolved. One minor doc gap remains for voice adapter API signatures."
 }

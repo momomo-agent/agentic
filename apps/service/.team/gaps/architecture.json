@@ -1,24 +1,14 @@
 {
-  "match": 95,
-  "timestamp": "2026-04-11T09:19:00.000Z",
+  "match": 97,
+  "timestamp": "2026-04-11T10:16:00.000Z",
   "gaps": [
     {
-      "description": "runtime/tts.js ADAPTERS map references adapters/voice/kokoro.js but the file does not exist on disk — gracefully falls back to default adapter via try/catch, but kokoro provider silently degrades instead of working",
-      "status": "missing",
-      "severity": "major"
-    },
-    {
-      "description": "adapters/embed.js is documented dead code (throws 'not implemented') still shipping in codebase — listed in Known Limitations but not cleaned up",
+      "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js, kokoro.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures in ARCHITECTURE.md",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures in ARCHITECTURE.md",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented with detailed API signatures documented in ARCHITECTURE.md including server/cert.js, server/httpsServer.js, and detector/sox.js",
+      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented matching ARCHITECTURE.md — kokoro.js adapter now exists with full implementation, adapters/embed.js dead code removed",
       "status": "implemented",
       "severity": "minor"
     }
