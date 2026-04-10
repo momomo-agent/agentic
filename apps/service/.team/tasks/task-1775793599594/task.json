@@ -1,14 +1,14 @@
 {
   "id": "task-1775793599594",
   "title": "Clean up ARCHITECTURE.md — remove stale content + update directory tree",
-  "description": "ARCHITECTURE.md has issues: (1) Lines 191-252 contain stale CR instructions from prior milestones — remove them, (2) Directory tree only lists ~14 src/ files but 20+ exist (missing: embed.js, vad.js, profiler.js, latency-log.js, store/index.js, adapters/*, cli/*, tunnel.js, cert.js, httpsServer.js, middleware.js), (3) Install section shows port 3000 — change to 1234. Assign to architect.",
+  "description": "ARCHITECTURE.md cleanup (port 3000→1234 already fixed). Remaining: (1) Directory tree only lists ~14 src/ files but 20+ exist (missing: embed.js, vad.js, profiler.js, latency-log.js, store/index.js, adapters/*, cli/*, tunnel.js, cert.js, httpsServer.js, middleware.js), (2) Document src/store/index.js module (flagged as missing in architecture gaps), (3) Document src/runtime/embed.js and adapters/ as formal module sections (flagged as partial). These are the top architecture gaps blocking 85%→90%.",
   "status": "todo",
-  "priority": "P1",
+  "priority": "P0",
   "assignee": "architect",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T03:59:59.594Z",
-  "updated": "2026-04-10T15:58:48.349Z",
+  "updated": "2026-04-10T17:12:28.463Z",
   "milestoneId": "m98"
 }
