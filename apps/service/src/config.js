@@ -318,11 +318,22 @@ async function _readFromDisk() {
 }
 
 async function _writeToDisk(data) {
-  await fs.mkdir(CONFIG_DIR, { recursive: true });
   const { _hardware, _profileSource, ...clean } = data;
+  const json = JSON.stringify(clean, null, 2);
+  await fs.mkdir(CONFIG_DIR, { recursive: true });
   const tmp = CONFIG_PATH + '.tmp';
-  await fs.writeFile(tmp, JSON.stringify(clean, null, 2));
-  await fs.rename(tmp, CONFIG_PATH);
+  await fs.writeFile(tmp, json);
+  try {
+    await fs.rename(tmp, CONFIG_PATH);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      await fs.mkdir(CONFIG_DIR, { recursive: true });
+      await fs.writeFile(tmp, json);
+      await fs.rename(tmp, CONFIG_PATH);
+    } else {
+      throw err;
+    }
+  }
 }
 
 function deepMerge(target, source) {
