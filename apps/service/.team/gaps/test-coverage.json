@@ -1,11 +1,9 @@
 {
-  "totalTests": 981,
-  "passed": 981,
+  "totalTests": 10,
+  "passed": 10,
   "failed": 0,
   "edgeCases": [
-    "Disk full during atomic write (tmp write succeeds, rename fails for non-ENOENT reason)",
-    "Config file locked by another process during rename",
-    "AGENTIC_CONFIG_DIR set to read-only path"
+    "No test for matchProfile() logic against this file"
   ],
   "coverage": "100%"
 }
