@@ -152,11 +152,8 @@ export function stopWakeWordPipeline()                      // line 102
 
 ## Adapters (src/runtime/adapters/)
 
-### adapters/embed.js (STUB — dead code)
-```javascript
-export async function embed(text) { throw new Error('agentic-embed: not implemented') }
-```
-⚠️ Not used by anything. `src/runtime/embed.js` imports directly from `agentic-embed`.
+### adapters/embed.js — PENDING REMOVAL (M100 task-1775858351181)
+⚠️ Dead code stub (throws 'not implemented'). No source imports it. Scheduled for deletion along with stale `#agentic-embed` vitest alias.
 
 ### adapters/sense.js
 ```javascript
