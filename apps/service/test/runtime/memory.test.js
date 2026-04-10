@@ -63,6 +63,14 @@ describe('runtime/memory.js', () => {
       const index = await store.get('memory:__index')
       expect(index).toEqual([id1, id2])
     })
+
+    it('handles empty string input without crashing', async () => {
+      const id = await add('')
+      expect(typeof id).toBe('string')
+      const entry = await store.get(`memory:${id}`)
+      expect(entry.text).toBe('')
+      expect(entry.vector).toEqual([])
+    })
   })
 
   describe('search()', () => {
