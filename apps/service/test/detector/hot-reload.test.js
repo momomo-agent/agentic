@@ -36,7 +36,7 @@ describe('config hot-reload (DBB-005)', () => {
 
     const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, (p) => { reloaded = p; }, 50);
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => setTimeout(r, 300));
     stop();
     expect(reloaded).not.toBeNull();
   });

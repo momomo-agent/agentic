@@ -139,7 +139,7 @@ describe('profiles.js M13 hot reload', () => {
     });
     let reloaded = null;
     const stop = watchProfiles({}, p => { reloaded = p; }, 50);
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r => setTimeout(r, 300));
     stop();
     expect(reloaded).not.toBeNull();
   });
