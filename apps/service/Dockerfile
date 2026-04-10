@@ -10,6 +10,6 @@ COPY bin ./bin
 COPY src ./src
 COPY profiles ./profiles
 
-EXPOSE 3000
+EXPOSE 1234
 
 CMD ["node", "bin/agentic-service.js", "--skip-setup"]
