@@ -2,12 +2,12 @@
   "id": "task-1775849497684",
   "title": "Fix flaky m95-profiler-instrumentation test — timing threshold too tight",
   "description": "test/m95-profiler-instrumentation.test.js line 38: expect(elapsed).toBeLessThan(8) fails intermittently (got 9ms). The overwrite-startMark test expects <8ms but timer jitter on CI/local can exceed this. Widen threshold to 20ms or use a relative assertion. Error log: AssertionError: expected 9 to be less than 8",
-  "status": "done",
+  "status": "testing",
   "priority": "P1",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:31:37.684Z",
-  "updated": "2026-04-10T19:33:31.118Z"
+  "updated": "2026-04-10T19:33:41.043Z"
 }
