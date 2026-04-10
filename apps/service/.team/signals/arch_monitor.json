@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:35:59.655Z",
+  "timestamp": "2026-04-10T21:38:23.982Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture scan complete — 95% match, no changes from previous assessment, all core modules present"
+  "summary": "Architecture scan: 95% match, no changes from prior assessment. All core modules implemented. Two minor gaps remain (voice adapter API docs, dead embed stub)."
 }

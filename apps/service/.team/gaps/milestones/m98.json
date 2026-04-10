@@ -1,10 +1,10 @@
 {
   "milestoneId": "m98",
   "match": 95,
-  "timestamp": "2026-04-11T21:48:00.000Z",
+  "timestamp": "2026-04-11T22:10:00.000Z",
   "criteria": [
-    { "criterion": "DBB-001: src/index.js exports startServer, detect, getProfile, chat, stt, tts, embed", "status": "pass" },
-    { "criterion": "DBB-002: src/index.js require does not throw", "status": "pass" },
+    { "criterion": "DBB-001: src/index.js exports startServer, createApp, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed", "status": "pass" },
+    { "criterion": "DBB-002: src/index.js import does not throw", "status": "pass" },
     { "criterion": "DBB-003: Docker port 1234 mapping", "status": "pass" },
     { "criterion": "DBB-004: Docker OLLAMA_HOST env var", "status": "pass" },
     { "criterion": "DBB-005: Docker data volume mount", "status": "pass" },
@@ -19,7 +19,7 @@
     { "criterion": "DBB-014: Cloud fallback — timeout boundary (exactly 5s does not trigger)", "status": "pass" },
     { "criterion": "DBB-015: ARCHITECTURE.md — store module documented", "status": "pass" },
     { "criterion": "DBB-016: ARCHITECTURE.md — runtime adapters documented", "status": "pass" },
-    { "criterion": "DBB-017: ARCHITECTURE.md — sense.js full API documented (10 exports matching actual code)", "status": "pass" },
+    { "criterion": "DBB-017: ARCHITECTURE.md — sense.js full API documented", "status": "pass" },
     { "criterion": "DBB-018: ARCHITECTURE.md — instrumentation utilities documented", "status": "pass" },
     { "criterion": "DBB-019: ARCHITECTURE.md — utility modules documented", "status": "pass" },
     { "criterion": "DBB-020: VISION.md — stale file names corrected (optimizer.js → matcher.js, runtime/llm.js → server/brain.js)", "status": "fail" },

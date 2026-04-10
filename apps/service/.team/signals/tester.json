@@ -1,7 +1,7 @@
 {
   "agent": "tester",
-  "timestamp": "2026-04-10T21:35:50.392Z",
+  "timestamp": "2026-04-10T21:37:53.229Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No tasks in review/testing status. All 267 tasks done, all milestones completed. Full test suite passes: 174 files, 981 tests, 0 failures."
+  "summary": "No tasks available for testing — all tasks are either done (267) or cancelled (342). No review-status tasks to claim."
 }
