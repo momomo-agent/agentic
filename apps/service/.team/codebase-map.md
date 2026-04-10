@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — 174/174 test files pass, 981/992 tests pass, 11 skipped, 0 failures; all gap monitors ≥90%; ARCHITECTURE.md 653 lines, all modules documented)
+Updated: 2026-04-11 (architect review — voice adapter API signatures added to ARCHITECTURE.md; kokoro.js adapter now exists; all gap monitors ≥90%)
 
 ## Technology Stack
 
@@ -54,13 +54,14 @@ src/
       embed.js                (3 lines)   Stub adapter (throws 'not implemented')
       sense.js                (7 lines)   agentic-sense adapter — createPipeline()
       voice/
-        elevenlabs.js         (48 lines)  ElevenLabs TTS adapter
-        macos-say.js          (61 lines)  macOS say command adapter
-        openai-tts.js         (24 lines)  OpenAI TTS adapter
-        openai-whisper.js     (9 lines)   OpenAI Whisper STT adapter
-        piper.js              (119 lines) Piper TTS adapter (auto-downloads binary)
-        sensevoice.js         (21 lines)  SenseVoice STT adapter (HTTP API)
-        whisper.js            (29 lines)  Whisper.cpp STT adapter (local binary)
+        elevenlabs.js         (48 lines)  ElevenLabs TTS adapter — synthesize(text) → Buffer
+        kokoro.js             (35 lines)  Kokoro TTS adapter — synthesize(text) → Buffer (HTTP → localhost:8880)
+        macos-say.js          (61 lines)  macOS say command adapter — synthesize(text) → Buffer, listVoices()
+        openai-tts.js         (24 lines)  OpenAI TTS adapter — synthesize(text) → Buffer
+        openai-whisper.js     (9 lines)   OpenAI Whisper STT adapter — transcribe(buffer) → string
+        piper.js              (119 lines) Piper TTS adapter (auto-downloads binary) — synthesize(text) → Buffer
+        sensevoice.js         (21 lines)  SenseVoice STT adapter (HTTP API) — check(), transcribe(buffer) → string
+        whisper.js            (29 lines)  Whisper.cpp STT adapter (local binary) — check(), transcribe(buffer) → string
 
   server/
     api.js                    (813 lines) Express routes — REST + OpenAI-compatible + Anthropic-compatible + admin + voice + /api/perf

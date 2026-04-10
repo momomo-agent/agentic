@@ -83,7 +83,7 @@ export async function synthesize(text)      // line 61 — returns audio buffer
 const ADAPTERS = {
   'macos-say': () => import('./adapters/voice/macos-say.js'),
   piper:       () => import('./adapters/voice/piper.js'),
-  kokoro:      () => import('./adapters/voice/kokoro.js'),  // ⚠️ FILE MISSING — will throw at runtime, falls back to default
+  kokoro:      () => import('./adapters/voice/kokoro.js'),  // M100: file created — local HTTP kokoro-tts adapter
   elevenlabs:  () => import('./adapters/voice/elevenlabs.js'),
   openai:      () => import('./adapters/voice/openai-tts.js'),
   default:     () => import('./adapters/voice/openai-tts.js'),
@@ -303,6 +303,14 @@ All voice adapters follow one of two contracts:
 - Model: `eleven_flash_v2_5`
 - Streaming endpoint: `/v1/text-to-speech/{voiceId}/stream`
 
+**kokoro.js** (~30 lines) — M100: NEW
+- Local HTTP adapter for kokoro-tts server
+- Default base URL: `http://localhost:8880`
+- Config overrides: `tts.baseUrl`, `tts.voice` from `~/.agentic-service/config.json`
+- Endpoint: `POST /v1/audio/speech` with `{ input, voice }` (OpenAI-compatible)
+- Returns `Buffer.from(res.arrayBuffer())`
+- Throws with `{ code: statusCode }` on HTTP error
+
 ## Utility Modules
 
 ### profiler.js (src/runtime/profiler.js)
@@ -328,7 +336,7 @@ export function reset()                             // line 15 — clears all sa
 
 ## Constraints
 - `embed()` throws TypeError on non-string — callers must validate
-- `adapters/embed.js` is dead code — should be removed or wired up
+- `adapters/embed.js` — M100: removed (dead code, threw 'not implemented', zero imports)
 - Wake word pipeline requires `sox` binary — gracefully degrades if missing
 - Voice adapters with API keys will fail silently if keys not configured
 - memory.js does linear scan — O(n) per search, acceptable for < 10K entries

@@ -137,6 +137,7 @@ src/
         openai-tts.js          # OpenAI TTS
         openai-whisper.js      # OpenAI Whisper STT
         piper.js               # Piper TTS（自动下载二进制）
+        kokoro.js              # Kokoro TTS（本地 HTTP → localhost:8880）
         sensevoice.js          # SenseVoice STT（HTTP API 适配器）
         whisper.js             # Whisper.cpp STT（本地二进制适配器）
 
@@ -470,13 +471,21 @@ createPipeline(options?) → AgenticSense  // new AgenticSense(null, options) + 
 // runtime/adapters/embed.js — ⚠️ 死代码 stub（实际嵌入走 runtime/embed.js → agentic-embed，此文件可删除）
 
 // runtime/adapters/voice/ — 语音适配器
-//   sensevoice.js  — SenseVoice STT (HTTP API, Apple Silicon 本地)
-//   whisper.js     — Whisper.cpp STT (本地二进制)
-//   openai-whisper.js — OpenAI Whisper API (云端 fallback)
-//   piper.js       — Piper TTS (自动下载二进制 + 模型)
-//   openai-tts.js  — OpenAI TTS API (云端 fallback)
-//   elevenlabs.js  — ElevenLabs TTS (云端)
-//   macos-say.js   — macOS say 命令 (本地零依赖)
+//
+// STT 适配器（统一接口: transcribe(buffer) → Promise<string>）
+sensevoice.check() → Promise<void>                // 验证 SenseVoice HTTP 服务可用
+sensevoice.transcribe(buffer) → Promise<string>    // SenseVoice STT (Apple Silicon 本地)
+whisper.check() → Promise<void>                    // 验证 whisper.cpp 二进制可用
+whisper.transcribe(buffer) → Promise<string>       // Whisper.cpp STT (本地二进制)
+openaiWhisper.transcribe(buffer) → Promise<string> // OpenAI Whisper API (云端 fallback)
+//
+// TTS 适配器（统一接口: synthesize(text) → Promise<Buffer>）
+kokoro.synthesize(text) → Promise<Buffer>          // Kokoro TTS (本地神经 TTS, HTTP → localhost:8880, OpenAI-compatible /v1/audio/speech)
+piper.synthesize(text) → Promise<Buffer>           // Piper TTS (自动下载二进制 + 模型)
+openaiTts.synthesize(text) → Promise<Buffer>       // OpenAI TTS API (云端 fallback)
+elevenlabs.synthesize(text) → Promise<Buffer>      // ElevenLabs TTS (云端)
+macosSay.synthesize(text) → Promise<Buffer>        // macOS say 命令 (本地零依赖)
+macosSay.listVoices() → Promise<Array<{name, locale}>>  // 列出系统可用语音
 ```
 
 ### 12. 包入口（src/index.js）
