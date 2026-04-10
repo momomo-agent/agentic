@@ -2,12 +2,12 @@
   "id": "task-1775844314020",
   "title": "Fix embed.js build failure — localEmbed import does not exist in agentic-embed",
   "description": "FIXED: embed.js now uses localEmbed([text]) with array argument and destructures result. All 4 tests in test/m98-embed-build-fix.test.js pass. Code verified on disk (commit 9a0c73b8). Was marked blocked because 2 unrelated stale tests (m76-embed-wiring, m77-sense-imports) fail — those are tracked in task-1775847565164. The embed fix itself is correct.",
-  "status": "testing",
+  "status": "done",
   "priority": "P0",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T18:05:14.020Z",
-  "updated": "2026-04-10T19:03:25.159Z"
+  "updated": "2026-04-10T19:05:53.401Z"
 }

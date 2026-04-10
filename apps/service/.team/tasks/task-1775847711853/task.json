@@ -1,14 +1,14 @@
 {
   "id": "task-1775847711853",
   "title": "Fix root Dockerfile EXPOSE 3000 → 1234",
-  "description": "RESOLVED — Root Dockerfile already has EXPOSE 1234 (fixed in prior task-1775793599479). No action needed.",
-  "status": "review",
+  "description": "DUPLICATE — already completed by task-1775847821745 (Fix root Dockerfile EXPOSE 3000→1234, status: done).",
+  "status": "cancelled",
   "priority": "P0",
   "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:01:51.853Z",
-  "updated": "2026-04-10T19:05:17.072Z",
+  "updated": "2026-04-10T19:05:44.937Z",
   "milestoneId": "m98"
 }
