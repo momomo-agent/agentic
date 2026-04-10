@@ -624,4 +624,4 @@ docker-compose up
 2. **adapters/embed.js 是死代码** — 抛出 'not implemented'，实际嵌入通过 runtime/embed.js → agentic-embed 包。
 3. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
 4. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
-5. **runtime/memory.js 已实现** — add(text, metadata) 存储文本+向量嵌入, search(query, topK) 余弦相似度检索, remove(id) 删除条目, clear() 清空全部。基于 store/index.js (KV) + runtime/embed.js (向量嵌入) 组合实现。
+5. **runtime/memory.js** — 已实现。add/search/remove/clear 完整 API，基于 store + embed 组合。

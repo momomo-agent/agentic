@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — memory.js API spec added to ARCHITECTURE.md, all 169 tests passing)
+Updated: 2026-04-11 (architect review — memory.js implemented, ARCHITECTURE.md known limitations updated)
 
 ## Technology Stack
 
@@ -46,7 +46,7 @@ src/
     tts.js                    (71 lines)  Text-to-speech — init(config), synthesize(text)
     sense.js                  (120 lines) Visual perception — detect(frame), start()/stop(), startHeadless(), startWakeWordPipeline()
     embed.js                  (9 lines)   Vector embedding — embed(text) via agentic-embed
-    [PENDING] memory.js        —           Semantic memory — search(query, topK) + add() + remove() + clear(); API spec defined in ARCHITECTURE.md, awaiting implementation
+    memory.js               (58 lines)  Semantic memory — add(text, metadata), search(query, topK), remove(id), clear(); uses store + embed
     profiler.js               (29 lines)  CPU profiling — startMark/endMark/getMetrics
     latency-log.js            (17 lines)  Latency recording — record(label, ms), getLog()
     vad.js                    (9 lines)   Voice activity detection — createVAD(options), detectVoiceActivity(buffer)
@@ -173,7 +173,7 @@ src/store/index.js  → agentic-store
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
 - `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
-- `runtime/memory.js` pending implementation — API spec defined in ARCHITECTURE.md (add/search/remove/clear), building blocks ready (store + embed)
+- ~~`runtime/memory.js` pending implementation~~ — now implemented (58 lines): add/search/remove/clear using store + embed
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js, runtime/memory.js) — CRs submitted
 
@@ -181,5 +181,5 @@ src/store/index.js  → agentic-store
 - Full mapping table now in ARCHITECTURE.md "Vision 架构映射" section
 - Vision's `optimizer.js` → profiles.js + matcher.js + config.js
 - Vision's `runtime/llm.js` → server/brain.js + engine/
-- Vision's `runtime/memory.js` → API spec defined: add/search/remove/clear using store/index.js + embed.js (implementation pending)
+- Vision's `runtime/memory.js` → runtime/memory.js (58 lines) — fully implemented: add/search/remove/clear using store/index.js + embed.js
 - ARCHITECTURE.md now documents: src/index.js entry point, hardware-adaptive model selection, CPU profiling/latency, /api/perf endpoint, Vision mapping table, formal module sections for all runtime/store/adapter modules
