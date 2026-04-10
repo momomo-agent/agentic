@@ -815,3 +815,20 @@
 {"ts":"2026-04-10T21:06:01.183Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
 {"ts":"2026-04-10T21:06:01.183Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":18,"memoryTotalMB":21,"cpuUser":33.500141,"cpuSystem":102.432247}}}
 {"ts":"2026-04-10T21:06:01.184Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
+{"ts":"2026-04-10T21:06:01.456Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 开发完成，任务进入 review","performance":{"memoryMB":18,"memoryTotalMB":21,"cpuUser":33.500494,"cpuSystem":102.432875}}}
+{"ts":"2026-04-10T21:06:01.457Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← developer done"}}
+{"ts":"2026-04-10T21:06:01.537Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] triage-blocked: blockedCount > 0"}}
+{"ts":"2026-04-10T21:06:01.688Z","type":"workflow","agent":"work_loop","data":{"details":"[LOOP] Iteration 27"}}
+{"ts":"2026-04-10T21:06:01.703Z","type":"workflow","agent":"work_loop","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/goal-check.js"}}
+{"ts":"2026-04-10T21:06:01.987Z","type":"workflow","agent":"work_loop","data":{"details":"[EXEC] pm"}}
+{"ts":"2026-04-10T21:06:01.987Z","type":"agent_start","agent":"pm","data":{"details":"管理任务和里程碑","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":33.564222,"cpuSystem":102.6604}}}
+{"ts":"2026-04-10T21:06:01.988Z","type":"agent_complete","agent":"developer","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":21,"cpuUser":33.564459,"cpuSystem":102.660833}}}
+{"ts":"2026-04-10T21:06:01.988Z","type":"workflow","agent":"developer","data":{"details":"[SIGNAL] completed: No claimable tasks available. All 4 remaining todo tasks are assigned to architect and involve docum"}}
+{"ts":"2026-04-10T21:06:02.170Z","type":"agent_start","agent":"self-verify-build","data":{"details":"[NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":17,"memoryTotalMB":21,"cpuUser":33.566907,"cpuSystem":102.672028}}}
+{"ts":"2026-04-10T21:06:02.171Z","type":"workflow","agent":"self-verify-build","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build"}}
+{"ts":"2026-04-10T21:06:02.249Z","type":"workflow","agent":"self-verify-build","data":{"details":"[BRANCH] buildPassed == 1 → true → self-verify-test"}}
+{"ts":"2026-04-10T21:06:02.249Z","type":"agent_start","agent":"self-verify-test","data":{"details":"[NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":17,"memoryTotalMB":21,"cpuUser":33.567473,"cpuSystem":102.672977}}}
+{"ts":"2026-04-10T21:06:02.250Z","type":"workflow","agent":"self-verify-test","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test"}}
+{"ts":"2026-04-10T21:06:18.052Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
+{"ts":"2026-04-10T21:06:18.052Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":17,"memoryTotalMB":21,"cpuUser":33.567914,"cpuSystem":102.673756}}}
+{"ts":"2026-04-10T21:06:18.052Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
