@@ -1,6 +1,6 @@
 {
   "match": 95,
-  "timestamp": "2026-04-11T05:00:00.000Z",
+  "timestamp": "2026-04-11T05:26:00.000Z",
   "gaps": [
     {
       "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures",
@@ -13,7 +13,7 @@
       "severity": "minor"
     },
     {
-      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented with detailed API signatures documented in ARCHITECTURE.md including previously missing exports (memory remove/clear, registry unregister/getEngines/getEngine/modelsForCapability, sense on/start/stop/detectFrame, index createApp/stopServer/matchProfile/ensureOllama)",
+      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented with detailed API signatures documented in ARCHITECTURE.md including server/cert.js and server/httpsServer.js for HTTPS support",
       "status": "implemented",
       "severity": "minor"
     }
