@@ -1,0 +1,13 @@
+{
+  "id": "task-1775844314020",
+  "title": "Fix embed.js build failure — localEmbed import does not exist in agentic-embed",
+  "description": "BUILD IS BROKEN. src/runtime/embed.js line 1 imports { localEmbed as agenticEmbed } from 'agentic-embed' but agentic-embed does not export 'localEmbed'. This breaks the package entry point (src/index.js → embed.js).\n\nError from build check:\n```\nSyntaxError: The requested module 'agentic-embed' does not provide an export named 'localEmbed'\n```\n\nFix: Check what agentic-embed actually exports and update the import in src/runtime/embed.js to use the correct export name. Tests pass because they mock this module, but the real build fails.\n\nThis is P0 — the package cannot be required until this is fixed.",
+  "status": "todo",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": false,
+  "created": "2026-04-10T18:05:14.020Z",
+  "updated": "2026-04-10T18:05:20.580Z"
+}
