@@ -52521,3 +52521,32 @@ That task is actually in `testing` status (assigned to tester). So there are no 
 [2026-04-10 20:40:04] [workflow] self-verify-test [BRANCH] testPassed == 1 → true → commit
 [2026-04-10 20:40:04] [agent_start] commit [NODE] commit - Git commit 通过验证的代码
 [2026-04-10 20:40:04] [workflow] commit [SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1
+[2026-04-10 20:40:04] [agent_start] complete [NODE] complete - 开发完成，任务进入 review
+[2026-04-10 20:40:04] [workflow] work_loop [TEAM] ← developer done
+[2026-04-10 20:40:04] [workflow] work_loop [SKIP] triage-blocked: blockedCount > 0
+[2026-04-10 20:40:05] [workflow] work_loop [LOOP] Iteration 18
+[2026-04-10 20:40:05] [workflow] work_loop [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/goal-check.js
+[2026-04-10 20:40:05] [workflow] work_loop [EXEC] pm
+[2026-04-10 20:40:05] [agent_start] pm 管理任务和里程碑
+[2026-04-10T20:40:05.457Z] Running pm agent...
+[2026-04-10 20:40:05] [agent_complete] developer completed successfully
+[2026-04-10 20:40:05] [workflow] developer [SIGNAL] completed: No available tasks — all tasks are done, cancelled, or assigned to other agents. The only active tas
+[2026-04-10 20:40:05] [agent_start] self-verify-build [NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）
+[2026-04-10 20:40:05] [workflow] self-verify-build [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build
+[2026-04-10 20:40:05] [workflow] self-verify-build [BRANCH] buildPassed == 1 → true → self-verify-test
+[2026-04-10 20:40:05] [agent_start] self-verify-test [NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）
+[2026-04-10 20:40:05] [workflow] self-verify-test [SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test
+All three tasks are done and moved to review. Full test suite passes consistently (173/173 files, 972/972 tests, 3 consecutive green runs).
+
+Fixes applied:
+- `test/server/config-persistence.test.js`: Isolated config dir via `AGENTIC_CONFIG_DIR` + temp dir to prevent cross-test file contamination
+- `test/server/rest-api-endpoints.test.js`: Changed from random port range to port 0 (OS-assigned) to prevent ECONNRESET from port collisions
+- `test/detector/hardware.test.js`: Already fixed (threshold relaxed to 5000ms)
+
+```signal
+{"status": "completed", "summary": "Fixed 3 flaky test tasks: isolated config temp dirs for config-persistence tests, port 0 for rest-api-endpoints, hardware timing already fixed. 173/173 test files pass consistently."}
+```
+[2026-04-10T20:40:13.849Z] developer agent completed
+[2026-04-10 20:40:22] [workflow] self-verify-test [BRANCH] testPassed == 1 → true → commit
+[2026-04-10 20:40:22] [agent_start] commit [NODE] commit - Git commit 通过验证的代码
+[2026-04-10 20:40:22] [workflow] commit [SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1
