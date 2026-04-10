@@ -1,7 +1,7 @@
 {
   "agent": "vision_monitor",
-  "timestamp": "2026-04-10T21:27:38.824Z",
+  "timestamp": "2026-04-10T21:28:49.751Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Vision check stable at 91%. 18 implemented, 2 partial (sense.js MediaPipe browser dependency = major, middleware minimal = minor). No new gaps or resolutions detected."
+  "summary": "Vision gap re-evaluated: match stable at 91%, no source changes detected, 2 partial gaps unchanged"
 }

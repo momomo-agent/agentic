@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:21:24.436Z",
+  "timestamp": "2026-04-10T21:28:00.556Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture match 88→95: all prior API gaps resolved in ARCHITECTURE.md, 2 minor gaps remain (voice adapter signatures, dead embed adapter)"
+  "summary": "Architecture check: 95% match, all files aligned, 2 minor gaps unchanged"
 }

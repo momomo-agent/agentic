@@ -1,7 +1,7 @@
 {
   "milestoneId": "m98",
   "match": 95,
-  "timestamp": "2026-04-11T06:15:00.000Z",
+  "timestamp": "2026-04-11T05:50:00.000Z",
   "criteria": [
     {
       "criterion": "DBB-001: src/index.js exports startServer, detect, getProfile, chat, stt, tts, embed",
@@ -68,7 +68,7 @@
       "status": "pass"
     },
     {
-      "criterion": "DBB-017: ARCHITECTURE.md — sense.js full API documented",
+      "criterion": "DBB-017: ARCHITECTURE.md — sense.js full API documented (10 exports matching actual code)",
       "status": "pass"
     },
     {
@@ -84,7 +84,7 @@
       "status": "fail"
     },
     {
-      "criterion": "DBB-021: Test suite — all 174 files pass, 0 failures",
+      "criterion": "DBB-021: Test suite — all test files pass, 0 failures",
       "status": "pass"
     }
   ]
