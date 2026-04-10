@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T20:21:33.631Z",
+  "timestamp": "2026-04-10T20:22:11.073Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No available tasks to claim. All tasks are either done (256), cancelled (341), or assigned to another role (1 todo assigned to architect for VISION.md update)."
+  "summary": "No claimable tasks available — all 256 tasks done, 2 remaining todos are either assigned to architect or lack a design"
 }
