@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T20:03:16.691Z",
+  "timestamp": "2026-04-10T20:03:46.430Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No developer tasks available — all 254 done, 2 remaining are architect-only documentation tasks"
+  "summary": "No available tasks — all todo tasks with designs are assigned to architect. No unblocked, unassigned tasks with hasDesign=true exist."
 }
