@@ -53,7 +53,7 @@ async function getStore() {
 
 ## Consumers
 
-⚠️ No current consumer of `store/index.js` has been verified in the codebase. `src/runtime/memory.js` does NOT exist. The store is available but unused by application code at this time.
+- `src/runtime/memory.js` — imports `get`, `set`, `del` for semantic memory storage (verified)
 
 ## Constraints
 

@@ -27,9 +27,9 @@ export async function chatSession(sessionId, userMessage, options = {})  // line
 - `./hub.js` → `getSession`, `broadcastSession`
 - `../runtime/profiler.js` → `startMark`, `endMark`
 
-## Memory
+## Memory (src/runtime/memory.js) — IMPLEMENTED
 
-⚠️ `src/runtime/memory.js` does NOT exist in the codebase. No file imports it. If a vector memory layer is needed, it would compose `runtime/embed.js` + `store/index.js`, but this module has not been implemented.
+✅ `src/runtime/memory.js` exists (59 lines). Composes `store/index.js` + `embed.js` into a semantic memory layer. See detailed design in `.team/tasks/task-1775850429586/design.md`.
 
 ## Embed (src/runtime/embed.js)
 
