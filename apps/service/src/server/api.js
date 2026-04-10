@@ -449,7 +449,7 @@ function addRoutes(r) {
 
   // Vision — multimodal image analysis via Ollama
   r.post('/api/vision', async (req, res) => {
-    const { image, prompt = 'Describe this image in detail.' } = req.body;
+    const { image, prompt = 'Describe this image in detail.', fast = false } = req.body;
     if (!image) return res.status(400).json({ error: 'image (base64) required' });
 
     const config = await getConfig();
@@ -505,14 +505,20 @@ function addRoutes(r) {
         const model = vis.model || config.llm?.model || 'gemma4:e4b';
         const host = config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
 
-        const response = await fetch(`${host}/api/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const ollamaBody = {
             model,
             messages: [{ role: 'user', content: prompt, images: [base64] }],
             stream: true
-          })
+          };
+        if (fast) {
+          ollamaBody.think = false;
+          ollamaBody.options = { num_predict: 100 };
+        }
+
+        const response = await fetch(`${host}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ollamaBody)
         });
 
         if (!response.ok) {

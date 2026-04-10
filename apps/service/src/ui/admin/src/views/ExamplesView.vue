@@ -1093,7 +1093,7 @@ async function captureAndDescribe() {
     const res = await fetch('/api/vision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: dataUrl, prompt: '简洁描述你在这张图片中看到的内容，用一两句话概括。' })
+      body: JSON.stringify({ image: dataUrl, prompt: '简洁描述你在这张图片中看到的内容，用一两句话概括。', fast: true })
     })
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
