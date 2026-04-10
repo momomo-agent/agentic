@@ -4,12 +4,13 @@
 
 ```
 agentic-service
-├── agentic-core      # LLM 调用引擎（streaming, tool use, retry）
 ├── agentic-sense     # MediaPipe 感知（人脸/手势/物体，浏览器端）
 ├── agentic-voice     # TTS + STT 统一接口
 ├── agentic-store     # KV 存储抽象（SQLite/IndexedDB/memory）
 └── agentic-embed     # 向量嵌入（bge-m3）
 ```
+
+> **注**: LLM 调用由 server/brain.js 直接实现（Ollama HTTP API + 云端 provider API），不依赖外部 LLM 包。
 
 ## 系统架构
 
@@ -468,6 +469,29 @@ npx agentic-service → setup.js
   → config.setConfig(profile)
   → engine/init.initEngines() → 注册 ollama/whisper/tts/cloud 引擎
   → 启动服务器
+```
+
+### 云端 Fallback
+
+```
+brain.chat() → ollamaChat(messages)
+  → 首 token 超时 (FIRST_TOKEN_TIMEOUT_MS=5000)
+    → 超时 → consecutiveErrors++
+  → 连续 3 次错误 (MAX_ERRORS=3)
+    → 切换到 cloudChat() (OpenAI/Anthropic，按 config.fallback.provider)
+  → 探测恢复 (PROBE_INTERVAL_MS=60000)
+    → 每 60s 尝试一次 Ollama
+    → 成功 → 恢复本地推理，consecutiveErrors=0
+```
+
+### 配置热更新
+
+```
+profiles.watchProfiles(hardware, onReload, interval=30000)
+  → 每 30s 轮询 CDN (PROFILES_URL)
+  → If-None-Match: <lastEtag> → 304 跳过
+  → 200 → 解析 JSON → saveCache() → matchProfile() → onReload(newConfig)
+  → config.setConfig(newConfig) → onConfigChange 回调触发
 ```
 
 ## 安装方式
