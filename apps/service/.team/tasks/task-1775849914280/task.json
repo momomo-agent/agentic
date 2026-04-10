@@ -1,7 +1,7 @@
 {
   "id": "task-1775849914280",
   "title": "Document missing modules in ARCHITECTURE.md — close 85% → 90% gap",
-  "description": "ARCHITECTURE.md has been significantly updated (102 lines changed) and now documents most previously-missing modules. Remaining work:\n\n1. [STALE] Known limitation #5 says \"runtime/memory.js 待实现\" but memory.js IS implemented with 26 passing tests. Remove this limitation.\n\n2. Review if any remaining architecture gaps (embed.js adapters formal API section, sense.js full API) still need brief additions.\n\nThe 85% → 90% gap should close once the stale limitation is removed and a re-evaluation is triggered.",
+  "description": "Close architecture 85% → 90% gap. Specific items:\n1. Remove stale known limitation #5 (runtime/memory.js 待实现) — memory.js is now implemented with add/search API.\n2. Ensure store/index.js module section is fully documented (not just directory listing).\n3. Ensure runtime/embed.js + runtime/adapters/ are documented as formal module sections (not just addendum).\n4. Ensure profiler.js + latency-log.js have brief module descriptions.\n5. Ensure sox.js + download-state.js are mentioned.\n\nARCHITECTURE.md already has directory structure entries for most of these — the gap is that some lack formal module-level documentation sections like the other core modules have.",
   "status": "todo",
   "priority": "P0",
   "assignee": "architect",
@@ -9,6 +9,6 @@
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:38:34.280Z",
-  "updated": "2026-04-10T20:03:55.140Z",
+  "updated": "2026-04-10T20:10:30.104Z",
   "milestoneId": "m98"
 }
