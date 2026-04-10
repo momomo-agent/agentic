@@ -2,74 +2,125 @@
 
 ## Overview
 
-agentic-lite is a minimal LLM agent library. It exposes a single `ask()` function that runs a tool-use loop until the model produces a final answer.
+agentic-lite is a thin integration layer that combines **agentic-core** (LLM agent loop + provider abstraction) with tool implementations (file, code, shell, search). It exposes two functions — `ask()` and `askStream()` — that run a multi-round tool-use loop until the model produces a final answer.
+
+Design principle: ask.ts stays under 100 lines. All LLM logic lives in agentic-core; agentic-lite only wires tools and config.
+
+## System Diagram
+
+```mermaid
+graph TD
+    User["User Code"]
+    Index["src/index.ts<br/>Public API"]
+    Ask["src/ask.ts<br/>ask() / askStream()"]
+    Types["src/types.ts<br/>AgenticConfig, AgenticResult"]
+    Core["agentic-core<br/>agenticAsk(), ToolDefinition"]
+    FS["agentic-filesystem<br/>AgenticFileSystem, MemoryStorage"]
+    Shell["agentic-shell<br/>AgenticShell"]
+
+    Search["tools/search.ts<br/>Tavily / Serper"]
+    Code["tools/code.ts<br/>QuickJS / Pyodide"]
+    File["tools/file.ts<br/>file_read / file_write"]
+    ShellTool["tools/shell.ts<br/>shell_exec"]
+
+    User --> Index --> Ask
+    Ask --> Core
+    Ask --> File --> FS
+    Ask --> Code
+    Ask --> ShellTool --> Shell
+    Ask --> Search
+    Code -.->|"dynamic import (Node)"| QuickJS["quickjs-emscripten"]
+    Code -.->|"dynamic import (browser)"| Pyodide["pyodide"]
+    ShellTool -.->|"dynamic import (Node)"| Shell
+    Ask --> Types
+```
 
 ## Module Structure
 
-- `src/index.ts` — public exports
-- `src/ask.ts` — core agent loop (`ask()`)
-- `src/types.ts` — all shared interfaces (`AgenticConfig`, `AgenticResult`, `Provider`, `ToolDefinition`)
-- `src/providers/` — LLM provider adapters
-  - `anthropic.ts` — Anthropic Claude adapter
-  - `openai.ts` — OpenAI adapter
-  - `provider.ts` — custom provider support
-  - `index.ts` — `createProvider()` factory
-- `src/tools/` — tool implementations
-  - `search.ts` — web search
-  - `code.ts` — code execution
-  - `file.ts` — file read/write (via agentic-filesystem)
-  - `shell.ts` — shell commands
-  - `index.ts` — tool registry
+### src/index.ts
+Public API barrel. Re-exports `ask`, `askStream`, all types, and `AgenticFileSystem`/`MemoryStorage` from agentic-filesystem.
+
+### src/ask.ts — Integration Layer
+- `ask(prompt, config?): Promise<AgenticResult>` — runs agentic-core's `agenticAsk()` with `stream: false`, collects tool calls, returns structured result.
+- `askStream(prompt, config?): AsyncGenerator<{ type, text? }>` — runs `agenticAsk()` with `stream: true` and an `emit` callback that pushes `{ type: 'text', text }` chunks through an async generator.
+- `buildTools(config)` — assembles tool array based on `config.tools` (default: `['file', 'code']`). Shell is only registered when `isNodeEnv()` returns true.
+
+### src/types.ts — Interfaces
+- `AgenticConfig` — provider, apiKey, model, baseUrl, systemPrompt, tools, filesystem, toolConfig
+- `AgenticResult` — answer, sources?, images?, codeResults?, files?, shellResults?, toolCalls?, usage
+- `ToolName` — `'search' | 'code' | 'file' | 'shell'`
+- `Source`, `CodeResult`, `FileResult`, `ShellResult`, `ToolCall`
+
+### src/tools/
+
+| Tool | File | Function | Runtime |
+|---|---|---|---|
+| file_read / file_write | file.ts | `executeFileRead()`, `executeFileWrite()` | Both |
+| code_exec | code.ts | `executeCode()` | Both (QuickJS Node, AsyncFunction/Pyodide browser) |
+| shell_exec | shell.ts | `executeShell()` | Node only (browser returns error) |
+| web_search | search.ts | `executeSearch()` | Both (requires API key) |
 
 ## Data Flow
 
 ```
 ask(prompt, config)
-  → createProvider(config)
-  → loop:
-      provider.chat(messages)
-      if stopReason === 'tool_use':
-        executeToolCalls(toolCalls)
-        append results to messages
-      else:
-        return AgenticResult
+  ├─ Default filesystem: new AgenticFileSystem({ storage: new MemoryStorage() })
+  ├─ buildTools(config) → tool array with execute wrappers
+  ├─ Wrap each tool.execute to capture ToolCall[]
+  └─ agenticAsk(prompt, {
+       provider, apiKey, baseUrl, model,
+       system: config.systemPrompt ?? OS_SYSTEM_PROMPT,
+       tools: wrappedTools,
+       stream: false
+     })
+     └─ agentic-core multi-round loop:
+          LLM call → tool_use? → execute tools → append results → repeat
+          stopReason !== 'tool_use' → return { answer, usage }
+
+askStream(prompt, config)
+  ├─ Same setup as ask()
+  └─ agenticAsk(prompt, { ...config, stream: true }, emit)
+     └─ emit('token', { text }) → pushed to async generator as { type: 'text', text }
 ```
-
-## Key Interfaces
-
-- `AgenticConfig` — input config (provider, apiKey, model, tools, systemPrompt, filesystem)
-- `AgenticResult` — output (answer, sources, images, codeResults, files, shellResults, toolCalls, usage)
-- `Provider` — adapter interface with `chat()` method
-- `ToolDefinition` — tool name, description, input schema, and execute function
 
 ## Provider Resolution
 
-### Custom Provider Fallback
+Provider selection and LLM communication are fully delegated to **agentic-core**. agentic-lite passes `provider`, `apiKey`, `baseUrl`, and `model` through to `agenticAsk()`.
 
+### Custom Provider Fallback (in agentic-core)
 When `provider='custom'`:
 1. If `config.customProvider` is set → use it directly
-2. Else if `config.baseUrl` is set → fall back to OpenAI-compatible adapter (`createOpenAIProvider`)
+2. Else if `config.baseUrl` is set → fall back to OpenAI-compatible adapter
 3. Else → throw `Error('customProvider or baseUrl is required when provider="custom"')`
 
+API key validation: agentic-core throws before any network call for `anthropic`/`openai` providers. Custom providers skip apiKey validation.
 
-Add a 'Custom Provider Fallback' subsection documenting the three-step resolution: (1) customProvider set → use directly, (2) baseUrl set → fall back to OpenAI-compatible adapter, (3) neither → throw error.
+## Browser Compatibility
 
-Create ARCHITECTURE.md defining:
-1. System architecture overview
-2. Module structure (src/ organization)
-3. Core interfaces and contracts (AgenticConfig, AgenticResult, Provider interface, Tool interface)
-4. File organization and responsibilities
-5. Dependencies between modules
-6. Data flow through the agentic loop
-7. Extension points (custom providers, custom tools)
+All Node-specific code uses dynamic `import()` behind environment guards:
+- `quickjs-emscripten` — loaded only in Node for JS sandbox; browser falls back to `AsyncFunction` eval
+- `pyodide` — loaded from CDN in browser; Node falls back to `python3` subprocess
+- `agentic-shell` — loaded only when `isNodeEnv()` is true; browser gets descriptive error
+- No static Node.js imports in any module
 
-Based on existing code structure:
-- src/ask.ts — main agentic loop
-- src/types.ts — core type definitions
-- src/providers/ — LLM provider implementations
-- src/tools/ — tool implementations (search, code, file, shell)
-- src/index.ts — public API exports
+## Technology Stack
 
-Under 'Provider Resolution > Custom Provider Fallback', add: When provider='custom': 1) if config.customProvider is set → use it directly; 2) else if config.baseUrl is set → fall back to createOpenAIProvider; 3) else → throw Error('customProvider or baseUrl is required when provider="custom"')
+| Layer | Technology |
+|---|---|
+| Language | TypeScript (ESM) |
+| Build | tsup |
+| Test | vitest |
+| Agent loop | agentic-core (zero-dependency) |
+| File I/O | agentic-filesystem (MemoryStorage default) |
+| Shell | agentic-shell (Node-only) |
+| JS sandbox | quickjs-emscripten (Node) / AsyncFunction (browser) |
+| Python sandbox | python3 subprocess (Node) / Pyodide CDN (browser) |
+| Web search | Tavily API / Serper API |
 
-In the 'Provider Resolution / Custom Provider Fallback' section, add: when customProvider is absent but baseUrl is set, createProvider falls back to createOpenAIProvider(baseUrl, apiKey, model). Also update README.md with a usage example showing this pattern.
+## Design Principles
+
+1. **Thin integration layer** — ask.ts < 100 lines; all LLM logic in agentic-core
+2. **Browser-first** — no static Node dependencies; dynamic imports with guards
+3. **Zero-config** — default MemoryStorage filesystem, default system prompt, default tools
+4. **No heavy frameworks** — no chain/graph/memory abstractions
+5. **Composable tools** — each tool is an independent module with its own `ToolDefinition` + `execute` function

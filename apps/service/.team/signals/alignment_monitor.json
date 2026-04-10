@@ -1,0 +1,7 @@
+{
+  "agent": "alignment_monitor",
+  "timestamp": "2026-04-10T03:56:27.130Z",
+  "exitCode": 0,
+  "status": "completed",
+  "summary": "Alignment analysis written to .team/gaps/alignment.json — Vision→PRD 92%, PRD→Architecture 90%, Architecture→Tasks 88%, 0 critical issues, overall aligned"
+}

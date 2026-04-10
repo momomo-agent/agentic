@@ -1,0 +1,87 @@
+{
+  "timestamp": "2026-04-10T00:00:00Z",
+  "checks": [
+    {
+      "from": "vision",
+      "to": "prd",
+      "aligned": true,
+      "coverage": 95,
+      "issues": [
+        {
+          "type": "minor",
+          "description": "Vision mentions 'Agent-friendly interface — clean output suitable for programmatic consumption' as a core value prop, but PRD does not have a dedicated section on agent-friendly output formatting or structured output modes",
+          "severity": "minor",
+          "from_item": "Core Value Proposition #4: Agent-friendly interface — clean output suitable for programmatic consumption",
+          "to_item": "No dedicated PRD section for agent-friendly output; implicitly covered by deterministic command output"
+        },
+        {
+          "type": "missing",
+          "description": "Vision's near-term roadmap item 'Performance benchmarks on real filesystems' is mentioned in PRD section 3 but lacks specific benchmark targets or acceptance criteria",
+          "severity": "minor",
+          "from_item": "Near-Term Roadmap: Performance benchmarks on real filesystems (mock FS benchmarks passing)",
+          "to_item": "PRD §3 mentions benchmarks but no specific performance targets defined"
+        }
+      ]
+    },
+    {
+      "from": "prd",
+      "to": "architecture",
+      "aligned": true,
+      "coverage": 92,
+      "issues": [
+        {
+          "type": "missing",
+          "description": "PRD specifies detailed wc flag behavior (-l, -w, -c) and output formats (tab-separated, stdin vs file format), but Architecture does not document wc implementation details",
+          "severity": "minor",
+          "from_item": "PRD §1.15: wc with -l, -w, -c flags, tab-separated output format '<count>\\t<path>'",
+          "to_item": "Architecture does not mention wc command implementation details"
+        },
+        {
+          "type": "missing",
+          "description": "PRD specifies head and tail commands with -n flag and defaults, but Architecture does not document these commands",
+          "severity": "minor",
+          "from_item": "PRD §1.13-1.14: head/tail with -n N flag, default 10 lines",
+          "to_item": "Architecture does not mention head/tail implementation details"
+        },
+        {
+          "type": "missing",
+          "description": "PRD specifies export command behavior, but Architecture only briefly mentions it under environment variables without detailing the command itself",
+          "severity": "minor",
+          "from_item": "PRD §1.16: export VAR=value syntax",
+          "to_item": "Architecture mentions 'export KEY=VALUE' in env vars section but no dedicated command documentation"
+        },
+        {
+          "type": "drift",
+          "description": "PRD specifies combined input+output redirection ('command < input > output'), but Architecture only mentions them separately without explicitly confirming combination support",
+          "severity": "minor",
+          "from_item": "PRD §2.3: 'Combinable with output redirection: command < input > output'",
+          "to_item": "Architecture §Redirection: lists '> file', '>> file', 'cmd < file' separately, mentions 'combinations supported' but no detail"
+        }
+      ]
+    },
+    {
+      "from": "architecture",
+      "to": "tasks",
+      "aligned": true,
+      "coverage": 90,
+      "issues": [
+        {
+          "type": "missing",
+          "description": "Architecture mentions future split into src/shell.ts and src/commands/ if file exceeds 1000 lines (currently ~978), but no task exists for this refactoring trigger",
+          "severity": "minor",
+          "from_item": "Architecture: 'If file exceeds 1000 lines, consider splitting into src/shell.ts and src/commands/'",
+          "to_item": "No task for file-size monitoring or refactoring trigger"
+        },
+        {
+          "type": "missing",
+          "description": "Architecture lists future enhancements (tab completion, aliases, history, signal handling) but no tasks exist for these",
+          "severity": "minor",
+          "from_item": "Architecture: Future Enhancements — tab completion, aliases, history, signal handling",
+          "to_item": "No tasks for future enhancements (expected — these are post-roadmap items)"
+        }
+      ]
+    }
+  ],
+  "overall_aligned": true,
+  "critical_issues": 0
+}

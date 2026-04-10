@@ -1,10 +1,10 @@
 {
   "version": "3.1",
-  "description": "AI 开发团队 - 多组件支持",
+  "description": "AI \u5f00\u53d1\u56e2\u961f - \u591a\u7ec4\u4ef6\u652f\u6301",
   "dashboard": {
     "left": [
       {
-        "title": "愿景",
+        "title": "\u613f\u666f",
         "components": [
           {
             "component": "MarkdownView",
@@ -19,7 +19,7 @@
         }
       },
       {
-        "title": "产品需求",
+        "title": "\u4ea7\u54c1\u9700\u6c42",
         "components": [
           {
             "component": "MarkdownView",
@@ -34,7 +34,7 @@
         }
       },
       {
-        "title": "预期验收",
+        "title": "\u9884\u671f\u9a8c\u6536",
         "components": [
           {
             "component": "MarkdownView",
@@ -49,7 +49,7 @@
         }
       },
       {
-        "title": "技术架构",
+        "title": "\u6280\u672f\u67b6\u6784",
         "components": [
           {
             "component": "MarkdownView",
@@ -123,7 +123,7 @@
     "architect": {
       "prompt": "prompts/architect.md",
       "model": "claude-sonnet-4",
-      "description": "设计系统架构",
+      "description": "\u8bbe\u8ba1\u7cfb\u7edf\u67b6\u6784",
       "onFail": {
         "maxRetries": 3,
         "fallbackShell": "echo \"# Minimal Architecture\" > ARCHITECTURE.md"
@@ -132,37 +132,37 @@
     "vision_monitor": {
       "prompt": "prompts/vision_monitor.md",
       "model": "claude-sonnet-4",
-      "description": "评估愿景匹配度"
+      "description": "\u8bc4\u4f30\u613f\u666f\u5339\u914d\u5ea6"
     },
     "prd_monitor": {
       "prompt": "prompts/prd_monitor.md",
       "model": "claude-sonnet-4",
-      "description": "评估PRD匹配度"
+      "description": "\u8bc4\u4f30PRD\u5339\u914d\u5ea6"
     },
     "dbb_monitor": {
       "prompt": "prompts/dbb_monitor.md",
       "model": "claude-sonnet-4",
-      "description": "评估DBB匹配度"
+      "description": "\u8bc4\u4f30DBB\u5339\u914d\u5ea6"
     },
     "arch_monitor": {
       "prompt": "prompts/arch_monitor.md",
       "model": "claude-sonnet-4",
-      "description": "评估架构匹配度"
+      "description": "\u8bc4\u4f30\u67b6\u6784\u5339\u914d\u5ea6"
     },
     "pm": {
       "prompt": "prompts/pm.md",
       "model": "claude-sonnet-4",
-      "description": "管理任务和里程碑"
+      "description": "\u7ba1\u7406\u4efb\u52a1\u548c\u91cc\u7a0b\u7891"
     },
     "qa_lead": {
       "prompt": "prompts/qa_lead.md",
       "model": "claude-sonnet-4",
-      "description": "编写验收标准"
+      "description": "\u7f16\u5199\u9a8c\u6536\u6807\u51c6"
     },
     "tech_lead": {
       "prompt": "prompts/tech_lead.md",
       "model": "claude-sonnet-4",
-      "description": "出技术方案",
+      "description": "\u51fa\u6280\u672f\u65b9\u6848",
       "onFail": {
         "maxRetries": 3,
         "fallbackShell": "echo \"# Minimal Design\" > .team/docs/design.md"
@@ -172,7 +172,7 @@
       "prompt": "prompts/developer.md",
       "model": "claude-sonnet-4",
       "scalable": true,
-      "description": "实现功能",
+      "description": "\u5b9e\u73b0\u529f\u80fd",
       "gitCommit": true,
       "gitPrefix": "feat"
     },
@@ -180,7 +180,7 @@
       "prompt": "prompts/tester.md",
       "model": "claude-sonnet-4",
       "scalable": true,
-      "description": "验证功能",
+      "description": "\u9a8c\u8bc1\u529f\u80fd",
       "gitCommit": true,
       "gitPrefix": "test"
     }
@@ -207,7 +207,7 @@
   },
   "goal": {
     "condition": "gaps.read('vision').match >= 90 && gaps.read('prd').match >= 90",
-    "description": "Vision ≥90% + PRD ≥90%"
+    "description": "Vision \u226590% + PRD \u226590%"
   },
   "requiredFiles": [
     "VISION.md",
@@ -216,7 +216,7 @@
   "groups": {
     "label": "milestones"
   },
-  "_workflow": "dev-team",
+  "_workflow": "project",
   "name": "agentic-lite",
   "created": "2026-04-07T01:33:32.049Z",
   "devteamVersion": "2.0"

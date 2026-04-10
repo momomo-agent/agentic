@@ -7801,3 +7801,33 @@
 {"ts":"2026-04-08T02:33:27.394Z","type":"agent_start","agent":"tester","data":{"details":"验证功能","performance":{"memoryMB":8,"memoryTotalMB":12,"cpuUser":2.186013,"cpuSystem":4.132134}}}
 {"ts":"2026-04-08T02:33:42.521Z","type":"agent_complete","agent":"tester","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":2.195132,"cpuSystem":4.144}}}
 {"ts":"2026-04-08T02:33:42.521Z","type":"workflow","agent":"tester","data":{"details":"[SIGNAL] completed: No tasks in 'review' status. All 114 tasks are 'done'. Nothing to test."}}
+{"ts":"2026-04-10T03:54:51.616Z","type":"workflow","agent":"validator","data":{"details":"[WARNING] nodes/complete: unreachable from entry node"}}
+{"ts":"2026-04-10T03:54:51.618Z","type":"workflow","agent":"validator","data":{"details":"[WARNING] config.dashboard: no dashboard configuration — run \"team web\" will show empty UI"}}
+{"ts":"2026-04-10T03:54:51.643Z","type":"agent_start","agent":"daemon","data":{"details":"Team daemon started (safety=600s, timeout=900s)","performance":{"memoryMB":5,"memoryTotalMB":8,"cpuUser":0.023899,"cpuSystem":0.006208}}}
+{"ts":"2026-04-10T03:54:51.717Z","type":"workflow","agent":"monitor","data":{"details":"[HEALTH] Monitor started"}}
+{"ts":"2026-04-10T03:54:51.720Z","type":"agent_start","agent":"startup","data":{"details":"[NODE] startup - 项目启动","performance":{"memoryMB":6,"memoryTotalMB":8,"cpuUser":0.026869,"cpuSystem":0.007422}}}
+{"ts":"2026-04-10T03:54:51.746Z","type":"workflow","agent":"startup","data":{"details":"[SKIP] init-architecture: !hasArchitecture"}}
+{"ts":"2026-04-10T03:54:51.766Z","type":"agent_start","agent":"monitor","data":{"details":"[NODE] monitor - 全局 Monitor 五维检查（含层间一致性）","performance":{"memoryMB":6,"memoryTotalMB":11,"cpuUser":0.042517,"cpuSystem":0.039974}}}
+{"ts":"2026-04-10T03:54:51.788Z","type":"workflow","agent":"monitor","data":{"details":"[PARALLEL] vision_monitor, prd_monitor, dbb_monitor, arch_monitor, alignment_monitor"}}
+{"ts":"2026-04-10T03:54:51.789Z","type":"agent_start","agent":"vision_monitor","data":{"details":"评估愿景匹配度","performance":{"memoryMB":6,"memoryTotalMB":11,"cpuUser":0.047201,"cpuSystem":0.05794}}}
+{"ts":"2026-04-10T03:54:51.789Z","type":"agent_start","agent":"prd_monitor","data":{"details":"评估PRD匹配度","performance":{"memoryMB":7,"memoryTotalMB":11,"cpuUser":0.048121,"cpuSystem":0.058412}}}
+{"ts":"2026-04-10T03:54:51.790Z","type":"agent_start","agent":"dbb_monitor","data":{"details":"评估DBB匹配度","performance":{"memoryMB":7,"memoryTotalMB":11,"cpuUser":0.048331,"cpuSystem":0.058747}}}
+{"ts":"2026-04-10T03:54:51.790Z","type":"agent_start","agent":"arch_monitor","data":{"details":"评估架构匹配度","performance":{"memoryMB":7,"memoryTotalMB":11,"cpuUser":0.048485,"cpuSystem":0.059075}}}
+{"ts":"2026-04-10T03:54:51.791Z","type":"agent_start","agent":"alignment_monitor","data":{"details":"检查层间一致性（Vision→PRD→Architecture→Tasks）","performance":{"memoryMB":7,"memoryTotalMB":11,"cpuUser":0.048896,"cpuSystem":0.059416}}}
+{"ts":"2026-04-10T03:56:05.866Z","type":"agent_complete","agent":"vision_monitor","data":{"details":"completed successfully","performance":{"memoryMB":12,"memoryTotalMB":15,"cpuUser":0.081812,"cpuSystem":0.089944}}}
+{"ts":"2026-04-10T03:56:05.867Z","type":"workflow","agent":"vision_monitor","data":{"details":"[SIGNAL] completed: Vision gap analysis: 100% match, all PRD requirements implemented across backends, tools, and core A"}}
+{"ts":"2026-04-10T03:56:49.686Z","type":"agent_complete","agent":"prd_monitor","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":20,"cpuUser":0.09263,"cpuSystem":0.102802}}}
+{"ts":"2026-04-10T03:56:49.687Z","type":"workflow","agent":"prd_monitor","data":{"details":"[SIGNAL] completed: PRD gap analysis updated to 95% — NodeFsBackend JSDoc gap resolved, 1 minor partial gap remains (Age"}}
+{"ts":"2026-04-10T03:56:53.352Z","type":"agent_complete","agent":"arch_monitor","data":{"details":"completed successfully","performance":{"memoryMB":7,"memoryTotalMB":10,"cpuUser":0.112795,"cpuSystem":0.117372}}}
+{"ts":"2026-04-10T03:56:53.353Z","type":"workflow","agent":"arch_monitor","data":{"details":"[SIGNAL] completed: Architecture gap analysis refreshed — 97% match, all core modules implemented, one minor doc-vs-code"}}
+{"ts":"2026-04-10T03:59:29.056Z","type":"agent_complete","agent":"dbb_monitor","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":18,"cpuUser":0.169007,"cpuSystem":0.176558}}}
+{"ts":"2026-04-10T03:59:29.057Z","type":"workflow","agent":"dbb_monitor","data":{"details":"[SIGNAL] completed: DBB check: global match 95%, m26 match 93%. All NodeFsBackend JSDoc criteria pass. IOError gap resol"}}
+{"ts":"2026-04-10T03:59:51.722Z","type":"perf","agent":"daemon","data":{"details":"{\"rss\":\"80MB\",\"heapUsed\":\"16MB\",\"uptime\":\"300s\"}"}}
+{"ts":"2026-04-10T04:00:06.830Z","type":"agent_complete","agent":"alignment_monitor","data":{"details":"completed successfully","performance":{"memoryMB":7,"memoryTotalMB":11,"cpuUser":0.188798,"cpuSystem":0.194895}}}
+{"ts":"2026-04-10T04:00:06.831Z","type":"workflow","agent":"alignment_monitor","data":{"details":"[SIGNAL] completed: Re-ran alignment gap analysis. PRD→Architecture at 90% with 3 minor doc-staleness issues (stat permi"}}
+{"ts":"2026-04-10T04:00:06.867Z","type":"agent_start","agent":"pm_decide","data":{"details":"[NODE] pm_decide - PM 决策下一步","performance":{"memoryMB":9,"memoryTotalMB":12,"cpuUser":0.200723,"cpuSystem":0.223993}}}
+{"ts":"2026-04-10T04:00:06.883Z","type":"workflow","agent":"pm_decide","data":{"details":"[SKIP] fix-arch: archNeedsUpdate > 0"}}
+{"ts":"2026-04-10T04:00:06.883Z","type":"workflow","agent":"pm_decide","data":{"details":"[EXEC] pm"}}
+{"ts":"2026-04-10T04:00:06.883Z","type":"agent_start","agent":"pm","data":{"details":"管理任务和里程碑","performance":{"memoryMB":9,"memoryTotalMB":13,"cpuUser":0.204572,"cpuSystem":0.236439}}}
+{"ts":"2026-04-10T04:01:06.171Z","type":"workflow","agent":"daemon","data":{"details":"Reset stuck agent: pm"}}
+{"ts":"2026-04-10T04:01:06.172Z","type":"agent_complete","agent":"daemon","data":{"details":"Team daemon stopped","performance":{"memoryMB":16,"memoryTotalMB":18,"cpuUser":0.221583,"cpuSystem":0.257243}}}

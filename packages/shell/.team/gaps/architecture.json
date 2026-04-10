@@ -1,29 +1,29 @@
 {
   "match": 91,
-  "timestamp": "2026-04-08T20:00:00.000Z",
+  "timestamp": "2026-04-10T12:00:00.000Z",
   "gaps": [
     {
-      "description": "Single-file architecture: src/index.ts is 978 lines — approaching the 1000-line refactor trigger documented at line 22. Not yet violated but close to threshold.",
+      "description": "Single-file architecture: src/index.ts is 978 lines — approaching the 1000-line refactor trigger documented in ARCHITECTURE.md. Not yet violated but close to threshold.",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "Pipe error propagation: architecture says 'if left command fails, right command receives empty stdin (short-circuit behavior)' — implementation short-circuits on error output from left segment (lines 172-175). Behavior is documented in Pipe Error Short-Circuit section but test expectations may conflict.",
+      "description": "Pipe error propagation: architecture says 'if left command fails, right command receives empty stdin (short-circuit behavior)' — implementation short-circuits on error output from left segment (lines 172-175). Behavior matches but edge cases around error detection via string matching could diverge from documented contract.",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "Constructor only accepts (fs) parameter, but some tests pass { readOnly: true } as second arg — silently ignored. The readOnly property is read from fs.readOnly, not from constructor options.",
+      "description": "Constructor only accepts (fs) parameter — some tests pass { readOnly: true } as second arg which is silently ignored. The readOnly property is read from fs.readOnly, not from constructor options. Minor API surface mismatch.",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "grep streaming fallback documented in architecture but implementation also has case-insensitive multi-file bypass path that manually reads files — not documented in performance considerations.",
+      "description": "grep case-insensitive multi-file bypass path manually reads files rather than using fs.grep — not documented in architecture performance considerations section.",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "mkdir fallback workaround (write path+'/.keep') IS implemented in mkdirOne()",
+      "description": "mkdir fallback workaround (write path+'/.keep') is implemented in mkdirOne() as documented.",
       "status": "implemented",
       "severity": "minor"
     }

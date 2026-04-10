@@ -1,6 +1,6 @@
 {
-  "match": 55,
-  "timestamp": "2026-04-08T12:00:00.000Z",
+  "match": 58,
+  "timestamp": "2026-04-10T12:00:00.000Z",
   "gaps": [
     {
       "description": "Hardware detector — detect GPU/memory/arch/OS (hardware.js)",
@@ -139,12 +139,12 @@
       "severity": "major"
     },
     {
-      "description": "Documentation + README — complete user docs not yet written",
-      "status": "missing",
+      "description": "Documentation + README — README.md exists with install methods, API endpoints, architecture; missing troubleshooting section",
+      "status": "partial",
       "severity": "major"
     },
     {
-      "description": "Test suite — ~36 tests failing across detector/server/CLI groups; runtime tests hang",
+      "description": "Test suite — 80+ test files exist but pass/fail status unverified; previous assessment noted ~36 failures",
       "status": "partial",
       "severity": "major"
     }

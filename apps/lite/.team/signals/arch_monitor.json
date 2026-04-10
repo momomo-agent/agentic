@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-08T02:24:38.777Z",
+  "timestamp": "2026-04-10T03:58:32.515Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture match 93%. All code implements the design correctly. 6 documentation gaps in ARCHITECTURE.md: leftover prompt instructions (lines 55-75), type locations misattributed, module roles misdescribed, field naming mismatch (parameters vs input schema). No code defects found."
+  "summary": "Architecture match dropped to 58% — src/providers/ directory removed, provider layer extracted to agentic-core, askStream() undocumented"
 }

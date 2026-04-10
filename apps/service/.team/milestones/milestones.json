@@ -303,6 +303,19 @@
         "task-1775612739945"
       ],
       "created": "2026-04-08T04:10:00.000Z"
+    },
+    {
+      "id": "m98",
+      "name": "M98: PRD Gap Closure — Critical Path to 90%",
+      "status": "ready-for-work",
+      "tasks": [
+        "task-1775793599438",
+        "task-1775793599479",
+        "task-1775793599517",
+        "task-1775793599556",
+        "task-1775793599594"
+      ],
+      "created": "2026-04-10T12:00:00.000Z"
     }
   ]
 }

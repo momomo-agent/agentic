@@ -47,7 +47,7 @@ describe('think', () => {
     expect(transport.stream).toHaveBeenCalledWith('/api/chat', { message: 'hi' })
   })
 
-  it('流式返回 AsyncGenerator', async () => {
+  it('流式返回 AsyncGenerator (ChatEvent format)', async () => {
     const { client } = createClient({
       stream: vi.fn(() => asyncGen([
         { type: 'content', text: 'chunk1' },
@@ -58,9 +58,9 @@ describe('think', () => {
     const chunks = []
     for await (const c of gen) chunks.push(c)
     expect(chunks).toEqual([
-      { type: 'content', text: 'chunk1' },
-      { type: 'content', text: 'chunk2' },
-      { type: 'done' }
+      { type: 'text_delta', text: 'chunk1' },
+      { type: 'text_delta', text: 'chunk2' },
+      { type: 'done', stopReason: 'end_turn' }
     ])
   })
 
@@ -87,13 +87,13 @@ describe('think', () => {
   it('工具调用返回 toolCalls', async () => {
     const { client } = createClient({
       stream: vi.fn(() => asyncGen([
-        { type: 'tool_use', name: 'get_weather', input: { city: '北京' } }
+        { type: 'tool_use', id: 'call_1', name: 'get_weather', input: { city: '北京' } }
       ]))
     })
     const result = await client.think('北京天气', {
       tools: [{ name: 'get_weather', description: '获取天气', parameters: { type: 'object', properties: { city: { type: 'string' } } } }]
     })
-    expect(result.toolCalls).toEqual([{ name: 'get_weather', args: { city: '北京' } }])
+    expect(result.toolCalls).toEqual([{ id: 'call_1', name: 'get_weather', args: { city: '北京' } }])
   })
 
   it('支持多轮对话 history', async () => {
@@ -127,11 +127,90 @@ describe('think', () => {
     await client.think(messages)
     expect(transport.stream).toHaveBeenCalledWith('/api/chat', { messages })
   })
+  it('流式 tool_use 事件包含 id/name/input', async () => {
+    const { client } = createClient({
+      stream: vi.fn(() => asyncGen([
+        { type: 'content', text: 'Let me check' },
+        { type: 'tool_use', id: 'call_1', name: 'search', input: { q: 'test' } }
+      ]))
+    })
+    const gen = await client.think('search for test', { stream: true })
+    const chunks = []
+    for await (const c of gen) chunks.push(c)
+    expect(chunks).toEqual([
+      { type: 'text_delta', text: 'Let me check' },
+      { type: 'tool_use', id: 'call_1', name: 'search', input: { q: 'test' } },
+      { type: 'done', stopReason: 'end_turn' }
+    ])
+  })
+
+  it('流式 error 事件', async () => {
+    const { client } = createClient({
+      stream: vi.fn(() => asyncGen([
+        { type: 'error', error: 'model not found' }
+      ]))
+    })
+    const gen = await client.think('hi', { stream: true })
+    const chunks = []
+    for await (const c of gen) chunks.push(c)
+    expect(chunks).toEqual([
+      { type: 'error', error: 'model not found' },
+      { type: 'done', stopReason: 'end_turn' }
+    ])
+  })
+
+  it('toolChoice 透传到请求体', async () => {
+    const { client, transport } = createClient({
+      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
+    })
+    await client.think('hi', {
+      tools: [{ name: 'foo', description: 'bar' }],
+      toolChoice: 'auto'
+    })
+    expect(transport.stream).toHaveBeenCalledWith('/api/chat', {
+      message: 'hi',
+      tools: [{ type: 'function', function: { name: 'foo', description: 'bar', parameters: { type: 'object', properties: {} } } }],
+      tool_choice: 'auto'
+    })
+  })
+
+  it('接受 OpenAI 格式的 tools 定义', async () => {
+    const { client, transport } = createClient({
+      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
+    })
+    const tool = { type: 'function', function: { name: 'foo', description: 'bar', parameters: { type: 'object' } } }
+    await client.think('hi', { tools: [tool] })
+    expect(transport.stream).toHaveBeenCalledWith('/api/chat', {
+      message: 'hi',
+      tools: [tool]
+    })
+  })
 })
 
 // ============================================================
-// listen
+// chat (provider routing)
 // ============================================================
+describe('chat', () => {
+  it('throws when no provider matches', () => {
+    const client = new AgenticClient({ providers: [] })
+    expect(() => client.chat([{ role: 'user', content: 'hi' }], { model: 'gpt-4' }))
+      .toThrow('No provider matched')
+  })
+
+  it('matches provider by glob pattern', () => {
+    const client = new AgenticClient({
+      providers: [
+        { type: 'anthropic', baseUrl: 'https://api.anthropic.com', apiKey: 'sk-ant', models: ['claude-*'] },
+        { type: 'openai', baseUrl: 'https://api.openai.com', apiKey: 'sk-oai', models: ['gpt-*'] },
+      ]
+    })
+    // Should not throw — provider matched
+    // We can't easily test the fetch call without mocking global fetch,
+    // but we can verify it doesn't throw "no provider matched"
+    const result = client.chat([{ role: 'user', content: 'hi' }], { model: 'claude-3-sonnet', stream: false })
+    expect(result).toBeInstanceOf(Promise)
+  })
+})
 describe('listen', () => {
   it('发送音频返回文本', async () => {
     const { client, transport } = createClient({

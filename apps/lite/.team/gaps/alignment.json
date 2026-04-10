@@ -1,0 +1,87 @@
+{
+  "timestamp": "2026-04-10T12:00:00.000Z",
+  "checks": [
+    {
+      "from": "vision",
+      "to": "prd",
+      "aligned": true,
+      "coverage": 95,
+      "issues": [
+        {
+          "type": "drift",
+          "description": "Vision emphasizes '零框架概念，零配置负担' (zero framework concepts, zero config burden). PRD introduces agentic-core as a dependency layer with its own loop/provider abstraction, adding architectural complexity not explicit in the vision's simplicity promise.",
+          "severity": "minor",
+          "from_item": "零框架概念，零配置负担 (zero framework concepts, zero config burden)",
+          "to_item": "PRD Architecture: 'agentic-lite = agentic-core (LLM loop, providers, types) + agentic-filesystem + agentic-shell + tool implementations'"
+        },
+        {
+          "type": "missing",
+          "description": "Vision mentions streaming as part of core value (confirmed implemented via askStream). PRD does not document streaming API or askStream() at all.",
+          "severity": "major",
+          "from_item": "Streaming support (confirmed in vision.json as implemented feature of agentic-core)",
+          "to_item": "PRD has no mention of streaming, askStream(), or async generator API"
+        }
+      ]
+    },
+    {
+      "from": "prd",
+      "to": "architecture",
+      "aligned": true,
+      "coverage": 90,
+      "issues": [
+        {
+          "type": "drift",
+          "description": "PRD says agent loop is 'delegated to agentic-core' and ask() calls runAgentLoop(). Architecture describes the loop inline in ask.ts with no mention of agentic-core delegation.",
+          "severity": "major",
+          "from_item": "PRD Agent Loop: 'Delegated to agentic-core. ask(prompt, config) calls runAgentLoop() from agentic-core'",
+          "to_item": "Architecture Data Flow shows loop directly in ask() with provider.chat() — no mention of agentic-core or runAgentLoop()"
+        },
+        {
+          "type": "missing",
+          "description": "PRD documents code_exec with quickjs-emscripten sandbox, auto-language detection, Python via Pyodide/subprocess, and filesystem injection. Architecture only says 'code.ts — code execution' with no detail.",
+          "severity": "minor",
+          "from_item": "PRD Tools: 'code_exec — executes JS/Python code via quickjs-emscripten sandbox (browser-compatible) with auto-language detection'",
+          "to_item": "Architecture: 'code.ts — code execution' (no sandbox, language, or filesystem detail)"
+        },
+        {
+          "type": "missing",
+          "description": "PRD documents shell_exec as 'Node.js only, returns descriptive error in browser'. Architecture only says 'shell.ts — shell commands' with no browser safety detail.",
+          "severity": "minor",
+          "from_item": "PRD Tools: 'shell_exec — executes shell commands via agentic-shell (Node.js only, returns descriptive error in browser)'",
+          "to_item": "Architecture: 'shell.ts — shell commands' (no browser guard detail)"
+        },
+        {
+          "type": "scope_creep",
+          "description": "Architecture file contains leftover task instructions (lines 55-75) that are not architectural documentation — they are copy-pasted task descriptions.",
+          "severity": "minor",
+          "from_item": "(not in PRD)",
+          "to_item": "ARCHITECTURE.md lines 55-75: 'Add a Custom Provider Fallback subsection...', 'Create ARCHITECTURE.md defining...', 'Under Provider Resolution...'"
+        }
+      ]
+    },
+    {
+      "from": "architecture",
+      "to": "tasks",
+      "aligned": true,
+      "coverage": 95,
+      "issues": [
+        {
+          "type": "drift",
+          "description": "Architecture still references src/providers/ directory with anthropic.ts, openai.ts, provider.ts. Tasks confirm providers were removed and delegated to agentic-core ('Remove src/providers/ dead code' = done), but Architecture was not updated.",
+          "severity": "major",
+          "from_item": "Architecture Module Structure: 'src/providers/ — LLM provider adapters: anthropic.ts, openai.ts, provider.ts, index.ts'",
+          "to_item": "Task 'Remove src/providers/ dead code — switch imports to agentic-core' = done"
+        },
+        {
+          "type": "drift",
+          "description": "Two tasks to update ARCHITECTURE.md are not completed: 'Update ARCHITECTURE.md for streaming API' (in_progress) and 'Clean ARCHITECTURE.md of leftover task instructions' (todo).",
+          "severity": "minor",
+          "from_item": "Architecture should reflect current implementation state",
+          "to_item": "Tasks: 'Update ARCHITECTURE.md for streaming API' = in_progress, 'Clean ARCHITECTURE.md of leftover task instructions' = todo"
+        }
+      ]
+    }
+  ],
+  "overall_aligned": true,
+  "critical_issues": 0
+}

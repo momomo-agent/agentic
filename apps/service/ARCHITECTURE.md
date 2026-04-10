@@ -11,6 +11,128 @@ agentic-service
 └── agentic-embed     # 向量嵌入（bge-m3）
 ```
 
+## 系统架构
+
+```mermaid
+graph TD
+    CLI[bin/agentic-service.js] --> Setup[cli/setup.js]
+    CLI --> API[server/api.js]
+
+    Setup --> HW[detector/hardware.js]
+    Setup --> Prof[detector/profiles.js]
+    Setup --> Ollama[detector/ollama.js]
+    Prof --> Matcher[detector/matcher.js]
+
+    API --> Brain[server/brain.js]
+    API --> Hub[server/hub.js]
+    API --> STT[runtime/stt.js]
+    API --> TTS[runtime/tts.js]
+    API --> VAD[runtime/vad.js]
+    API --> Profiler[runtime/profiler.js]
+
+    Brain --> LLM[runtime/llm.js]
+    Brain --> Hub
+    Hub --> Brain
+    Hub --> STT
+    Hub --> TTS
+    Hub --> VAD
+
+    LLM --> Config[config.js]
+    Brain --> Config
+
+    Memory[runtime/memory.js] --> Embed[runtime/embed.js]
+    Memory --> Store[store/index.js]
+
+    Sense[runtime/sense.js] --> SenseAdapter[adapters/sense.js]
+    STT --> VoiceAdapters[adapters/voice/*]
+    TTS --> VoiceAdapters
+
+    Embed -.-> ae[agentic-embed]
+    SenseAdapter -.-> as[agentic-sense]
+    Store -.-> ast[agentic-store]
+    VoiceAdapters -.-> av[agentic-voice]
+
+    API --> MW[server/middleware.js]
+    API --> HTTPS[server/httpsServer.js]
+    HTTPS --> Cert[server/cert.js]
+    API --> Tunnel[tunnel.js]
+```
+
+## 目录结构
+
+```
+bin/
+  agentic-service.js           # CLI 入口 — 启动服务器 + 首次安装向导
+
+src/
+  config.js                    # 统一配置中心 — 读写/监听/模型池
+
+  cli/
+    setup.js                   # 首次安装向导 — 硬件检测 → profile 匹配 → Ollama 安装
+    browser.js                 # 启动后打开浏览器
+    download-state.js          # 下载进度追踪
+
+  detector/
+    hardware.js                # GPU/CPU/OS/内存检测
+    profiles.js                # 远程 CDN profiles + 本地缓存（4 层 fallback）
+    matcher.js                 # 硬件-配置匹配评分
+    optimizer.js               # 硬件自适应优化参数
+    ollama.js                  # Ollama 自动安装 + 模型拉取
+    sox.js                     # SoX 音频工具检测
+
+  runtime/
+    llm.js                     # LLM 聊天流式输出（Ollama 优先 → 云端 fallback）
+    stt.js                     # 语音识别（多提供商自适应）
+    tts.js                     # 语音合成（多提供商自适应）
+    sense.js                   # 视觉感知（agentic-sense 封装）
+    memory.js                  # 向量记忆（嵌入 + KV 存储）
+    embed.js                   # 向量嵌入（agentic-embed 封装）
+    profiler.js                # CPU 性能分析 — startMark/endMark/getMetrics
+    latency-log.js             # 延迟记录 — record(label, ms)/getLog()
+    vad.js                     # 语音活动检测（RMS 能量阈值）
+    adapters/
+      embed.js                 # 嵌入适配器（stub）
+      sense.js                 # agentic-sense 适配器 — createPipeline()
+      voice/
+        elevenlabs.js          # ElevenLabs TTS
+        macos-say.js           # macOS say 命令
+        openai-tts.js          # OpenAI TTS
+        openai-whisper.js      # OpenAI Whisper STT
+        piper.js               # Piper TTS（自动下载二进制）
+
+  server/
+    api.js                     # Express 路由 — REST + OpenAI 兼容 + 管理 + 语音
+    brain.js                   # LLM 推理 + 工具注册/调用
+    hub.js                     # WebSocket 设备管理 + 会话共享
+    middleware.js              # 错误处理中间件
+    cert.js                    # 自签名证书生成
+    httpsServer.js             # HTTPS 服务器工厂
+
+  store/
+    index.js                   # KV 存储封装（agentic-store）
+
+  tunnel.js                    # LAN 隧道（ngrok/cloudflared）
+
+  ui/
+    admin/                     # 管理面板（Vue 3 + Vite）
+      src/components/          # ConfigPanel, DeviceList, HardwarePanel, LogViewer, SystemStatus
+      src/views/               # Dashboard, Config, Logs, Models, Status, Test, Examples
+    client/                    # 聊天界面（Vue 3 + Vite）
+      src/components/          # ChatBox, InputBox, MessageList, PushToTalk, WakeWord
+      src/composables/         # useVAD.js, useWakeWord.js
+
+profiles/
+  default.json                 # 内置硬件配置（apple-silicon, nvidia, cpu-only, none, default）
+
+install/
+  setup.sh                     # Unix 一键安装脚本
+  Dockerfile                   # Docker 镜像构建
+  docker-compose.yml           # Docker Compose 配置
+  docker-build.sh              # Docker 构建辅助脚本
+
+docker-compose.yml             # 根目录 Docker Compose
+```
+
 ## 核心模块
 
 ### 1. Detector（硬件检测）
@@ -26,7 +148,7 @@ detect() → {
 }
 
 // detector/profiles.js
-// 远程拉取 + 本地缓存
+// 4 层 fallback: 新鲜缓存 → 远程获取 → 过期缓存 → 内置 default.json
 getProfile(hardware) → {
   llm: { provider: 'ollama', model: 'gemma4:26b', quantization: 'q8' },
   stt: { provider: 'sensevoice', model: 'small' },
@@ -36,217 +158,266 @@ getProfile(hardware) → {
 
 // detector/matcher.js
 matchProfile(profiles, hardware) → ProfileConfig
-// 按权重匹配硬件配置：platform=30, gpu=30, arch=20, minMemory=20
-// platform 或 gpu 不匹配 → 得分 0（排除该 profile）
-// 空 match 条件 → 得分 1（兜底默认 profile）
-// 返回得分最高的 profile
+// 权重: platform=30, gpu=30, arch=20, minMemory=20
+// platform 或 gpu 不匹配 → 得分 0
+// 空 match → 得分 1（兜底默认 profile）
+
+// detector/optimizer.js
+optimize(hardware) → { threads, memoryLimit, model, quantization }
+// apple-silicon: 8 threads, 75% memory, gemma4:26b q8
+// nvidia: 4 threads, 80% vram, gemma4:13b q4
+// cpu-only: cores threads, 50% memory, gemma2:2b q4
 
 // detector/ollama.js
 ensureOllama(model, onProgress?) → Promise<void>
-// 检测 Ollama 是否安装（which ollama），未安装则自动安装：
-//   Unix: curl 安装脚本
-//   Windows: winget install
-// 然后执行 ollama pull <model>，通过 onProgress 回调报告进度
+// 检测 → 自动安装（curl/winget）→ ollama pull <model>
 ```
 
 ### 2. Runtime（服务运行时）
 
-每个能力是一个独立模块，统一接口：
-
 ```javascript
-// runtime/llm.js — 封装 agentic-core
-chat(messages, options) → stream
-// 自动选择：本地 Ollama 优先，超时/失败 → 云端 fallback
+// runtime/llm.js
+chat(messageOrText, options?) → AsyncGenerator<{ type, content, done }>
+// Ollama 优先 → 失败时 fallback 到 config.fallback.provider (openai/anthropic)
+// 内部: chatWithOllama(), chatWithAnthropic(), chatWithOpenAI()
+// 集成 profiler startMark/endMark + latency-log record()
 
-// runtime/stt.js — 封装 agentic-voice
+// runtime/stt.js
+init(config) → void           // 根据 config.stt.provider 选择适配器
 transcribe(audioBuffer) → text
 
-// runtime/tts.js — 封装 agentic-voice
+// runtime/tts.js
+init(config) → void           // 根据 config.tts.provider 选择适配器
 synthesize(text) → audioBuffer
 
-// runtime/memory.js — KV 向量记忆（基于 agentic-embed）
-add(text) → Promise<void>          // 嵌入文本，存储向量，生成 key "mem:<ts>:<random>"
-remove(key) → Promise<void>        // 别名 delete()
-search(query, topK?=5) → Promise<Array<{ text: string, score: number }>>
-// 使用 promise 锁（_lock）保证写操作串行
+// runtime/sense.js
+detect(frame) → { faces, gestures, objects }
+start() / stop()              // 事件循环模式
+startHeadless() → EventEmitter // 服务端无头模式
+
+// runtime/memory.js
+add(text) → Promise<void>     // 嵌入 + 存储，key="mem:<ts>:<random>"
+search(query, topK?=5) → Promise<Array<{ text, score }>>
+remove(key) → Promise<void>   // 别名 delete()
+// 使用 promise 锁保证写操作串行
+
+// runtime/embed.js
+embed(text) → number[]        // 委托 agentic-embed
+
+// runtime/profiler.js
+startMark(label) → void
+endMark(label) → void
+getMetrics() → Map<label, { count, total, avg, min, max }>
+
+// runtime/latency-log.js
+record(label, ms) → void
+getLog() → Array<{ label, ms, ts }>
+
+// runtime/vad.js
+detectVoiceActivity(buffer) → boolean  // RMS 能量阈值检测（Int16 PCM）
 ```
 
 ### 3. Server（HTTP/WebSocket）
 
-从 Ambient Hub 提取，简化：
-
 ```javascript
-// server/hub.js — 设备管理
-// server/brain.js — LLM 推理 + 工具调用
-// server/api.js — REST API
+// server/api.js
+createApp() → { app, server }
+// REST 端点:
+//   GET  /health
+//   GET  /v1/models              (OpenAI 兼容)
+//   POST /v1/chat/completions    (OpenAI 兼容)
+//   POST /api/chat               (流式聊天)
+//   POST /api/transcribe         (STT)
+//   POST /api/synthesize         (TTS)
+//   POST /api/voice              (STT → LLM → TTS 全链路)
+//   GET  /api/status             (设备 + Ollama 状态)
+//   GET  /api/config             (读取配置)
+//   PUT  /api/config             (更新配置)
+//   GET  /api/logs               (日志缓冲)
+//   GET  /api/perf               (性能指标)
+//   GET  /api/models/pool        (模型池)
+//   POST /api/models/pool        (添加模型)
+//   DELETE /api/models/pool/:id  (删除模型)
+//   GET  /api/models/assignments (能力分配)
+//   PUT  /api/models/assignments (更新分配)
+// 静态文件: /admin → dist/admin
+// SIGINT 优雅关闭: startDrain() + waitDrain(timeout)
 
-// API 端点
-POST /api/chat       { message, history } → stream
-POST /api/transcribe { audio } → { text }
-POST /api/synthesize { text } → audio
-GET  /api/status     → { hardware, profile, devices }
-GET  /api/config     → current config
-PUT  /api/config     → update config
+// server/brain.js
+chat(messages, options?) → AsyncGenerator<{ type, content, done }>
+// 解析模型池分配 → 选择 provider → 流式推理
+// 支持 tool_use: registerTool(name, fn), 自动执行工具调用
+registerTool(name, fn) → void
+
+// server/hub.js
+init() → Promise<void>
+initWebSocket(server) → void
+joinSession(sessionId, deviceId) → { sessionId, history, brainState, deviceCount }
+broadcastSession(sessionId, message?) → void
+setSessionData(sessionId, key, value) → void
+getSessionData(sessionId, key) → any
+getSession(sessionId) → Session | null
+getDevices() → Array<{ id, name, capabilities, lastPong }>
+sendCommand(deviceId, command) → Promise<response>
+startWakeWordDetection() → void
+broadcastWakeword() → void
+// WebSocket 消息: register/registered/ping/pong/chat/voice/wakeword
+// 心跳超时: 60s (60000ms)
+// 设备注册: { type: "register", deviceId, capabilities }
+
+// server/middleware.js
+errorHandler(err, req, res, next) → void  // Express 错误处理
+
+// server/cert.js
+generateCert() → { key, cert }  // selfsigned 自签名证书
+
+// server/httpsServer.js
+createHttpsServer(app, options?) → https.Server
 ```
 
-### 4. UI（Web 前端）
+### 4. Store（数据持久化）
 
-轻量 Vue 3 + Vite，两个页面：
-- `/` — 用户对话界面（文本 + 语音）
-- `/admin` — 管理面板（硬件信息、配置、设备、日志）
+```javascript
+// store/index.js — 封装 agentic-store
+get(key) → Promise<any>
+set(key, value) → Promise<void>
+del(key) → Promise<void>
+delete(key) → Promise<void>   // del() 的别名
+list(prefix?) → Promise<string[]>
+```
 
-## 安装流程
+### 5. Tunnel（LAN 隧道）
+
+```javascript
+// tunnel.js
+startTunnel(port) → void
+// 优先 ngrok，其次 cloudflared
+// 未安装则退出
+// SIGINT 时自动终止子进程
+```
+
+### 6. CLI（命令行工具）
+
+```javascript
+// cli/setup.js
+runSetup() → Promise<void>
+// 首次安装向导: 硬件检测 → profile 匹配 → Ollama 安装 → 模型拉取
+
+// cli/browser.js
+openBrowser(port) → void
+// 启动后自动打开浏览器
+```
+
+### 7. Config（配置中心）
+
+```javascript
+// config.js
+getConfig() → Promise<Config>
+setConfig(updates) → Promise<void>
+onConfigChange(fn) → void
+reloadConfig() → Promise<Config>
+getModelPool() → Promise<Array<ModelEntry>>
+addToPool(entry) → Promise<void>
+removeFromPool(id) → Promise<void>
+getAssignments() → Promise<Record<slot, modelId>>
+setAssignments(assignments) → Promise<void>
+// 配置路径: ~/.agentic-service/config.json
+// 能力槽: chat, code, vision, embedding, stt, tts
+```
+
+### 8. VAD + 唤醒词
+
+```javascript
+// runtime/vad.js
+detectVoiceActivity(buffer) → boolean
+// RMS 能量阈值检测，Int16 PCM 输入
+
+// hub.js 内置
+isSilent(buffer) → boolean    // Float32 RMS < 0.01
+startWakeWordDetection()      // 服务端唤醒词管道
+
+// ui/client/composables/useVAD.js — 客户端 VAD
+// ui/client/composables/useWakeWord.js — 客户端唤醒词
+// ui/client/components/PushToTalk.vue — 按住说话
+// ui/client/components/WakeWord.vue — 唤醒词 UI
+```
+
+### 9. agentic-embed（向量嵌入）
+
+```javascript
+// runtime/embed.js — 封装 agentic-embed 包
+embed(text) → number[]  // bge-m3 向量嵌入
+// TypeError if text is not a string
+// 空字符串返回空数组
+// 被 memory.js 用于语义搜索
+```
+
+## 数据流
+
+### 文本聊天
+
+```
+Client → POST /api/chat → api.js → brain.chat()
+  → resolveModel(slot='chat') → config.assignments → model pool
+  → llm.chat(messages) → Ollama streaming → yield chunks
+  → (Ollama 失败) → cloud fallback (OpenAI/Anthropic)
+  → SSE stream → Client
+```
+
+### 语音对话
+
+```
+Client → POST /api/voice (audio file)
+  → stt.transcribe(buffer) → text
+  → brain.chat([{role:'user', content:text}]) → LLM response
+  → tts.synthesize(response) → audio buffer
+  → Response (audio + text + latency)
+  延迟预算: <2000ms (profiler.js 强制)
+```
+
+### 设备注册
+
+```
+Device → WebSocket connect → hub.js
+  → { type: "register", deviceId, capabilities }
+  → registry.set(deviceId, { ws, name, capabilities, lastPong })
+  → { type: "registered", sessionId }
+  → 心跳: ping/pong 每 60s
+  → 超时: 60s 无 pong → 移除设备
+```
+
+### 硬件检测 + 配置
+
+```
+npx agentic-service → setup.js
+  → hardware.detect() → { platform, arch, gpu, memory, cpu }
+  → profiles.getProfile(hardware)
+    → 缓存 → CDN → 过期缓存 → default.json
+    → matcher.matchProfile(profiles, hardware)
+  → ollama.ensureOllama(profile.llm.model)
+  → config.setConfig(profile)
+  → 启动服务器
+```
+
+## 安装方式
 
 ```bash
-# 方式 1: npx（推荐）
+# npx 一键启动
 npx agentic-service
 
-# 方式 2: 全局安装
-npm i -g agentic-service
+# 全局安装
+npm install -g agentic-service
 agentic-service
 
-# 方式 3: Docker
-docker run -p 3000:3000 momomo/agentic-service
+# Docker
+docker-compose up
+# 注意: 默认端口 1234，Docker Compose 需配置正确端口映射
 ```
 
-首次启动流程：
-1. 检测硬件
-2. 拉取 profiles.json
-3. 匹配最优配置
-4. 检查/安装 Ollama
-5. 拉取推荐模型（显示进度）
-6. 启动服务
-7. 打开浏览器 → http://localhost:3000
+## 设计原则
 
-## 目录结构
-
-```
-agentic-service/
-├── package.json
-├── bin/
-│   └── agentic-service.js    # CLI 入口
-├── src/
-│   ├── detector/
-│   │   ├── hardware.js
-│   │   ├── profiles.js
-│   │   ├── matcher.js
-│   │   ├── ollama.js
-│   │   └── optimizer.js
-│   ├── runtime/
-│   │   ├── llm.js
-│   │   ├── stt.js
-│   │   ├── tts.js
-│   │   ├── sense.js
-│   │   └── memory.js
-│   ├── server/
-│   │   ├── hub.js
-│   │   ├── brain.js
-│   │   └── api.js
-│   └── ui/
-│       ├── client/
-│       └── admin/
-├── profiles/
-│   └── default.json          # 内置默认配置
-├── install/
-│   ├── setup.sh
-│   ├── Dockerfile
-│   └── docker-compose.yml
-└── test/
-```
-
-## 5. Tunnel (LAN/WAN Exposure)
-
-```javascript
-// src/tunnel.js
-// Spawns ngrok or cloudflared to expose local port externally
-// Prefers ngrok if installed, falls back to cloudflared
-// Handles SIGINT to kill subprocess cleanly
-startTunnel(port: number) → void
-```
-
-## 6. CLI Modules
-
-```javascript
-// src/cli/setup.js — first-run wizard: detect hardware, pull profile, install Ollama, pull model
-// src/cli/browser.js — open browser to http://localhost:<port> after server starts
-```
-
-## 7. VAD (Voice Activity Detection)
-
-```javascript
-// src/runtime/vad.js
-detectVoiceActivity(buffer: Buffer) → boolean
-// RMS energy threshold (0.01). Returns true if audio contains speech.
-```
-
-## 8. HTTPS & Middleware
-
-```javascript
-// src/server/cert.js — generates self-signed cert via selfsigned
-// src/server/httpsServer.js — createServer(app) → https.Server
-// src/server/middleware.js — errorHandler(err, req, res, next) → void
-```
-
-
-Add sections to ARCHITECTURE.md documenting: (1) LAN Tunnel module (tunnel.js), (2) CLI module (src/cli/setup.js, browser.js), (3) HTTPS/Middleware layer (cert.js, httpsServer.js, middleware.js), (4) VAD runtime module (vad.js), (5) agentic-embed runtime integration (embed.js, adapters/), (6) Detector submodules (matcher.js, ollama.js).
-
-Add the following clarifications to ARCHITECTURE.md: (1) llm.js loadConfig() MUST call optimizer.js and use its output model selection, not hardcode gemma4:26b; (2) sense.js MUST export detect(frame) in addition to event API for server-side use; (3) store.js MUST export delete() alias alongside del(); (4) brain.js tool_use response MUST include text field; (5) hub.js heartbeat timeout MUST be 60s per DBB-005; (6) hub.js MUST broadcast wakeword events to connected clients; (7) profiles.js remote URL MUST use cdn.example.com (not jsdelivr proxy); (8) server entry MUST register process.on('SIGINT') for graceful shutdown.
-
-Either: (a) document src/store/, src/cli/, src/runtime/embed.js as acceptable local implementations when dependencies are unavailable, or (b) clarify migration path to use agentic-store/agentic-embed packages
-
-Add the following sections to ARCHITECTURE.md: (1) sense.js dual-path: browser MediaPipe + server-side headless (canvas/node-canvas) for Node.js compatibility; (2) always-on wake word pipeline: server-side VAD + wake word detection feeding STT, not just UI composable; (3) latency budget: STT≤500ms + LLM first-token≤1000ms + TTS≤500ms = <2s total, enforced via perf logging; (4) network security: HTTPS via self-signed cert + optional ngrok/cloudflared tunnel for LAN multi-device; (5) profiles CDN: 7-day TTL cache with ETag/Last-Modified staleness check; (6) VAD: WebRTC VAD or silero-vad for auto speech segmentation; (7) profiles/default.json: add cpu-only profile with smaller models; (8) SIGINT: drain in-flight requests with 5s timeout before exit; (9) brain state sync: hub.js broadcastSession to share memory/context across devices.
-
-Re-run architecture gap analysis against current codebase to update match score and gap statuses. Expected match should be ~75-85% after m18-m22 implementations.
-
-Re-run architecture gap analysis against actual source files to produce an accurate match score. Update architecture.json to reflect implemented status for modules confirmed present by PRD/DBB analysis.
-
-Re-run the architecture gap scan against the current codebase to produce an accurate match score and gap list. The scan should verify file existence before marking gaps as 'missing'.
-
-Update ARCHITECTURE.md to either (a) formally include these modules with their roles and interfaces, or (b) explicitly mark them as out-of-scope so they can be removed. This will resolve the 22% architecture gap and unblock accurate compliance tracking.
-
-Add to ARCHITECTURE.md under Server section: src/server/cert.js (generateCert), src/server/httpsServer.js (createServer), src/server/middleware.js (errorHandler). Add new CLI section: src/cli/setup.js (runSetup), src/cli/browser.js (openBrowser).
-
-Add the following to ARCHITECTURE.md under the relevant sections: (1) detector/matcher.js and detector/ollama.js under the Detector module; (2) server/cert.js, server/httpsServer.js, server/middleware.js under the Server module; (3) src/cli/ directory under the directory structure. Alternatively, if these files are intentional extras not part of the core architecture, document them as 'implementation details' outside the spec boundary.
-
-Either: (A) Update ARCHITECTURE.md dependency diagram to show these as local modules instead of external packages, OR (B) Create milestone to extract these modules into separate publishable packages with proper versioning and dependency management.
-
-Add sections for: Tunnel module (src/tunnel.js), CLI module (src/cli/), HTTPS/Middleware layer, VAD runtime (src/runtime/vad.js), and agentic-embed runtime integration (src/runtime/embed.js + adapters/).
-
-Add sections for: tunnel.js (LAN tunnel via ngrok/cloudflared), src/cli/setup.js + browser.js, runtime/vad.js (RMS energy VAD), HTTPS/middleware layer (cert.js, httpsServer.js, middleware.js).
-
-Add sections for: tunnel (src/tunnel.js - LAN tunnel), CLI (src/cli/ - setup.js, browser.js), HTTPS/middleware (src/server/cert.js, httpsServer.js, middleware.js), VAD (src/runtime/vad.js), embed runtime (src/runtime/embed.js and adapters/).
-
-Add sections:
-
-## 5. Tunnel (src/tunnel.js)
-startTunnel(port: number) → void — spawns ngrok or cloudflared; prefers ngrok; exits if neither installed; kills subprocess on SIGINT
-
-## 6. CLI (src/cli/)
-runSetup() → Promise<void> — first-run wizard
-openBrowser(port: number) → void — opens browser after server starts
-
-## 7. HTTPS/Middleware (src/server/cert.js, httpsServer.js, middleware.js)
-generateCert() → { key, cert }
-createHttpsServer(app, options) → https.Server
-applyMiddleware(app) → void
-
-## 8. VAD (src/runtime/vad.js)
-detectVoiceActivity(buffer: Buffer) → boolean — RMS energy threshold on Int16 PCM
-
-## 9. Embed (src/runtime/embed.js)
-embed(text: string) → Promise<number[]> — delegates to agentic-embed
-
-Add module sections to ARCHITECTURE.md for: (1) tunnel.js — LAN tunnel capability, (2) src/cli/ — CLI module with setup.js and browser.js, (3) HTTPS/middleware layer — cert.js, httpsServer.js, middleware.js, (4) VAD — src/runtime/vad.js voice activity detection, (5) agentic-embed runtime — src/runtime/embed.js and adapters/
-
-Add sections for: Tunnel module (tunnel.js — LAN tunnel via localtunnel/ngrok), CLI module (cli/setup.js, cli/browser.js — setup wizard and browser launch), HTTPS/Middleware layer (server/cert.js, server/httpsServer.js, server/middleware.js), VAD module (runtime/vad.js — voice activity detection), and agentic-embed integration (runtime/embed.js, runtime/adapters/ — vector embedding via bge-m3).
-
-Add section to ARCHITECTURE.md:
-
-## 9. agentic-embed (Vector Embedding)
-```javascript
-// src/runtime/embed.js — wraps agentic-embed package
-embed(text: string) → number[]  // bge-m3 vector embedding
-// Throws TypeError if text is not a string
-// Returns empty array for empty string
-// Used by memory.js for semantic search / retrieval
-```
+1. **本地优先** — 默认全本地运行，云端仅作 fallback
+2. **硬件自适应** — 启动时检测硬件，自动选择最优模型配置
+3. **零配置** — 开箱即用，首次运行自动完成所有设置
+4. **模块化** — 每个能力独立模块，统一接口，可替换适配器
+5. **流式优先** — LLM/STT/TTS 全部支持流式处理，降低感知延迟

@@ -1,0 +1,21 @@
+{
+  "milestoneId": "m26",
+  "match": 93,
+  "timestamp": "2026-04-10T14:22:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: Class-level JSDoc on NodeFsBackend", "status": "pass" },
+    { "criterion": "DBB-002: JSDoc on get method with @param and @returns", "status": "pass" },
+    { "criterion": "DBB-003: JSDoc on set method with @param entries", "status": "pass" },
+    { "criterion": "DBB-004: JSDoc on delete method noting no-op on missing", "status": "pass" },
+    { "criterion": "DBB-005: JSDoc on list method with optional prefix param", "status": "pass" },
+    { "criterion": "DBB-006: JSDoc on scan method with pattern param and result description", "status": "pass" },
+    { "criterion": "DBB-007: JSDoc on scanStream method describing AsyncIterable return", "status": "pass" },
+    { "criterion": "DBB-008: JSDoc on batchGet method with paths array param", "status": "pass" },
+    { "criterion": "DBB-009: JSDoc on batchSet method with entries Record param", "status": "pass" },
+    { "criterion": "DBB-010: JSDoc on stat method describing full return shape", "status": "pass" },
+    { "criterion": "DBB-011: JSDoc style consistency across NodeFsBackend, MemoryStorage, AgenticStoreBackend", "status": "pass" },
+    { "criterion": "DBB-012: PRD gap score ≥90% (currently 95%)", "status": "pass" },
+    { "criterion": "DBB-013: Vision gap score ≥90% (currently 100%)", "status": "pass" },
+    { "criterion": "DBB-014: Build still passes after JSDoc addition", "status": "partial" }
+  ]
+}

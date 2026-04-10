@@ -1,0 +1,17 @@
+{
+  "workflowId": "architect",
+  "nodeId": "design",
+  "stepIndex": 0,
+  "visitedNodes": [
+    "read-deps",
+    "design"
+  ],
+  "loopIterations": {},
+  "transitionDepth": 2,
+  "nodeVisitCounts": {
+    "read-deps": 1,
+    "design": 1
+  },
+  "contextOverrides": {},
+  "timestamp": "2026-04-10T04:03:21.765Z"
+}

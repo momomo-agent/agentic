@@ -1,6 +1,6 @@
 {
   "match": 91,
-  "timestamp": "2026-04-08T10:30:00.000Z",
+  "timestamp": "2026-04-10T12:00:00.000Z",
   "gaps": [
     {
       "description": "M1: Hardware detector — GPU/CPU/OS/memory (src/detector/hardware.js)",
@@ -58,7 +58,7 @@
       "severity": "minor"
     },
     {
-      "description": "M3: Visual perception — sense.js imports from local adapter (./adapters/sense.js); agentic-sense package installed but is a stub returning empty arrays",
+      "description": "M3: Visual perception — sense.js wraps AgenticSense via adapter; agentic-sense package installed but underlying detection capabilities depend on MediaPipe browser runtime",
       "status": "partial",
       "severity": "major"
     },
@@ -94,11 +94,6 @@
     },
     {
       "description": "Vision: optimizer.js has real hardware-based selection logic (apple-silicon/nvidia/cpu branches) but operates independently from profile matcher.js — llm.js loadConfig() uses profiles.js not optimizer; vision implies unified model selection driven by optimizer",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "Vision: embed adapter (src/runtime/adapters/embed.js) throws 'not implemented' — memory.js imports embed from adapter directly, so memory search will fail at runtime when called",
       "status": "partial",
       "severity": "minor"
     },

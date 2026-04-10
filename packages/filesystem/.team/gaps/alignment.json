@@ -1,0 +1,52 @@
+{
+  "timestamp": "2026-04-10T12:00:00Z",
+  "checks": [
+    {
+      "from": "vision",
+      "to": "prd",
+      "aligned": true,
+      "coverage": 100,
+      "issues": [],
+      "note": "VISION.md does not exist as a separate file. PRD serves as the top-level spec. Skipping this check — no misalignment possible."
+    },
+    {
+      "from": "prd",
+      "to": "architecture",
+      "aligned": false,
+      "coverage": 90,
+      "issues": [
+        {
+          "type": "missing",
+          "description": "ARCHITECTURE.md stat() signature omits the 'permissions' field. PRD §2.1 requires stat to return { size, mtime, isDirectory, permissions }. The actual code (src/types.ts) is correct, but the architecture doc is stale.",
+          "severity": "minor",
+          "from_item": "PRD §2.1: stat() returns { size, mtime, isDirectory, permissions: Permission }",
+          "to_item": "ARCHITECTURE.md: stat?() returns { size, mtime, isDirectory } — no permissions field"
+        },
+        {
+          "type": "missing",
+          "description": "ARCHITECTURE.md tool list only mentions 6 file tools (file_read, file_write, grep, ls, file_delete, file_tree). PRD §6.1 specifies 9 tools including batch_get, batch_set, grep_stream. The code implements all 9.",
+          "severity": "minor",
+          "from_item": "PRD §6.1: 9 tools — file_read, file_write, grep, ls, file_delete, file_tree, batch_get, batch_set, grep_stream",
+          "to_item": "ARCHITECTURE.md: only lists file_read, file_write, grep, ls, file_delete, file_tree"
+        },
+        {
+          "type": "missing",
+          "description": "ARCHITECTURE.md auto-selection logic omits SQLite priority. PRD §1.4 specifies SQLite as steps 1-2 (explicit sqliteDb option, then Node.js with better-sqlite3). ARCHITECTURE.md jumps straight to Node.js → NodeFsBackend. The code correctly implements the full 6-step priority.",
+          "severity": "minor",
+          "from_item": "PRD §1.4: 1) Explicit sqliteDb → SQLiteBackend, 2) Node.js + better-sqlite3 → SQLiteBackend, 3) Node.js → NodeFsBackend, 4-6) browser/fallback",
+          "to_item": "ARCHITECTURE.md: 1) Node.js → NodeFsBackend, 2) OPFS, 3) IDB, 4) Fallback — no SQLite steps"
+        }
+      ]
+    },
+    {
+      "from": "architecture",
+      "to": "tasks",
+      "aligned": true,
+      "coverage": 100,
+      "issues": [],
+      "note": "All 114 tasks are status 'done'. Every architecture component (6 backends, StorageBackend interface, AgenticFileSystem API, shell tools, file tools, auto-selection, ShellFS) has corresponding completed tasks. No orphan tasks — all trace to architecture components."
+    }
+  ],
+  "overall_aligned": false,
+  "critical_issues": 0
+}

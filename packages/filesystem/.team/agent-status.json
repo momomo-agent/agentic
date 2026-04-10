@@ -1,31 +1,31 @@
 {
   "vision_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-07T17:14:07.056Z",
+    "lastRun": "2026-04-10T03:56:05.866Z",
     "currentTask": null,
     "retryCount": 0
   },
   "prd_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-07T17:14:23.988Z",
+    "lastRun": "2026-04-10T03:56:49.686Z",
     "currentTask": null,
     "retryCount": 0
   },
   "dbb_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-07T17:13:08.365Z",
+    "lastRun": "2026-04-10T03:59:29.056Z",
     "currentTask": null,
     "retryCount": 0
   },
   "arch_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-07T17:13:09.181Z",
+    "lastRun": "2026-04-10T03:56:53.352Z",
     "currentTask": null,
     "retryCount": 0
   },
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-08T02:33:27.248Z",
+    "lastRun": "2026-04-10T04:00:06.884Z",
     "currentTask": null,
     "retryCount": 2
   },
@@ -80,6 +80,12 @@
   "tech_lead": {
     "status": "idle",
     "lastRun": "2026-04-08T02:17:27.914Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "alignment_monitor": {
+    "status": "idle",
+    "lastRun": "2026-04-10T04:00:06.830Z",
     "currentTask": null,
     "retryCount": 0
   }

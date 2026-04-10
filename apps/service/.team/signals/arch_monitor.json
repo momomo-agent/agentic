@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-08T04:28:30.853Z",
+  "timestamp": "2026-04-10T03:53:38.310Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "{\"status\": \"completed\", \"summary\": \"Architecture gap analysis complete. Match 80→85%. ARCHITECTURE.md now covers tunnel, CLI, HTTPS/middleware, VAD sections. Remaining gaps: store/index.js undocumente"
+  "summary": "Architecture scan complete — match 85%, same gap profile as prior review with updated adapter inventory (piper, elevenlabs, macos-say discovered). Core modules fully aligned."
 }

@@ -285,8 +285,7 @@ async function fetchStatus() {
     ollama.models = data.ollama?.models ?? []
     if (ollama.running) {
       try {
-        const host = data.config?.ollamaHost || data.config?.llm?.ollamaHost || 'http://localhost:11434'
-        const tagsRes = await fetch(`${host}/api/tags`)
+        const tagsRes = await fetch('/api/ollama/tags')
         const tags = await tagsRes.json()
         installedModels.value = tags.models || []
       } catch {
@@ -302,9 +301,7 @@ async function pullModel(name) {
   if (!name || downloads[name]) return
   downloads[name] = { status: '准备中...', percent: 0 }
   try {
-    const config = await (await fetch('/api/config')).json()
-    const host = config?.ollamaHost || config?.llm?.ollamaHost || 'http://localhost:11434'
-    const res = await fetch(`${host}/api/pull`, {
+    const res = await fetch('/api/ollama/pull', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, stream: true }),
@@ -343,9 +340,7 @@ async function deleteModel(name) {
   if (!confirm(`确定删除 ${name}？`)) return
   deleting.value = name
   try {
-    const config = await (await fetch('/api/config')).json()
-    const host = config?.ollamaHost || config?.llm?.ollamaHost || 'http://localhost:11434'
-    await fetch(`${host}/api/delete`, {
+    await fetch('/api/ollama/delete', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),

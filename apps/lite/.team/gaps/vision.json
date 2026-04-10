@@ -1,6 +1,6 @@
 {
   "match": 100,
-  "timestamp": "2026-04-08T19:00:00.000Z",
+  "timestamp": "2026-04-10T12:00:00.000Z",
   "gaps": [
     {
       "description": "Streaming support: vision lists streaming as part of agentic-core's responsibility. askStream() async generator fully implemented in ask.ts, exported from index.ts, delegates to runAgentLoopStream from agentic-core.",
@@ -63,7 +63,7 @@
       "severity": "minor"
     },
     {
-      "description": "Public API exports complete: ask, AgenticConfig, AgenticResult, Provider, ToolName, Source, CodeResult, FileResult, ShellResult, ToolCall from src/index.ts",
+      "description": "Public API exports complete: ask, askStream, AgenticConfig, AgenticResult, ToolName, Source, CodeResult, FileResult, ShellResult, ToolCall from src/index.ts",
       "status": "implemented",
       "severity": "minor"
     },

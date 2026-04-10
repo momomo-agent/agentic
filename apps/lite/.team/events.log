@@ -8584,3 +8584,37 @@
 {"ts":"2026-04-08T05:47:24.520Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775615948444","from":"review","to":"testing","title":"Update ARCHITECTURE.md for agentic-core structure"}}
 {"ts":"2026-04-08T05:47:36.285Z","type":"agent_complete","agent":"developer","data":{"details":"completed successfully","performance":{"memoryMB":8,"memoryTotalMB":11,"cpuUser":4.059748,"cpuSystem":4.320145}}}
 {"ts":"2026-04-08T05:47:36.286Z","type":"workflow","agent":"developer","data":{"details":"[SIGNAL] blocked: No claimable tasks available. The only todo task (task-1775622465587) is blocked by task-17756205984"}}
+{"ts":"2026-04-10T03:54:51.684Z","type":"workflow","agent":"validator","data":{"details":"[WARNING] nodes/complete: unreachable from entry node"}}
+{"ts":"2026-04-10T03:54:51.686Z","type":"workflow","agent":"validator","data":{"details":"[WARNING] config.dashboard: no dashboard configuration — run \"team web\" will show empty UI"}}
+{"ts":"2026-04-10T03:54:51.707Z","type":"workflow","agent":"daemon","data":{"details":"Reset stuck agent: tester"}}
+{"ts":"2026-04-10T03:54:51.707Z","type":"agent_start","agent":"daemon","data":{"details":"Team daemon started (safety=600s, timeout=900s)","performance":{"memoryMB":5,"memoryTotalMB":8,"cpuUser":0.027437,"cpuSystem":0.007843}}}
+{"ts":"2026-04-10T03:54:51.779Z","type":"workflow","agent":"monitor","data":{"details":"[HEALTH] Monitor started"}}
+{"ts":"2026-04-10T03:54:51.783Z","type":"agent_start","agent":"startup","data":{"details":"[NODE] startup - 项目启动","performance":{"memoryMB":6,"memoryTotalMB":8,"cpuUser":0.030322,"cpuSystem":0.009035}}}
+{"ts":"2026-04-10T03:54:51.807Z","type":"workflow","agent":"startup","data":{"details":"[SKIP] init-architecture: !hasArchitecture"}}
+{"ts":"2026-04-10T03:54:51.828Z","type":"agent_start","agent":"monitor","data":{"details":"[NODE] monitor - 全局 Monitor 五维检查（含层间一致性）","performance":{"memoryMB":6,"memoryTotalMB":11,"cpuUser":0.044055,"cpuSystem":0.041418}}}
+{"ts":"2026-04-10T03:54:51.847Z","type":"workflow","agent":"monitor","data":{"details":"[PARALLEL] vision_monitor, prd_monitor, dbb_monitor, arch_monitor, alignment_monitor"}}
+{"ts":"2026-04-10T03:54:51.847Z","type":"agent_start","agent":"vision_monitor","data":{"details":"评估愿景匹配度","performance":{"memoryMB":6,"memoryTotalMB":11,"cpuUser":0.049168,"cpuSystem":0.056827}}}
+{"ts":"2026-04-10T03:54:51.848Z","type":"agent_start","agent":"prd_monitor","data":{"details":"评估PRD匹配度","performance":{"memoryMB":6,"memoryTotalMB":11,"cpuUser":0.049622,"cpuSystem":0.057199}}}
+{"ts":"2026-04-10T03:54:51.849Z","type":"agent_start","agent":"dbb_monitor","data":{"details":"评估DBB匹配度","performance":{"memoryMB":6,"memoryTotalMB":11,"cpuUser":0.049795,"cpuSystem":0.057501}}}
+{"ts":"2026-04-10T03:54:51.849Z","type":"agent_start","agent":"arch_monitor","data":{"details":"评估架构匹配度","performance":{"memoryMB":6,"memoryTotalMB":11,"cpuUser":0.049972,"cpuSystem":0.057788}}}
+{"ts":"2026-04-10T03:54:51.850Z","type":"agent_start","agent":"alignment_monitor","data":{"details":"检查层间一致性（Vision→PRD→Architecture→Tasks）","performance":{"memoryMB":6,"memoryTotalMB":11,"cpuUser":0.050172,"cpuSystem":0.05808}}}
+{"ts":"2026-04-10T03:56:00.998Z","type":"agent_complete","agent":"vision_monitor","data":{"details":"completed successfully","performance":{"memoryMB":8,"memoryTotalMB":11,"cpuUser":0.084023,"cpuSystem":0.073708}}}
+{"ts":"2026-04-10T03:56:00.999Z","type":"workflow","agent":"vision_monitor","data":{"details":"[SIGNAL] completed: Vision check: 100% match, all gaps implemented, no regressions found"}}
+{"ts":"2026-04-10T03:57:02.731Z","type":"agent_complete","agent":"alignment_monitor","data":{"details":"completed successfully","performance":{"memoryMB":9,"memoryTotalMB":11,"cpuUser":0.111186,"cpuSystem":0.088325}}}
+{"ts":"2026-04-10T03:57:02.732Z","type":"workflow","agent":"alignment_monitor","data":{"details":"[SIGNAL] completed: Alignment check: Vision→PRD 95%, PRD→Architecture 90%, Architecture→Tasks 95%. No critical issues. K"}}
+{"ts":"2026-04-10T03:58:32.518Z","type":"agent_complete","agent":"arch_monitor","data":{"details":"completed successfully","performance":{"memoryMB":14,"memoryTotalMB":16,"cpuUser":0.14566,"cpuSystem":0.107726}}}
+{"ts":"2026-04-10T03:58:32.518Z","type":"workflow","agent":"arch_monitor","data":{"details":"[SIGNAL] completed: Architecture match dropped to 58% — src/providers/ directory removed, provider layer extracted to ag"}}
+{"ts":"2026-04-10T03:58:43.681Z","type":"agent_complete","agent":"prd_monitor","data":{"details":"completed successfully","performance":{"memoryMB":14,"memoryTotalMB":16,"cpuUser":0.14647,"cpuSystem":0.108306}}}
+{"ts":"2026-04-10T03:58:43.681Z","type":"workflow","agent":"prd_monitor","data":{"details":"[SIGNAL] completed: PRD gap analysis: match corrected from 100% to 70% — found 2 critical missing features (customProvid"}}
+{"ts":"2026-04-10T03:59:51.784Z","type":"perf","agent":"daemon","data":{"details":"{\"rss\":\"76MB\",\"heapUsed\":\"14MB\",\"uptime\":\"300s\"}"}}
+{"ts":"2026-04-10T04:00:21.802Z","type":"workflow","agent":"monitor","data":{"details":"⚠️ [ALERT:no_progress] No progress for 5min (active:2, done:84)"}}
+{"ts":"2026-04-10T04:00:21.802Z","type":"monitor_alert","agent":"monitor","data":{"details":"{\"type\":\"no_progress\",\"message\":\"No progress for 5min (active:2, done:84)\"}"}}
+{"ts":"2026-04-10T04:00:51.808Z","type":"workflow","agent":"monitor","data":{"details":"⚠️ [ALERT:no_progress] No progress for 6min (active:2, done:84)"}}
+{"ts":"2026-04-10T04:00:51.809Z","type":"monitor_alert","agent":"monitor","data":{"details":"{\"type\":\"no_progress\",\"message\":\"No progress for 6min (active:2, done:84)\"}"}}
+{"ts":"2026-04-10T04:00:53.812Z","type":"agent_complete","agent":"dbb_monitor","data":{"details":"completed successfully","performance":{"memoryMB":13,"memoryTotalMB":16,"cpuUser":0.202664,"cpuSystem":0.141691}}}
+{"ts":"2026-04-10T04:00:53.813Z","type":"workflow","agent":"dbb_monitor","data":{"details":"[SIGNAL] completed: DBB verification: global 100%, M8 95% (fs.existsSync still missing in JS sandbox). All other milesto"}}
+{"ts":"2026-04-10T04:00:53.842Z","type":"agent_start","agent":"pm_decide","data":{"details":"[NODE] pm_decide - PM 决策下一步","performance":{"memoryMB":14,"memoryTotalMB":18,"cpuUser":0.21298,"cpuSystem":0.164242}}}
+{"ts":"2026-04-10T04:00:53.855Z","type":"workflow","agent":"pm_decide","data":{"details":"[EXEC] architect"}}
+{"ts":"2026-04-10T04:00:53.855Z","type":"agent_start","agent":"architect","data":{"details":"设计系统架构","performance":{"memoryMB":13,"memoryTotalMB":18,"cpuUser":0.216097,"cpuSystem":0.174337}}}
+{"ts":"2026-04-10T04:01:06.248Z","type":"workflow","agent":"daemon","data":{"details":"Reset stuck agent: architect"}}
+{"ts":"2026-04-10T04:01:06.250Z","type":"agent_complete","agent":"daemon","data":{"details":"Team daemon stopped","performance":{"memoryMB":13,"memoryTotalMB":18,"cpuUser":0.217472,"cpuSystem":0.17598}}}

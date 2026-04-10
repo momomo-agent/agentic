@@ -1,7 +1,7 @@
 {
   "milestoneId": "m8",
   "match": 95,
-  "timestamp": "2026-04-08T10:27:00.000Z",
+  "timestamp": "2026-04-10T12:00:00.000Z",
   "criteria": [
     { "criterion": "code_exec auto-detects Python code", "status": "pass" },
     { "criterion": "Browser: Pyodide WASM loads and executes Python code", "status": "pass" },

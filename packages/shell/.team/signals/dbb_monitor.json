@@ -1,7 +1,7 @@
 {
   "agent": "dbb_monitor",
-  "timestamp": "2026-04-08T04:36:32.586Z",
+  "timestamp": "2026-04-10T04:00:38.226Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Evaluated all 28 milestones against DBB criteria. Created 16 new milestone gap files (m12-m16, m18-m28), 16 dbb-check.md reviews, and updated global dbb.json. Match scores range 72-100%. Global match: 88% with 4 gaps. Primary blocker: ARCHITECTURE.md documentation stale (7 implemented features still listed as future). 508/515 tests pass, 62/63 test files pass."
+  "summary": "DBB check for m29 complete — global match 88%→92%, m29 match 95% (19/19 pass), all 541 tests green"
 }

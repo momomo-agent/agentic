@@ -1,7 +1,7 @@
 {
   "milestoneId": "m97",
-  "match": 60,
-  "timestamp": "2026-04-08T14:00:00.000Z",
+  "match": 70,
+  "timestamp": "2026-04-10T11:56:00.000Z",
   "criteria": [
     {
       "criterion": "M97-1: ARCHITECTURE.md directory structure covers ≥95% of actual source files",
@@ -32,7 +32,7 @@
       "status": "pass"
     },
     {
-      "criterion": "M97-8: Test pass rate ≥90% (currently ~94% based on batch testing: 775/824)",
+      "criterion": "M97-8: Test pass rate ≥90% (current: 96.2% — 810/845 pass, 32 fail)",
       "status": "pass"
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "criterion": "M97-10: README default port matches code default (1234)",
-      "status": "fail"
+      "status": "pass"
     }
   ]
 }

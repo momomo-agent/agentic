@@ -1,6 +1,6 @@
 {
-  "match": 75,
-  "timestamp": "2026-04-08T14:00:00.000Z",
+  "match": 72,
+  "timestamp": "2026-04-10T11:56:00.000Z",
   "gaps": [
     {
       "description": "src/index.js missing — package.json 'main' points to src/index.js which does not exist on disk",
@@ -8,17 +8,17 @@
       "severity": "critical"
     },
     {
-      "description": "README documents default port as 3000 but bin/agentic-service.js defaults to 1234",
+      "description": "Docker port mismatch — docker-compose.yml exposes port 3000 but bin/agentic-service.js defaults to 1234; containers will fail healthcheck",
       "status": "partial",
       "severity": "critical"
     },
     {
-      "description": "ARCHITECTURE.md lines 191-252 contain massive stale CR content (repeated add-section instructions from prior milestones, never cleaned up)",
+      "description": "ARCHITECTURE.md lines 191-252 contain massive stale CR content (repeated 'Add sections to ARCHITECTURE.md' instructions from prior milestones, never cleaned up)",
       "status": "partial",
       "severity": "major"
     },
     {
-      "description": "ARCHITECTURE.md directory tree lists only 14 src/ files; 20 additional source files exist (embed.js, vad.js, profiler.js, latency-log.js, store/index.js, adapters/*, cli/*, tunnel.js, cert.js, httpsServer.js, middleware.js)",
+      "description": "ARCHITECTURE.md directory tree lists only ~14 src/ files; 20+ additional source files exist (embed.js, vad.js, profiler.js, latency-log.js, store/index.js, adapters/*, cli/*, tunnel.js, cert.js, httpsServer.js, middleware.js)",
       "status": "partial",
       "severity": "major"
     },
@@ -28,22 +28,17 @@
       "severity": "major"
     },
     {
-      "description": "Test pass rate ~94% (775/824) with ~49 failures across detector (16), server (18), CLI (2), milestones (6+7) — mostly stale mocks after refactoring",
+      "description": "Test pass rate ~96.2% (810/845) with 32 failures across 16 test files — server-layer brain.js tests, hub-brain-api, rest-api-endpoints, and milestone tests failing",
       "status": "partial",
       "severity": "major"
     },
     {
-      "description": "src/runtime/adapters/embed.js is a stub that throws 'not implemented' — actual embed uses vendor agentic-embed via src/runtime/embed.js, breaking the adapter pattern",
+      "description": "ARCHITECTURE.md install section shows docker port 3000 and localhost:3000 — inconsistent with actual default port 1234",
       "status": "partial",
-      "severity": "minor"
+      "severity": "major"
     },
     {
-      "description": "M3: Visual perception — agentic-sense installed but sense adapter returns empty arrays (stub)",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "mDNS/Bonjour for .local hostname discovery — not implemented; only raw LAN IP display available",
+      "description": "src/runtime/adapters/embed.js is a stub that throws 'not implemented' — breaks the adapter pattern (actual embed uses vendor agentic-embed via src/runtime/embed.js)",
       "status": "partial",
       "severity": "minor"
     },
@@ -53,7 +48,7 @@
       "severity": "minor"
     },
     {
-      "description": "Docker deployment missing ./data volume mount in root docker-compose.yml",
+      "description": "Docker deployment missing ./data volume mount in root docker-compose.yml (install/docker-compose.yml has config volume but root does not)",
       "status": "missing",
       "severity": "minor"
     },

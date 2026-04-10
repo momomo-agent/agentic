@@ -456,8 +456,8 @@ function addRoutes(r) {
     const vis = config.vision || {};
     const isCloud = vis.provider === 'cloud' || (vis.provider && vis.provider !== 'ollama');
 
-    // Strip data URI prefix if present
-    const base64 = image.replace(/^data:image\/\w+;base64,/, '');
+    // Strip data URI prefix if present (handles image/jpeg, image/png, image/webp, etc.)
+    const base64 = image.replace(/^data:[^;]+;base64,/, '');
     console.log(`[vision] model=${fast ? 'gemma4:e4b(fast)' : 'auto'} prompt="${prompt.slice(0,50)}" image=${Math.round(base64.length/1024)}KB`);
 
     res.setHeader('Content-Type', 'text/event-stream');
@@ -579,6 +579,62 @@ function addRoutes(r) {
   });
 
   r.get('/api/perf', (_req, res) => res.json(getMetrics()));
+
+  // Proxy Ollama tags API so frontend doesn't need direct Ollama access
+  r.get('/api/ollama/tags', async (_req, res) => {
+    try {
+      const config = await getConfig();
+      const host = config.ollamaHost || config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+      const resp = await fetch(`${host}/api/tags`);
+      const data = await resp.json();
+      res.json(data);
+    } catch (e) {
+      res.status(502).json({ error: e.message });
+    }
+  });
+
+  // Proxy Ollama pull (streaming)
+  r.post('/api/ollama/pull', async (req, res) => {
+    try {
+      const config = await getConfig();
+      const host = config.ollamaHost || config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+      const resp = await fetch(`${host}/api/pull`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body),
+      });
+      res.setHeader('Content-Type', 'application/x-ndjson');
+      const reader = resp.body.getReader();
+      const pump = async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(value);
+        }
+        res.end();
+      };
+      pump().catch(() => res.end());
+    } catch (e) {
+      res.status(502).json({ error: e.message });
+    }
+  });
+
+  // Proxy Ollama delete
+  r.delete('/api/ollama/delete', async (req, res) => {
+    try {
+      const config = await getConfig();
+      const host = config.ollamaHost || config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
+      const resp = await fetch(`${host}/api/delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req.body),
+      });
+      if (resp.ok) res.json({ ok: true });
+      else res.status(resp.status).json({ error: await resp.text() });
+    } catch (e) {
+      res.status(502).json({ error: e.message });
+    }
+  });
 
   r.get('/api/logs', (req, res) => res.json(logBuffer.slice(-50)));
 

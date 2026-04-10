@@ -1,25 +1,25 @@
 {
   "vision_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-08T02:24:27.933Z",
+    "lastRun": "2026-04-10T03:56:00.998Z",
     "currentTask": null,
     "retryCount": 2
   },
   "prd_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-08T02:23:27.883Z",
+    "lastRun": "2026-04-10T03:58:43.681Z",
     "currentTask": null,
     "retryCount": 2
   },
   "dbb_monitor": {
-    "status": "timeout",
-    "lastRun": "2026-04-08T02:35:44.061Z",
+    "status": "idle",
+    "lastRun": "2026-04-10T04:00:53.812Z",
     "currentTask": null,
     "retryCount": 2
   },
   "arch_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-08T02:24:38.873Z",
+    "lastRun": "2026-04-10T03:58:32.518Z",
     "currentTask": null,
     "retryCount": 2
   },
@@ -72,14 +72,26 @@
     "retryCount": 0
   },
   "tester": {
-    "status": "running",
+    "status": "idle",
     "lastRun": "2026-04-08T05:47:01.298Z",
-    "currentTask": "验证功能",
+    "currentTask": null,
     "retryCount": 0
   },
   "tech_lead": {
     "status": "idle",
     "lastRun": "2026-04-08T05:25:16.826Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "alignment_monitor": {
+    "status": "idle",
+    "lastRun": "2026-04-10T03:57:02.731Z",
+    "currentTask": null,
+    "retryCount": 0
+  },
+  "architect": {
+    "status": "idle",
+    "lastRun": "2026-04-10T04:00:53.855Z",
     "currentTask": null,
     "retryCount": 0
   }

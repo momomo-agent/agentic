@@ -1,0 +1,26 @@
+{
+  "milestoneId": "m29",
+  "match": 95,
+  "timestamp": "2026-04-10T19:59:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-m29-grep-001: Standalone grep no-match returns exit code 1", "status": "pass" },
+    { "criterion": "DBB-m29-grep-002: Standalone grep match returns exit code 0", "status": "pass" },
+    { "criterion": "DBB-m29-grep-003: Standalone grep -i no-match returns exit code 1", "status": "pass" },
+    { "criterion": "DBB-m29-grep-004: Standalone grep on non-existent file returns non-zero exit code", "status": "pass" },
+    { "criterion": "DBB-m29-grep-005: Pipe grep no-match still returns exit code 1 (regression check)", "status": "pass" },
+    { "criterion": "DBB-m29-grep-006: Input redirect grep no-match returns exit code 1", "status": "pass" },
+    { "criterion": "DBB-m29-grep-007: Standalone grep with invalid regex returns exit code 2", "status": "pass" },
+    { "criterion": "DBB-m29-arch-001: All architecture-alignment-m28 tests pass (9/9)", "status": "pass" },
+    { "criterion": "DBB-m29-arch-002: ARCHITECTURE.md no longer lists implemented features as future", "status": "pass" },
+    { "criterion": "DBB-m29-arch-003: ARCHITECTURE.md documents exit codes as implemented", "status": "pass" },
+    { "criterion": "DBB-m29-arch-004: architecture.json match score ≥ 85%", "status": "pass" },
+    { "criterion": "DBB-m29-node-001: node-fs-integration.test.ts exists with 21 passing tests", "status": "pass" },
+    { "criterion": "DBB-m29-node-002: Node.js integration tests cover read, write, mkdir, rm, find, grep", "status": "pass" },
+    { "criterion": "DBB-m29-vision-001: Vision match score ≥ 90% (currently 92%)", "status": "pass" },
+    { "criterion": "DBB-m29-vision-002: No major severity gaps remain in vision.json", "status": "pass" },
+    { "criterion": "DBB-m29-vision-003: PRD match score maintained ≥ 90% (currently 93%)", "status": "pass" },
+    { "criterion": "DBB-m29-vision-004: DBB match score maintained ≥ 85% (now 92%)", "status": "pass" },
+    { "criterion": "DBB-m29-accept-001: All existing tests pass (541/541, 0 failures)", "status": "pass" },
+    { "criterion": "DBB-m29-accept-002: Overall test count did not decrease (541 tests across 65 files)", "status": "pass" }
+  ]
+}

@@ -1,36 +1,26 @@
 {
-  "match": 93,
-  "timestamp": "2026-04-08T18:30:00.000Z",
+  "match": 58,
+  "timestamp": "2026-04-10T12:00:00.000Z",
   "gaps": [
     {
-      "description": "Architecture says src/types.ts contains 'Provider' and 'ToolDefinition' (line 11) but both are actually defined in src/providers/provider.ts; types.ts imports Provider but does not define it",
-      "status": "partial",
+      "description": "src/providers/ directory (anthropic.ts, openai.ts, provider.ts, index.ts) listed in Architecture Module Structure does not exist — entire provider layer has been extracted to agentic-core external package",
+      "status": "missing",
+      "severity": "critical"
+    },
+    {
+      "description": "Architecture says types.ts defines Provider and ToolDefinition interfaces (line 11) but both are imported from agentic-core, not defined anywhere in agentic-lite",
+      "status": "missing",
       "severity": "major"
     },
     {
-      "description": "ToolDefinition interface uses field name 'parameters' in code (provider.ts:10) but architecture calls it 'input schema' (line 43); field naming mismatch between design and implementation",
-      "status": "partial",
-      "severity": "minor"
+      "description": "createProvider() factory referenced in Architecture data flow (line 28) and module structure (line 16) does not exist in agentic-lite — provider instantiation handled by agentic-core's agenticAsk()",
+      "status": "missing",
+      "severity": "major"
     },
     {
-      "description": "Architecture says src/providers/provider.ts is 'custom provider support' (line 15) but it actually contains Provider interface, ToolDefinition, ProviderResponse, ProviderMessage, createProvider() factory, and detectProvider() — much broader role than documented",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "Architecture says src/providers/index.ts is 'createProvider() factory' (line 16) but createProvider() is defined in provider.ts; index.ts is a barrel re-export",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "Architecture says src/tools/index.ts is 'tool registry' (line 22) but it's a barrel export; the tool registration logic (buildToolDefs) lives in src/ask.ts",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "Architecture Provider Resolution fallback example (line 51) shows createOpenAIProvider(baseUrl, apiKey, model) but actual code passes the full config object: createOpenAIProvider(config)",
-      "status": "partial",
-      "severity": "minor"
+      "description": "index.ts exports askStream() (async generator streaming API) which is not documented anywhere in ARCHITECTURE.md — significant public API surface undocumented",
+      "status": "missing",
+      "severity": "major"
     },
     {
       "description": "ARCHITECTURE.md lines 55-75 contain leftover prompt/task instructions that are not part of the architecture documentation — should be removed for documentation integrity",
@@ -38,37 +28,52 @@
       "severity": "major"
     },
     {
+      "description": "Architecture Data Flow diagram (lines 27-36) shows ask() calling createProvider() directly, but actual implementation calls agenticAsk() from agentic-core which handles provider creation internally",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "Provider Resolution / Custom Provider Fallback section (lines 47-53) describes local resolution logic but this logic now lives in agentic-core, not in agentic-lite",
+      "status": "partial",
+      "severity": "major"
+    },
+    {
+      "description": "Architecture Overview (line 5) states 'exposes a single ask() function' but public API is ask() + askStream() + type re-exports + AgenticFileSystem re-exports",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "ToolDefinition interface uses field name 'parameters' in code but architecture calls it 'input schema' (line 43); field naming mismatch between design and implementation",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "Architecture says src/tools/index.ts is 'tool registry' (line 22) but it's a barrel re-export; tool registration logic (buildTools) lives in src/ask.ts",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
       "description": "Architecture Key Interfaces section (line 40) omits toolConfig from AgenticConfig fields; code includes toolConfig?: { search?: { apiKey?, provider? }, code?: { timeout? } }",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "Architecture Overview (line 5) states 'exposes a single ask() function' but index.ts also exports createProvider factory — public API is ask() + createProvider(), not just ask()",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "All 12 source files exist exactly as listed in Module Structure section",
+      "description": "All 5 tool files exist and match design: search.ts (Tavily/Serper), code.ts (QuickJS/Pyodide), file.ts (AgenticFileSystem), shell.ts (agentic-shell), index.ts",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "Data flow matches design exactly: ask() → createProvider() → loop provider.chat() → stopReason tool_use check → executeToolCalls() → return AgenticResult",
+      "description": "Core files exist: src/index.ts (public exports), src/ask.ts (agent loop), src/types.ts (shared interfaces)",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "Custom provider fallback chain implemented correctly: customProvider → use directly; baseUrl → createOpenAIProvider(config); neither → throw error",
+      "description": "AgenticConfig and AgenticResult interfaces implemented in types.ts matching documented fields",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "All four tool implementations present and matching design: search (Tavily/Serper), code (QuickJS/Pyodide/python3), file (AgenticFileSystem), shell (agentic-shell)",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "All key interfaces implemented: AgenticConfig, AgenticResult, Provider with chat() method, ToolDefinition with name/description/parameters",
+      "description": "Core agent loop pattern (prompt → provider chat → tool_use check → execute tools → return result) is functionally correct via agentic-core delegation",
       "status": "implemented",
       "severity": "minor"
     }

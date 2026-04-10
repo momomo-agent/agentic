@@ -1,46 +1,56 @@
 {
   "match": 97,
-  "timestamp": "2026-04-08T02:30:00.000Z",
+  "timestamp": "2026-04-10T12:00:00.000Z",
   "gaps": [
     {
-      "description": "ARCHITECTURE.md does not exist — no formal architecture document; analysis based on PRD and source code",
-      "status": "implemented"
+      "description": "ARCHITECTURE.md exists and accurately documents the system design",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
-      "description": "OPFSBackend.stat() always returns isDirectory: false — cannot detect directories, inconsistent with NodeFsBackend",
-      "status": "implemented"
+      "description": "StorageBackend interface fully implemented with all 8 methods (get, set, delete, list, scan, scanStream, batchGet, batchSet) plus optional stat",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
-      "description": "OPFSBackend.delete() has no error handling — throws if path not found, unlike AgenticStoreBackend/NodeFsBackend which silently no-op",
-      "status": "implemented"
+      "description": "All 6 backends implemented: AgenticStore, OPFS, NodeFs, Memory, LocalStorage, SQLite",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
-      "description": "OPFSBackend.walkDir() throws on error instead of continuing — PRD requires improved error handling",
-      "status": "implemented"
+      "description": "OPFSBackend has empty-path validation via validatePath() on get/set/delete/stat",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
-      "description": "AgenticStoreBackend.stat() returns mtime: Date.now() — not real mtime, inconsistent with NodeFsBackend",
-      "status": "implemented"
-    },
-    {
-      "description": "OPFSBackend missing empty-path validation present in AgenticStoreBackend and NodeFsBackend",
-      "status": "implemented"
-    },
-    {
-      "description": "No cross-backend consistency tests — PRD requires all backends pass the same test suite",
-      "status": "implemented"
-    },
-    {
-      "description": "StorageBackend interface fully implemented across AgenticStore, OPFS, NodeFs, Memory, LocalStorage, and SQLite backends",
-      "status": "implemented"
-    },
-    {
-      "description": "AgenticFileSystem implements readOnly mode, permission system, grep (literal + semantic), ls, tree, and AI tool definitions",
-      "status": "implemented"
+      "description": "Cross-backend consistency tests exist covering all Node-testable backends (15+ behavioral tests)",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
       "description": "Error types (NotFoundError, PermissionDeniedError, IOError) defined and used consistently",
-      "status": "implemented"
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "AgenticFileSystem implements getToolDefinitions() and executeTool() with full tool coverage",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "shellFsTools exports all 6 MCP-compatible tools (shell_cat, shell_head, shell_tail, shell_find, shell_delete, shell_tree)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "createBackend auto-selection logic with createDefaultBackend/createAutoBackend aliases",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "Architecture doc auto-selection order omits SQLite priority steps present in code (additive, not a gap)",
+      "status": "partial",
+      "severity": "minor"
     }
   ]
 }

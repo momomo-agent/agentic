@@ -1,6 +1,6 @@
 {
   "match": 85,
-  "timestamp": "2026-04-08T12:00:00.000Z",
+  "timestamp": "2026-04-10T12:00:00.000Z",
   "gaps": [
     {
       "description": "src/store/index.js (KV storage wrapper using agentic-store with get/set/del/delete exports) is not documented in ARCHITECTURE.md — agentic-store is listed as a dependency but local store abstraction is undocumented",
@@ -13,12 +13,17 @@
       "severity": "minor"
     },
     {
-      "description": "src/runtime/embed.js and src/runtime/adapters/ (embed.js, sense.js, voice/openai-tts.js, voice/openai-whisper.js) are not documented as formal module sections in ARCHITECTURE.md — only referenced in notes",
+      "description": "src/runtime/embed.js and src/runtime/adapters/ (embed.js, sense.js, voice/openai-tts.js, voice/openai-whisper.js, voice/piper.js, voice/elevenlabs.js, voice/macos-say.js) are not documented as formal module sections in ARCHITECTURE.md — only referenced in addendum notes",
       "status": "partial",
       "severity": "major"
     },
     {
       "description": "src/runtime/profiler.js (startMark/endMark/getMetrics/measurePipeline) and src/runtime/latency-log.js (record/p95/reset) are internal runtime utilities not mentioned in ARCHITECTURE.md",
+      "status": "missing",
+      "severity": "minor"
+    },
+    {
+      "description": "src/detector/sox.js (ensureSox — auto-detect/install sox audio tool) and src/cli/download-state.js (model download progress state management) are undocumented utility modules",
       "status": "missing",
       "severity": "minor"
     },

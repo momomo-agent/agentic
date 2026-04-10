@@ -1,0 +1,13 @@
+{
+  "id": "task-1775793599438",
+  "title": "Create src/index.js entry point",
+  "description": "package.json main points to src/index.js which does not exist. Create src/index.js that exports: startServer (from server/api.js), detector (from detector/), runtime modules (llm, stt, tts, embed, memory). This is a CRITICAL DBB gap — the package is broken without it.",
+  "status": "todo",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": true,
+  "created": "2026-04-10T03:59:59.438Z",
+  "updated": "2026-04-10T04:08:07.269Z"
+}

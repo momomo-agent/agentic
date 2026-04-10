@@ -1,6 +1,6 @@
 # DBB Check — M8
 
-**Match: 95%** | 2026-04-08T10:27:00Z
+**Match: 95%** | 2026-04-10T12:00:00Z
 
 ## Results
 
@@ -34,18 +34,15 @@
 
 ## Evidence
 
-- `code.ts:48` — detectLanguage
-- `code.ts:52-98` — executePythonBrowser
-- `code.ts:116-195` — executePythonNode
-- `code.ts:20-45` — injectFilesystem (missing existsSync)
-- `shell.ts:23-44` — executeShell
-- `types.ts:34` — ToolName includes shell
-- `107 tests` — pass
+- `code.ts:62-64` — detectLanguage with Python pattern matching
+- `code.ts:35-60` — injectFilesystem (missing existsSync — only readFileSync and writeFileSync injected)
+- `code.ts:67-80` — executeJavaScriptBrowser with AsyncFunction eval
+- `test/code-fs-injection.test.ts:26-37` — existsSync tests marked `.fails` (known bug)
 
 ## Gap
 
-injectFilesystem() in code.ts only creates readFileSync and writeFileSync — existsSync is not implemented.
+`injectFilesystem()` in `code.ts:35-60` only creates `readFileSync` and `writeFileSync` on the injected `fs` handle. `existsSync` is not implemented. Browser `createFsWrapper` (lines 28-33) also lacks it.
 
 ## Result
 
-24/25 criteria pass. One gap: fs.existsSync not implemented in JS sandbox injection.
+31/32 criteria pass. One gap: fs.existsSync not implemented in JS sandbox injection.
