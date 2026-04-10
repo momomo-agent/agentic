@@ -3,38 +3,46 @@
 ## Summary
 
 **Status: PASS**
-**Total Tests: 15 | Passed: 15 | Failed: 0**
+**Total Tests: 23 | Passed: 23 | Failed: 0**
 
 ## Test File
 
-`test/runtime/memory.test.js`
+`test/m98-memory.test.js`
 
 ## Test Results
 
-### add()
-- ✅ stores text with embedding vector and returns id
-- ✅ stores metadata in entry
+### add() — 8 tests
+- ✅ returns a string id
+- ✅ stores entry in KV store with text, vector, metadata, createdAt
+- ✅ updates the memory index
+- ✅ accepts optional metadata
 - ✅ defaults metadata to empty object
-- ✅ propagates TypeError for non-string input
-- ✅ appends id to index
-- ✅ handles empty string input without crashing
+- ✅ throws TypeError for non-string input (propagated from embed)
+- ✅ handles empty string (stores entry with empty vector)
+- ✅ adds multiple entries to the index
 
-### search()
-- ✅ returns empty array when no entries
-- ✅ returns scored results sorted by similarity
+### search() — 8 tests
+- ✅ returns empty array on empty store
+- ✅ returns matching entries with id, text, metadata, score
 - ✅ respects topK parameter
+- ✅ defaults topK to 5
+- ✅ returns results sorted by score descending
+- ✅ includes metadata in results
+- ✅ does not include vector in results
+- ✅ skips entries deleted from store but still in index
 
-### remove()
-- ✅ removes entry and updates index
-- ✅ handles removing non-existent id without crashing
+### remove() — 4 tests
+- ✅ removes entry from store
+- ✅ removes id from index
+- ✅ safe to remove nonexistent id
+- ✅ does not affect other entries
 
-### search() edge cases
-- ✅ does not return removed entries
-- ✅ handles entries with empty vectors gracefully
-
-### clear()
+### clear() — 2 tests
 - ✅ removes all entries and index
-- ✅ handles clearing empty store without crashing
+- ✅ safe to clear empty store
+
+### cosineSimilarity edge cases — 1 test
+- ✅ identical queries produce score ≈ 1.0
 
 ## Design Verification
 
@@ -50,8 +58,9 @@ All exports match design.md spec:
 - Empty string input to add()
 - Non-string input (TypeError propagation)
 - Empty store search
-- topK limiting
+- topK limiting and default (5)
 - Non-existent ID removal
+- Orphaned index entries (entry deleted, index not updated)
 - Removed entries excluded from search
-- Empty vector entries in search
 - Clear on empty store
+- Identical text cosine similarity = 1.0
