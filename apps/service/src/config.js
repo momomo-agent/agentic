@@ -99,7 +99,12 @@ export async function getModelPool() {
       const { models } = await res.json();
       for (const m of models) {
         const id = `ollama:${m.name}`;
-        if (!pool.find(p => p.id === id)) {
+        const existing = pool.find(p => p.id === id);
+        if (existing) {
+          // Refresh capabilities for existing models (fixes migrated models with incomplete caps)
+          existing.capabilities = _guessOllamaCapabilities(m.name);
+          if (!existing.size) existing.size = m.size;
+        } else {
           pool.push({
             id,
             name: m.name,
@@ -177,14 +182,14 @@ function _migrateOldFormat(parsed) {
     const llm = parsed.llm;
     if (llm.provider === 'ollama' && llm.model) {
       const id = `ollama:${llm.model}`;
-      pool.push({ id, name: llm.model, provider: 'ollama', capabilities: ['chat'], source: 'migrated' });
+      pool.push({ id, name: llm.model, provider: 'ollama', capabilities: _guessOllamaCapabilities(llm.model), source: 'migrated' });
       assignments.chat = id;
     } else if (llm.provider && llm.model) {
       const id = `cloud:${llm.provider}:${llm.model}`;
       pool.push({
         id, name: llm.model, provider: llm.provider,
         apiKey: llm.apiKey, baseUrl: llm.baseUrl,
-        capabilities: ['chat'], source: 'migrated',
+        capabilities: _guessCloudCapabilities(llm.provider, llm.model), source: 'migrated',
       });
       assignments.chat = id;
     }
@@ -195,7 +200,7 @@ function _migrateOldFormat(parsed) {
       if (fb.provider === 'ollama' && fb.model) {
         const id = `ollama:${fb.model}`;
         if (!pool.find(m => m.id === id)) {
-          pool.push({ id, name: fb.model, provider: 'ollama', capabilities: ['chat'], source: 'migrated' });
+          pool.push({ id, name: fb.model, provider: 'ollama', capabilities: _guessOllamaCapabilities(fb.model), source: 'migrated' });
         }
         assignments.fallback = id;
       } else if (fb.model) {
@@ -204,7 +209,7 @@ function _migrateOldFormat(parsed) {
           pool.push({
             id, name: fb.model, provider: fb.provider,
             apiKey: fb.apiKey, baseUrl: fb.baseUrl,
-            capabilities: ['chat'], source: 'migrated',
+            capabilities: _guessCloudCapabilities(fb.provider, fb.model), source: 'migrated',
           });
         }
         assignments.fallback = id;
@@ -257,6 +262,28 @@ function _guessOllamaCapabilities(name) {
   if (/whisper/.test(lower)) caps.push('stt');
   if (/embed|nomic|mxbai|bge/.test(lower)) {
     return ['embedding'];
+  }
+  return caps;
+}
+
+function _guessCloudCapabilities(provider, model) {
+  const caps = ['chat'];
+  const lower = (model || '').toLowerCase();
+  // Vision-capable cloud models
+  if (/gpt-4o|gpt-4-turbo|gpt-4-vision|claude-3|claude-sonnet|claude-opus|gemini/.test(lower)) {
+    caps.push('vision');
+  }
+  // Embedding models
+  if (/embed|ada-002|text-embedding/.test(lower)) {
+    return ['embedding'];
+  }
+  // TTS models
+  if (/tts|speech/.test(lower)) {
+    return ['tts'];
+  }
+  // STT models
+  if (/whisper|stt/.test(lower)) {
+    return ['stt'];
   }
   return caps;
 }

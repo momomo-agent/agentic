@@ -31,6 +31,7 @@ declare class AgenticShell {
     private resolve;
     private parseArgs;
     private matchGlob;
+    private expandRecursiveGlob;
     private expandGlob;
     private expandPathArgs;
     private ls;

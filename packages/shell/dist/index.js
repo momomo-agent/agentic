@@ -99,7 +99,7 @@ var AgenticShell = class {
       const stdin = r.content ?? "";
       const cmdOutput = await this.execWithStdin(lhs, stdin);
       const lhsCmd = lhs.trim().split(/\s+/)[0];
-      const exitCode = lhsCmd === "grep" && cmdOutput === "" ? 1 : this.exitCodeFor(cmdOutput);
+      const exitCode2 = lhsCmd === "grep" && cmdOutput === "" ? 1 : this.exitCodeFor(cmdOutput);
       if (remainder) {
         const appendRem = remainder.match(/^>>\s*(\S+)$/);
         const writeRem = remainder.match(/^>\s*(\S+)$/);
@@ -119,7 +119,7 @@ var AgenticShell = class {
           return { output: "", exitCode: 0 };
         }
       }
-      return { output: cmdOutput, exitCode };
+      return { output: cmdOutput, exitCode: exitCode2 };
     }
     const appendMatch = trimmed.match(/^(.+?)>>\s*(\S+)$/);
     if (appendMatch) {
@@ -128,8 +128,8 @@ var AgenticShell = class {
       const werr = this.checkWritable("echo", filePath);
       if (werr) return { output: werr, exitCode: 1 };
       const output2 = await this.execSingle(lhs);
-      const exitCode = this.exitCodeFor(output2);
-      if (exitCode !== 0) return { output: output2, exitCode };
+      const exitCode2 = this.exitCodeFor(output2);
+      if (exitCode2 !== 0) return { output: output2, exitCode: exitCode2 };
       const existing = await this.fs.read(filePath);
       const current = existing.error ? "" : existing.content ?? "";
       await this.fs.write(filePath, current + output2 + "\n");
@@ -142,37 +142,39 @@ var AgenticShell = class {
       const werr = this.checkWritable("echo", filePath);
       if (werr) return { output: werr, exitCode: 1 };
       const output2 = await this.execSingle(lhs);
-      const exitCode = this.exitCodeFor(output2);
-      if (exitCode !== 0) return { output: output2, exitCode };
+      const exitCode2 = this.exitCodeFor(output2);
+      if (exitCode2 !== 0) return { output: output2, exitCode: exitCode2 };
       await this.fs.write(filePath, output2 + "\n");
       return { output: "", exitCode: 0 };
     }
     if (trimmed.includes(" | ")) {
       const segments = trimmed.split(" | ");
       let output2 = "";
-      let exitCode = 0;
+      let exitCode2 = 0;
       for (let i = 0; i < segments.length; i++) {
         if (i === 0) {
           const execResult = await this.execSingleWithError(segments[i].trim());
           output2 = execResult.output;
           if (execResult.hadError) {
-            exitCode = this.exitCodeFor(output2);
+            exitCode2 = this.exitCodeFor(output2);
             output2 = "";
           }
         } else {
           output2 = await this.execWithStdin(segments[i].trim(), output2);
           const segCmd = segments[i].trim().split(/\s+/)[0];
-          if (exitCode === 0) {
-            if (segCmd === "grep" && output2 === "") exitCode = 1;
-            else if (this.isErrorOutput(output2)) exitCode = this.exitCodeFor(output2);
+          if (exitCode2 === 0) {
+            if (segCmd === "grep" && output2 === "") exitCode2 = 1;
+            else if (this.isErrorOutput(output2)) exitCode2 = this.exitCodeFor(output2);
           }
         }
       }
-      if (exitCode === 0) exitCode = this.exitCodeFor(output2);
-      return { output: output2, exitCode };
+      if (exitCode2 === 0) exitCode2 = this.exitCodeFor(output2);
+      return { output: output2, exitCode: exitCode2 };
     }
     const output = await this.execSingle(trimmed);
-    return { output, exitCode: this.exitCodeFor(output) };
+    const cmd = trimmed.split(/\s+/)[0];
+    const exitCode = cmd === "grep" && output === "" ? 1 : this.exitCodeFor(output);
+    return { output, exitCode };
   }
   async jobs_cmd(_args) {
     if (this.jobs.size === 0) return "";
@@ -297,8 +299,16 @@ var AgenticShell = class {
       return `${lines}	${words}	${chars}`;
     }
     if (cmd === "grep") {
-      const flags = args.filter((a) => a.startsWith("-"));
+      const rawFlags = args.filter((a) => a.startsWith("-"));
       const rest = args.filter((a) => !a.startsWith("-"));
+      const flags = [];
+      for (const f of rawFlags) {
+        if (f.length > 2 && f.startsWith("-")) {
+          for (let i = 1; i < f.length; i++) flags.push("-" + f[i]);
+        } else {
+          flags.push(f);
+        }
+      }
       const [pattern] = rest;
       if (!pattern) return "grep: missing pattern";
       const caseInsensitive = flags.includes("-i");
@@ -395,8 +405,42 @@ var AgenticShell = class {
     }
     return new RegExp("^" + re + "$").test(name);
   }
+  async expandRecursiveGlob(baseDir, pattern) {
+    const results = [];
+    const visited = /* @__PURE__ */ new Set();
+    const stack = [baseDir];
+    while (stack.length) {
+      const dir = stack.pop();
+      if (visited.has(dir)) continue;
+      visited.add(dir);
+      let entries;
+      try {
+        entries = await this.fs.ls(dir);
+      } catch {
+        continue;
+      }
+      for (const e of entries) {
+        const fullPath = dir === "/" ? "/" + e.name : dir + "/" + e.name;
+        if (e.type === "dir") {
+          stack.push(fullPath);
+        }
+        if (this.matchGlob(e.name, pattern)) {
+          results.push(fullPath);
+        }
+      }
+    }
+    return results;
+  }
   async expandGlob(pattern, dir) {
     if (!/[*?[]/.test(pattern)) return [pattern];
+    const doubleStarIdx = pattern.indexOf("**");
+    if (doubleStarIdx !== -1) {
+      const before = pattern.slice(0, doubleStarIdx).replace(/\/$/, "");
+      const after = pattern.slice(doubleStarIdx + 2).replace(/^\//, "");
+      const baseDir = before ? this.resolve(before) : dir;
+      const matchPattern = after || "*";
+      return this.expandRecursiveGlob(baseDir, matchPattern);
+    }
     const entries = await this.fs.ls(dir);
     return entries.filter((e) => e.type === "file" && this.matchGlob(e.name, pattern)).map((e) => dir === "/" ? "/" + e.name : dir + "/" + e.name);
   }
@@ -431,7 +475,12 @@ var AgenticShell = class {
       return matches.map((p) => p.split("/").pop()).join("\n");
     }
     const path = pathArg || this.cwd;
-    const lsResult = await this.fs.ls(this.resolve(path));
+    let lsResult;
+    try {
+      lsResult = await this.fs.ls(this.resolve(path));
+    } catch (err) {
+      return this.fsError("ls", path, err.message ?? String(err));
+    }
     if (lsResult && lsResult.error) return this.fsError("ls", path, lsResult.error);
     let entries = lsResult;
     if (all) {
@@ -469,10 +518,18 @@ var AgenticShell = class {
     return results.join("\n");
   }
   async grep(args) {
-    const flags = args.filter((a) => a.startsWith("-"));
+    const rawFlags = args.filter((a) => a.startsWith("-"));
     const rest = args.filter((a) => !a.startsWith("-"));
     const [pattern, ...paths] = rest;
     if (!pattern) return "grep: missing pattern";
+    const flags = [];
+    for (const f of rawFlags) {
+      if (f.length > 2 && f.startsWith("-")) {
+        for (let i = 1; i < f.length; i++) flags.push("-" + f[i]);
+      } else {
+        flags.push(f);
+      }
+    }
     try {
       new RegExp(pattern, flags.includes("-i") ? "i" : "");
     } catch {
@@ -504,6 +561,21 @@ var AgenticShell = class {
       } catch (err) {
         return this.fsError("grep", singlePath, String(err));
       }
+    }
+    if (resolvedPaths.length > 1 && !recursive && isStreamable(this.fs)) {
+      const allMatches = [];
+      for (const p of resolvedPaths) {
+        try {
+          const raw = await this.grepStream(pattern, p, flags);
+          allMatches.push(...raw.filter((m) => !m.startsWith("grep: warning:")));
+        } catch (err) {
+          allMatches.push(this.fsError("grep", p, String(err)));
+        }
+      }
+      if (flags.includes("-c")) return String(allMatches.length);
+      if (!allMatches.length) return "";
+      if (flags.includes("-l")) return [...new Set(allMatches.map((m) => m.split(":")[0]))].join("\n");
+      return allMatches.join("\n");
     }
     const caseInsensitive = flags.includes("-i");
     if (caseInsensitive && (resolvedPaths.length > 0 || recursive)) {
@@ -693,7 +765,10 @@ var AgenticShell = class {
         try {
           await this.mkdirOne(resolved);
         } catch (e) {
-          return `mkdir: cannot create directory '${p}': ${e.message ?? e}`;
+          const msg = e.message ?? String(e);
+          if (msg.toLowerCase().includes("exist"))
+            return `mkdir: ${p}: File exists`;
+          return `mkdir: ${p}: No such file or directory`;
         }
       }
     }
