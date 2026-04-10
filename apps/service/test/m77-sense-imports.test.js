@@ -12,8 +12,8 @@ function ok(name, cond) {
 const pkg = JSON.parse(readFileSync(resolve('package.json'), 'utf8'));
 const imports = pkg.imports || {};
 
-// 1. imports field exists
-ok('package.json has imports field', !!pkg.imports);
+// 1. agentic-sense in dependencies (import maps removed, direct dependency)
+ok('agentic-sense in dependencies', pkg.dependencies && 'agentic-sense' in pkg.dependencies);
 
 // 2. agentic-sense in dependencies (M84: use package directly, not import map)
 ok('agentic-sense entry exists in imports', pkg.dependencies && 'agentic-sense' in pkg.dependencies);
