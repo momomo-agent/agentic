@@ -69,7 +69,7 @@ export function initFromProfile(profile, hardware) {
   _writeQueue = _writeQueue.then(async () => {
     let existing = null;
     try {
-      const raw = await fs.readFile(CONFIG_PATH, 'utf8');
+      const raw = await fs.readFile(_configPath(), 'utf8');
       existing = JSON.parse(raw);
     } catch { /* no existing config */ }
 
