@@ -24708,3 +24708,10 @@
 {"ts":"2026-04-10T19:12:36.105Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
 {"ts":"2026-04-10T19:12:36.107Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":17,"memoryTotalMB":19,"cpuUser":9.803488,"cpuSystem":25.791067}}}
 {"ts":"2026-04-10T19:12:36.107Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
+{"ts":"2026-04-10T19:12:36.914Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 开发完成，任务进入 review","performance":{"memoryMB":17,"memoryTotalMB":19,"cpuUser":9.803942,"cpuSystem":25.792014}}}
+{"ts":"2026-04-10T19:12:36.914Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← developer done"}}
+{"ts":"2026-04-10T19:12:37.043Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] triage-blocked: blockedCount > 0"}}
+{"ts":"2026-04-10T19:12:37.276Z","type":"workflow","agent":"work_loop","data":{"details":"[LOOP] Iteration 14"}}
+{"ts":"2026-04-10T19:12:37.410Z","type":"workflow","agent":"work_loop","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/goal-check.js"}}
+{"ts":"2026-04-10T19:12:38.088Z","type":"workflow","agent":"work_loop","data":{"details":"[EXEC] pm"}}
+{"ts":"2026-04-10T19:12:38.088Z","type":"agent_start","agent":"pm","data":{"details":"管理任务和里程碑","performance":{"memoryMB":13,"memoryTotalMB":17,"cpuUser":9.884242,"cpuSystem":26.144215}}}

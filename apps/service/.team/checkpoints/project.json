@@ -7,28 +7,26 @@
     "monitor",
     "pm_decide",
     "work_loop",
-    "work_loop",
-    "work_loop",
     "work_loop"
   ],
   "loopIterations": {
-    "work_loop": 11
+    "work_loop": 14
   },
-  "transitionDepth": 7,
+  "transitionDepth": 5,
   "nodeVisitCounts": {
     "startup": 1,
     "monitor": 1,
     "pm_decide": 1,
-    "work_loop": 4
+    "work_loop": 2
   },
   "contextOverrides": {
     "refsValid": 1,
     "buildPassed": 1,
     "retryCount": 0,
-    "testPassed": 0,
+    "testPassed": 1,
     "unitPassed": 0,
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T19:12:07.645Z"
+  "timestamp": "2026-04-10T19:12:38.088Z"
 }
