@@ -96,7 +96,7 @@ install/
   docker-compose.yml          Docker Compose (port 1234, OLLAMA_HOST, config + data volumes)
   docker-build.sh             Docker build helper
 
-Dockerfile                    Root Docker image (⚠️ EXPOSE 3000 — should be 1234, task pending)
+Dockerfile                    Root Docker image (EXPOSE 1234)
 docker-compose.yml            Root Docker Compose (port 1234, OLLAMA_HOST, ./data volume)
 ```
 
@@ -143,13 +143,13 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **169 test files, 168 passing, 1 failing** — 904 passed, 11 skipped, 1 failed (run 2026-04-11)
+- **169 test files, all passing** — 912 tests passed, 11 skipped (run 2026-04-11)
 - Vitest coverage thresholds: 98% (statements/lines/branches/functions)
 - profiles-edge-cases.test.js: all 14 tests pass (including expired-cache fallback)
 - m21-profiles.test.js: all 2 tests pass (getProfile + built-in fallback)
 - m76-embed-wiring, m77-sense-imports: fixed and passing
 - m62-sigint-integration: all 4 tests pass
-- **m28-profiles-cache.test.js: 1 test fails** — "updates cache timestamp after successful fetch" gets ENOENT on profiles.json (cache file not written to disk during test)
+- m28-profiles-cache.test.js: fixed — cache timestamp now updated after successful fetch
 
 ## Known Issues (from gap analysis)
 
