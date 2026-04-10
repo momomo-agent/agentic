@@ -1,7 +1,7 @@
 {
   "agent": "dbb_monitor",
-  "timestamp": "2026-04-10T21:28:29.052Z",
+  "timestamp": "2026-04-10T21:29:31.092Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "DBB verification complete. Global match 90%, M98 95%, M99 90%. All gaps stable — only minor VISION.md tree divergence, dead embed stub, and minimal middleware remain."
+  "summary": "src/index.js require confirmed: 11 exports including startServer, detect, chat, stt, tts, embed. DBB-001 and DBB-002 pass."
 }

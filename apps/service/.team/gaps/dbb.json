@@ -1,9 +1,9 @@
 {
   "match": 90,
-  "timestamp": "2026-04-11T06:15:00.000Z",
+  "timestamp": "2026-04-11T07:30:00.000Z",
   "gaps": [
     {
-      "description": "src/index.js — package.json 'main' entry point exists and exports core API",
+      "description": "src/index.js — package.json 'main' entry point exists and exports core API (startServer, createServer, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed)",
       "status": "implemented",
       "severity": "critical"
     },
@@ -35,8 +35,7 @@
     {
       "description": "Test pass rate — 981 tests across 174 files, all passing (0 failures, 11 skipped)",
       "status": "implemented",
-      "severity": "minor",
-      "detail": "Previously partial due to m28-profiles-cache.test.js failure. Now all 174 test files pass."
+      "severity": "minor"
     },
     {
       "description": "ARCHITECTURE.md install section — correctly documents port 1234 for Docker",
