@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:49:26.420Z",
+    "lastRun": "2026-04-10T21:49:30.923Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -30,9 +30,9 @@
     "retryCount": 2
   },
   "tester": {
-    "status": "running",
+    "status": "idle",
     "lastRun": "2026-04-10T21:49:08.298Z",
-    "currentTask": "验证功能",
+    "currentTask": null,
     "retryCount": 1
   },
   "tester-1": {
@@ -62,9 +62,9 @@
     "retryCount": 0
   },
   "prd_monitor": {
-    "status": "running",
+    "status": "idle",
     "lastRun": "2026-04-10T21:48:16.472Z",
-    "currentTask": "评估PRD匹配度",
+    "currentTask": null,
     "retryCount": 0
   },
   "dbb_monitor": {
@@ -74,9 +74,9 @@
     "retryCount": 0
   },
   "arch_monitor": {
-    "status": "running",
+    "status": "idle",
     "lastRun": "2026-04-10T21:48:16.473Z",
-    "currentTask": "评估架构匹配度",
+    "currentTask": null,
     "retryCount": 0
   },
   "architect": {
