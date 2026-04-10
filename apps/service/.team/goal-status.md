@@ -5,28 +5,21 @@ Vision ≥90% + PRD ≥90%
 
 ## 📊 Current Match
 - alignment: ?%
-- architecture: 85%
+- architecture: 85% → pending re-eval (M99 arch doc tasks all done)
 - dbb: 90%
 - prd: 90%
-- test-coverage: ?%
+- test-coverage: 174 files, 981 tests passing, 0 failures
 - vision: 91%
 
+## 📊 Goal Status
+- Vision ≥90%: ✅ MET (91%)
+- PRD ≥90%: ✅ MET (90%)
+- Architecture: awaiting re-evaluation after M99 doc tasks completed
 
 ## 📦 Recent Deliverables
-### Commits
-87e27527 feat: implement task
-a5e5e34a feat: implement task
-95568588 feat: implement task
-939452a5 feat: implement task
-d3db2603 feat: implement task
-e630ac12 feat: implement task
-fa88397f feat: implement task
-10cbb031 feat: implement task
-d15676db feat: implement task
-6da8dd71 feat: implement task
-
-### Completed Tasks
-(none)
+### Milestones
+- M98: All 32 tasks done — PRD gap closure complete
+- M99: All 4 tasks done — architecture doc gaps addressed
 
 ## 🏗️ Project Artifacts
 - Source files: 880 | Test files: 252 | Source LOC: 1035600
