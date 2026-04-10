@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T20:17:35.493Z",
+  "timestamp": "2026-04-10T20:19:07.322Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No claimable tasks available. Verified full test suite passes (171 files, 951 tests). The one developer task (task-1775851932380) is already in review status — config persistence fix confirmed working."
+  "summary": "No available tasks — all tasks are done, cancelled, or assigned to other roles. No todo tasks with hasDesign=true and null assignee exist."
 }
