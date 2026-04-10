@@ -112,6 +112,28 @@ describe('runtime/memory.js', () => {
       const index = await store.get('memory:__index')
       expect(index).toEqual([id1])
     })
+
+    it('handles removing non-existent id without crashing', async () => {
+      await add('existing')
+      await expect(remove('non-existent-id')).resolves.not.toThrow()
+    })
+  })
+
+  describe('search() edge cases', () => {
+    it('does not return removed entries', async () => {
+      const id = await add('findable text')
+      await remove(id)
+      const results = await search('findable text')
+      expect(results.every(r => r.id !== id)).toBe(true)
+    })
+
+    it('handles entries with empty vectors gracefully', async () => {
+      await add('')
+      await add('real content')
+      const results = await search('real content')
+      expect(results).toBeInstanceOf(Array)
+      expect(results.length).toBeGreaterThanOrEqual(1)
+    })
   })
 
   describe('clear()', () => {
@@ -122,6 +144,10 @@ describe('runtime/memory.js', () => {
       expect(await store.get(`memory:${id1}`)).toBeNull()
       expect(await store.get(`memory:${id2}`)).toBeNull()
       expect(await store.get('memory:__index')).toBeNull()
+    })
+
+    it('handles clearing empty store without crashing', async () => {
+      await expect(clear()).resolves.not.toThrow()
     })
   })
 })
