@@ -146,6 +146,7 @@ src/store/index.js  → agentic-store
 - **169 test files, all passing** — 905 passed, 11 skipped, 0 failures (clean run 2026-04-11)
 - Vitest coverage thresholds: 98% (statements/lines/branches/functions)
 - profiles-edge-cases.test.js: all 14 tests pass (including expired-cache fallback)
+- m21-profiles.test.js: all 2 tests pass (getProfile + built-in fallback)
 - All previously failing tests (m76-embed-wiring, m77-sense-imports, m28-profiles-cache) now pass
 - m62-sigint-integration: all 4 tests pass
 
@@ -163,6 +164,7 @@ src/store/index.js  → agentic-store
 - ~~Root `Dockerfile` EXPOSE 3000~~ — now EXPOSE 1234, matching service default port
 - ~~m28-profiles-cache.test.js failing~~ — all 5 tests now pass (cache freshness, expired fetch, fallback)
 - ~~ARCHITECTURE.md known limitation #4 (Dockerfile EXPOSE)~~ — removed, only 3 limitations remain
+- ~~m21-profiles.test.js failing~~ — all 2 tests pass (getProfile returns correct structure + built-in fallback works)
 
 ### Open
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
