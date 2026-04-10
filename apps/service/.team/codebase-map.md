@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — 172/173 test files pass, 971/983 tests pass, 11 skipped; 1 flaky: hardware detector timing 2321ms > 2000ms threshold)
+Updated: 2026-04-11 (architect review — all gap monitors ≥90%; ARCHITECTURE.md fully documents all modules)
 
 ## Technology Stack
 
@@ -164,7 +164,7 @@ src/store/index.js  → agentic-store
 |---------|---------|-----------------|
 | agentic-embed | `create(opts)`, `chunkText(text, opts)`, `cosineSimilarity(a, b)`, `localEmbed(text)` | runtime/embed.js → `localEmbed(text)` |
 | agentic-sense | `AgenticSense(videoEl)`, `AgenticAudio`, `IDX`, `extractFrame(video)` | adapters/sense.js → `new AgenticSense()` |
-| agentic-store | `createStore(name)` → `{get, set, delete, keys, clear, exec, run, all}` | store/index.js → `createStore()` |
+| agentic-store | `createStore(name)` → `{get, set, delete, keys, clear, exec, run, all}` | store/index.js → `open(DB_PATH)` (named import; package exports `createStore`) |
 | agentic-voice | `createSTT(opts)`, `createTTS(opts)`, `createVoice(opts)` | stt.js/tts.js → adapters use these |
 
 ## Test Status
