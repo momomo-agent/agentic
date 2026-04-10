@@ -1,9 +1,11 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 26,
+  "passed": 26,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "Concurrent rapid writes to config (process-level concurrency)",
+    "Disk full scenario during atomic write",
+    "Permission denied on config directory"
   ],
   "coverage": "100%"
 }
