@@ -1,7 +1,7 @@
 {
   "agent": "dbb_monitor",
-  "timestamp": "2026-04-10T21:33:41.595Z",
+  "timestamp": "2026-04-10T21:34:47.438Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "DBB verification pass — global 90%, M97 100%, M98 95%, M99 90%. All stable, no new gaps. 981/981 tests pass."
+  "summary": "DBB check: 90% match (stable). M97=100%, M98=95%, M99=90%. All critical/major pass. 3 minor partial gaps: VISION.md phantom files, embed stub, minimal middleware."
 }
