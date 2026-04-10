@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T22:01:54.111Z",
+  "timestamp": "2026-04-10T22:04:16.826Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "kokoro.js adapter already exists (38 lines, created Apr 11). Updated ARCHITECTURE.md: removed known limitation #6 about missing kokoro.js, updated voice adapter documentation to describe kokoro.js as Kokoro TTS local HTTP adapter (localhost:8880). Updated codebase-map.md: changed kokoro.js from MISSING to documented (38 lines), moved to resolved issues."
+  "summary": "Updated ARCHITECTURE.md section 11 with full voice adapter API signatures (STT: sensevoice, whisper, openai-whisper; TTS: kokoro, piper, openai-tts, elevenlabs, macos-say). Updated codebase-map.md to include kokoro.js and adapter signatures. Confirmed kokoro.js adapter now exists (resolved by another agent). All three open tasks addressed."
 }

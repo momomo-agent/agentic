@@ -167,16 +167,19 @@ export function createPipeline(options = {})  // line 3 — wraps AgenticSense c
 
 ### Voice Adapters (adapters/voice/*)
 
-| File | Provider | Export | Notes |
-|------|----------|--------|-------|
-| `elevenlabs.js` | ElevenLabs | `synthesize(text)` | HTTP API, requires API key |
-| `kokoro.js` | Kokoro | `synthesize(text)` | ⚠️ FILE MISSING — referenced in tts.js but not implemented |
-| `macos-say.js` | macOS | `synthesize(text)` | `say` command, darwin only |
-| `openai-tts.js` | OpenAI | `synthesize(text)` | HTTP API, requires API key |
-| `openai-whisper.js` | OpenAI | `transcribe(buffer)` | HTTP API, requires API key |
-| `piper.js` | Piper | `synthesize(text)` | Auto-downloads binary, local |
-| `sensevoice.js` | SenseVoice | `transcribe(buffer)` | HTTP API to local SenseVoice server |
-| `whisper.js` | Whisper.cpp | `transcribe(buffer)` | Local binary adapter |
+All STT adapters export: `transcribe(buffer) → Promise<string>`, optionally `check() → Promise<void>`
+All TTS adapters export: `synthesize(text) → Promise<Buffer>`
+
+| File | Type | Provider | Exports | Config |
+|------|------|----------|---------|--------|
+| `sensevoice.js` | STT | SenseVoice HTTP | `check()`, `transcribe(buffer)` | `SENSEVOICE_URL` env (default `http://127.0.0.1:18906`) |
+| `whisper.js` | STT | whisper-cli local | `check()`, `transcribe(buffer)` | `WHISPER_BIN`, `WHISPER_MODEL` env |
+| `openai-whisper.js` | STT | OpenAI Whisper API | `transcribe(buffer)` | `OPENAI_API_KEY` env |
+| `openai-tts.js` | TTS | OpenAI Speech API | `synthesize(text)` | `OPENAI_API_KEY` env/config |
+| `elevenlabs.js` | TTS | ElevenLabs API | `synthesize(text)` | `ELEVENLABS_API_KEY` env/config |
+| `piper.js` | TTS | Piper local binary | `synthesize(text)` | auto-downloads binary + voice model |
+| `macos-say.js` | TTS | macOS `say` cmd | `synthesize(text)`, `listVoices()` | config voice setting, darwin-only |
+| `kokoro.js` | TTS | Kokoro local HTTP | `synthesize(text)` | localhost:8880, OpenAI-compatible endpoint |
 
 All TTS adapters export `synthesize(text) → audioBuffer`.
 All STT adapters export `transcribe(buffer) → text`.

@@ -129,7 +129,6 @@ src/
     latency-log.js             # 延迟记录 — record(label, ms)/getLog()
     vad.js                     # 语音活动检测（RMS 能量阈值）
     adapters/
-      embed.js                 # 嵌入适配器（stub）
       sense.js                 # agentic-sense 适配器 — createPipeline()
       voice/
         elevenlabs.js          # ElevenLabs TTS
@@ -457,8 +456,6 @@ embed(text) → number[]  // localEmbed([text])[0] — bge-m3 向量嵌入
 // 空字符串返回空数组 []
 ```
 
-`src/runtime/adapters/embed.js` 是历史遗留 stub（抛出 'not implemented'），实际嵌入走 `runtime/embed.js → agentic-embed`。
-
 ### 11. Runtime Adapters（运行时适配器）
 
 适配器层将外部包（agentic-sense、agentic-voice）封装为统一接口，供 runtime 模块调用。
@@ -467,8 +464,6 @@ embed(text) → number[]  // localEmbed([text])[0] — bge-m3 向量嵌入
 // runtime/adapters/sense.js — agentic-sense 适配层
 import { AgenticSense } from 'agentic-sense'
 createPipeline(options?) → AgenticSense  // new AgenticSense(null, options) + init()
-
-// runtime/adapters/embed.js — ⚠️ 死代码 stub（实际嵌入走 runtime/embed.js → agentic-embed，此文件可删除）
 
 // runtime/adapters/voice/ — 语音适配器
 //
@@ -656,7 +651,6 @@ docker-compose up
 ## 已知限制
 
 1. **middleware.js 仅含错误处理** — 无请求验证、速率限制或安全中间件。本地优先架构下可接受，生产部署需增强。
-2. **adapters/embed.js 是死代码** — 抛出 'not implemented'，实际嵌入通过 runtime/embed.js → agentic-embed 包。
-3. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
+2. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
 4. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
 5. **runtime/memory.js 全量扫描** — search() 遍历所有条目计算余弦相似度，数据量大时性能受限。生产环境可考虑近似最近邻索引。

@@ -4047,3 +4047,91 @@
 {"ts":"2026-04-10T22:03:17.133Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
 {"ts":"2026-04-10T22:03:17.133Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":10,"memoryTotalMB":17,"cpuUser":59.108495,"cpuSystem":196.147245}}}
 {"ts":"2026-04-10T22:03:17.133Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
+{"ts":"2026-04-10T22:03:17.401Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 开发完成，任务进入 review","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.108818,"cpuSystem":196.147847}}}
+{"ts":"2026-04-10T22:03:17.402Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← developer done"}}
+{"ts":"2026-04-10T22:03:17.414Z","type":"workflow","agent":"post","data":{"details":"[POST] task-1775858351181: inProgress → review"}}
+{"ts":"2026-04-10T22:03:17.414Z","type":"agent_complete","agent":"tech_lead","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.111382,"cpuSystem":196.158377}}}
+{"ts":"2026-04-10T22:03:17.415Z","type":"workflow","agent":"tech_lead","data":{"details":"[SIGNAL] completed: M100 review complete. All developer tasks have designs. Updated runtime.design.md for kokoro adapter"}}
+{"ts":"2026-04-10T22:03:17.415Z","type":"agent_complete","agent":"tech_lead","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.111491,"cpuSystem":196.15863}}}
+{"ts":"2026-04-10T22:03:17.415Z","type":"workflow","agent":"tech_lead","data":{"details":"[SIGNAL] completed: M100 review complete. All developer tasks have designs. Updated runtime.design.md for kokoro adapter"}}
+{"ts":"2026-04-10T22:03:21.252Z","type":"task_status","agent":null,"data":{"taskId":"task-1775858351181","from":"review","to":"inProgress","title":"Remove dead code adapters/embed.js — throws 'not implemented', documented dead code"}}
+{"ts":"2026-04-10T22:03:40.422Z","type":"agent_complete","agent":"pm","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.112218,"cpuSystem":196.159791}}}
+{"ts":"2026-04-10T22:03:40.422Z","type":"workflow","agent":"pm","data":{"details":"[SIGNAL] completed: Registered M100 in milestones.json. No pending CRs. All scores at goal (Vision 91%, PRD 90%). 3 acti"}}
+{"ts":"2026-04-10T22:03:40.739Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] write-dbb: milestoneNeedsDBB > 0"}}
+{"ts":"2026-04-10T22:03:40.740Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL-SKIP] implement: designedTasks > 0"}}
+{"ts":"2026-04-10T22:03:40.740Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL] architecture, write-design, test"}}
+{"ts":"2026-04-10T22:03:40.740Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] → architect (depth 1)"}}
+{"ts":"2026-04-10T22:03:40.741Z","type":"workflow","agent":null,"data":{"details":"[RESUME] Resuming from checkpoint: node=design, step=0"}}
+{"ts":"2026-04-10T22:03:40.987Z","type":"agent_start","agent":"design","data":{"details":"[NODE] design - Architect agent 设计/更新 ARCHITECTURE.md","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.136406,"cpuSystem":196.261121}}}
+{"ts":"2026-04-10T22:03:40.987Z","type":"workflow","agent":"design","data":{"details":"[EXEC] architect"}}
+{"ts":"2026-04-10T22:03:40.987Z","type":"agent_start","agent":"architect","data":{"details":"设计系统架构","performance":{"memoryMB":10,"memoryTotalMB":17,"cpuUser":59.136744,"cpuSystem":196.261584}}}
+{"ts":"2026-04-10T22:03:40.988Z","type":"workflow","agent":"work_loop","data":{"details":"[EXEC] tech_lead"}}
+{"ts":"2026-04-10T22:03:40.988Z","type":"agent_start","agent":"tech_lead","data":{"details":"出技术方案","performance":{"memoryMB":10,"memoryTotalMB":17,"cpuUser":59.137016,"cpuSystem":196.262181}}}
+{"ts":"2026-04-10T22:03:40.990Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] → tester (depth 1)"}}
+{"ts":"2026-04-10T22:03:40.990Z","type":"agent_start","agent":"compile-check","data":{"details":"[NODE] compile-check - 编译检查 — 代码必须能编译","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.137332,"cpuSystem":196.262875}}}
+{"ts":"2026-04-10T22:03:40.991Z","type":"workflow","agent":"compile-check","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build"}}
+{"ts":"2026-04-10T22:03:41.199Z","type":"workflow","agent":"compile-check","data":{"details":"[BRANCH] buildPassed == 1 → true → unit-test"}}
+{"ts":"2026-04-10T22:03:41.200Z","type":"agent_start","agent":"unit-test","data":{"details":"[NODE] unit-test - 单元测试 — 跑项目的 test suite","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.138079,"cpuSystem":196.264255}}}
+{"ts":"2026-04-10T22:03:41.200Z","type":"workflow","agent":"unit-test","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test"}}
+{"ts":"2026-04-10T22:03:57.356Z","type":"task_status","agent":"developer","data":{"taskId":"task-1775858351181","from":"inProgress","to":"review","title":"Remove dead code adapters/embed.js — throws 'not implemented', documented dead code"}}
+{"ts":"2026-04-10T22:04:01.125Z","type":"workflow","agent":"unit-test","data":{"details":"[BRANCH] unitPassed == 1 → true → integration-test"}}
+{"ts":"2026-04-10T22:04:01.126Z","type":"agent_start","agent":"integration-test","data":{"details":"[NODE] integration-test - 集成测试 — tester agent 写集成测试并运行","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.13887,"cpuSystem":196.265486}}}
+{"ts":"2026-04-10T22:04:01.126Z","type":"workflow","agent":"integration-test","data":{"details":"[EXEC] tester"}}
+{"ts":"2026-04-10T22:04:01.126Z","type":"agent_start","agent":"tester","data":{"details":"验证功能","performance":{"memoryMB":11,"memoryTotalMB":17,"cpuUser":59.139045,"cpuSystem":196.265816}}}
+{"ts":"2026-04-10T22:04:01.530Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":10,"memoryTotalMB":16,"cpuUser":59.141202,"cpuSystem":196.269117}}}
+{"ts":"2026-04-10T22:04:01.530Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Verified kokoro.js exists and is fully implemented. All three tasks (kokoro.js adapter, embed.js dea"}}
+{"ts":"2026-04-10T22:04:01.531Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.141673,"cpuSystem":196.27021}}}
+{"ts":"2026-04-10T22:04:01.532Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-10T22:04:01.584Z","type":"error","agent":"validate-refs","data":{"details":"[SHELL] exit 1: Command failed: node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js\n[validate-refs] 1 invalid references found ❌\n  - Missing file: src/runtime/adapters/embed.js\n"}}
+{"ts":"2026-04-10T22:04:01.585Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.142257,"cpuSystem":196.271204}}}
+{"ts":"2026-04-10T22:04:01.585Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-10T22:04:01.585Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.142434,"cpuSystem":196.271582}}}
+{"ts":"2026-04-10T22:04:01.585Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Verified kokoro.js exists and is fully implemented. All three tasks (kokoro.js adapter, embed.js dea"}}
+{"ts":"2026-04-10T22:04:01.585Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.142555,"cpuSystem":196.271819}}}
+{"ts":"2026-04-10T22:04:01.586Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-10T22:04:01.634Z","type":"error","agent":"validate-refs","data":{"details":"[SHELL] exit 1: Command failed: node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js\n[validate-refs] 1 invalid references found ❌\n  - Missing file: src/runtime/adapters/embed.js\n"}}
+{"ts":"2026-04-10T22:04:01.635Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.143097,"cpuSystem":196.272744}}}
+{"ts":"2026-04-10T22:04:01.635Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-10T22:04:01.636Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.143315,"cpuSystem":196.273184}}}
+{"ts":"2026-04-10T22:04:01.636Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Verified kokoro.js exists and is fully implemented. All three tasks (kokoro.js adapter, embed.js dea"}}
+{"ts":"2026-04-10T22:04:01.636Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.143496,"cpuSystem":196.273475}}}
+{"ts":"2026-04-10T22:04:01.637Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-10T22:04:01.693Z","type":"error","agent":"validate-refs","data":{"details":"[SHELL] exit 1: Command failed: node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js\n[validate-refs] 1 invalid references found ❌\n  - Missing file: src/runtime/adapters/embed.js\n"}}
+{"ts":"2026-04-10T22:04:01.693Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":11,"memoryTotalMB":16,"cpuUser":59.143954,"cpuSystem":196.27429}}}
+{"ts":"2026-04-10T22:04:01.693Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-10T22:04:01.810Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] triage-blocked: blockedCount > 0"}}
+{"ts":"2026-04-10T22:04:02.295Z","type":"workflow","agent":"work_loop","data":{"details":"[LOOP] Iteration 3"}}
+{"ts":"2026-04-10T22:04:02.325Z","type":"workflow","agent":"work_loop","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/goal-check.js"}}
+{"ts":"2026-04-10T22:04:03.024Z","type":"workflow","agent":"work_loop","data":{"details":"[EXEC] pm"}}
+{"ts":"2026-04-10T22:04:03.024Z","type":"agent_start","agent":"pm","data":{"details":"管理任务和里程碑","performance":{"memoryMB":12,"memoryTotalMB":19,"cpuUser":59.233935,"cpuSystem":196.662563}}}
+{"ts":"2026-04-10T22:04:03.027Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":12,"memoryTotalMB":19,"cpuUser":59.234214,"cpuSystem":196.66325}}}
+{"ts":"2026-04-10T22:04:03.027Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Verified kokoro.js exists and is fully implemented. All three tasks (kokoro.js adapter, embed.js dea"}}
+{"ts":"2026-04-10T22:04:03.027Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":12,"memoryTotalMB":19,"cpuUser":59.234367,"cpuSystem":196.663555}}}
+{"ts":"2026-04-10T22:04:03.028Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-10T22:04:03.076Z","type":"error","agent":"validate-refs","data":{"details":"[SHELL] exit 1: Command failed: node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js\n[validate-refs] 1 invalid references found ❌\n  - Missing file: src/runtime/adapters/embed.js\n"}}
+{"ts":"2026-04-10T22:04:03.076Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.234903,"cpuSystem":196.664358}}}
+{"ts":"2026-04-10T22:04:03.076Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-10T22:04:13.664Z","type":"agent_complete","agent":"tech_lead","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.236422,"cpuSystem":196.667577}}}
+{"ts":"2026-04-10T22:04:13.665Z","type":"workflow","agent":"tech_lead","data":{"details":"[SIGNAL] completed: M100 tech_lead work complete. All task designs verified, implementations in review. Module designs c"}}
+{"ts":"2026-04-10T22:04:16.833Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.237073,"cpuSystem":196.668487}}}
+{"ts":"2026-04-10T22:04:16.833Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Updated ARCHITECTURE.md section 11 with full voice adapter API signatures (STT: sensevoice, whisper,"}}
+{"ts":"2026-04-10T22:04:16.834Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.237435,"cpuSystem":196.669045}}}
+{"ts":"2026-04-10T22:04:16.834Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-10T22:04:16.869Z","type":"error","agent":"validate-refs","data":{"details":"[SHELL] exit 1: Command failed: node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js\n[validate-refs] 1 invalid references found ❌\n  - Missing file: src/runtime/adapters/embed.js\n"}}
+{"ts":"2026-04-10T22:04:16.869Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.237935,"cpuSystem":196.670092}}}
+{"ts":"2026-04-10T22:04:16.869Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-10T22:04:16.942Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] triage-blocked: blockedCount > 0"}}
+{"ts":"2026-04-10T22:04:17.120Z","type":"workflow","agent":"work_loop","data":{"details":"[LOOP] Iteration 2"}}
+{"ts":"2026-04-10T22:04:17.200Z","type":"workflow","agent":"work_loop","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/goal-check.js"}}
+{"ts":"2026-04-10T22:04:17.699Z","type":"workflow","agent":"work_loop","data":{"details":"[EXEC] pm"}}
+{"ts":"2026-04-10T22:04:17.700Z","type":"agent_start","agent":"pm","data":{"details":"管理任务和里程碑","performance":{"memoryMB":12,"memoryTotalMB":19,"cpuUser":59.306105,"cpuSystem":196.934507}}}
+{"ts":"2026-04-10T22:04:18.298Z","type":"agent_complete","agent":"developer","data":{"details":"completed successfully","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.306722,"cpuSystem":196.935516}}}
+{"ts":"2026-04-10T22:04:18.299Z","type":"workflow","agent":"developer","data":{"details":"[SIGNAL] completed: Verified and moved 2 tasks to review: task-1775858113988 (kokoro.js adapter already implemented, all"}}
+{"ts":"2026-04-10T22:04:18.786Z","type":"agent_start","agent":"self-verify-build","data":{"details":"[NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":11,"memoryTotalMB":19,"cpuUser":59.309853,"cpuSystem":196.950367}}}
+{"ts":"2026-04-10T22:04:18.786Z","type":"workflow","agent":"self-verify-build","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build"}}
+{"ts":"2026-04-10T22:04:18.924Z","type":"workflow","agent":"self-verify-build","data":{"details":"[BRANCH] buildPassed == 1 → true → self-verify-test"}}
+{"ts":"2026-04-10T22:04:18.925Z","type":"agent_start","agent":"self-verify-test","data":{"details":"[NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":12,"memoryTotalMB":19,"cpuUser":59.310613,"cpuSystem":196.951856}}}
+{"ts":"2026-04-10T22:04:18.926Z","type":"workflow","agent":"self-verify-test","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test"}}
+{"ts":"2026-04-10T22:04:38.585Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
+{"ts":"2026-04-10T22:04:38.586Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":12,"memoryTotalMB":19,"cpuUser":59.311218,"cpuSystem":196.953063}}}
+{"ts":"2026-04-10T22:04:38.586Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}

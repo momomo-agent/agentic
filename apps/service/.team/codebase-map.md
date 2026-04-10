@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — voice adapter API signatures added to ARCHITECTURE.md; kokoro.js adapter now exists; all gap monitors ≥90%)
+Updated: 2026-04-11 (architect review — voice adapter API signatures in ARCHITECTURE.md; kokoro.js adapter implemented (38 lines); adapters/embed.js dead code documented; all gap monitors ≥90%)
 
 ## Technology Stack
 

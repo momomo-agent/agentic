@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T22:02:59.665Z",
+  "timestamp": "2026-04-10T22:04:26.232Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Created src/runtime/adapters/voice/kokoro.js — missing Kokoro TTS adapter. ~35 lines, follows existing adapter pattern, exports synthesize(text)→Buffer. No regressions (173/174 test files pass, 2 pre-existing failures confirmed)."
+  "summary": "Verified task-1775858351181 (remove dead adapters/embed.js) — dead code already removed, vitest.config.js already clean, all 981 tests pass. Moved to review. No other claimable tasks available."
 }
