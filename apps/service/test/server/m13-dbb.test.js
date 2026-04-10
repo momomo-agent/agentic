@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createServer } from 'node:http';
 
 // ── DBB-001/002: heartbeat timeout logic ──────────────────────────────────────
@@ -125,6 +125,9 @@ describe('Docker M13 DBB-006/007', () => {
 
 // ── DBB-008/009: watchProfiles hot reload ────────────────────────────────────
 describe('profiles.js M13 hot reload', () => {
+  const origFetch = global.fetch;
+  afterEach(() => { global.fetch = origFetch; });
+
   it('DBB-008: onReload called when profiles change', async () => {
     const { watchProfiles } = await import('../../src/detector/profiles.js');
     const profile = { llm: { model: 'new' }, stt: {}, tts: {}, fallback: {} };

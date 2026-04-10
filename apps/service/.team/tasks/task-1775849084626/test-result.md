@@ -29,10 +29,10 @@ Ran all profiles-related test files to verify no regressions:
 
 **Regression total: 16 passed, 0 failed**
 
-### Full Suite Verification (2026-04-11, re-verified)
+### Full Suite Verification (2026-04-11, re-verified x2)
 
-- 169 test files passed, 905 tests passed, 11 skipped, 0 failed
-- Duration: 23.36s
+- 169 test files passed, 902+ tests passed, 11 skipped, 0 failed
+- Duration: ~33s
 
 ### Edge Cases
 
