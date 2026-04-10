@@ -1,0 +1,13 @@
+{
+  "id": "task-1775848768979",
+  "title": "Fix profiles-edge-cases.test.js — expired cache fallback assertion",
+  "description": "Test 'should use expired cache when network fails' (profiles-edge-cases.test.js:340) fails because it writes a cache with llm.provider='cached-provider' but getProfile() runs matchProfile() on the cached data, which re-matches to 'ollama'. The test needs to either: (a) write cache data that matchProfile() will preserve (i.e. a proper profiles array with a profile whose config.llm.provider='cached-provider' that matches the test hardware), or (b) assert on a value that survives matchProfile(). Error: expected 'ollama' to be 'cached-provider' at line 340.",
+  "status": "todo",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": false,
+  "created": "2026-04-10T19:19:28.979Z",
+  "updated": "2026-04-10T19:20:06.119Z"
+}
