@@ -122,6 +122,15 @@ const modelCategories = [
     { name: 'qwen2.5-coder:3b', desc: '通义千问 Coder — 代码生成', size: '~2 GB' },
     { name: 'codellama:7b', desc: 'Code Llama — Meta 代码模型', size: '~3.8 GB' },
   ]},
+  { label: '🎤 语音识别 (STT)', models: [
+    { name: 'whisper:base', desc: 'OpenAI Whisper — 多语言语音识别', size: '~150 MB' },
+    { name: 'whisper:small', desc: 'OpenAI Whisper — 更高精度', size: '~500 MB' },
+    { name: 'whisper:medium', desc: 'OpenAI Whisper — 高精度', size: '~1.5 GB' },
+  ]},
+  { label: '🔊 语音合成 (TTS)', models: [
+    { name: 'kokoro', desc: 'Kokoro — 高质量多语言 TTS', size: '~400 MB' },
+    { name: 'orpheus', desc: 'Orpheus — 自然语音合成', size: '~2.5 GB' },
+  ]},
 ]
 
 function getPoolCaps(id) {
@@ -129,7 +138,7 @@ function getPoolCaps(id) {
 }
 
 function isInstalled(name) {
-  return installedModels.value.some(m => m.name === name || m.name.startsWith(name.split(':')[0]))
+  return installedModels.value.some(m => m.name === name)
 }
 
 function formatSize(bytes) {

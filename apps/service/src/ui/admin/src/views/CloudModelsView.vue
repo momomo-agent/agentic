@@ -14,6 +14,7 @@
               <option value="anthropic">Anthropic</option>
               <option value="google">Google (Gemini)</option>
               <option value="groq">Groq</option>
+              <option value="elevenlabs">ElevenLabs</option>
               <option value="custom">自定义</option>
             </select>
           </div>
@@ -54,16 +55,62 @@
       <div v-if="cloudModels.length === 0" class="empty">暂无云端模型</div>
       <div v-else class="model-list">
         <div v-for="m in cloudModels" :key="m.id" class="model-item">
-          <div class="model-info">
-            <div class="model-name">
-              {{ m.name }}
-              <span class="provider-tag">{{ m.provider }}</span>
-              <span class="cap-badge" v-for="c in (m.capabilities || [])" :key="c">{{ c }}</span>
+          <div class="model-row">
+            <div class="model-info" @click="toggleEdit(m.id)">
+              <div class="model-name">
+                {{ m.name }}
+                <span class="provider-tag">{{ m.provider }}</span>
+                <span class="cap-badge" v-for="c in (m.capabilities || [])" :key="c">{{ c }}</span>
+              </div>
+              <div class="model-meta" v-if="m.baseUrl">{{ m.baseUrl }}</div>
             </div>
-            <div class="model-meta" v-if="m.baseUrl">{{ m.baseUrl }}</div>
+            <div class="model-actions" v-if="editingId !== m.id">
+              <button class="btn-edit" @click="startEdit(m)">编辑</button>
+              <button class="btn-danger" @click="removeCloudModel(m.id)">删除</button>
+            </div>
           </div>
-          <div class="model-actions">
-            <button class="btn-danger" @click="removeCloudModel(m.id)">删除</button>
+          <!-- Inline edit -->
+          <div v-if="editingId === m.id" class="edit-form">
+            <div class="field-row">
+              <div class="field">
+                <label>模型名称</label>
+                <input v-model="editData.name" />
+              </div>
+              <div class="field">
+                <label>API Key</label>
+                <input v-model="editData.apiKey" type="text" placeholder="不修改则留空" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Base URL</label>
+                <input v-model="editData.baseUrl" />
+              </div>
+              <div class="field">
+                <label>Provider</label>
+                <select v-model="editData.provider">
+                  <option value="openai">OpenAI</option>
+                  <option value="anthropic">Anthropic</option>
+                  <option value="google">Google (Gemini)</option>
+                  <option value="groq">Groq</option>
+                  <option value="elevenlabs">ElevenLabs</option>
+                  <option value="custom">自定义</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>能力</label>
+              <div class="cap-checkboxes">
+                <label v-for="cap in allCaps" :key="cap" class="cap-check">
+                  <input type="checkbox" :value="cap" v-model="editData.capabilities" />
+                  <span>{{ cap }}</span>
+                </label>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button @click="saveEdit(m.id)">保存</button>
+              <button class="btn-secondary" @click="editingId = null">取消</button>
+            </div>
           </div>
         </div>
       </div>
@@ -89,7 +136,7 @@ const newCloud = reactive({
 const cloudModels = computed(() => pool.value.filter(m => m.provider !== 'ollama'))
 
 const defaultBaseUrl = computed(() => {
-  const map = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com', groq: 'https://api.groq.com/openai/v1', google: '', custom: 'http://localhost:8080/v1' }
+  const map = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com', groq: 'https://api.groq.com/openai/v1', google: '', elevenlabs: 'https://api.elevenlabs.io/v1', custom: 'http://localhost:8080/v1' }
   return map[newCloud.provider] || ''
 })
 
@@ -134,6 +181,51 @@ async function removeCloudModel(id) {
   }
 }
 
+// Edit
+const editingId = ref(null)
+const editData = reactive({ name: '', apiKey: '', baseUrl: '', provider: '', capabilities: [] })
+
+function startEdit(m) {
+  editingId.value = m.id
+  editData.name = m.name
+  editData.apiKey = ''
+  editData.baseUrl = m.baseUrl || ''
+  editData.provider = m.provider || 'custom'
+  editData.capabilities = [...(m.capabilities || [])]
+}
+
+function toggleEdit(id) {
+  if (editingId.value === id) editingId.value = null
+}
+
+async function saveEdit(oldId) {
+  const newId = `cloud:${editData.provider}:${editData.name}`
+  const body = {
+    id: newId,
+    name: editData.name,
+    provider: editData.provider,
+    baseUrl: editData.baseUrl,
+    capabilities: [...editData.capabilities],
+    source: 'user',
+  }
+  if (editData.apiKey) body.apiKey = editData.apiKey
+  try {
+    // Remove old, add new
+    if (oldId !== newId) {
+      await fetch(`/api/model-pool/${encodeURIComponent(oldId)}`, { method: 'DELETE' })
+    }
+    await fetch('/api/model-pool', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    editingId.value = null
+    await fetchPool()
+  } catch (e) {
+    alert('保存失败: ' + e.message)
+  }
+}
+
 onMounted(fetchPool)
 </script>
 
@@ -164,15 +256,21 @@ onMounted(fetchPool)
 .error-msg { color: var(--error, #ef4444); font-size: 14px; }
 .model-list { display: flex; flex-direction: column; gap: 8px; }
 .model-item {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; flex-direction: column;
   padding: 12px 16px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border);
 }
-.model-info { flex: 1; min-width: 0; }
+.model-row { display: flex; align-items: center; justify-content: space-between; }
+.model-info { flex: 1; min-width: 0; cursor: pointer; }
 .model-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .model-meta { font-size: 12px; color: var(--text-dim); opacity: 0.7; margin-top: 2px; }
 .model-actions { flex-shrink: 0; margin-left: 12px; }
 .provider-tag { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: rgba(139,92,246,0.1); color: #8b5cf6; font-weight: 500; }
 .cap-badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: rgba(0,117,222,0.1); color: var(--primary); font-weight: 500; }
 .btn-danger { padding: 6px 14px; border-radius: 6px; border: none; background: rgba(239,68,68,0.1); color: var(--error, #ef4444); cursor: pointer; font-size: 13px; font-weight: 500; }
+.btn-edit { padding: 6px 14px; border-radius: 6px; border: none; background: rgba(0,117,222,0.1); color: var(--primary, #0075de); cursor: pointer; font-size: 13px; font-weight: 500; margin-right: 8px; }
+.btn-secondary { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; font-size: 13px; }
+.edit-form { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
+.edit-actions { display: flex; gap: 8px; padding-top: 4px; }
+.edit-actions button:first-child { padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; background: var(--primary, #0075de); color: #fff; border: none; cursor: pointer; }
 .empty { color: var(--text-dim); font-size: 14px; padding: 12px 0; }
 </style>
