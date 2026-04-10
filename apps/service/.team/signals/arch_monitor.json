@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:29:50.217Z",
+  "timestamp": "2026-04-10T21:31:26.998Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture check: 95% match maintained. All 41 modules present. 2 minor gaps unchanged (voice adapter docs, dead embed adapter)."
+  "summary": "Architecture scan: 95% match, no new gaps, timestamp updated"
 }
