@@ -160,6 +160,8 @@ src/store/index.js  → agentic-store
 - ~~ARCHITECTURE.md stale CR content~~ — cleaned up, all sections contain legitimate module docs
 - ~~ARCHITECTURE.md incomplete directory tree~~ — now lists all 80+ source files
 - ~~Root `Dockerfile` EXPOSE 3000~~ — now EXPOSE 1234, matching service default port
+- ~~m28-profiles-cache.test.js failing~~ — all 5 tests now pass (cache freshness, expired fetch, fallback)
+- ~~ARCHITECTURE.md known limitation #4 (Dockerfile EXPOSE)~~ — removed, only 3 limitations remain
 
 ### Open
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
