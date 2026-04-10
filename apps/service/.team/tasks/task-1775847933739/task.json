@@ -1,13 +1,14 @@
 {
   "id": "task-1775847933739",
-  "title": "Fix m28-profiles-cache.test.js — cache freshness check calls fetch unexpectedly",
-  "description": "test/m28-profiles-cache.test.js line 65: expects global.fetch NOT to be called when cache is within 7 days, but fetch is being called. Error: expect(global.fetch).not.toHaveBeenCalled() — Number of calls: 1. The test imports profiles.js and calls getProfile() with a fresh cache, but the implementation still calls fetch. Either the cache freshness check in profiles.js is not working correctly, or the test setup is not properly seeding the cache. Check src/detector/profiles.js cache logic.",
-  "status": "todo",
-  "priority": "P1",
-  "assignee": "developer",
+  "title": "Fix m62-sigint-integration.test.js — SIGINT graceful drain returns 503 instead of 200",
+  "description": "Fix m28-profiles-cache.test.js — RESOLVED: all 5 tests now pass (verified in latest-test.log)",
+  "status": "testing",
+  "priority": "P0",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
-  "hasDesign": false,
+  "hasDesign": true,
   "created": "2026-04-10T19:05:33.740Z",
-  "updated": "2026-04-10T19:05:38.534Z"
+  "updated": "2026-04-10T19:08:58.601Z",
+  "milestoneId": "m98"
 }
