@@ -1,9 +1,9 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 992,
+  "passed": 981,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "11 tests skipped (platform-specific or environment-dependent)"
   ],
-  "coverage": "100%"
+  "coverage": "99%"
 }
