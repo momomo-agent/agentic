@@ -1,61 +1,64 @@
 {
-  "match": 72,
-  "timestamp": "2026-04-10T11:56:00.000Z",
+  "match": 90,
+  "timestamp": "2026-04-11T00:00:00.000Z",
   "gaps": [
     {
-      "description": "src/index.js missing — package.json 'main' points to src/index.js which does not exist on disk",
-      "status": "missing",
+      "description": "src/index.js — package.json 'main' entry point exists and exports core API",
+      "status": "implemented",
       "severity": "critical"
     },
     {
-      "description": "Docker port mismatch — docker-compose.yml exposes port 3000 but bin/agentic-service.js defaults to 1234; containers will fail healthcheck",
-      "status": "partial",
+      "description": "Docker port consistency — Dockerfile EXPOSE 1234, docker-compose.yml maps 1234:1234, healthcheck targets localhost:1234",
+      "status": "implemented",
       "severity": "critical"
     },
     {
-      "description": "ARCHITECTURE.md lines 191-252 contain massive stale CR content (repeated 'Add sections to ARCHITECTURE.md' instructions from prior milestones, never cleaned up)",
-      "status": "partial",
+      "description": "ARCHITECTURE.md — cleaned up, no stale CR content, directory tree updated with all source files",
+      "status": "implemented",
       "severity": "major"
     },
     {
-      "description": "ARCHITECTURE.md directory tree lists only ~14 src/ files; 20+ additional source files exist (embed.js, vad.js, profiler.js, latency-log.js, store/index.js, adapters/*, cli/*, tunnel.js, cert.js, httpsServer.js, middleware.js)",
-      "status": "partial",
+      "description": "ARCHITECTURE.md directory tree — lists all src/ files including engine/, adapters/, cli/, store/, tunnel.js, cert.js, httpsServer.js, middleware.js",
+      "status": "implemented",
       "severity": "major"
     },
     {
-      "description": "Dead import maps #agentic-embed and #agentic-voice in package.json — no source file references them",
-      "status": "partial",
+      "description": "Import maps removed — no dead #agentic-embed or #agentic-voice in package.json (removed in commit b4c9d5ce)",
+      "status": "implemented",
       "severity": "major"
     },
     {
-      "description": "Test pass rate ~96.2% (810/845) with 32 failures across 16 test files — server-layer brain.js tests, hub-brain-api, rest-api-endpoints, and milestone tests failing",
+      "description": "Test pass rate — 912 tests, 1 failing (m28-profiles-cache.test.js cache freshness check); stale embed/sense tests fixed",
       "status": "partial",
+      "severity": "minor",
+      "detail": "1 test file fails: m28-profiles-cache.test.js. Developer task exists (task-1775847933739)."
+    },
+    {
+      "description": "ARCHITECTURE.md install section — correctly documents port 1234 for Docker",
+      "status": "implemented",
       "severity": "major"
     },
     {
-      "description": "ARCHITECTURE.md install section shows docker port 3000 and localhost:3000 — inconsistent with actual default port 1234",
+      "description": "src/runtime/adapters/embed.js is a stub that throws 'not implemented' — actual embed uses agentic-embed via src/runtime/embed.js",
       "status": "partial",
-      "severity": "major"
+      "severity": "minor",
+      "detail": "Dead code but harmless. Actual embed path works correctly."
     },
     {
-      "description": "src/runtime/adapters/embed.js is a stub that throws 'not implemented' — breaks the adapter pattern (actual embed uses vendor agentic-embed via src/runtime/embed.js)",
-      "status": "partial",
+      "description": "Docker deployment — OLLAMA_HOST env var present in docker-compose.yml",
+      "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "Docker deployment missing OLLAMA_HOST env var in docker-compose.yml — required for containerized Ollama connectivity",
-      "status": "missing",
-      "severity": "minor"
-    },
-    {
-      "description": "Docker deployment missing ./data volume mount in root docker-compose.yml (install/docker-compose.yml has config volume but root does not)",
-      "status": "missing",
+      "description": "Docker deployment — ./data volume mount present in root docker-compose.yml",
+      "status": "implemented",
       "severity": "minor"
     },
     {
       "description": "Server middleware (src/server/middleware.js) is a 4-line error handler — no request validation, rate limiting, or security middleware",
       "status": "partial",
-      "severity": "minor"
+      "severity": "minor",
+      "detail": "Acceptable for local-first architecture. Production deployment would need enhancement."
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-10T19:04:46.164Z",
+    "lastRun": "2026-04-10T19:08:38.392Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -25,13 +25,13 @@
   },
   "developer": {
     "status": "idle",
-    "lastRun": "2026-04-10T19:05:25.197Z",
+    "lastRun": "2026-04-10T19:09:03.389Z",
     "currentTask": null,
     "retryCount": 2
   },
   "tester": {
     "status": "running",
-    "lastRun": "2026-04-10T19:01:02.306Z",
+    "lastRun": "2026-04-10T19:06:23.060Z",
     "currentTask": "验证功能",
     "retryCount": 1
   },
@@ -80,15 +80,15 @@
     "retryCount": 0
   },
   "architect": {
-    "status": "running",
-    "lastRun": "2026-04-10T19:04:46.277Z",
-    "currentTask": "设计系统架构",
+    "status": "idle",
+    "lastRun": "2026-04-10T19:06:32.623Z",
+    "currentTask": null,
     "retryCount": 0
   },
   "tech_lead": {
-    "status": "running",
-    "lastRun": "2026-04-10T19:04:46.275Z",
-    "currentTask": "出技术方案",
+    "status": "idle",
+    "lastRun": "2026-04-10T19:06:29.488Z",
+    "currentTask": null,
     "retryCount": 0
   },
   "alignment_monitor": {

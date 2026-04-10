@@ -144,7 +144,7 @@ src/store/index.js  → agentic-store
 ## Test Status
 
 - **905/916 tests pass** (98.8%) — 0 failures, 11 skipped, 169 test files
-- All previously failing m76-embed-wiring and m77-sense-imports tests now pass
+- All previously failing tests (m76-embed-wiring, m77-sense-imports, m28-profiles-cache) now pass
 
 ## Known Issues (from gap analysis)
 
@@ -153,15 +153,17 @@ src/store/index.js  → agentic-store
 - ~~Root `docker-compose.yml` port 3000~~ — now maps 1234:1234 with OLLAMA_HOST and ./data volume
 - ~~`#agentic-voice` import map dead~~ — removed in commit e699e630
 - ~~`#agentic-embed` import map dead~~ — removed in commit b4c9d5ce
+- ~~m76/m77 test failures~~ — tests updated, all 905/916 pass (0 failures)
 - ~~Cloud fallback error-only~~ — brain.js now has 5s first-token timeout, 3-error threshold, 60s probe recovery
 - ~~ARCHITECTURE.md stale CR content~~ — cleaned up, all sections contain legitimate module docs
 - ~~ARCHITECTURE.md incomplete directory tree~~ — now lists all 80+ source files
+- ~~Root `Dockerfile` EXPOSE 3000~~ — now EXPOSE 1234, matching service default port
 
 ### Open
-- Root `Dockerfile` line 13 has `EXPOSE 3000` — should be `EXPOSE 1234` (CR cr-1775847210532 resolved, developer task pending)
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
 - `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
-- mDNS/Bonjour `.local` hostname discovery not implemented — only raw LAN IP display
+- mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
+- VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js, runtime/memory.js) — CR cr-1775847503256 submitted
 
 ### Architecture Notes (Vision references that map to different files)
 - Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js (CR cr-1775847503256 submitted to update VISION.md)

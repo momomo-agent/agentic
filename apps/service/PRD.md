@@ -368,9 +368,8 @@ CONFIG_CHANGE → 重置为 LOCAL
 
 ## 测试
 
-- 169 个测试文件，912 个测试用例（900 passed, 1 failed, 11 skipped）
-- 当前失败：`test/m28-profiles-cache.test.js` — cache 新鲜度检查中 fetch 被意外调用（待修复）
-- 之前的 stale tests（m76-embed-wiring, m77-sense-imports）已在 task-1775847599432 中修复
+- 169 个测试文件，916 个测试用例（905 passed, 11 skipped）
+- 全部通过，无失败测试
 - 覆盖率阈值 ≥98%（vitest 配置）
 - 关键测试领域：硬件检测、引擎注册、配置系统、brain fallback、WebSocket hub、语音管线、Docker 部署、REST API 端点、embed 构建验证
 
