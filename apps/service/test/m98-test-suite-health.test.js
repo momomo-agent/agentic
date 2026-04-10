@@ -62,7 +62,6 @@ describe('Test suite health — deleted test files removed', () => {
     'test/m21-optimizer.test.js',
     'test/detector/m71-optimizer-adaptive.test.js',
     'test/detector/optimizer-m76.test.js',
-    'test/runtime/memory.test.js',
     'test/runtime/memory-mutex-m10.test.js',
     'test/m27-sense-memory.test.js',
     'test/runtime/m38-runtime.test.js',
