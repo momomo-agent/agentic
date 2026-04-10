@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.mock('fs', async () => {
+  const actual = await vi.importActual('fs');
+  return {
+    ...actual,
+    promises: {
+      ...actual.promises,
+      readFile: vi.fn().mockRejectedValue(new Error('no config')),
+    },
+  };
+});
 vi.mock('../../src/runtime/adapters/voice/kokoro.js', () => ({ synthesize: vi.fn() }));
 vi.mock('../../src/runtime/adapters/voice/piper.js', () => ({ synthesize: vi.fn() }));
 vi.mock('../../src/runtime/adapters/voice/openai-tts.js', () => ({ synthesize: vi.fn() }));

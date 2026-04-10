@@ -1,0 +1,13 @@
+{
+  "id": "task-1775858361684",
+  "title": "Add voice adapter API signatures to ARCHITECTURE.md",
+  "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js) are listed in directory structure but lack formal API sections with function signatures in ARCHITECTURE.md. Add brief API signature docs for each. Architecture gap: partial/minor.",
+  "status": "todo",
+  "priority": "P2",
+  "assignee": "architect",
+  "blockedBy": [],
+  "groupId": "m100",
+  "hasDesign": false,
+  "created": "2026-04-10T21:59:21.685Z",
+  "updated": "2026-04-10T21:59:25.518Z"
+}

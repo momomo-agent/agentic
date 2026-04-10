@@ -1,0 +1,13 @@
+{
+  "id": "task-1775858351181",
+  "title": "Remove dead code adapters/embed.js — throws 'not implemented', documented dead code",
+  "description": "adapters/embed.js is documented dead code that throws 'not implemented' and is still shipping. Remove the file and any imports/references to it. Architecture gap: partial/minor.",
+  "status": "inProgress",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m100",
+  "hasDesign": true,
+  "created": "2026-04-10T21:59:11.181Z",
+  "updated": "2026-04-10T22:02:59.320Z"
+}
