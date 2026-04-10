@@ -545,6 +545,34 @@ hardware.detect() → { gpu, memory, arch, platform }
     模型选择完全由硬件检测结果驱动，无需独立优化器模块。
 ```
 
+### 12. 包入口（src/index.js）
+
+```javascript
+// src/index.js — package.json "main" 入口
+export { startServer, createApp, stopServer } from './server/api.js'
+export { detect } from './detector/hardware.js'
+export { getProfile } from './detector/profiles.js'
+export { matchProfile } from './detector/matcher.js'
+export { ensureOllama } from './detector/ollama.js'
+export { chat } from './server/brain.js'
+export * as stt from './runtime/stt.js'
+export * as tts from './runtime/tts.js'
+export { embed } from './runtime/embed.js'
+```
+
+## Vision 架构映射
+
+VISION.md 中规划的部分模块在实现中采用了不同的架构拆分：
+
+| VISION.md 规划 | 实际实现 | 原因 |
+|---|---|---|
+| `detector/optimizer.js` | `profiles.js` + `matcher.js` + `config.js` | 硬件优化逻辑分散到配置匹配链中，无需独立优化器 |
+| `runtime/llm.js` | `server/brain.js` + `engine/` | LLM 推理与工具调用紧耦合，放在 server 层；引擎发现独立为 engine/ |
+| `runtime/memory.js` | ⚠️ 未实现 — 基础组件就绪: `store/index.js` (KV) + `runtime/embed.js` (向量) | 需要创建组合层: search(query, topK) + add() 语义记忆 API |
+| — | `engine/` (6 files) | 新增引擎注册中心，支持多引擎发现和统一模型解析 |
+| — | `cli/` (3 files) | 新增 CLI 工具层，处理安装向导和浏览器启动 |
+| — | `runtime/profiler.js` + `latency-log.js` + `vad.js` | 新增性能监控和语音活动检测 |
+
 ## 安装方式
 
 ```bash
@@ -574,5 +602,4 @@ docker-compose up
 2. **adapters/embed.js 是死代码** — 抛出 'not implemented'，实际嵌入通过 runtime/embed.js → agentic-embed 包。
 3. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
 4. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
-5. **runtime/memory.js 未实现** — PRD 要求 search(query, topK) + add() 语义记忆模块，基于 agentic-store + agentic-embed。store/index.js (KV) 和 runtime/embed.js (向量嵌入) 已就绪，但组合记忆模块尚未创建。
-6. **detector/optimizer.js 未实现** — VISION.md 中列出的独立优化器模块不存在。其功能由 profiles.js + matcher.js + config.js 三者协作实现（见模型选择流程说明）。
+5. **runtime/memory.js 未实现** — PRD 要求 search(query, topK) + add() 语义记忆模块，基于 agentic-store + agentic-embed。store/index.js (KV) 和 runtime/embed.js (向量嵌入) 已就绪，但组合记忆模块尚未创建。详见 Vision 架构映射表。

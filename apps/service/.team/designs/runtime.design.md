@@ -170,6 +170,7 @@ export function createPipeline(options = {})  // line 3 — wraps AgenticSense c
 | File | Provider | Export | Notes |
 |------|----------|--------|-------|
 | `elevenlabs.js` | ElevenLabs | `synthesize(text)` | HTTP API, requires API key |
+| `kokoro.js` | Kokoro | `synthesize(text)` | ⚠️ FILE MISSING — referenced in tts.js but not implemented |
 | `macos-say.js` | macOS | `synthesize(text)` | `say` command, darwin only |
 | `openai-tts.js` | OpenAI | `synthesize(text)` | HTTP API, requires API key |
 | `openai-whisper.js` | OpenAI | `transcribe(buffer)` | HTTP API, requires API key |

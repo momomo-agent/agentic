@@ -53,9 +53,7 @@ async function getStore() {
 
 ## Consumers
 
-- `src/server/brain.js` — indirect (if memory layer is implemented in future)
-
-⚠️ Note: `src/runtime/memory.js` does NOT exist. No current consumer of store/index.js has been verified in the codebase.
+⚠️ No current consumer of `store/index.js` has been verified in the codebase. `src/runtime/memory.js` does NOT exist. The store is available but unused by application code at this time.
 
 ## Constraints
 

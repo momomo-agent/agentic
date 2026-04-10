@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T19:45:19.051Z",
+  "timestamp": "2026-04-10T19:45:48.251Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No developer tasks available. The only 2 remaining todo tasks (task-1775847821786, task-1775849914280) modify VISION.md and ARCHITECTURE.md — files outside developer write permissions. These are architect-scoped documentation tasks. All src/ implementation tasks are done."
+  "summary": "No claimable developer tasks available. The 2 remaining todo tasks (task-1775847821786 and task-1775849914280) are architect-owned documentation tasks targeting VISION.md and ARCHITECTURE.md — files outside developer write permissions. All implementation tasks are done."
 }

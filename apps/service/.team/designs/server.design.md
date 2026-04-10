@@ -28,7 +28,7 @@ export function stopServer(server)                    // line 809
 
 ## SIGINT / Graceful Shutdown
 
-Already implemented in `startServer()` (line 642-646):
+Already implemented in `startServer()` (lines 791-795):
 - Calls `startDrain()` to reject new requests with 503
 - Calls `waitDrain(10_000)` to wait for in-flight requests
 - Calls `httpServer.close()` then `process.exit(0)`
