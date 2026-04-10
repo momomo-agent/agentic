@@ -12,8 +12,8 @@ let server, baseUrl;
 
 beforeEach(async () => {
   getDevices().forEach(d => unregisterDevice(d.id));
-  const port = 3300 + Math.floor(Math.random() * 100);
-  server = await startServer(port);
+  server = await startServer(0);
+  const port = server.address().port;
   baseUrl = `http://localhost:${port}`;
 });
 

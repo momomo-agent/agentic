@@ -27,8 +27,8 @@ async function req(method, p, body) {
 }
 
 beforeEach(async () => {
-  const port = 3400 + Math.floor(Math.random() * 100);
-  server = await startServer(port);
+  server = await startServer(0);
+  const port = server.address().port;
   baseUrl = `http://localhost:${port}`;
 });
 
