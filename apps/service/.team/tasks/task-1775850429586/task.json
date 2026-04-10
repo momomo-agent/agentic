@@ -1,0 +1,13 @@
+{
+  "id": "task-1775850429586",
+  "title": "Implement src/runtime/memory.js — semantic memory API",
+  "description": "src/runtime/memory.js does not exist but PRD requires it. Compose store/index.js (KV) + runtime/embed.js (vector embedding) into a semantic memory module.\\n\\nAPI:\\n- add(text, metadata?) → embed text via embed.js, store vector + metadata via store/index.js\\n- search(query, topK=5) → embed query, vector similarity search against stored embeddings, return top-K results\\n\\nDependencies: store/index.js and runtime/embed.js are both implemented and tested.\\n\\nAcceptance criteria:\\n1. File exists at src/runtime/memory.js\\n2. Exports add(text, metadata?) and search(query, topK)\\n3. Uses agentic-store via store/index.js for persistence\\n4. Uses agentic-embed via runtime/embed.js for vector embedding\\n5. Tests pass",
+  "status": "todo",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": false,
+  "created": "2026-04-10T19:47:09.586Z",
+  "updated": "2026-04-10T19:47:13.254Z"
+}
