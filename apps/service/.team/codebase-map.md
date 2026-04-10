@@ -143,10 +143,10 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **904/916 tests pass** (98.7%) — 1 failure (setup.js needsInstall mock), 11 skipped, 406 test files
-- m62-sigint-integration: all 4 tests pass (was previously failing, now fixed)
-- m38-llm-chat: suite fails due to stale mocks (not a code bug — test mocks need update)
+- **905/916 tests pass** (98.8%) — 0 failures, 11 skipped, 169 test files
 - All previously failing tests (m76-embed-wiring, m77-sense-imports, m28-profiles-cache) now pass
+- m62-sigint-integration: all 4 tests pass
+- Full green: `npx vitest run` → 169 passed, 0 failed
 
 ## Known Issues (from gap analysis)
 
