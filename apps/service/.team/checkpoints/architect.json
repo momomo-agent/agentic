@@ -6,15 +6,13 @@
     "read-deps",
     "design",
     "design",
-    "design",
-    "design",
     "design"
   ],
   "loopIterations": {},
-  "transitionDepth": 6,
+  "transitionDepth": 4,
   "nodeVisitCounts": {
     "read-deps": 1,
-    "design": 5
+    "design": 3
   },
   "contextOverrides": {
     "refsValid": 1,
@@ -25,5 +23,5 @@
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T20:50:31.832Z"
+  "timestamp": "2026-04-10T20:51:05.478Z"
 }
