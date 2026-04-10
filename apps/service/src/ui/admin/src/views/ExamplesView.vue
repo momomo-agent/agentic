@@ -942,9 +942,14 @@ function ensureParlorWs() {
           drainParlorAudio()
         }
       } else if (msg.type === 'voice_stream_end') {
+        parlorTranscribing.value = false
         const last = parlorHistory.value[parlorHistory.value.length - 1]
         if (last && last._streaming) delete last._streaming
-        markTested('parlor')
+        if (!msg.skipped) markTested('parlor')
+      } else if (msg.type === 'error') {
+        parlorTranscribing.value = false
+        parlorHistory.value.push({ role: 'assistant', content: `⚠️ ${msg.error}` })
+        await nextTick(); scrollParlor()
       }
     } catch {}
   }

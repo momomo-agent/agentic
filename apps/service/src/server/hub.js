@@ -284,7 +284,8 @@ export function initWebSocket(httpServer) {
         }
       } else if (msg.type === 'voice_stream') {
         handleVoiceStream(ws, msg).catch(err => {
-          ws.send(JSON.stringify({ type: 'error', error: err.message }));
+          console.error('[voice_stream error]', err.message);
+          try { ws.send(JSON.stringify({ type: 'error', error: err.message })); } catch {}
         });
       }
     });
