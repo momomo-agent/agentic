@@ -12,6 +12,32 @@ agentic-service
 
 > **注**: LLM 调用由 server/brain.js 直接实现（Ollama HTTP API + 云端 provider API），不依赖外部 LLM 包。
 
+### 外部包 API（已从 node_modules 源码验证）
+
+```javascript
+// agentic-embed — 向量嵌入
+AgenticEmbed.create({ apiKey }) → store  // 创建嵌入存储
+chunkText(text, { maxChunkSize, overlap, separator }) → string[]
+cosineSimilarity(a, b) → number
+localEmbed(texts) → number[][]  // 本地 bge-m3 嵌入（service 使用此 API）
+
+// agentic-sense — 视觉感知（MediaPipe）
+new AgenticSense(videoElement) → sense
+sense.init({ wasmPath, face, hands, pose }) → Promise
+sense.detect() → { faces, gestures, objects }
+AgenticAudio  // 音频处理工具类
+extractFrame(video) → ImageData
+
+// agentic-store — KV 存储
+createStore(name) → { get, set, delete, keys, clear, exec, run, all }
+// SQLite-first: browser (sql.js/WASM) + Node.js (better-sqlite3)
+
+// agentic-voice — 语音
+createSTT(opts) → stt   // 语音识别实例
+createTTS(opts) → tts   // 语音合成实例
+createVoice({ tts, stt }) → voice  // 统一语音实例（speak/listen/events）
+```
+
 ## 系统架构
 
 ```mermaid

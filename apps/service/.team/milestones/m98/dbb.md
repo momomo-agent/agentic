@@ -120,8 +120,8 @@
 - Expect: References matcher.js (not optimizer.js), server/brain.js (not runtime/llm.js), store/index.js (not runtime/memory.js)
 - Verify: engine/ directory is present in the diagram
 
-## DBB-021: Test suite — all 169 files pass
+## DBB-021: Test suite — all 173 files pass
 - Requirement: M98 overall
 - Given: Run `pnpm test --run`
 - Expect: 0 failures
-- Verify: m28-profiles-cache.test.js passes (regression fixed)
+- Verify: config-persistence.test.js passes (test isolation fixed), m28-profiles-cache.test.js passes (regression fixed)
