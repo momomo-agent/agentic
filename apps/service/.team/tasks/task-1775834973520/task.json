@@ -2,7 +2,7 @@
   "id": "task-1775834973520",
   "title": "Fix test suite — get critical tests passing",
   "description": "STILL BROKEN — build fails. agentic-embed is a CJS module, so named ESM imports do not work.\n\nBuild error:\nSyntaxError: The requested module agentic-embed does not provide an export named localEmbed\n\nagentic-embed exports (via default): create, chunkText, cosineSimilarity, localEmbed\n\nFix: Change line 1 of src/runtime/embed.js from:\nimport { localEmbed as agenticEmbed } from \"agentic-embed\"\nto:\nimport agenticEmbedPkg from \"agentic-embed\"\nconst { localEmbed: agenticEmbed } = agenticEmbedPkg\n\nOR use createRequire pattern. This is a P0 build blocker — the service cannot start.",
-  "status": "review",
+  "status": "done",
   "priority": "P0",
   "assignee": "developer",
   "blockedBy": [],
