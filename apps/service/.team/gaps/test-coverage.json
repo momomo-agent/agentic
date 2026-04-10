@@ -1,11 +1,9 @@
 {
-  "totalTests": 19,
-  "passed": 19,
+  "totalTests": 10,
+  "passed": 10,
   "failed": 0,
   "edgeCases": [
-    "initFromProfile concurrent with setConfig (covered by shared _writeQueue)",
-    "Disk full or permission error during atomic write (OS-level)",
-    "Very large config objects (low risk)"
+    "No test for matchProfile() logic against this file"
   ],
   "coverage": "100%"
 }

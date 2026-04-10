@@ -1,10 +1,12 @@
 # Fix server config-persistence test — rapid PUTs return 500
 
 ## Root Cause
-Same as task-1775852942421 — port collisions from random port selection in test files.
+Two issues: (1) port collisions from random port selection, (2) cross-test config file contamination — parallel vitest workers writing to the same `~/.agentic-service/config.json`.
 
 ## Fix
-Applied same fix: `startServer(0)` + `server.address().port`. See task-1775852942421/progress.md for details.
+- `startServer(0)` for OS-assigned ports (already applied)
+- Isolated config dir via `AGENTIC_CONFIG_DIR` + temp dir per test file
+- Config module already uses `_configDir()`/`_configPath()` for dynamic path resolution
 
 ## Result
-All 173 test files pass.
+All 173 test files pass, 972 tests pass. Stable across 3 consecutive full-suite runs.

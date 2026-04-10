@@ -2,12 +2,12 @@
   "id": "task-1775852663047",
   "title": "Fix config-persistence test — ENOENT on atomic rename",
   "description": "test/config-persistence.test.js fails: ENOENT on rename in _writeToDisk (src/config.js:325). Error: 'no such file or directory, rename config.json.tmp -> config.json'. The atomic write pattern (mkdir → writeFile tmp → rename) fails because the ~/.agentic-service/ directory may not exist when the test runs. Either the test needs to ensure the directory exists in beforeEach, or _writeToDisk needs to verify the directory was created before writing. This is the only failing test (1/972). Error log from latest-test.log.",
-  "status": "review",
+  "status": "testing",
   "priority": "P0",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T20:24:23.047Z",
-  "updated": "2026-04-10T20:38:54.152Z"
+  "updated": "2026-04-10T20:39:57.680Z"
 }
