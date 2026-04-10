@@ -1,8 +1,8 @@
 {
   "pm": {
-    "status": "running",
-    "lastRun": "2026-04-10T19:14:29.663Z",
-    "currentTask": "管理任务和里程碑",
+    "status": "idle",
+    "lastRun": "2026-04-10T19:14:47.197Z",
+    "currentTask": null,
     "retryCount": 1
   },
   "tech_lead-1": {
@@ -25,7 +25,7 @@
   },
   "developer": {
     "status": "idle",
-    "lastRun": "2026-04-10T19:14:29.664Z",
+    "lastRun": "2026-04-10T19:15:19.280Z",
     "currentTask": null,
     "retryCount": 2
   },
@@ -86,9 +86,9 @@
     "retryCount": 0
   },
   "tech_lead": {
-    "status": "running",
-    "lastRun": "2026-04-10T19:12:50.840Z",
-    "currentTask": "出技术方案",
+    "status": "idle",
+    "lastRun": "2026-04-10T19:14:46.847Z",
+    "currentTask": null,
     "retryCount": 0
   },
   "alignment_monitor": {

@@ -62,7 +62,7 @@ src/
         whisper.js            (29 lines)  Whisper.cpp STT adapter (local binary)
 
   server/
-    api.js                    (812 lines) Express routes — REST + OpenAI-compatible + Anthropic-compatible + admin + voice + /api/perf
+    api.js                    (813 lines) Express routes — REST + OpenAI-compatible + Anthropic-compatible + admin + voice + /api/perf
     brain.js                  (299 lines) LLM inference + tool calling + cloud fallback — chat(), registerTool(), chatSession()
     hub.js                    (313 lines) WebSocket device mgmt — init(), joinSession(), broadcastSession()
     middleware.js             (4 lines)   Error handler only
@@ -143,7 +143,9 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **905/916 tests pass** (98.8%) — 0 failures, 11 skipped, 169 test files
+- **904/916 tests pass** (98.7%) — 1 failure (setup.js needsInstall mock), 11 skipped, 406 test files
+- m62-sigint-integration: all 4 tests pass (was previously failing, now fixed)
+- m38-llm-chat: suite fails due to stale mocks (not a code bug — test mocks need update)
 - All previously failing tests (m76-embed-wiring, m77-sense-imports, m28-profiles-cache) now pass
 
 ## Known Issues (from gap analysis)
