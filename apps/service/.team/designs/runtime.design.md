@@ -224,9 +224,113 @@ export async function clear()                    // line 54 — delete all entri
 - Each entry: `{ id, text, vector: number[], metadata, createdAt }`
 - Search: linear scan with cosine similarity ranking
 
+## Adapters — Detailed Design
+
+### adapters/embed.js (DEAD CODE)
+```javascript
+export async function embed(text)  // throws Error('agentic-embed: not implemented')
+```
+- 3 lines, never imported by any module
+- `runtime/embed.js` imports directly from `agentic-embed`, bypassing this adapter
+- Candidate for removal
+
+### adapters/sense.js
+```javascript
+import { AgenticSense } from 'agentic-sense'
+export function createPipeline(options = {})  // returns AgenticSense instance
+```
+- Creates `new AgenticSense(null, options)`, calls `init()` if available
+- Consumer: `runtime/sense.js` (verified)
+
+### adapters/voice/ — Unified Adapter Interface
+
+All voice adapters follow one of two contracts:
+
+**STT adapters** — `transcribe(buffer) → string`
+| Adapter | Provider | Auth | Extra Exports |
+|---------|----------|------|---------------|
+| `sensevoice.js` | SenseVoice HTTP (localhost:18906) | None | `check()` — health endpoint |
+| `whisper.js` | whisper.cpp local binary | None | `check()` — verifies binary + model exist |
+| `openai-whisper.js` | OpenAI Whisper API | `OPENAI_API_KEY` | None |
+
+**TTS adapters** — `synthesize(text) → Buffer`
+| Adapter | Provider | Auth | Extra Exports |
+|---------|----------|------|---------------|
+| `piper.js` | Piper local binary (auto-download) | None | None |
+| `macos-say.js` | macOS `say` command | None | `listVoices()` |
+| `openai-tts.js` | OpenAI TTS API | `OPENAI_API_KEY` or config | None |
+| `elevenlabs.js` | ElevenLabs API | `ELEVENLABS_API_KEY` or config | None |
+
+### Adapter Details
+
+**sensevoice.js** (21 lines)
+- Base URL: `SENSEVOICE_URL` env or `http://127.0.0.1:18906`
+- `check()`: GET `/health` with 2s timeout
+- `transcribe(buffer)`: POST `/transcribe` with `Content-Type: audio/webm`, 30s timeout
+- Returns `data.text` from JSON response
+
+**whisper.js** (29 lines)
+- Binary: `WHISPER_BIN` env or `/opt/homebrew/bin/whisper-cli`
+- Model: `WHISPER_MODEL` env or `~/LOCAL/momo-agent/tools/whisper-models/ggml-small.bin`
+- `check()`: `fs.access()` on binary + model
+- `transcribe(buffer)`: writes temp WAV, runs `whisper-cli -m <model> -f <file> --no-timestamps -l auto`, 30s timeout
+
+**openai-whisper.js** (9 lines)
+- Requires `OPENAI_API_KEY` env (throws `{ code: 'NO_API_KEY' }`)
+- Uses `openai` npm package, `client.audio.transcriptions.create({ model: 'whisper-1', file })`
+
+**piper.js** (119 lines)
+- Auto-downloads piper binary to `~/.agentic-service/piper/`
+- Auto-downloads voice models from HuggingFace
+- Default voice: `en_US-amy-medium`
+- `synthesize(text)`: spawns piper process, pipes text to stdin, reads WAV output
+- Platform: darwin (aarch64/x86_64), linux (aarch64/x86_64); Windows unsupported
+
+**macos-say.js** (61 lines)
+- macOS only (throws on other platforms)
+- Default voice: `Samantha`
+- `synthesize(text)`: `say -v <voice> -o <aiff>` → `afconvert` to WAV (PCM 16-bit, 22050 Hz)
+- `listVoices()`: parses `say -v ?` output → `[{ name, locale }]`
+
+**openai-tts.js** (24 lines)
+- API key from config or `OPENAI_API_KEY` env
+- Default model: `tts-1`, default voice: `alloy`
+- Returns `Buffer.from(res.arrayBuffer())`
+
+**elevenlabs.js** (48 lines)
+- API key from config or `ELEVENLABS_API_KEY` env
+- Default voice ID: `JBFqnCBsd6RMkjVDRZzb` (George)
+- Model: `eleven_flash_v2_5`
+- Streaming endpoint: `/v1/text-to-speech/{voiceId}/stream`
+
+## Utility Modules
+
+### profiler.js (src/runtime/profiler.js)
+```javascript
+export function startMark(label)                    // line 4 — records Date.now() in marks Map
+export function endMark(label)                      // line 8 — returns elapsed ms, updates metrics
+export function getMetrics()                        // line 18 — returns { [stage]: { last, avg, count } }
+export function measurePipeline(stages)             // line 26 — returns { stages, total, pass: total < 2000 }
+```
+- Module-level `marks` Map (active timers) + `metrics` Map (accumulated stats)
+- `endMark` returns `null` if no matching `startMark`
+- Used by: `server/brain.js`, `server/api.js`, `runtime/stt.js`, `runtime/tts.js`
+
+### latency-log.js (src/runtime/latency-log.js)
+```javascript
+export function record(stage, ms)                   // line 3 — appends sample, logs to console
+export function p95(stage)                          // line 9 — returns 95th percentile for stage
+export function reset()                             // line 15 — clears all samples
+```
+- Module-level `samples` object: `{ [stage]: number[] }`
+- `p95` sorts ascending, returns `arr[floor(len * 0.95)]`
+- Used by: `runtime/stt.js`, `runtime/tts.js`
+
 ## Constraints
 - `embed()` throws TypeError on non-string — callers must validate
 - `adapters/embed.js` is dead code — should be removed or wired up
 - Wake word pipeline requires `sox` binary — gracefully degrades if missing
 - Voice adapters with API keys will fail silently if keys not configured
 - memory.js does linear scan — O(n) per search, acceptable for < 10K entries
+- All TTS adapters read config from `~/.agentic-service/config.json` for voice/key overrides
+- STT adapter selection is driven by `runtime/stt.js` init flow, not by callers

@@ -1,6 +1,6 @@
 # Module Design: Store（KV 存储）
 
-**ARCHITECTURE.md Section:** Store (currently undocumented — see task-1775849914280 item #1)
+**ARCHITECTURE.md Section:** §5 Store（数据持久化）— lines 363-374
 **Status:** ready-for-review
 
 ## Overview

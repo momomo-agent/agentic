@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T20:52:42.092Z",
+  "timestamp": "2026-04-10T20:56:17.523Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No claimable tasks available — all 4 todo tasks are assigned to architect (1 has design, 3 lack design). 263 done, 342 cancelled, 0 in-progress. Developer queue is empty."
+  "summary": "No claimable tasks available. All 263 done, 342 cancelled. 4 remaining todo tasks are architect-owned documentation tasks (VISION.md/ARCHITECTURE.md) outside developer write permissions."
 }

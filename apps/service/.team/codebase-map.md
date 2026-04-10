@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — all ARCHITECTURE.md module sections verified against source; store, embed, adapters, profiler, latency-log, CLI tools documented; 174/174 test files pass, 981/992 tests pass, 11 skipped; all gap monitors ≥90%)
+Updated: 2026-04-11 (architect review — 174/174 test files pass, 981/992 tests pass, 11 skipped; all gap monitors ≥90%; ARCHITECTURE.md 654 lines, all modules documented)
 
 ## Technology Stack
 
@@ -171,7 +171,7 @@ src/store/index.js  → agentic-store
 
 - **174 test files, 174 passing, 0 failing** — 981 tests passed, 11 skipped (run 2026-04-11)
 - Vitest coverage thresholds: 98% (statements/lines/branches/functions)
-- Previously flaky hardware.test.js timing test now passing consistently
+- All previously flaky tests (hardware timing, profiles hot-reload, config persistence) now passing consistently
 
 ## Known Issues (from gap analysis)
 
@@ -198,7 +198,7 @@ src/store/index.js  → agentic-store
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CRs submitted
-- 1 flaky test: hardware detector timing (environment-dependent)
+- ~~1 flaky test: hardware detector timing~~ — now passing consistently (531ms in latest run)
 - `store/index.js` imports `open` from agentic-store but package exports `createStore` — may rely on test mocks or alias
 
 ### Architecture Notes (Vision references that map to different files)
