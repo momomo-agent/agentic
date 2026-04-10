@@ -174,7 +174,11 @@
       "scalable": true,
       "description": "实现功能",
       "gitCommit": true,
-      "gitPrefix": "feat"
+      "gitPrefix": "feat",
+      "skills": [
+        "test-runner",
+        "git-ops"
+      ]
     },
     "tester": {
       "prompt": "prompts/tester.md",
@@ -182,7 +186,11 @@
       "scalable": true,
       "description": "验证功能",
       "gitCommit": true,
-      "gitPrefix": "test"
+      "gitPrefix": "test",
+      "skills": [
+        "agent-control",
+        "test-runner"
+      ]
     }
   },
   "docs": {

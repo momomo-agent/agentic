@@ -18,22 +18,22 @@ Vision ≥90% + PRD ≥90%
 
 ## 📦 Recent Deliverables
 ### Commits
-5fe503b0 feat: implement task
-62d5102d feat: developer completed
-7b582b13 test: tester completed
-f68ef803 feat: developer completed
-97ca0fce feat: developer completed
-5cf9e292 fix: use port 0 in api-layer test to avoid port collision under parallel load
-786654b3 feat: implement task
-94ef9306 feat: developer completed
-88cabd0e fix: skip Docker build tests when workspace:* deps prevent npm ci
-7fd66748 feat: developer completed
+4cd6ba46 feat: developer completed
+dbf2b4bd feat: developer completed
+fbe5919d feat: developer completed
+f052f549 fix: mock config.js in rest-api-endpoints test to prevent cross-file race condition
+12c4d1d0 feat: developer completed
+5aaec2c3 feat: developer completed
+544b99b9 feat: developer completed
+d3d6d88e feat: developer completed
+4fde7b37 feat: developer completed
+e699e630 fix: remove dead #agentic-voice import map from package.json
 
 ### Completed Tasks
 (none)
 
 ## 🏗️ Project Artifacts
-- Source files: 879 | Test files: 244 | Source LOC: 1035511
+- Source files: 879 | Test files: 244 | Source LOC: 1035512
 - README: ✅
 - Exports: src/index.js
 

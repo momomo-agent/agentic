@@ -5,7 +5,7 @@
     <!-- 能力分配 -->
     <div class="card">
       <div class="card-title">能力分配</div>
-      <p class="card-desc">为每个能力选择模型。模型在「模型管理」页添加。</p>
+      <p class="card-desc">为每个能力选择模型。</p>
 
       <div class="slots">
         <div v-for="slot in slots" :key="slot.key" class="slot-group">
@@ -28,7 +28,7 @@
                   v-for="m in modelsForCap(slot.cap)"
                   :key="m.id"
                   :value="m.id"
-                >{{ m.name }} ({{ m.provider }}) {{ capIcons(m.capabilities) }}</option>
+                >{{ m.name }} ({{ engineLabel(m.engineId) }})</option>
               </select>
               <div v-if="!assignments[slot.key] && modelsForCap(slot.cap).length === 0" class="slot-hint warn">
                 无可用模型 — 在「模型管理」中添加
@@ -99,35 +99,35 @@ const slots = [
 const assignments = reactive<Record<string, string>>({
   chat: '', vision: '', stt: '', tts: '', embedding: '', chatFallback: ''
 })
-const modelPool = ref<any[]>([])
+const allModels = ref<any[]>([])
 const ollamaHost = ref('http://localhost:11434')
 const savingHost = ref(false)
 const hostSaved = ref(false)
 const error = ref('')
 
 function modelsForCap(cap: string) {
-  return modelPool.value.filter(m => m.capabilities?.includes(cap))
+  return allModels.value.filter(m => m.capabilities?.includes(cap) && m.installed)
 }
 
-const capIconMap: Record<string, string> = { chat: '🧠', vision: '👁️', stt: '🎤', tts: '🔊', embedding: '📐' }
-function capIcons(caps: string[]) {
-  return (caps || []).map(c => capIconMap[c] || '').filter(Boolean).join('')
+const ENGINE_LABELS: Record<string, string> = { ollama: 'Ollama', whisper: 'Whisper', tts: 'TTS' }
+function engineLabel(id: string) {
+  if (id?.startsWith('cloud:')) return id.split(':')[1]
+  return ENGINE_LABELS[id] || id || ''
 }
 
 async function fetchData() {
   try {
-    const [poolRes, assignRes, cfgRes] = await Promise.all([
-      fetch('/api/model-pool'),
+    const [modRes, assignRes, cfgRes] = await Promise.all([
+      fetch('/api/engines/models'),
       fetch('/api/assignments'),
       fetch('/api/config'),
     ])
-    const pool = await poolRes.json()
+    allModels.value = await modRes.json()
     const assign = await assignRes.json()
     const cfg = await cfgRes.json()
 
-    modelPool.value = pool
     Object.assign(assignments, assign)
-    ollamaHost.value = cfg.ollama?.host || 'http://localhost:11434'
+    ollamaHost.value = cfg.ollama?.host || cfg.ollamaHost || 'http://localhost:11434'
   } catch (e: any) {
     error.value = e.message
   }

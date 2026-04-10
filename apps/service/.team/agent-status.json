@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-10T16:16:52.462Z",
+    "lastRun": "2026-04-10T18:41:27.154Z",
     "currentTask": null,
     "retryCount": 2
   },
@@ -24,9 +24,9 @@
     "retryCount": 0
   },
   "developer": {
-    "status": "idle",
-    "lastRun": "2026-04-10T16:17:37.291Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-10T18:41:27.152Z",
+    "currentTask": "实现功能",
     "retryCount": 2
   },
   "tester": {
@@ -80,14 +80,14 @@
     "retryCount": 0
   },
   "architect": {
-    "status": "idle",
-    "lastRun": "2026-04-10T15:34:20.379Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-10T18:35:25.493Z",
+    "currentTask": "设计系统架构",
     "retryCount": 0
   },
   "tech_lead": {
     "status": "idle",
-    "lastRun": "2026-04-10T15:37:40.325Z",
+    "lastRun": "2026-04-10T18:41:27.153Z",
     "currentTask": null,
     "retryCount": 0
   },

@@ -38,27 +38,22 @@ graph TD
     API --> VAD[runtime/vad.js]
     API --> Profiler[runtime/profiler.js]
 
-    Brain --> LLM[runtime/llm.js]
     Brain --> Hub
     Hub --> Brain
     Hub --> STT
     Hub --> TTS
     Hub --> VAD
 
-    LLM --> Config
     Brain --> Config
     OllamaEng --> Config
-
-    Memory[runtime/memory.js] --> Embed[runtime/embed.js]
-    Memory --> Store[store/index.js]
 
     Sense[runtime/sense.js] --> SenseAdapter[adapters/sense.js]
     STT --> VoiceAdapters[adapters/voice/*]
     TTS --> VoiceAdapters
 
-    Embed -.-> ae[agentic-embed]
+    Embed[runtime/embed.js] -.-> ae[agentic-embed]
     SenseAdapter -.-> as[agentic-sense]
-    Store -.-> ast[agentic-store]
+    Store[store/index.js] -.-> ast[agentic-store]
     VoiceAdapters -.-> av[agentic-voice]
 
     API --> MW[server/middleware.js]
@@ -74,6 +69,7 @@ bin/
   agentic-service.js           # CLI 入口 — 启动服务器 + 首次安装向导
 
 src/
+  index.js                     # 包入口 — 导出 startServer, detect, getProfile, chat, stt, tts, embed
   config.js                    # 统一配置中心 — 读写/监听/模型池
 
   cli/
@@ -85,7 +81,6 @@ src/
     hardware.js                # GPU/CPU/OS/内存检测
     profiles.js                # 远程 CDN profiles + 本地缓存（4 层 fallback）
     matcher.js                 # 硬件-配置匹配评分
-    optimizer.js               # 硬件自适应优化参数
     ollama.js                  # Ollama 自动安装 + 模型拉取
     sox.js                     # SoX 音频工具检测
 
@@ -98,11 +93,9 @@ src/
     whisper.js                 # Whisper 引擎 — whisper.cpp/SenseVoice STT 模型发现
 
   runtime/
-    llm.js                     # LLM 聊天流式输出（Ollama 优先 → 云端 fallback）
     stt.js                     # 语音识别（多提供商自适应）
     tts.js                     # 语音合成（多提供商自适应）
     sense.js                   # 视觉感知（agentic-sense 封装）
-    memory.js                  # 向量记忆（嵌入 + KV 存储）
     embed.js                   # 向量嵌入（agentic-embed 封装）
     profiler.js                # CPU 性能分析 — startMark/endMark/getMetrics
     latency-log.js             # 延迟记录 — record(label, ms)/getLog()
@@ -135,7 +128,7 @@ src/
   ui/
     admin/                     # 管理面板（Vue 3 + Vite）
       src/components/          # ConfigPanel, DeviceList, HardwarePanel, LogViewer, SystemStatus
-      src/views/               # Dashboard, Config, Logs, Models, Status, Test, Examples
+      src/views/               # Status, Config, Logs, LocalModels, CloudModels, Test, Examples
     client/                    # 聊天界面（Vue 3 + Vite）
       src/components/          # ChatBox, InputBox, MessageList, PushToTalk, WakeWord
       src/composables/         # useVAD.js, useWakeWord.js
@@ -149,7 +142,9 @@ install/
   docker-compose.yml           # Docker Compose 配置
   docker-build.sh              # Docker 构建辅助脚本
 
-docker-compose.yml             # 根目录 Docker Compose
+docker-compose.yml             # 根目录 Docker Compose（端口 1234, OLLAMA_HOST, ./data 卷）
+Dockerfile                     # 根目录 Docker 镜像构建
+README.md                      # 用户文档（安装/API/架构/故障排除）
 ```
 
 ## 核心模块
@@ -180,12 +175,6 @@ matchProfile(profiles, hardware) → ProfileConfig
 // 权重: platform=30, gpu=30, arch=20, minMemory=20
 // platform 或 gpu 不匹配 → 得分 0
 // 空 match → 得分 1（兜底默认 profile）
-
-// detector/optimizer.js
-optimize(hardware) → { threads, memoryLimit, model, quantization }
-// apple-silicon: 8 threads, 75% memory, gemma4:26b q8
-// nvidia: 4 threads, 80% vram, gemma4:13b q4
-// cpu-only: cores threads, 50% memory, gemma2:2b q4
 
 // detector/ollama.js
 ensureOllama(model, onProgress?) → Promise<void>
@@ -230,12 +219,6 @@ createCloudEngine(provider, config) → engine
 ### 3. Runtime（服务运行时）
 
 ```javascript
-// runtime/llm.js
-chat(messageOrText, options?) → AsyncGenerator<{ type, content, done }>
-// Ollama 优先 → 失败时 fallback 到 config.fallback.provider (openai/anthropic)
-// 内部: chatWithOllama(), chatWithAnthropic(), chatWithOpenAI()
-// 集成 profiler startMark/endMark + latency-log record()
-
 // runtime/stt.js
 init(config) → void           // 根据 config.stt.provider 选择适配器
 transcribe(audioBuffer) → text
@@ -245,15 +228,15 @@ init(config) → void           // 根据 config.tts.provider 选择适配器
 synthesize(text) → audioBuffer
 
 // runtime/sense.js
+init(videoElement) → Promise<void>       // 初始化 MediaPipe pipeline
+on(type, handler) → void                // 注册事件: face_detected, gesture_detected, object_detected, wake_word
 detect(frame) → { faces, gestures, objects }
-start() / stop()              // 事件循环模式
-startHeadless() → EventEmitter // 服务端无头模式
-
-// runtime/memory.js
-add(text) → Promise<void>     // 嵌入 + 存储，key="mem:<ts>:<random>"
-search(query, topK?=5) → Promise<Array<{ text, score }>>
-remove(key) → Promise<void>   // 别名 delete()
-// 使用 promise 锁保证写操作串行
+start() / stop()                         // 事件循环模式（浏览器端）
+initHeadless(options?) → Promise<void>   // 服务端无头初始化
+startHeadless() → EventEmitter           // 服务端无头模式 + 唤醒词
+detectFrame(buffer) → { faces, gestures, objects }  // 单帧检测（服务端）
+startWakeWordPipeline(onWakeWord) → Promise<void>   // node-record-lpcm16 + VAD 唤醒词管道
+stopWakeWordPipeline() → void
 
 // runtime/embed.js
 embed(text) → number[]        // 委托 agentic-embed
@@ -262,10 +245,12 @@ embed(text) → number[]        // 委托 agentic-embed
 startMark(label) → void
 endMark(label) → void
 getMetrics() → Map<label, { count, total, avg, min, max }>
+measurePipeline(stages) → Promise<{ results, total }>  // 端到端管道计时
 
 // runtime/latency-log.js
-record(label, ms) → void
-getLog() → Array<{ label, ms, ts }>
+record(stage, ms) → void
+p95(stage) → number           // 第 95 百分位延迟
+reset() → void                // 清空采样数据
 
 // runtime/vad.js
 detectVoiceActivity(buffer) → boolean  // RMS 能量阈值检测（Int16 PCM）
@@ -298,10 +283,15 @@ createApp() → { app, server }
 // SIGINT 优雅关闭: startDrain() + waitDrain(timeout)
 
 // server/brain.js
-chat(messages, options?) → AsyncGenerator<{ type, content, done }>
+chat(input, options?) → AsyncGenerator<{ type, content, done }>
+// LLM 推理核心 — Ollama 优先 → 云端 fallback (OpenAI/Anthropic)
+// 内部: ollamaChat(), cloudChat(), chatWithTools()
 // 解析模型池分配 → 选择 provider → 流式推理
 // 支持 tool_use: registerTool(name, fn), 自动执行工具调用
+// 云端 fallback: 首 token 超时 5s / 连续 3 次错误 → 切云端; 60s 探测恢复
+// 集成 profiler startMark/endMark
 registerTool(name, fn) → void
+chatSession(sessionId, userMessage, options?) → AsyncGenerator
 
 // server/hub.js
 init() → Promise<void>
@@ -337,7 +327,6 @@ get(key) → Promise<any>
 set(key, value) → Promise<void>
 del(key) → Promise<void>
 delete(key) → Promise<void>   // del() 的别名
-list(prefix?) → Promise<string[]>
 ```
 
 ### 6. Tunnel（LAN 隧道）
@@ -360,6 +349,14 @@ runSetup() → Promise<void>
 // cli/browser.js
 openBrowser(port) → void
 // 启动后自动打开浏览器
+
+// cli/download-state.js
+getDownloadState() → object   // 读取 ~/.agentic-service/download-state.json
+setDownloadState(updates) → void
+clearDownloadState() → void
+
+// detector/sox.js
+ensureSox() → Promise<void>   // 检测/安装 sox 音频工具（brew/apt/choco）
 ```
 
 ### 8. Config（配置中心）
@@ -403,7 +400,25 @@ startWakeWordDetection()      // 服务端唤醒词管道
 embed(text) → number[]  // bge-m3 向量嵌入
 // TypeError if text is not a string
 // 空字符串返回空数组
-// 被 memory.js 用于语义搜索
+```
+
+### 11. Runtime Adapters（运行时适配器）
+
+```javascript
+// runtime/adapters/sense.js — agentic-sense 适配层
+createPipeline(options?) → AgenticSense  // 创建 MediaPipe 感知管道
+
+// runtime/adapters/embed.js — stub（未使用，实际嵌入走 runtime/embed.js → agentic-embed）
+embed(text) → throws 'not implemented'
+
+// runtime/adapters/voice/ — 语音适配器
+//   sensevoice.js  — SenseVoice STT (HTTP API, Apple Silicon 本地)
+//   whisper.js     — Whisper.cpp STT (本地二进制)
+//   openai-whisper.js — OpenAI Whisper API (云端 fallback)
+//   piper.js       — Piper TTS (自动下载二进制 + 模型)
+//   openai-tts.js  — OpenAI TTS API (云端 fallback)
+//   elevenlabs.js  — ElevenLabs TTS (云端)
+//   macos-say.js   — macOS say 命令 (本地零依赖)
 ```
 
 ## 数据流
@@ -414,8 +429,8 @@ embed(text) → number[]  // bge-m3 向量嵌入
 Client → POST /api/chat → api.js → brain.chat()
   → resolveModel(slot='chat') → config.assignments → model pool
   → engine/registry.resolveModel(modelId) → 找到对应引擎
-  → llm.chat(messages) → Ollama streaming → yield chunks
-  → (Ollama 失败) → cloud fallback (OpenAI/Anthropic)
+  → ollamaChat(messages) → Ollama streaming → yield chunks
+  → (Ollama 失败/超时) → cloudChat() fallback (OpenAI/Anthropic)
   → SSE stream → Client
 ```
 

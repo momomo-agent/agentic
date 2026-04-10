@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-10
+Updated: 2026-04-11
 
 ## Technology Stack
 
@@ -29,7 +29,6 @@ src/
     hardware.js               (119 lines) GPU/CPU/OS/memory detection — detect()
     profiles.js               (173 lines) Remote CDN profiles + local cache — getProfile(hardware)
     matcher.js                (112 lines) Profile scoring — matchProfile(profiles, hardware)
-    optimizer.js              (16 lines)  Hardware-adaptive config — optimize(hardware)
     ollama.js                 (40 lines)  Ollama auto-install + model pull — ensureOllama(model, onProgress)
     sox.js                    (28 lines)  SoX audio utility detection
 
@@ -42,11 +41,9 @@ src/
     whisper.js                (66 lines)  Whisper engine — whisper.cpp/SenseVoice STT model discovery
 
   runtime/
-    llm.js                    (149 lines) LLM chat streaming — chat(messages, options) → async generator
     stt.js                    (39 lines)  Speech-to-text — init(config), transcribe(audioBuffer)
     tts.js                    (71 lines)  Text-to-speech — init(config), synthesize(text)
     sense.js                  (120 lines) Visual perception — detect(frame), start()/stop(), startHeadless()
-    memory.js                 (60 lines)  Vector memory — add(text), search(query, topK), remove(key)
     embed.js                  (7 lines)   Vector embedding — embed(text) via agentic-embed
     profiler.js               (30 lines)  CPU profiling — startMark/endMark/getMetrics
     latency-log.js            (18 lines)  Latency recording — record(label, ms), getLog()
@@ -65,14 +62,14 @@ src/
 
   server/
     api.js                    (661 lines) Express routes — REST + OpenAI-compatible + admin + voice
-    brain.js                  (217 lines) LLM inference + tool calling — chat(), registerTool()
+    brain.js                  (217 lines) LLM inference + tool calling + cloud fallback — chat(), registerTool(), chatSession()
     hub.js                    (312 lines) WebSocket device mgmt — init(), joinSession(), broadcastSession()
     middleware.js             (5 lines)   Error handler only
     cert.js                   (~30 lines) Self-signed cert generation — generateCert()
     httpsServer.js            (~20 lines) HTTPS server factory — createHttpsServer(app)
 
   store/
-    index.js                  (29 lines)  KV store wrapper — get/set/del/delete/list via agentic-store
+    index.js                  (29 lines)  KV store wrapper — get/set/del/delete via agentic-store
 
   tunnel.js                   (21 lines)  LAN tunnel — startTunnel(port) via ngrok/cloudflared
 
@@ -95,7 +92,7 @@ profiles/
 install/
   setup.sh                    One-click Unix install script
   Dockerfile                  Docker image build
-  docker-compose.yml          Docker Compose (port 3000, config volume)
+  docker-compose.yml          Docker Compose (port 1234, OLLAMA_HOST, config + data volumes)
   docker-build.sh             Docker build helper
 
 Dockerfile                    Root Docker image (port 3000)
@@ -119,13 +116,11 @@ src/engine/cloud.js     — factory, no imports
 src/engine/tts.js       — self-contained model list
 src/engine/whisper.js   — checks local binaries + SenseVoice HTTP
 
-src/server/brain.js → src/config.js, src/server/hub.js, src/runtime/{llm, profiler}
+src/server/brain.js → src/config.js, src/server/hub.js, src/runtime/profiler.js
 src/server/hub.js   → src/server/brain.js, src/runtime/{stt, tts, vad}
-src/runtime/llm.js  → src/config.js, src/runtime/{latency-log, profiler}
 src/runtime/stt.js  → src/runtime/adapters/voice/*
 src/runtime/tts.js  → src/runtime/adapters/voice/*
 src/runtime/sense.js → src/runtime/adapters/sense.js → agentic-sense
-src/runtime/memory.js → src/runtime/embed.js, src/store/index.js
 src/runtime/embed.js → agentic-embed
 src/store/index.js  → agentic-store
 ```
@@ -147,10 +142,14 @@ src/store/index.js  → agentic-store
 
 ## Known Issues (from gap analysis)
 
-- `src/index.js` missing — package.json `main` points to nonexistent file
-- Root `docker-compose.yml` exposes port 3000 but server defaults to 1234
-- Root `docker-compose.yml` missing OLLAMA_HOST env var and ./data volume
-- `middleware.js` is a 4-line error handler — no validation/rate-limiting
-- `adapters/embed.js` is a stub that throws 'not implemented'
-- Cloud fallback triggers on error only, not on timeout >5s or 3 consecutive errors per PRD
-- `#agentic-embed` and `#agentic-voice` import maps in package.json may be dead
+- ~~`src/index.js` missing~~ — RESOLVED: src/index.js exists, exports startServer/detect/getProfile/chat/stt/tts/embed
+- ~~Root `docker-compose.yml` exposes port 3000~~ — RESOLVED: now maps 1234:1234 with OLLAMA_HOST and ./data volume
+- ~~Root `docker-compose.yml` missing OLLAMA_HOST env var and ./data volume~~ — RESOLVED
+- ~~Cloud fallback triggers on error only~~ — RESOLVED: brain.js now has 5s first-token timeout, 3-error threshold, 60s probe recovery
+- ~~`#agentic-voice` import map dead~~ — RESOLVED: removed in commit e699e630
+- `#agentic-embed` import map in package.json is dead — CR submitted (cr-1775840326577), task-1775840057892 in review
+- `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
+- `adapters/embed.js` is a stub that throws 'not implemented' — dead code, actual embed uses agentic-embed directly via runtime/embed.js
+- `src/detector/optimizer.js` — referenced in Vision but does not exist on disk; hardware optimization logic is in profiles.js + matcher.js
+- `src/runtime/llm.js` — referenced in Vision but does not exist; LLM logic lives in server/brain.js
+- `src/runtime/memory.js` — referenced in Vision but does not exist; store/index.js + embed.js provide the primitives

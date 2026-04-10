@@ -46,8 +46,13 @@ export async function search(query, topK = 5)      // line 35
 ## Embed (src/runtime/embed.js)
 
 ```javascript
-export async function embed(text)  // line 3 — delegates to agentic-embed
+export async function embed(text)  // delegates to agentic-embed localEmbed()
 ```
+
+### Verified Contract
+- `localEmbed` from agentic-embed expects `string[]`, returns `number[][]`
+- `embed()` wraps single text in array, returns first vector: `embed(text) → number[]`
+- Empty string → `[]`, non-string → `TypeError`
 
 ## STT / TTS / VAD / Sense
 

@@ -10,7 +10,7 @@
     "work_loop"
   ],
   "loopIterations": {
-    "work_loop": 3
+    "work_loop": 11
   },
   "transitionDepth": 5,
   "nodeVisitCounts": {
@@ -21,12 +21,12 @@
   },
   "contextOverrides": {
     "refsValid": 1,
-    "buildPassed": 1,
+    "buildPassed": 0,
     "retryCount": 0,
     "testPassed": 1,
     "unitPassed": 1,
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T16:16:52.543Z"
+  "timestamp": "2026-04-10T18:41:27.274Z"
 }

@@ -24,8 +24,7 @@
     </nav>
     <main class="main">
       <StatusView v-if="currentView === 'status'" />
-      <LocalModelsView v-else-if="currentView === 'local-models'" />
-      <CloudModelsView v-else-if="currentView === 'cloud-models'" />
+      <ModelsView v-else-if="currentView === 'models'" />
       <ConfigView v-else-if="currentView === 'config'" />
       <LogsView v-else-if="currentView === 'logs'" />
       <ExamplesView v-else-if="currentView === 'examples'" />
@@ -37,8 +36,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import StatusView from './views/StatusView.vue'
-import LocalModelsView from './views/LocalModelsView.vue'
-import CloudModelsView from './views/CloudModelsView.vue'
+import ModelsView from './views/ModelsView.vue'
 import ConfigView from './views/ConfigView.vue'
 import ExamplesView from './views/ExamplesView.vue'
 import TestView from './views/TestView.vue'
@@ -50,8 +48,7 @@ let timer = null
 
 const navItems = [
   { id: 'status', label: '系统状态', icon: '📊' },
-  { id: 'local-models', label: '本地模型', icon: '💻' },
-  { id: 'cloud-models', label: '云端模型', icon: '☁️' },
+  { id: 'models', label: '模型', icon: '🧊' },
   { id: 'config', label: '配置', icon: '⚙️' },
   { id: 'logs', label: '日志', icon: '📋' },
 ]

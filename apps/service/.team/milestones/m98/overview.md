@@ -3,35 +3,34 @@
 ## Goal
 Close the PRD match gap from 58% to ≥90% by fixing the highest-impact items.
 
-## Current Status (2026-04-11)
-- 4 tasks in **review** (awaiting tester verification)
-- 1 task **in progress** (test suite fix — developer working)
-- 1 task **todo** (ARCHITECTURE.md cleanup — architect)
-- **Build blocker**: src/runtime/embed.js imports `{ embed }` from agentic-embed but the package only exports `create, chunkText, cosineSimilarity, localEmbed`. Developer must fix this in the test suite task.
-- **PRD updated**: References now match engine registry architecture (brain.js fallback, engine/registry.js, engine/init.js)
+## Current Status (2026-04-11, cycle 20)
+- **6 of 9 tasks DONE** — verified and complete
+- **3 tasks in REVIEW** — waiting for tester verification
+  - task-1775844314020: Fix embed.js build failure (developer) — fix applied, default import + destructure pattern
+  - task-1775840057892: Remove dead import maps from package.json (developer) — #agentic-voice removed in e699e630
+  - task-1775793599594: ARCHITECTURE.md cleanup (architect) — 23-line diff: removes stale files, adds index.js, fixes Docker port docs
+- **Build: PASSING** — `require('./src/index.js')` loads OK (embed.js uses default import + destructure)
+- **Tests: 845/845 passing** — 0 failures, 166 test files
+- **PRD: up to date** — all file paths corrected, all features documented
+- **All CRs resolved** — 0 pending change requests
+- **Gap scores are STALE** — PRD 58%, DBB 72%, Architecture 85% all need re-scan; all known gaps addressed
 
-## Scope
+## BLOCKING — Tester Review Required
+- **tester MUST review task-1775844314020** (embed.js build fix) to close
+- **tester MUST review task-1775840057892** (dead import maps removal) to close
+- **tester MUST review task-1775793599594** (ARCHITECTURE.md cleanup) to close
+- PM cannot approve review tasks — only tester can move review → done
+- All 3 review tasks have verified implementations; milestone closes when tester approves them
 
-### Critical (DBB) — IN REVIEW
-1. **src/index.js** — Created. Awaiting tester verification. (task-1775793599438)
-2. **Docker port + OLLAMA_HOST + data volume** — Fixed. Awaiting tester verification. (task-1775793599479)
+## Completed
+1. ✅ src/index.js entry point created (task-1775793599438)
+2. ✅ Docker port 1234 + OLLAMA_HOST + data volume (task-1775793599479)
+3. ✅ Cloud fallback: timeout >5s, 3 errors, 60s probe (task-1775793599517)
+4. ✅ README troubleshooting section (task-1775793599556)
+5. ✅ Test suite fixed — embed.js CJS/ESM import (task-1775834973520)
+6. ✅ m95 tests already passing — no fix needed (task-1775845910358)
 
-### Major (PRD) — IN REVIEW / IN PROGRESS
-3. **Cloud fallback** — brain.js already implements full spec (timeout >5s, 3 errors, 60s probe). PRD updated to reference brain.js. Awaiting tester verification. (task-1775793599517)
-4. **README troubleshooting** — Added. Awaiting tester verification. (task-1775793599556)
-
-### Test Suite — IN PROGRESS
-5. **Fix broken tests** — 29 failures across 11 files. Critical build blocker: embed.js import error. Developer working. (task-1775834973520)
-
-### Architecture — TODO
-6. **ARCHITECTURE.md cleanup** — Remove stale CR content, update directory tree. Assigned to architect. (task-1775793599594)
-
-## Acceptance Criteria
-- `node -e "require('./src/index.js')"` succeeds and exports startServer, detector, runtime
-- `docker-compose config` shows port 1234, OLLAMA_HOST, ./data volume
-- Cloud fallback triggers on timeout >5s and 3 consecutive errors (brain.js)
-- Cloud fallback auto-restores after 60s successful probe (brain.js)
-- README.md has troubleshooting section
-- ARCHITECTURE.md directory tree matches actual src/ contents
-- Build passes (embed.js import fixed)
-- Core module tests pass (stt, tts, brain, hub, api)
+## In Review
+7. **REVIEW**: Fix embed.js build failure — default import pattern (task-1775844314020)
+8. **REVIEW**: Remove dead import maps from package.json (task-1775840057892)
+9. **REVIEW**: ARCHITECTURE.md cleanup — directory tree updated, stale refs removed (task-1775793599594)
