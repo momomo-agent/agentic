@@ -17,15 +17,18 @@ vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() 
 
 // Mock config to avoid filesystem race conditions with other test files
 let _store = {};
-vi.mock('../../src/config.js', async (importOriginal) => {
-  const orig = await importOriginal();
-  return {
-    ...orig,
-    getConfig: async () => ({ ..._store }),
-    setConfig: async (updates) => { Object.assign(_store, updates); },
-    reloadConfig: async () => ({ ..._store }),
-  };
-});
+vi.mock('../../src/config.js', () => ({
+  getConfig: async () => ({ ..._store }),
+  setConfig: async (updates) => { Object.assign(_store, updates); },
+  reloadConfig: async () => ({ ..._store }),
+  CONFIG_PATH: '/tmp/test-config.json',
+  getModelPool: async () => _store.modelPool || [],
+  addToPool: async (entry) => { _store.modelPool = [...(_store.modelPool || []), entry]; },
+  removeFromPool: async (id) => { _store.modelPool = (_store.modelPool || []).filter(m => m.id !== id); },
+  getAssignments: async () => _store.assignments || {},
+  setAssignments: async (a) => { _store.assignments = a; },
+  onConfigChange: () => () => {},
+}));
 vi.mock('multer', () => {
   const m = () => ({ single: () => (req, _res, next) => { req.file = req._mockFile; next(); } });
   m.memoryStorage = () => ({});
