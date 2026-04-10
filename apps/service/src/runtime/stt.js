@@ -18,11 +18,23 @@ export async function init() {
     const profile = await getProfile(hardware);
     provider = profile?.stt?.provider ?? 'default';
   } catch {}
+
   const load = ADAPTERS[provider] ?? ADAPTERS.default;
   try {
     adapter = await load();
+    // If adapter has a health check, verify it's reachable
+    if (adapter.check) await adapter.check();
   } catch {
-    adapter = await ADAPTERS.default();
+    // Fallback chain: sensevoice → whisper → openai
+    const fallbacks = ['sensevoice', 'whisper', 'default'].filter(k => k !== provider);
+    for (const fb of fallbacks) {
+      try {
+        adapter = await ADAPTERS[fb]();
+        if (adapter.check) await adapter.check();
+        break;
+      } catch { adapter = null; }
+    }
+    if (!adapter) adapter = await ADAPTERS.default();
   }
 }
 
