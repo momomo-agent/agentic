@@ -1,8 +1,9 @@
 import agenticEmbedPkg from 'agentic-embed'
-const { localEmbed: agenticEmbed } = agenticEmbedPkg
+const { localEmbed } = agenticEmbedPkg
 
 export async function embed(text) {
   if (typeof text !== 'string') throw new TypeError('text must be a string')
   if (text === '') return []
-  return agenticEmbed(text)
+  const [vector] = localEmbed([text])
+  return vector
 }
