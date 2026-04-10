@@ -1,20 +1,22 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 // Tests for config hot-reload — DBB-005
-import { watchProfiles } from '../../src/detector/profiles.js'
 
 const origFetch = globalThis.fetch;
 
 describe('config hot-reload (DBB-005)', () => {
+  beforeEach(() => vi.resetModules());
   afterEach(() => {
     globalThis.fetch = origFetch;
   });
 
-  it('watchProfiles is a function', () => {
+  it('watchProfiles is a function', async () => {
+    const { watchProfiles } = await import('../../src/detector/profiles.js');
     expect(typeof watchProfiles).toBe('function');
   });
 
-  it('watchProfiles returns a stop function', () => {
+  it('watchProfiles returns a stop function', async () => {
     globalThis.fetch = async () => ({ status: 304 });
+    const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, () => {}, 100000);
     expect(typeof stop).toBe('function');
     stop();
@@ -32,6 +34,7 @@ describe('config hot-reload (DBB-005)', () => {
       json: async () => profiles,
     });
 
+    const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, (p) => { reloaded = p; }, 50);
     await new Promise(r => setTimeout(r, 120));
     stop();
@@ -42,6 +45,7 @@ describe('config hot-reload (DBB-005)', () => {
     let callCount = 0;
     globalThis.fetch = async () => ({ status: 304 });
 
+    const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, () => { callCount++; }, 50);
     await new Promise(r => setTimeout(r, 120));
     stop();
@@ -50,6 +54,7 @@ describe('config hot-reload (DBB-005)', () => {
 
   it('network error does not crash', async () => {
     globalThis.fetch = async () => { throw new Error('network down'); };
+    const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, () => {}, 50);
     await new Promise(r => setTimeout(r, 120));
     stop();
@@ -62,6 +67,7 @@ describe('config hot-reload (DBB-005)', () => {
       callCount++;
       return { status: 304 };
     };
+    const { watchProfiles } = await import('../../src/detector/profiles.js');
     const stop = watchProfiles({}, () => {}, 50);
     await new Promise(r => setTimeout(r, 80));
     const countAtStop = callCount;
