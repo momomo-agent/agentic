@@ -2,13 +2,13 @@
   "id": "task-1775849914280",
   "title": "Document missing modules in ARCHITECTURE.md — close 85% → 90% gap",
   "description": "ARCHITECTURE.md has been significantly updated with engine layer, adapters, store, embed, sense, and memory formal sections. ONE remaining stale item:\n\n1. Known limitation #5 (line 627) says \"runtime/memory.js 待实现\" but memory.js IS fully implemented with 26 passing tests and full add/search/remove/clear API. Remove this limitation.\n\nThis is the last blocker for architecture 85% → 90%. All other gaps (store/index.js, embed.js adapters, sense.js full API) are now documented in ARCHITECTURE.md.",
-  "status": "todo",
+  "status": "done",
   "priority": "P0",
   "assignee": "architect",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:38:34.280Z",
-  "updated": "2026-04-10T20:13:07.938Z",
+  "updated": "2026-04-10T20:17:12.899Z",
   "milestoneId": "m98"
 }

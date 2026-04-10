@@ -169,6 +169,7 @@ src/store/index.js  → agentic-store
 - ~~m28-profiles-cache.test.js failing~~ — cache timestamp now updated after successful fetch
 - ~~ARCHITECTURE.md underdocumented modules~~ — store, embed, adapters, profiler, latency-log, CLI tools now have formal module descriptions
 - ~~`runtime/memory.js` pending~~ — implemented (58 lines): add/search/remove/clear using store + embed
+- ~~Config persistence tests failing~~ — api-layer and api-m2 tests all passing (16/16)
 
 ### Open
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
@@ -176,6 +177,7 @@ src/store/index.js  → agentic-store
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CRs submitted
+- `runtime/memory.js` — implemented but ARCHITECTURE.md known limitation #5 still lists it as a limitation (stale)
 
 ### Architecture Notes (Vision references that map to different files)
 - Full mapping table now in ARCHITECTURE.md "Vision 架构映射" section
