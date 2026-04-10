@@ -20,10 +20,9 @@ describe('api.js — HTTP endpoints', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     chat.mockImplementation(async function* () {});
-    const port = 3500 + Math.floor(Math.random() * 100);
     await new Promise((resolve, reject) => {
-      server = createApp().listen(port);
-      server.once('listening', () => { baseUrl = `http://localhost:${port}`; resolve(); });
+      server = createApp().listen(0);
+      server.once('listening', () => { baseUrl = `http://localhost:${server.address().port}`; resolve(); });
       server.once('error', reject);
     });
   });
