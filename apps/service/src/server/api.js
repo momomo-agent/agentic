@@ -39,7 +39,6 @@ let inflight = 0;
 let draining = false;
 
 export function startDrain() { draining = true; }
-export function resetDrain() { draining = false; }
 
 export function waitDrain(timeout = 10_000) {
   if (inflight === 0) return Promise.resolve();
