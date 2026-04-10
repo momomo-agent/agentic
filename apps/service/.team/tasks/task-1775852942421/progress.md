@@ -16,5 +16,8 @@ Changed all server test files to use `startServer(0)` (OS-assigned port) + `serv
 ## Additional Fix
 Added `_writeQueue` promise chain to `setConfig()` and `initFromProfile()` in `src/config.js` to serialize concurrent writes and prevent ENOENT race on the shared `.tmp` file.
 
+## Additional Fix (dynamic config paths)
+Made `CONFIG_DIR`/`CONFIG_PATH` dynamic via `_configDir()`/`_configPath()` functions so they read `AGENTIC_CONFIG_DIR` env var at call time instead of module load time. This prevents cross-test contamination when vitest runs tests in parallel and another file imports config.js before the env var is set.
+
 ## Result
 173/173 test files pass, 972/983 tests pass (11 skipped), 0 failures.
