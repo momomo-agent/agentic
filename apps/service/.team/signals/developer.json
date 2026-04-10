@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T19:38:38.678Z",
+  "timestamp": "2026-04-10T19:39:16.499Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No claimable tasks available. All todo tasks are either assigned to other roles or cancelled. Full test suite passes: 169 files, 910 tests, 0 failures."
+  "summary": "No available tasks — all 253 dev tasks are done, 2 remaining todos are architect-assigned doc tasks outside developer scope"
 }
