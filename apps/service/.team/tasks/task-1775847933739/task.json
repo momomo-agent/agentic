@@ -1,14 +1,14 @@
 {
   "id": "task-1775847933739",
-  "title": "Fix m62-sigint-integration.test.js — SIGINT graceful drain returns 503 instead of 200",
-  "description": "Fix m28-profiles-cache.test.js — RESOLVED: all 5 tests now pass (verified in latest-test.log)",
-  "status": "testing",
+  "title": "Fix m21-profiles.test.js — matchProfile throws No matching profile found",
+  "description": "2 tests failing in test/m21-profiles.test.js:\n\n1. DBB-001: getProfile returns llm/stt/tts/fallback for valid hardware\n2. DBB-002: getProfile falls back to built-in default when network unavailable and no cache\n\nBoth fail with: Error: No matching profile found (matcher.js:18)\n\nThe test calls getProfile() with hardware data that produces zero candidates from matchProfile(). Either the test hardware fixture does not match any profile in default.json, or matcher.js filtering logic is too strict.\n\nError log:\n  Module.matchProfile src/detector/matcher.js:18:11\n  getProfile src/detector/profiles.js:18:10\n\nFix: ensure the test hardware data matches at least one profile, OR fix matcher.js to handle the test scenario. Check default.json profiles and the test fixture hardware object.",
+  "status": "done",
   "priority": "P0",
-  "assignee": "tester",
+  "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:05:33.740Z",
-  "updated": "2026-04-10T19:09:38.155Z",
+  "updated": "2026-04-10T19:11:59.730Z",
   "milestoneId": "m98"
 }
