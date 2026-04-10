@@ -1,0 +1,13 @@
+{
+  "id": "task-1775854117274",
+  "title": "Close ARCHITECTURE.md gaps — document store, embed, adapters, profiler, sox modules",
+  "description": "Architecture match is 85% with 5 undocumented modules. Add proper sections to ARCHITECTURE.md for: 1) src/store/index.js (KV storage wrapper, get/set/del/delete exports) — status: missing/major, 2) src/runtime/embed.js + src/runtime/adapters/ (embed.js, sense.js, voice/*.js) — status: partial/major, 3) src/runtime/sense.js full API (init/on/start/stop/detect/startWakeWordPipeline etc) — status: partial/minor, 4) src/runtime/profiler.js + src/runtime/latency-log.js — status: missing/minor, 5) src/detector/sox.js + src/cli/download-state.js — status: missing/minor. Previous task task-1775849914280 was marked done but gaps remain. Target: architecture match ≥90%.",
+  "status": "todo",
+  "priority": "P1",
+  "assignee": "architect",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": false,
+  "created": "2026-04-10T20:48:37.274Z",
+  "updated": "2026-04-10T20:48:41.809Z"
+}

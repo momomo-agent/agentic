@@ -1,0 +1,13 @@
+{
+  "id": "task-1775854124115",
+  "title": "Document profiler.js, latency-log.js, sox.js, download-state.js in ARCHITECTURE.md",
+  "description": "Add documentation for undocumented utility modules: src/runtime/profiler.js (startMark/endMark/getMetrics/measurePipeline), src/runtime/latency-log.js (record/p95/reset), src/detector/sox.js (ensureSox), src/cli/download-state.js (model download progress state). These are 'missing' gaps at 'minor' severity.",
+  "status": "todo",
+  "priority": "P1",
+  "assignee": null,
+  "blockedBy": [],
+  "groupId": "m99",
+  "hasDesign": false,
+  "created": "2026-04-10T20:48:44.115Z",
+  "updated": "2026-04-10T20:48:44.116Z"
+}
