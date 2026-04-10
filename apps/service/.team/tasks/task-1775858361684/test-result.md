@@ -25,9 +25,28 @@
 | 22 | §11 contains all STT adapter signature lines | ✅ PASS |
 | 23 | §11 contains all TTS adapter signature lines | ✅ PASS |
 
-## Re-verification (2026-04-11)
+## Full Suite Regression
 
-Re-ran both test files (`m100-voice-adapter-signatures.test.js` — 23 tests, `m100-voice-adapter-docs.test.js` — 9 tests). All 32 tests pass. Manually confirmed ARCHITECTURE.md lines 468-483 contain all 11 function signatures with correct return types, matching actual source exports.
+- **181 test files**, **1077 tests passed**, **0 failures**, 11 skipped
+- No regressions introduced
+
+## Adapter Signature Verification
+
+| Adapter | Documented Exports | Source Match |
+|---------|-------------------|-------------|
+| sensevoice.js | check, transcribe | ✅ |
+| whisper.js | check, transcribe | ✅ |
+| openai-whisper.js | transcribe | ✅ |
+| kokoro.js | synthesize | ✅ |
+| piper.js | synthesize | ✅ |
+| openai-tts.js | synthesize | ✅ |
+| elevenlabs.js | synthesize | ✅ |
+| macos-say.js | synthesize, listVoices | ✅ |
+
+## Edge Cases
+
+1. New adapter added without ARCHITECTURE.md update — "no undocumented adapter files" test catches drift
+2. Adapter export renamed — per-function export tests catch signature changes
 
 ## Verdict
 
