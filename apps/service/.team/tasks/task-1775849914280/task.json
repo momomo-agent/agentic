@@ -1,7 +1,7 @@
 {
   "id": "task-1775849914280",
   "title": "Document missing modules in ARCHITECTURE.md — close 85% → 90% gap",
-  "description": "ARCHITECTURE.md is at 85%. Remaining gaps per architecture.json:\n\n1. [MAJOR/partial] src/runtime/embed.js and src/runtime/adapters/ — adapters (sense.js, voice/openai-tts.js, voice/openai-whisper.js, voice/piper.js, voice/elevenlabs.js, voice/macos-say.js) are in mermaid diagram but need formal module sections with API docs.\n\n2. [MINOR/partial] src/runtime/sense.js — full API (init/on/start/stop/detect/startWakeWordPipeline etc.) beyond brief mention.\n\n3. [MINOR/missing] profiler.js + latency-log.js — mentioned in overview paragraph but no formal API section.\n\n4. [STALE] Known limitation #5 says memory.js is not implemented, but it IS implemented and has 26 passing tests. Remove this limitation.\n\nPrioritize items 1 and 4. Items 2-3 can be brief entries.",
+  "description": "ARCHITECTURE.md has been significantly updated (store docs, embed docs, adapters section, CLI section, package entry). Remaining items:\n\n1. [STALE] Known limitation #5 (line 627) says memory.js is 待实现 but it IS implemented with 26 passing tests. Remove or update this limitation.\n2. [MINOR] profiler.js + latency-log.js have overview mention but no formal API section — add brief entries.\n3. [MINOR] sense.js full API (init/on/start/stop/detect etc.) could use a more complete listing.\n\nItem 1 is the critical blocker for closing the architecture gap. Items 2-3 are minor polish.",
   "status": "todo",
   "priority": "P0",
   "assignee": "architect",
@@ -9,6 +9,6 @@
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:38:34.280Z",
-  "updated": "2026-04-10T20:02:14.859Z",
+  "updated": "2026-04-10T20:03:31.648Z",
   "milestoneId": "m98"
 }
