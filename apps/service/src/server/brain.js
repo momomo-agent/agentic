@@ -103,7 +103,7 @@ async function* ollamaChat(messages, tools, resolved) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(30000)
+    signal: AbortSignal.timeout(120000)
   });
 
   if (!response.ok) throw new Error(`Ollama API error: ${response.status} (model=${model})`);

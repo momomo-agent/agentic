@@ -96,6 +96,10 @@ function addRoutes(r) {
             const delta = { role: 'assistant', content: chunk.content ?? chunk.text ?? '' };
             res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta, finish_reason: null }] })}\n\n`);
           }
+          if (chunk.type === 'tool_use') {
+            const delta = { role: 'assistant', tool_calls: [{ index: 0, id: chunk.id, type: 'function', function: { name: chunk.name, arguments: JSON.stringify(chunk.input) } }] };
+            res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta, finish_reason: null }] })}\n\n`);
+          }
         }
         res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] })}\n\n`);
         res.write('data: [DONE]\n\n');

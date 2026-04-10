@@ -137,8 +137,9 @@
             {{ ttsLoading ? '合成中...' : '🔊 合成语音' }}
           </button>
         </div>
-        <div class="tts-result" v-if="ttsAudioUrl || ttsLatency">
+        <div class="tts-result" v-if="ttsAudioUrl || ttsLatency || ttsError">
           <div class="result-label">合成结果</div>
+          <div v-if="ttsError" class="error-text">{{ ttsError }}</div>
           <audio v-if="ttsAudioUrl" :src="ttsAudioUrl" controls class="tts-audio"></audio>
           <div v-if="ttsLatency" class="tts-latency">延迟: {{ ttsLatency }}ms</div>
         </div>
@@ -867,12 +868,14 @@ const ttsInput = ref('')
 const ttsLoading = ref(false)
 const ttsAudioUrl = ref(null)
 const ttsLatency = ref(null)
+const ttsError = ref('')
 
 async function runTts() {
   if (!ttsInput.value.trim() || ttsLoading.value) return
   ttsLoading.value = true
   ttsAudioUrl.value = null
   ttsLatency.value = null
+  ttsError.value = ''
   const t0 = Date.now()
   try {
     const res = await fetch('/api/tts', {
@@ -880,13 +883,18 @@ async function runTts() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: ttsInput.value })
     })
-    const blob = await res.blob()
     ttsLatency.value = Date.now() - t0
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+      throw new Error(err.error || `TTS 失败: ${res.status}`)
+    }
+    const blob = await res.blob()
     if (ttsAudioUrl.value) URL.revokeObjectURL(ttsAudioUrl.value)
     ttsAudioUrl.value = URL.createObjectURL(blob)
     markTested('tts')
   } catch (e) {
-    ttsLatency.value = Date.now() - t0
+    ttsError.value = e.message
+    if (!ttsLatency.value) ttsLatency.value = Date.now() - t0
   }
   ttsLoading.value = false
 }
