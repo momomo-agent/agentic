@@ -1,9 +1,9 @@
 {
   "match": 95,
-  "timestamp": "2026-04-11T09:10:00.000Z",
+  "timestamp": "2026-04-11T09:19:00.000Z",
   "gaps": [
     {
-      "description": "runtime/tts.js ADAPTERS map references adapters/voice/kokoro.js but the file does not exist on disk — will throw at runtime if kokoro provider is selected",
+      "description": "runtime/tts.js ADAPTERS map references adapters/voice/kokoro.js but the file does not exist on disk — gracefully falls back to default adapter via try/catch, but kokoro provider silently degrades instead of working",
       "status": "missing",
       "severity": "major"
     },
@@ -13,12 +13,12 @@
       "severity": "minor"
     },
     {
-      "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures",
+      "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures in ARCHITECTURE.md",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented with detailed API signatures documented in ARCHITECTURE.md including server/cert.js and server/httpsServer.js for HTTPS support",
+      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented with detailed API signatures documented in ARCHITECTURE.md including server/cert.js, server/httpsServer.js, and detector/sox.js",
       "status": "implemented",
       "severity": "minor"
     }

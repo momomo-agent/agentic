@@ -1,7 +1,7 @@
 {
   "agent": "vision_monitor",
-  "timestamp": "2026-04-10T21:52:21.667Z",
+  "timestamp": "2026-04-10T21:53:41.406Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Vision check stable at 91% — no new gaps, no resolved gaps, file already current"
+  "summary": "Vision check confirmed match=91%. All gaps unchanged — 18 implemented, 2 partial (MediaPipe browser-only sense, minimal middleware). No new gaps or regressions found."
 }
