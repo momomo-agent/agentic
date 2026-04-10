@@ -1,7 +1,7 @@
 {
   "agent": "pm",
-  "timestamp": "2026-04-10T22:18:26.503Z",
+  "timestamp": "2026-04-10T22:18:26.915Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Goal met — Vision 91% and PRD 90% both at or above 90% target. All 25 milestones completed, no pending CRs, no active tasks. Remaining gaps are minor and don't threaten thresholds."
+  "summary": "Goal achieved: Vision 91% ≥90%, PRD 90% ≥90%. All 25 milestones completed, 181 test files passing, no pending CRs, no active tasks. Remaining gaps are minor/cosmetic and don't threaten thresholds."
 }
