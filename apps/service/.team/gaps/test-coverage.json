@@ -1,9 +1,9 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 972,
+  "passed": 972,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "Hardware detector test name says '2 seconds' but threshold is 5000ms (cosmetic)"
   ],
   "coverage": "100%"
 }

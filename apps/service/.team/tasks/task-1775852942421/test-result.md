@@ -3,11 +3,11 @@
 ## Fix config-persistence test — JSON parse error on atomic write
 
 ### Summary
-**PASS** — All tests pass. The write mutex (`_writeQueue`) in `setConfig()` serializes concurrent writes, eliminating the JSON corruption race condition.
+**PASS** — All 13 tests pass. The write mutex (`_writeQueue`) in `setConfig()` serializes concurrent writes, eliminating the JSON corruption race condition.
 
 ### Test Results
 
-**File:** `test/config-persistence.test.js` — 10/10 passed
+**File:** `test/config-persistence.test.js` — 13/13 passed
 
 | Test | Result |
 |------|--------|
@@ -19,6 +19,9 @@
 | reloadConfig reads fresh data from disk | PASS |
 | getConfig returns defaults when config file is missing | PASS |
 | getConfig returns defaults when config file contains invalid JSON | PASS |
+| **concurrent setConfig calls all produce valid JSON (no corruption)** | PASS |
+| **concurrent setConfig calls to different keys preserve all keys** | PASS |
+| **no .tmp file remains after concurrent writes** | PASS |
 | onConfigChange listener fires on setConfig | PASS |
 | unsubscribed listener does not fire | PASS |
 
@@ -26,6 +29,8 @@
 - `reloadConfig reads fresh data from disk` was the previously failing test (SyntaxError at JSON.parse). Now passes consistently.
 - Write mutex (`_writeQueue = Promise.resolve()` at line 38, chained in `setConfig` lines 52-63) matches design spec.
 - `initFromProfile` also wrapped in `_writeQueue` (line 69) per design.
+- 3 new concurrent write tests added to verify the mutex fix directly.
 
 ### Edge Cases
-- No untested edge cases identified. Existing tests cover: sequential writes, deep merge, internal key stripping, reload from disk, missing file, invalid JSON, listener lifecycle.
+- initFromProfile concurrent with setConfig (not tested — requires profile fixture setup)
+- Disk full or permission error during atomic write (OS-level, not unit-testable)
