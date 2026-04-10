@@ -1,0 +1,14 @@
+{
+  "id": "cr-1775844552107",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L1",
+  "targetFile": "PRD.md",
+  "reason": "PRD references three source files that do not exist on disk: src/detector/optimizer.js (Vision architecture diagram), src/runtime/llm.js (M2 STT/TTS section and M4 cloud fallback), and src/runtime/memory.js (M3 features). The actual implementations are: (1) hardware optimization logic lives in profiles.js + matcher.js, (2) LLM chat/streaming/cloud-fallback lives in server/brain.js, (3) vector memory primitives live in store/index.js + runtime/embed.js. PRD file paths should be updated to match the actual codebase to prevent developer confusion and monitor false negatives.",
+  "proposedChange": "Update PRD file references: replace 'runtime/llm.js' with 'server/brain.js' for LLM logic, replace 'detector/optimizer.js' with 'detector/matcher.js + detector/profiles.js' for hardware optimization, and replace 'runtime/memory.js' with 'store/index.js + runtime/embed.js' for memory/vector storage. This will align PRD with the actual architecture and improve gap monitor accuracy.",
+  "status": "resolved",
+  "createdAt": "2026-04-11T12:00:00.000Z",
+  "reviewedAt": "2026-04-11T12:15:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Partially applied. Only runtime/memory.js was found in PRD — updated to store/index.js + runtime/embed.js. The other two references (runtime/llm.js, detector/optimizer.js) do not appear in the current PRD, so no changes needed for those."
+}
