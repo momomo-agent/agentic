@@ -2,12 +2,12 @@
   "id": "task-1775851932380",
   "title": "Fix config persistence — api-layer and api-m2 tests failing",
   "description": "RESOLVED: All api-layer and api-m2 tests now pass (16/16). The config persistence issue was fixed in a prior commit. Verified: 171 test files, 951 tests all passing.",
-  "status": "testing",
+  "status": "done",
   "priority": "P0",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T20:12:12.380Z",
-  "updated": "2026-04-10T20:19:01.949Z"
+  "updated": "2026-04-10T20:20:05.087Z"
 }
