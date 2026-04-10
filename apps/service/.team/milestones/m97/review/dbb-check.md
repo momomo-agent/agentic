@@ -1,6 +1,6 @@
-# DBB Check — M97/M98/M99 — 2026-04-11T04:17
+# DBB Check — M97/M98/M99 — 2026-04-11T07:30
 
-## Global DBB Match: 92%
+## Global DBB Match: 90%
 
 ### Verification Summary
 
@@ -16,11 +16,10 @@
 - ARCHITECTURE.md: clean (no stale CR), directory tree covers 100% of src/, all module sections present (store, embed, sense, profiler, latency-log, tunnel, CLI, HTTPS/middleware, VAD)
 - Import maps removed, README troubleshooting section present
 
-**Remaining minor gaps (2 partial):**
-1. src/runtime/adapters/embed.js is dead code stub — harmless but not cleaned up
-2. src/server/middleware.js is minimal (error handler only) — acceptable for local-first
-
-**VISION.md note:** Still references optimizer.js (line 39) and runtime/llm.js (line 41) — tracked in m98/m99 milestone gaps, not a global DBB gap since ARCHITECTURE.md correctly documents the actual files.
+**Remaining minor gaps (3 partial):**
+1. VISION.md directory tree references phantom files (detector/optimizer.js, runtime/llm.js) and is missing engine/, store/, cli/ directories
+2. src/runtime/adapters/embed.js is dead code stub — harmless but not cleaned up
+3. src/server/middleware.js is minimal (error handler only) — acceptable for local-first
 
 ### Milestone Detail
 
@@ -28,4 +27,4 @@
 |-----------|-------|-------|
 | M97 | 100% | All 10 criteria pass |
 | M98 | 95% | 20/21 pass; DBB-020 VISION.md phantom files fail |
-| M99 | 95% | 3/4 pass; VISION.md directory tree criterion partial |
+| M99 | 90% | 3/4 pass; VISION.md directory tree criterion fail |

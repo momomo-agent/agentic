@@ -1,7 +1,7 @@
 {
   "agent": "vision_monitor",
-  "timestamp": "2026-04-10T21:28:49.751Z",
+  "timestamp": "2026-04-10T21:30:16.272Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Vision gap re-evaluated: match stable at 91%, no source changes detected, 2 partial gaps unchanged"
+  "summary": "Vision check confirmed stable at 91% — no gap changes detected, 18/20 implemented, 2 partial (sense.js browser-only, middleware stub)"
 }

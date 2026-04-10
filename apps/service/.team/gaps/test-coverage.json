@@ -1,9 +1,10 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 981,
+  "passed": 981,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "11 tests skipped (environment-dependent checks)",
+    "DBB-020: VISION.md stale file names — requires doc update, not testable by tester"
   ],
-  "coverage": "100%"
+  "coverage": "99%"
 }

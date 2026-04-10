@@ -1,6 +1,6 @@
 {
   "match": 90,
-  "timestamp": "2026-04-11T07:30:00.000Z",
+  "timestamp": "2026-04-11T08:28:00.000Z",
   "gaps": [
     {
       "description": "src/index.js — package.json 'main' entry point exists and exports core API (startServer, createServer, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed)",
