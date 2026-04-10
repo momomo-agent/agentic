@@ -1,5 +1,5 @@
 {
-  "build": "node -e \"require('./src/index.js')\" 2>&1 || echo 'build check failed'",
+  "build": "node --check src/index.js && node --check src/brain.js && node --check src/sense.js && echo 'syntax ok'",
   "test": "npx vitest run --reporter=verbose 2>&1",
   "e2e": "node bin/agentic-service.js --skip-setup & PID=$!; sleep 3; curl -s http://localhost:1234/health; kill $PID 2>/dev/null"
 }

@@ -3,13 +3,13 @@
 ## Goal
 Close the PRD match gap from 58% to ≥90% by fixing the highest-impact items.
 
-## Current Status (2026-04-11, cycle 20)
+## Current Status (2026-04-11, cycle 21)
 - **6 of 9 tasks DONE** — verified and complete
 - **3 tasks in REVIEW** — waiting for tester verification
   - task-1775844314020: Fix embed.js build failure (developer) — fix applied, default import + destructure pattern
   - task-1775840057892: Remove dead import maps from package.json (developer) — #agentic-voice removed in e699e630
   - task-1775793599594: ARCHITECTURE.md cleanup (architect) — 23-line diff: removes stale files, adds index.js, fixes Docker port docs
-- **Build: PASSING** — `require('./src/index.js')` loads OK (embed.js uses default import + destructure)
+- **Build: PASSING** — `require('./src/index.js')` loads OK (verified 2026-04-11)
 - **Tests: 845/845 passing** — 0 failures, 166 test files
 - **PRD: up to date** — all file paths corrected, all features documented
 - **All CRs resolved** — 0 pending change requests

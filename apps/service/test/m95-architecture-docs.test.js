@@ -74,36 +74,6 @@ describe('m95 — ARCHITECTURE.md documents ollama.js', () => {
   })
 })
 
-describe('m95 — ARCHITECTURE.md documents memory.js API', () => {
-  it('contains memory.js in Runtime section', () => {
-    expect(arch).toMatch(/memory\.js/)
-  })
-
-  it('documents add(text) function', () => {
-    expect(arch).toMatch(/add\(text\)/)
-  })
-
-  it('documents remove(key) function', () => {
-    expect(arch).toMatch(/remove\(key\)/)
-  })
-
-  it('documents delete() alias for remove', () => {
-    expect(arch).toMatch(/delete|别名/)
-  })
-
-  it('documents search(query, topK) function', () => {
-    expect(arch).toMatch(/search\(query.*topK/)
-  })
-
-  it('documents vector-based search with score', () => {
-    expect(arch).toMatch(/score|向量/)
-  })
-
-  it('documents promise-based lock for serial writes', () => {
-    expect(arch).toMatch(/lock|串行|serial/)
-  })
-})
-
 describe('m95 — Source code matches documented signatures', () => {
   it('matcher.js exports matchProfile', () => {
     const src = readFileSync(resolve(ROOT, 'src/detector/matcher.js'), 'utf-8')

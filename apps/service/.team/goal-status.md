@@ -18,6 +18,8 @@ Vision ≥90% + PRD ≥90%
 
 ## 📦 Recent Deliverables
 ### Commits
+2ab4c01d feat: 统一模型管理页 — 合并本地+云端
+2441fb0d feat: developer completed
 4cd6ba46 feat: developer completed
 dbf2b4bd feat: developer completed
 fbe5919d feat: developer completed
@@ -26,8 +28,6 @@ f052f549 fix: mock config.js in rest-api-endpoints test to prevent cross-file ra
 5aaec2c3 feat: developer completed
 544b99b9 feat: developer completed
 d3d6d88e feat: developer completed
-4fde7b37 feat: developer completed
-e699e630 fix: remove dead #agentic-voice import map from package.json
 
 ### Completed Tasks
 (none)
