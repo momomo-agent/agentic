@@ -10,15 +10,20 @@ export function think(transport, input, options = {}) {
   if (options.history) body.history = options.history
   if (options.sessionId) body.sessionId = options.sessionId
   if (options.tools) {
-    body.tools = options.tools.map(t => ({
-      type: 'function',
-      function: {
-        name: t.name,
-        description: t.description,
-        parameters: t.parameters || { type: 'object', properties: {} }
+    body.tools = options.tools.map(t => {
+      // Accept both OpenAI format ({ type:'function', function:{...} }) and flat format
+      if (t.type === 'function' && t.function) return t
+      return {
+        type: 'function',
+        function: {
+          name: t.name,
+          description: t.description,
+          parameters: t.parameters || { type: 'object', properties: {} }
+        }
       }
-    }))
+    })
   }
+  if (options.toolChoice) body.tool_choice = options.toolChoice
 
   if (options.stream) {
     // Return an object that is both a Promise and an AsyncIterable
@@ -37,7 +42,7 @@ async function collectThink(transport, body, options) {
   const toolCalls = []
   for await (const chunk of transport.stream('/api/chat', body)) {
     if (chunk.type === 'content') text += chunk.text || ''
-    if (chunk.type === 'tool_use') toolCalls.push({ name: chunk.name, args: chunk.input || {} })
+    if (chunk.type === 'tool_use') toolCalls.push({ id: chunk.id, name: chunk.name, args: chunk.input || {} })
   }
 
   const result = { answer: text }
@@ -57,10 +62,15 @@ async function collectThink(transport, body, options) {
 
 async function* streamThink(transport, body) {
   for await (const chunk of transport.stream('/api/chat', body)) {
-    if (chunk.type === 'content') yield { type: 'content', text: chunk.text || '' }
-    else if (chunk.type === 'tool_use') yield { type: 'tool_use', name: chunk.name, args: chunk.input || {} }
+    if (chunk.type === 'content') {
+      yield { type: 'text_delta', text: chunk.text || '' }
+    } else if (chunk.type === 'tool_use') {
+      yield { type: 'tool_use', id: chunk.id || '', name: chunk.name, input: chunk.input || {} }
+    } else if (chunk.type === 'error') {
+      yield { type: 'error', error: chunk.error || 'unknown error' }
+    }
   }
-  yield { type: 'done' }
+  yield { type: 'done', stopReason: 'end_turn' }
 }
 
 // Makes an async generator also work as a direct async iterable,
