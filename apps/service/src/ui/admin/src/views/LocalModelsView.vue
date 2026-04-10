@@ -67,6 +67,7 @@
       <div class="model-grid">
         <div v-for="cat in modelCategories" :key="cat.label" class="model-category">
           <div class="category-label">{{ cat.label }}</div>
+          <div v-if="cat.note" class="category-note">{{ cat.note }}</div>
           <div v-for="m in cat.models" :key="m.name" class="model-item recommend"
                :class="{ 'is-installed': isInstalled(m.name) }">
             <div class="model-info">
@@ -125,15 +126,8 @@ const modelCategories = [
     { name: 'qwen2.5-coder:3b', desc: '通义千问 Coder — 代码生成', size: '~2 GB', caps: ['chat'] },
     { name: 'codellama:7b', desc: 'Code Llama — Meta 代码模型', size: '~3.8 GB', caps: ['chat'] },
   ]},
-  { label: '🎤 语音识别 (STT)', models: [
-    { name: 'whisper:base', desc: 'OpenAI Whisper — 多语言语音识别', size: '~150 MB', caps: ['stt'] },
-    { name: 'whisper:small', desc: 'OpenAI Whisper — 更高精度', size: '~500 MB', caps: ['stt'] },
-    { name: 'whisper:medium', desc: 'OpenAI Whisper — 高精度', size: '~1.5 GB', caps: ['stt'] },
-  ]},
-  { label: '🔊 语音合成 (TTS)', models: [
-    { name: 'kokoro', desc: 'Kokoro — 高质量多语言 TTS', size: '~400 MB', caps: ['tts'] },
-    { name: 'orpheus', desc: 'Orpheus — 自然语音合成', size: '~2.5 GB', caps: ['tts'] },
-  ]},
+  { label: '🎤 语音识别 (STT)', note: '由内置 Whisper 引擎处理，无需下载 Ollama 模型', models: [] },
+  { label: '🔊 语音合成 (TTS)', note: '由内置 Kokoro 引擎处理，无需下载 Ollama 模型', models: [] },
   { label: '📐 嵌入 (Embedding)', models: [
     { name: 'nomic-embed-text', desc: 'Nomic — 高质量文本嵌入', size: '~274 MB', caps: ['embedding'] },
     { name: 'mxbai-embed-large', desc: 'MixedBread — 大型嵌入模型', size: '~670 MB', caps: ['embedding'] },
@@ -305,6 +299,7 @@ onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 .model-grid { display: flex; flex-direction: column; gap: 20px; }
 .model-category { display: flex; flex-direction: column; gap: 8px; }
 .category-label { font-size: 14px; font-weight: 600; color: var(--text-dim); }
+.category-note { font-size: 13px; color: var(--text-dim); opacity: 0.7; padding: 8px 0; }
 .custom-pull { display: flex; gap: 8px; }
 .custom-pull input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-2); font-size: 14px; color: var(--text); }
 .custom-pull button { padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary); color: #fff; cursor: pointer; font-size: 14px; font-weight: 600; }
