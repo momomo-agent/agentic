@@ -1,7 +1,7 @@
 {
   "id": "task-1775849914280",
   "title": "Document missing modules in ARCHITECTURE.md — close 85% → 90% gap",
-  "description": "ARCHITECTURE.md is at 85% with 5 undocumented areas. Add formal module sections for:\\n\\n1. [MAJOR/missing] src/store/index.js — KV storage wrapper using agentic-store (get/set/del/delete exports). Currently agentic-store is listed as dependency but local store abstraction is undocumented.\\n\\n2. [MAJOR/partial] src/runtime/embed.js and src/runtime/adapters/ — embed.js, sense.js, voice/openai-tts.js, voice/openai-whisper.js, voice/piper.js, voice/elevenlabs.js, voice/macos-say.js. Only referenced in addendum notes, need formal module sections.\\n\\n3. [MINOR/partial] src/runtime/sense.js — has full implementation (init/on/start/stop/detect/startWakeWordPipeline/stopWakeWordPipeline/initHeadless/startHeadless/detectFrame) beyond the brief directory structure mention.\\n\\n4. [MINOR/missing] src/runtime/profiler.js (startMark/endMark/getMetrics/measurePipeline) and src/runtime/latency-log.js (record/p95/reset) — internal runtime utilities.\\n\\n5. [MINOR/missing] src/detector/sox.js (ensureSox) and src/cli/download-state.js (model download progress state) — utility modules.\\n\\nPrioritize items 1 and 2 (major severity). Items 3-5 can be brief entries in the directory tree or a utilities subsection.",
+  "description": "ARCHITECTURE.md is at 85%. Recent commits already added: store/index.js docs, embed.js section, CLI+sox+download-state docs, runtime overview paragraph. Remaining gaps per architecture.json:\n\n1. [MAJOR/partial] src/runtime/embed.js and src/runtime/adapters/ — adapters (sense.js, voice/openai-tts.js, voice/openai-whisper.js, voice/piper.js, voice/elevenlabs.js, voice/macos-say.js) still only in addendum notes, need formal module sections.\n\n2. [MINOR/partial] src/runtime/sense.js — full API (init/on/start/stop/detect/startWakeWordPipeline etc.) beyond brief mention.\n\n3. [MINOR/missing] profiler.js + latency-log.js — mentioned in overview paragraph but no formal API section.\n\nPrioritize item 1 (major). Items 2-3 can be brief entries.",
   "status": "todo",
   "priority": "P0",
   "assignee": "architect",
@@ -9,6 +9,6 @@
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:38:34.280Z",
-  "updated": "2026-04-10T19:43:33.539Z",
+  "updated": "2026-04-10T19:48:28.958Z",
   "milestoneId": "m98"
 }
