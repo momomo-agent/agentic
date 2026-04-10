@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:41:20.550Z",
+  "timestamp": "2026-04-10T21:42:15.428Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture check: 95% match, no changes from previous scan. kokoro.js still missing, embed.js still dead code, voice adapter docs still incomplete."
+  "summary": "Architecture scan complete. Match holds at 95%. Same 3 gaps persist: missing kokoro.js adapter (major), dead embed.js stub (minor), voice adapter docs lacking signatures (minor). All core modules implemented and conformant."
 }

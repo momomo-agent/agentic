@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:41:57.405Z",
+    "lastRun": "2026-04-10T21:43:14.773Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -31,7 +31,7 @@
   },
   "tester": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:41:51.723Z",
+    "lastRun": "2026-04-10T21:42:49.898Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -56,27 +56,27 @@
     "retryCount": 0
   },
   "vision_monitor": {
-    "status": "running",
-    "lastRun": "2026-04-10T21:41:49.396Z",
-    "currentTask": "评估愿景匹配度",
+    "status": "idle",
+    "lastRun": "2026-04-10T21:42:53.192Z",
+    "currentTask": null,
     "retryCount": 0
   },
   "prd_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:41:55.957Z",
+    "lastRun": "2026-04-10T21:42:52.604Z",
     "currentTask": null,
     "retryCount": 0
   },
   "dbb_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:41:54.183Z",
+    "lastRun": "2026-04-10T21:42:01.661Z",
     "currentTask": null,
     "retryCount": 0
   },
   "arch_monitor": {
-    "status": "running",
-    "lastRun": "2026-04-10T21:41:49.398Z",
-    "currentTask": "评估架构匹配度",
+    "status": "idle",
+    "lastRun": "2026-04-10T21:42:15.434Z",
+    "currentTask": null,
     "retryCount": 0
   },
   "architect": {
@@ -93,7 +93,7 @@
   },
   "alignment_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:41:54.476Z",
+    "lastRun": "2026-04-10T21:42:33.518Z",
     "currentTask": null,
     "retryCount": 0
   }
