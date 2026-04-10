@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('agentic-embed', () => ({
-  localEmbed: vi.fn(async (text) => [0.1, 0.2, 0.3])
+  default: { localEmbed: vi.fn(async (text) => [0.1, 0.2, 0.3]) }
 }))
 
 import { embed } from '../../src/runtime/embed.js'
@@ -25,8 +25,8 @@ describe('embed', () => {
   })
 
   it('propagates errors from agentic-embed', async () => {
-    const { localEmbed: agenticEmbed } = await import('agentic-embed')
-    agenticEmbed.mockRejectedValueOnce(new Error('model not loaded'))
+    const mod = await import('agentic-embed')
+    mod.default.localEmbed.mockRejectedValueOnce(new Error('model not loaded'))
     await expect(embed('test')).rejects.toThrow('model not loaded')
   })
 })
