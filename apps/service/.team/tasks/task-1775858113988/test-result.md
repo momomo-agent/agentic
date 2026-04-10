@@ -8,41 +8,24 @@
 
 All tests passed. The kokoro.js adapter was correctly created and all DBB criteria are satisfied.
 
-## Test Results
+## Test Results (test/m100-runtime-safety.test.js)
 
-### New tests (test/runtime/m100-kokoro-adapter.test.js)
+| # | Test | DBB | Result |
+|---|------|-----|--------|
+| 1 | kokoro.js adapter file exists on disk | DBB-001 | ✅ PASS |
+| 2 | kokoro adapter can be dynamically imported without error | DBB-001 | ✅ PASS |
+| 3 | every adapter in tts.js ADAPTERS map has a corresponding file | DBB-002 | ✅ PASS |
+| 4 | kokoro adapter exports a synthesize function | DBB-002 | ✅ PASS |
+| 5 | all voice adapters export synthesize | DBB-004 | ✅ PASS |
+| 6 | tts.js source has not been modified (no regression risk) | DBB-005 | ✅ PASS |
+| 7 | synthesize rejects with descriptive error on non-200 response | Contract | ✅ PASS |
+| 8 | adapter follows the same pattern as other voice adapters | Contract | ✅ PASS |
+| 9 | src/runtime/adapters/ contains only sense.js and voice/ | Integrity | ✅ PASS |
 
-| # | Test | Result |
-|---|------|--------|
-| 1 | DBB-001/002: kokoro.js file exists on disk | PASS |
-| 2 | DBB-001: kokoro adapter is importable without error | PASS |
-| 3 | DBB-001: kokoro adapter exports synthesize as a function | PASS |
-| 4 | DBB-002: found adapter import paths in tts.js | PASS |
-| 5 | DBB-002: adapter file exists for macos-say | PASS |
-| 6 | DBB-002: adapter macos-say is importable | PASS |
-| 7 | DBB-002: adapter file exists for piper | PASS |
-| 8 | DBB-002: adapter piper is importable | PASS |
-| 9 | DBB-002: adapter file exists for kokoro | PASS |
-| 10 | DBB-002: adapter kokoro is importable | PASS |
-| 11 | DBB-002: adapter file exists for elevenlabs | PASS |
-| 12 | DBB-002: adapter elevenlabs is importable | PASS |
-| 13 | DBB-002: adapter file exists for openai-tts | PASS |
-| 14 | DBB-002: adapter openai-tts is importable | PASS |
-| 15 | DBB-006: src/runtime/adapters/embed.js does not exist | PASS |
-| 16 | DBB-006: no source references to adapters/embed | PASS |
-| 17 | DBB-007: vitest.config.js has no #agentic-embed alias | PASS |
-| 18 | kokoro adapter uses correct default base URL (localhost:8880) | PASS |
-| 19 | kokoro adapter uses /v1/audio/speech endpoint | PASS |
-| 20 | kokoro adapter reads config from ~/.agentic-service/config.json | PASS |
-| 21 | kokoro adapter throws descriptive error on HTTP failure | PASS |
+## Full Suite Regression
 
-### Existing TTS tests (regression check — DBB-004/005)
-
-| File | Tests | Result |
-|------|-------|--------|
-| test/runtime/m38-tts.test.js | 1 | PASS |
-| test/runtime/stt-tts-adaptive.test.js | 8 | PASS |
-| test/runtime/stt-tts-m12.test.js | 6 | PASS |
+- **Before:** 174 files, 981 tests passed
+- **After:** 177 files, 1024 tests passed, 0 failures
 
 ## DBB Coverage
 
@@ -53,15 +36,13 @@ All tests passed. The kokoro.js adapter was correctly created and all DBB criter
 | DBB-003 | Architecture gap scanner (not testable in unit tests) | ⚠️ Deferred |
 | DBB-004 | Existing TTS providers still work | ✅ Verified |
 | DBB-005 | All existing tests pass | ✅ Verified |
-| DBB-006 | Dead code adapters/embed.js removed | ✅ Verified |
-| DBB-007 | vitest.config.js has no stale alias | ✅ Verified |
 
 ## Edge Cases Identified
 
-1. **Kokoro server not running** — adapter will throw on `fetch()` with connection refused. The `tts.js init()` fallback catches this and falls back to `openai-tts`. Verified by existing test `stt-tts-adaptive.test.js > DBB-007`.
-2. **Config file missing** — adapter silently falls back to defaults (localhost:8880, voice 'default'). Covered by try/catch in adapter.
+1. **Kokoro server not running** — adapter throws on fetch with connection refused. tts.js init() fallback catches this and falls back to openai-tts.
+2. **Config file missing** — adapter silently falls back to defaults (localhost:8880, voice 'default').
 3. **Non-JSON config file** — same silent fallback via try/catch.
 
 ## Verdict
 
-**PASS** — All 36 tests passed (21 new + 15 existing). Implementation matches design and satisfies all testable DBB criteria.
+**PASS** — Implementation matches design and satisfies all testable DBB criteria.
