@@ -16,18 +16,26 @@
               <div class="slot-desc">{{ slot.desc }}</div>
             </div>
           </div>
-          <select
-            class="slot-select"
-            :value="assignments[slot.key]"
-            @change="updateAssignment(slot.key, ($event.target as HTMLSelectElement).value)"
-          >
-            <option value="">未分配</option>
-            <option
-              v-for="m in modelsForCap(slot.cap)"
-              :key="m.id"
-              :value="m.id"
-            >{{ m.name }} ({{ m.provider }})</option>
-          </select>
+          <div class="slot-right">
+            <select
+              class="slot-select"
+              :value="assignments[slot.key]"
+              @change="updateAssignment(slot.key, ($event.target as HTMLSelectElement).value)"
+            >
+              <option value="">未分配</option>
+              <option
+                v-for="m in modelsForCap(slot.cap)"
+                :key="m.id"
+                :value="m.id"
+              >{{ m.name }} ({{ m.provider }}) {{ capIcons(m.capabilities) }}</option>
+            </select>
+            <div v-if="!assignments[slot.key] && modelsForCap(slot.cap).length === 0" class="slot-hint warn">
+              无可用模型 — 在「模型管理」中添加
+            </div>
+            <div v-else-if="!assignments[slot.key] && fallbackModel" class="slot-hint">
+              回退到 {{ fallbackModel }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -71,12 +79,18 @@ const assignments = reactive<Record<string, string>>({
 })
 const modelPool = ref<any[]>([])
 const ollamaHost = ref('http://localhost:11434')
+const fallbackModel = ref('')
 const savingHost = ref(false)
 const hostSaved = ref(false)
 const error = ref('')
 
 function modelsForCap(cap: string) {
   return modelPool.value.filter(m => m.capabilities?.includes(cap))
+}
+
+const capIconMap: Record<string, string> = { chat: '🧠', vision: '👁️', stt: '🎤', tts: '🔊', embedding: '📐' }
+function capIcons(caps: string[]) {
+  return (caps || []).map(c => capIconMap[c] || '').filter(Boolean).join('')
 }
 
 async function fetchData() {
@@ -93,6 +107,7 @@ async function fetchData() {
     modelPool.value = pool
     Object.assign(assignments, assign)
     ollamaHost.value = cfg.ollama?.host || 'http://localhost:11434'
+    fallbackModel.value = cfg.llm?.model || ''
   } catch (e: any) {
     error.value = e.message
   }
@@ -148,6 +163,7 @@ onMounted(fetchData)
   border: 1px solid var(--border);
 }
 .slot-label { display: flex; align-items: center; gap: 12px; }
+.slot-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .slot-icon { font-size: 20px; }
 .slot-name { font-size: 14px; font-weight: 600; }
 .slot-desc { font-size: 12px; color: var(--text-dim); }
@@ -176,4 +192,6 @@ onMounted(fetchData)
   margin-top: 16px; padding: 12px 16px; border-radius: 8px;
   background: rgba(239,68,68,0.1); color: var(--error, #ef4444); font-size: 14px;
 }
+.slot-hint { font-size: 11px; color: var(--text-dim); opacity: 0.7; }
+.slot-hint.warn { color: var(--error, #ef4444); opacity: 1; }
 </style>

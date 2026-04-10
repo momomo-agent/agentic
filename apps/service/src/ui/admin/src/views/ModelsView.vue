@@ -114,11 +114,12 @@
           <div class="field-row">
             <div class="field">
               <label>Provider</label>
-              <select v-model="newCloud.provider">
+              <select v-model="newCloud.provider" @change="onProviderChange">
                 <option value="openai">OpenAI</option>
                 <option value="anthropic">Anthropic</option>
                 <option value="google">Google (Gemini)</option>
                 <option value="groq">Groq</option>
+                <option value="elevenlabs">ElevenLabs (TTS)</option>
                 <option value="custom">自定义</option>
               </select>
             </div>
@@ -369,9 +370,15 @@ const newCloud = reactive({
 const addError = ref('')
 
 const defaultBaseUrl = computed(() => {
-  const map = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com', groq: 'https://api.groq.com/openai/v1', google: '', custom: 'http://localhost:8080/v1' }
+  const map = { openai: 'https://api.openai.com/v1', anthropic: 'https://api.anthropic.com', groq: 'https://api.groq.com/openai/v1', google: '', elevenlabs: 'https://api.elevenlabs.io/v1', custom: 'http://localhost:8080/v1' }
   return map[newCloud.provider] || ''
 })
+
+function onProviderChange() {
+  // Auto-set capabilities based on provider
+  const capMap = { elevenlabs: ['tts'], openai: ['chat'], anthropic: ['chat'], google: ['chat'], groq: ['chat'], custom: ['chat'] }
+  newCloud.capabilities = capMap[newCloud.provider] || ['chat']
+}
 
 async function addCloudModel() {
   addError.value = ''
