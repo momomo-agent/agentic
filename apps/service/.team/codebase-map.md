@@ -185,20 +185,20 @@ src/store/index.js  → agentic-store
 - ~~ARCHITECTURE.md stale CR content~~ — cleaned up, all sections contain legitimate module docs
 - ~~ARCHITECTURE.md incomplete directory tree~~ — now lists all 80+ source files
 - ~~Root `Dockerfile` EXPOSE 3000~~ — now EXPOSE 1234, matching service default port
-- ~~ARCHITECTURE.md known limitation #4 (Dockerfile EXPOSE)~~ — removed, only 3 limitations remain
-- ~~m21-profiles.test.js failing~~ — all 2 tests pass (getProfile returns correct structure + built-in fallback works)
+- ~~m21-profiles.test.js failing~~ — all 2 tests pass
 - ~~m28-profiles-cache.test.js failing~~ — cache timestamp now updated after successful fetch
 - ~~ARCHITECTURE.md underdocumented modules~~ — store, embed, adapters, profiler, latency-log, CLI tools now have formal module descriptions
 - ~~`runtime/memory.js` pending~~ — implemented (58 lines): add/search/remove/clear using store + embed
-- ~~Config persistence tests failing~~ — api-layer and api-m2 tests all passing (16/16)
+- ~~Config persistence tests failing~~ — api-layer and api-m2 tests all passing
+- ~~1 flaky test: hardware detector timing~~ — now passing consistently (515ms)
+- ~~m13-dbb profiles hot-reload flaky~~ — now passing consistently
 
 ### Open
 - `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
 - `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
-- VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CRs submitted
-- ~~1 flaky test: hardware detector timing~~ — now passing consistently (531ms in latest run)
+- VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CR submitted (cr-1775850000000, resolved → task-1775847821786)
 - `store/index.js` imports `open` from agentic-store but package exports `createStore` — may rely on test mocks or alias
 
 ### Architecture Notes (Vision references that map to different files)

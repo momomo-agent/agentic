@@ -80,6 +80,27 @@ After update, confirm:
 - §11 exists with `createPipeline()`, dead code note, all 7 voice adapters
 - Import style matches actual source
 
+## Additional Detail: Voice Adapter Verified Signatures
+
+All verified from source:
+
+**STT adapters:**
+- `sensevoice.js:5` — `export async function check()` — pings `${SENSEVOICE_URL}/api/v1/asr` (default `http://127.0.0.1:18906`)
+- `sensevoice.js:10` — `export async function transcribe(buffer)` — POST multipart/form-data to SenseVoice API
+- `whisper.js:10` — `export async function check()` — `access(WHISPER_BIN)` + `access(WHISPER_MODEL)`
+- `whisper.js:14` — `export async function transcribe(buffer)` — writes temp WAV, executes whisper-cli, returns stdout
+- `openai-whisper.js:4` — `export async function transcribe(buffer)` — POST to OpenAI /v1/audio/transcriptions
+
+**TTS adapters:**
+- `piper.js:78` — `export async function synthesize(text)` — auto-downloads piper binary to `~/.agentic-service/piper/`, spawns child process
+- `openai-tts.js:4` — `export async function synthesize(text)` — POST to OpenAI /v1/audio/speech
+- `elevenlabs.js:8` — `export async function synthesize(text)` — POST to ElevenLabs streaming API, returns Buffer
+- `macos-say.js:14` — `export async function synthesize(text)` — executes `say` → AIFF → `afconvert` → WAV
+- `macos-say.js:47` — `export async function listVoices()` — parses `say -v '?'` output
+
 ## Assessment
 
-This gap appears already closed — both §10 and §11 exist with accurate content. Architect should verify against source and mark done, optionally fixing the minor import style discrepancy.
+Both §10 and §11 exist with accurate content. Architect should:
+1. Optionally fix §10 import style to match actual default import + destructure
+2. Optionally expand §11 voice adapter block with STT/TTS contract signatures and auth requirements
+3. Mark task done after verification

@@ -57,16 +57,36 @@ export function measurePipeline(stages)           // line 26 — { stages, total
 
 ## Recommended Changes
 
-All 4 modules are already documented in ARCHITECTURE.md with accurate content. No changes needed.
+### §3 Runtime profiler signatures (lines 287-288) — NEEDS FIX
+
+Lines 287-288 have inaccurate signatures that contradict both the actual source AND the later 性能監控 section (lines 577-578):
+
+| Line | Current (wrong) | Correct |
+|------|-----------------|---------|
+| 287 | `getMetrics() → Map<label, { count, total, avg, min, max }>` | `getMetrics() → { [stage]: { last, avg, count } }` |
+| 288 | `measurePipeline(stages) → Promise<{ results, total }>` | `measurePipeline(stages) → { stages, total, pass }` |
+
+Also `endMark(label)` at line 286 returns `number | null`, not `void`.
+
+Replace lines 284-288 with:
+```
+// runtime/profiler.js — 性能计时
+startMark(label) → void                    // 记录开始时间戳
+endMark(label) → number | null             // 返回耗时 ms，未找到 label 返回 null
+getMetrics() → { [stage]: { last, avg, count } }  // 各阶段最近/平均/次数
+measurePipeline(stages) → { stages, total, pass }  // pass = total < 2000ms
+```
+
+### §7 CLI + 性能監控 — No changes needed
+sox.js, download-state.js (§7 lines 398-410) and 性能監控 section (lines 569-587) are already correct.
 
 ## Verification
 
-Architect should verify:
-1. §3 Runtime section includes profiler.js and latency-log.js exports (lines 284-293)
-2. 性能監控 section (lines 569-587) provides detailed flow description
-3. §7 CLI section includes sox.js and download-state.js (lines 398-410)
-4. All function signatures match actual source code
+Architect should:
+1. Fix §3 lines 284-288 to match actual source signatures
+2. Confirm §3 now matches 性能監控 section (lines 574-578)
+3. Confirm §7 sox.js and download-state.js unchanged
 
 ## Assessment
 
-This gap is already closed. All 4 utility modules have formal documentation in ARCHITECTURE.md matching their actual source code. Architect should verify and mark task done.
+3 of 4 modules are fully documented. profiler.js has a signature inconsistency in §3 that needs correction (the later 性能監控 section already has the right signatures).
