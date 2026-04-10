@@ -702,10 +702,13 @@ function stopCamera() {
 function capturePhoto() {
   if (!videoEl.value) return
   const canvas = document.createElement('canvas')
-  canvas.width = videoEl.value.videoWidth
-  canvas.height = videoEl.value.videoHeight
-  canvas.getContext('2d').drawImage(videoEl.value, 0, 0)
-  visionImage.value = canvas.toDataURL('image/jpeg', 0.85)
+  const maxW = 1024
+  const vw = videoEl.value.videoWidth, vh = videoEl.value.videoHeight
+  const scale = vw > maxW ? maxW / vw : 1
+  canvas.width = vw * scale
+  canvas.height = vh * scale
+  canvas.getContext('2d').drawImage(videoEl.value, 0, 0, canvas.width, canvas.height)
+  visionImage.value = canvas.toDataURL('image/jpeg', 0.7)
   visionResult.value = ''
   stopCamera()
   visionSource.value = 'upload'
@@ -1309,11 +1312,27 @@ const vcInput = ref('')
 const vcLoading = ref(false)
 const vcChatEl = ref(null)
 
+function resizeImage(dataUrl, maxWidth = 1024) {
+  return new Promise(resolve => {
+    const img = new Image()
+    img.onload = () => {
+      if (img.width <= maxWidth) return resolve(dataUrl)
+      const canvas = document.createElement('canvas')
+      const scale = maxWidth / img.width
+      canvas.width = maxWidth
+      canvas.height = img.height * scale
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', 0.7))
+    }
+    img.src = dataUrl
+  })
+}
+
 function handleVcFile(e) {
   const file = e.target.files[0]
   if (!file) return
   const reader = new FileReader()
-  reader.onload = () => { vcImage.value = reader.result; vcHistory.value = [] }
+  reader.onload = async () => { vcImage.value = await resizeImage(reader.result); vcHistory.value = [] }
   reader.readAsDataURL(file)
 }
 
@@ -1321,7 +1340,7 @@ function handleVcDrop(e) {
   const file = e.dataTransfer.files[0]
   if (!file || !file.type.startsWith('image/')) return
   const reader = new FileReader()
-  reader.onload = () => { vcImage.value = reader.result; vcHistory.value = [] }
+  reader.onload = async () => { vcImage.value = await resizeImage(reader.result); vcHistory.value = [] }
   reader.readAsDataURL(file)
 }
 
