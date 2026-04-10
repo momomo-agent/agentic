@@ -1,7 +1,7 @@
 {
   "milestoneId": "m98",
   "match": 95,
-  "timestamp": "2026-04-11T22:10:00.000Z",
+  "timestamp": "2026-04-11T22:16:00.000Z",
   "criteria": [
     { "criterion": "DBB-001: src/index.js exports startServer, createApp, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed", "status": "pass" },
     { "criterion": "DBB-002: src/index.js import does not throw", "status": "pass" },

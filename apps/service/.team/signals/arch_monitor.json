@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:39:13.526Z",
+  "timestamp": "2026-04-10T21:40:53.009Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture scan: 95% match. Found missing kokoro.js voice adapter referenced in runtime/tts.js. All other modules conform to ARCHITECTURE.md design."
+  "summary": "Architecture scan confirmed 95% match. Verified kokoro.js gap is real (referenced at runtime/tts.js:9 but file missing). No new gaps found."
 }

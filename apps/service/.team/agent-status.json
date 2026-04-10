@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:40:12.045Z",
+    "lastRun": "2026-04-10T21:40:55.173Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -30,9 +30,9 @@
     "retryCount": 2
   },
   "tester": {
-    "status": "idle",
-    "lastRun": "2026-04-10T21:39:53.510Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-10T21:40:42.340Z",
+    "currentTask": "验证功能",
     "retryCount": 1
   },
   "tester-1": {
@@ -57,25 +57,25 @@
   },
   "vision_monitor": {
     "status": "running",
-    "lastRun": "2026-04-10T21:38:58.157Z",
+    "lastRun": "2026-04-10T21:40:16.492Z",
     "currentTask": "评估愿景匹配度",
     "retryCount": 0
   },
   "prd_monitor": {
-    "status": "running",
-    "lastRun": "2026-04-10T21:38:58.158Z",
-    "currentTask": "评估PRD匹配度",
+    "status": "idle",
+    "lastRun": "2026-04-10T21:40:52.346Z",
+    "currentTask": null,
     "retryCount": 0
   },
   "dbb_monitor": {
-    "status": "idle",
-    "lastRun": "2026-04-10T21:40:10.661Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-10T21:40:16.493Z",
+    "currentTask": "评估DBB匹配度",
     "retryCount": 0
   },
   "arch_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:39:13.535Z",
+    "lastRun": "2026-04-10T21:40:53.493Z",
     "currentTask": null,
     "retryCount": 0
   },
@@ -93,7 +93,7 @@
   },
   "alignment_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T21:39:53.927Z",
+    "lastRun": "2026-04-10T21:40:30.406Z",
     "currentTask": null,
     "retryCount": 0
   }
