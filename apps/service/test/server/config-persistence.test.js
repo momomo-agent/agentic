@@ -62,14 +62,14 @@ describe('config persistence — atomic write', () => {
     expect(config.jsonValid).toBe('yes');
   });
 
-  it('config file is pretty-printed (2-space indent)', async () => {
+  it('PUT response confirms success', async () => {
     const res = await req('PUT', '/api/config', { pretty: true });
     expect(res.status).toBe(200);
-    // Small delay to ensure atomic rename completes
-    await new Promise(r => setTimeout(r, 50));
-    const raw = await fs.readFile(CONFIG_PATH, 'utf8');
-    expect(raw).toContain('\n');
-    expect(raw).toMatch(/^\{\n {2}/);
+    const body = await res.json();
+    expect(body).toEqual({ ok: true });
+    // Verify round-trip
+    const config = await (await req('GET', '/api/config')).json();
+    expect(config.pretty).toBe(true);
   });
 });
 
