@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — 174/174 test files pass, 981/992 tests pass, 11 skipped; all gap monitors ≥90%; ARCHITECTURE.md 654 lines, all modules documented)
+Updated: 2026-04-11 (architect review — 174/174 test files pass, 981/992 tests pass, 11 skipped, 0 failures; all gap monitors ≥90%; ARCHITECTURE.md 653 lines, all modules documented)
 
 ## Technology Stack
 
@@ -48,7 +48,7 @@ src/
     embed.js                  (9 lines)   Vector embedding — embed(text) via agentic-embed
     memory.js               (58 lines)  Semantic memory — add(text, metadata), search(query, topK), remove(id), clear(); uses store + embed
     profiler.js               (29 lines)  CPU profiling — startMark/endMark/getMetrics
-    latency-log.js            (17 lines)  Latency recording — record(label, ms), getLog()
+    latency-log.js            (17 lines)  Latency recording — record(stage, ms), p95(stage), reset()
     vad.js                    (9 lines)   Voice activity detection — createVAD(options), detectVoiceActivity(buffer)
     adapters/
       embed.js                (3 lines)   Stub adapter (throws 'not implemented')

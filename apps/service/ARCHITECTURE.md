@@ -283,9 +283,9 @@ clear() → Promise<void>                 // 清空所有记忆
 
 // runtime/profiler.js
 startMark(label) → void
-endMark(label) → void
-getMetrics() → Map<label, { count, total, avg, min, max }>
-measurePipeline(stages) → Promise<{ results, total }>  // 端到端管道计时
+endMark(label) → number|null   // 返回 elapsed ms
+getMetrics() → { [stage]: { last, avg, count } }
+measurePipeline(stages) → { stages, total, pass: total < 2000 }  // 端到端管道计时
 
 // runtime/latency-log.js
 record(stage, ms) → void
