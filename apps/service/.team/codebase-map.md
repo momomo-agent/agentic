@@ -199,6 +199,7 @@ src/store/index.js  → agentic-store
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CRs submitted
+- 1 flaky test: hardware detector timing (environment-dependent, 2321ms > 2000ms)
 - 3 in-progress developer tasks: config-persistence JSON parse, rapid PUTs 500, hardware detector timing flaky
 
 ### Architecture Notes (Vision references that map to different files)

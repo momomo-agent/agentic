@@ -12,8 +12,16 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 
-const CONFIG_DIR = process.env.AGENTIC_CONFIG_DIR || path.join(os.homedir(), '.agentic-service');
-const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
+function _configDir() {
+  return process.env.AGENTIC_CONFIG_DIR || path.join(os.homedir(), '.agentic-service');
+}
+function _configPath() {
+  return path.join(_configDir(), 'config.json');
+}
+
+// Legacy constants — kept for backward compat exports; internal code uses _configDir()/_configPath()
+const CONFIG_DIR = _configDir();
+const CONFIG_PATH = _configPath();
 
 const CAPABILITIES = ['chat', 'vision', 'stt', 'tts', 'embedding'];
 
