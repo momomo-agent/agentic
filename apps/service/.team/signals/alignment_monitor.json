@@ -1,7 +1,7 @@
 {
   "agent": "alignment_monitor",
-  "timestamp": "2026-04-10T21:40:30.401Z",
+  "timestamp": "2026-04-10T21:41:54.215Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Alignment check passed — all layers stable, 0 critical issues, coverage 92-95%"
+  "summary": "Alignment check passed — all layers ≥90%, 0 critical issues, scores stable"
 }
