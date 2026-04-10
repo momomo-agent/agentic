@@ -6,8 +6,9 @@
   "targetFile": "PRD.md",
   "reason": "PRD M4 specifies cloud fallback triggers on timeout >5s or 3 consecutive errors with 60s auto-restore, but llm.js only triggers fallback on immediate Ollama error. The architecture documents the current behavior (error-only fallback). PRD should either be updated to match implementation or the implementation gap should be explicitly tracked.",
   "proposedChange": "Clarify in PRD M4 section 1 whether the timeout/consecutive-error/auto-restore behavior is required for the current milestone or deferred. Current implementation: Ollama error → immediate cloud fallback, no timeout threshold, no error counting, no auto-restore timer.",
-  "status": "pending",
+  "status": "resolved",
   "createdAt": "2026-04-10T13:00:00.000Z",
-  "reviewedAt": null,
-  "reviewedBy": null
+  "reviewedAt": "2026-04-10T13:15:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "PRD M4 Feature 1 is the spec — timeout >5s, 3 consecutive errors, 60s auto-restore are REQUIRED. Fixed PRD line 82 tech spec to match Feature 1 (was inconsistent). Implementation gap tracked in task-1775793599517 (P0, assigned to developer)."
 }

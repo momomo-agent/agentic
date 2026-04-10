@@ -1,0 +1,13 @@
+{
+  "id": "task-1775834973520",
+  "title": "Fix test suite — get critical tests passing",
+  "description": "PRD gap: test suite has ~36 failures. Focus on critical path tests: (1) Run full test suite, identify failures, (2) Fix broken imports/stale references from recent refactors (engine registry, fallback cleanup, dead file removal), (3) Target: core module tests pass (llm, stt, tts, brain, hub, api). Do NOT write new tests — fix existing broken ones.",
+  "status": "todo",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": false,
+  "created": "2026-04-10T15:29:33.520Z",
+  "updated": "2026-04-10T15:29:37.267Z"
+}

@@ -6,8 +6,9 @@
   "targetFile": "PRD.md",
   "reason": "PRD M4 specifies Docker port 1234 and OLLAMA_HOST env var, but root docker-compose.yml exposes port 3000 with no OLLAMA_HOST and no ./data volume. install/docker-compose.yml also uses port 3000. Architecture cannot resolve this without knowing the intended port — PRD says 1234 but both compose files say 3000.",
   "proposedChange": "Confirm canonical Docker port in PRD. If 1234: both docker-compose.yml files need port update + OLLAMA_HOST + ./data volume. If 3000: update PRD default port spec.",
-  "status": "pending",
+  "status": "resolved",
   "createdAt": "2026-04-10T13:00:01.000Z",
-  "reviewedAt": null,
-  "reviewedBy": null
+  "reviewedAt": "2026-04-10T13:15:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Canonical port is 1234 (PRD is correct). Docker-compose files need updating, not PRD. Already tracked in task-1775793599479 (P0, assigned to developer): fix port mapping to 1234:1234, add OLLAMA_HOST, add ./data volume."
 }
