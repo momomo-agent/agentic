@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T20:27:18.087Z",
+  "timestamp": "2026-04-10T20:27:47.460Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture review complete. ARCHITECTURE.md (627 lines) is comprehensive and aligned with codebase. Updated codebase-map.md with latest test results (172/173 files pass, 971/983 tests). All monitor gaps are either implemented, documented as known limitations, or have CRs submitted. No architecture changes needed."
+  "summary": "Architecture review complete. ARCHITECTURE.md (627 lines) is comprehensive and accurate — mermaid diagram, full directory tree, verified function signatures, data flow, Vision mapping table, and 5 known limitations all documented. Remaining partial gaps (middleware minimal, MediaPipe browser-only, optimizer.js split, adapters/embed.js stub, mDNS not implemented) are all explicitly documented as known limitations or architectural decisions. Updated codebase-map.md with current test status (171/173 files pass, 970/983 tests pass). No architecture changes needed — document is stable."
 }

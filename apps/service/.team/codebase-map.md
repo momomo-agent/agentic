@@ -144,8 +144,8 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **173 test files, 172 passing** — 971 tests passed, 11 skipped, 1 flaky (run 2026-04-11)
-- Flaky test: `hardware.test.js` "should complete detection within 2 seconds" — timing-sensitive, passes on fast machines
+- **173 test files, 171 passing, 2 failing** — 970 tests passed, 11 skipped (run 2026-04-11)
+- Failing: `config-persistence.test.js` (ENOENT on atomic rename), `api-m6.test.js` (port 3401 collision)
 - Vitest coverage thresholds: 98% (statements/lines/branches/functions)
 - All previously failing tests fixed: profiles-edge-cases, m21-profiles, m76-embed-wiring, m77-sense-imports, m62-sigint, m28-profiles-cache
 
@@ -174,7 +174,8 @@ src/store/index.js  → agentic-store
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CRs submitted
-- `hardware.test.js` timing test flaky — 2s threshold too tight for slow CI environments
+- `config-persistence.test.js` — ENOENT on atomic rename (developer task exists)
+- `api-m6.test.js` — port 3401 collision in test isolation
 
 ### Architecture Notes (Vision references that map to different files)
 - Full mapping table now in ARCHITECTURE.md "Vision 架构映射" section
