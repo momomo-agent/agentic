@@ -25,6 +25,10 @@
 | 22 | §11 contains all STT adapter signature lines | ✅ PASS |
 | 23 | §11 contains all TTS adapter signature lines | ✅ PASS |
 
+## Re-verification (2026-04-11)
+
+Re-ran both test files (`m100-voice-adapter-signatures.test.js` — 23 tests, `m100-voice-adapter-docs.test.js` — 9 tests). All 32 tests pass. Manually confirmed ARCHITECTURE.md lines 468-483 contain all 11 function signatures with correct return types, matching actual source exports.
+
 ## Verdict
 
 **PASS** — Documentation is complete and matches source code.
