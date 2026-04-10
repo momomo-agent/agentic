@@ -26,6 +26,12 @@ Was flaky in full suite, passes consistently alone. No changes needed.
 - Converted to vitest `describe/it/expect` (commit 7b582b13 by tester)
 - All 5 now pass: cloud-fallback, docker-config, index-entry, readme-troubleshooting, test-suite-health
 
+### embed.js build blocker (DONE)
+- `src/runtime/embed.js` line 1: `import { embed }` → `import { localEmbed }` from agentic-embed
+- agentic-embed exports `{ create, chunkText, cosineSimilarity, localEmbed }` — no `embed` export
+- Updated `test/runtime/embed.test.js` mock to match
+- Commit: 1143cde6
+
 ## Results
 - 166 test files pass, 845 tests pass, 0 failures, 11 skipped
-- Commits: 88cabd0e, 5cf9e292, 7b582b13
+- Commits: 88cabd0e, 5cf9e292, 7b582b13, 1143cde6
