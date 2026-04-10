@@ -35,17 +35,19 @@ ARCHITECTURE.md already contains:
 | Import | `import { AgenticSense } from 'agentic-sense'` | Same | ✅ None |
 | Init | `new AgenticSense(null, options) + init()` | `if (typeof instance.init === 'function') instance.init()` — conditional init | Minor |
 
-### src/runtime/adapters/voice/* (7 files)
+### src/runtime/adapters/voice/* (7 files — verified signatures)
 
-| Adapter | ARCHITECTURE.md §11 | Listed | Gap |
-|---------|---------------------|--------|-----|
-| sensevoice.js | SenseVoice STT (HTTP API) | ✅ | None |
-| whisper.js | Whisper.cpp STT (local binary) | ✅ | None |
-| openai-whisper.js | OpenAI Whisper API (cloud) | ✅ | None |
-| piper.js | Piper TTS (auto-download) | ✅ | None |
-| openai-tts.js | OpenAI TTS API (cloud) | ✅ | None |
-| elevenlabs.js | ElevenLabs TTS (cloud) | ✅ | None |
-| macos-say.js | macOS say (local) | ✅ | None |
+| Adapter | Export(s) | Type | Auth Required |
+|---------|-----------|------|---------------|
+| sensevoice.js (21 lines) | `check()`, `transcribe(buffer) → string` | STT | None (local HTTP 127.0.0.1:18906, SENSEVOICE_URL env) |
+| whisper.js (29 lines) | `check()`, `transcribe(buffer) → string` | STT | None (local binary, WHISPER_BIN/WHISPER_MODEL env) |
+| openai-whisper.js (9 lines) | `transcribe(buffer) → string` | STT | OPENAI_API_KEY |
+| piper.js (119 lines) | `synthesize(text) → Buffer` | TTS | None (auto-downloads binary + voice model) |
+| openai-tts.js (24 lines) | `synthesize(text) → Buffer` | TTS | OPENAI_API_KEY or config.tts.apiKey |
+| elevenlabs.js (48 lines) | `synthesize(text) → Buffer` | TTS | ELEVENLABS_API_KEY or config.tts.apiKey |
+| macos-say.js (61 lines) | `synthesize(text) → Buffer`, `listVoices() → Array<{name, locale}>` | TTS | None (darwin only) |
+
+All listed in §11 ✅. Gap: §11 doesn't show explicit function signatures or auth requirements.
 
 ## Recommended Changes
 
@@ -56,7 +58,20 @@ Sections §10 and §11 already exist with accurate content. Minor enhancements:
    import agenticEmbedPkg from 'agentic-embed'
    const { localEmbed } = agenticEmbedPkg
    ```
-2. §11: Note that `createPipeline` does conditional init (`if typeof init === 'function'`)
+2. §11: Expand voice adapter block to show function signatures and auth:
+   ```javascript
+   // STT adapters — contract: transcribe(buffer) → Promise<string>
+   //   sensevoice.js  — check() + transcribe() — SenseVoice HTTP (SENSEVOICE_URL env)
+   //   whisper.js     — check() + transcribe() — whisper-cli local binary (WHISPER_BIN/WHISPER_MODEL env)
+   //   openai-whisper.js — transcribe() — OpenAI Whisper API (requires OPENAI_API_KEY)
+   //
+   // TTS adapters — contract: synthesize(text) → Promise<Buffer>
+   //   piper.js       — auto-downloads piper binary + voice model on first use
+   //   openai-tts.js  — OpenAI TTS API (requires OPENAI_API_KEY or config.tts.apiKey)
+   //   elevenlabs.js  — ElevenLabs streaming API (requires ELEVENLABS_API_KEY or config.tts.apiKey)
+   //   macos-say.js   — macOS say command (darwin only) + listVoices()
+   ```
+3. §11: Note that `createPipeline` does conditional init (`if typeof init === 'function'`)
 
 ## Verification
 

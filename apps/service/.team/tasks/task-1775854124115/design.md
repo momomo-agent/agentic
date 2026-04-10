@@ -10,8 +10,18 @@ ARCHITECTURE.md already documents all 4 modules:
 
 ### profiler.js — §3 Runtime (lines 284-288) + 性能監控 (lines 569-587)
 
-| Aspect | ARCHITECTURE.md | Actual Source (30 lines) | Gap |
-|--------|----------------|--------------------------|-----|
+Verified against source (src/runtime/profiler.js, 29 lines):
+```javascript
+const marks = new Map()                           // line 1 — active timers
+const metrics = new Map()                         // line 2 — aggregated stats
+export function startMark(label)                  // line 4 — marks.set(label, Date.now())
+export function endMark(label)                    // line 8 — returns elapsed ms or null, updates metrics
+export function getMetrics()                      // line 18 — { [stage]: { last, avg, count } }
+export function measurePipeline(stages)           // line 26 — { stages, total, pass: total < 2000 }
+```
+
+| Aspect | ARCHITECTURE.md | Actual Source | Gap |
+|--------|----------------|---------------|-----|
 | `startMark(label)` | ✅ Documented | `marks.set(label, Date.now())` (line 5) | None |
 | `endMark(label)` | ✅ Returns `number\|null` | Returns elapsed ms or null (line 8) | None |
 | `getMetrics()` | ✅ `{ [stage]: { last, avg, count } }` | Same shape (line 18) | None |
