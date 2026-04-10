@@ -1,6 +1,6 @@
 {
   "match": 90,
-  "timestamp": "2026-04-11T21:42:00.000Z",
+  "timestamp": "2026-04-11T21:45:00.000Z",
   "gaps": [
     {
       "description": "Hardware detector — detect GPU/memory/arch/OS (hardware.js)",
@@ -133,7 +133,7 @@
       "severity": "major"
     },
     {
-      "description": "Test suite — 174 test files, 981 tests passing, 0 failures",
+      "description": "Test suite — 174 test files, 981 passed, 11 skipped, 0 failures",
       "status": "implemented",
       "severity": "minor"
     },
