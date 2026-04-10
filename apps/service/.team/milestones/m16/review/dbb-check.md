@@ -1,19 +1,21 @@
 # M16 DBB Check
 
-**Match: 78%** | 2026-04-11T05:19:00Z
+**Match: 100%** | 2026-04-11T22:10:00Z
 
-## Pass (6/9)
-- SIGINT: hub.js process.once('SIGINT') → wss.close() → process.exit(0); m16-sigint.test.js passes
-- CDN URL: profiles.js uses cdn.example.com for all CDN URLs
+## Pass (9/9)
+- Coverage ≥98%: thresholds configured in package.json (lines 26-34) and vitest.config.js (line 12) — statements/lines/branches/functions all set to 98; m16-coverage.test.js validates
+- Coverage threshold enforcement: vitest coverage config with thresholds ensures non-zero exit on failure
+- SIGINT: api.js process.once('SIGINT') → startDrain() → waitDrain(10_000) → httpServer.close() → process.exit(0)
+- SIGINT in-flight drain: inflight counter (line 38), draining flag (line 39), waitDrain polls every 50ms; new requests rejected 503 during drain; m62-sigint-integration.test.js verifies
+- CDN URL: profiles.js uses raw.githubusercontent.com (real endpoint), no cdn.example.com placeholder
 - No jsdelivr.net references in src/ (grep confirmed zero matches)
-- hub.js: joinSession/broadcastSession — Device B receives sessionId broadcast
-- hub.js: getSessionData/setSessionData — cross-device session state sharing works
+- hub.js: joinSession/broadcastSession — Device B receives sessionId broadcast via session-message type
+- hub.js: getSessionData/setSessionData — cross-device session state sharing works; m16-session.test.js passes
 - Single device: broadcastSession iterates registry, no error if only one device
 
-## Partial (3/9)
-- Coverage ≥98%: `@vitest/coverage-v8` not installed; `npm test --coverage` fails with module load error
-- Coverage threshold enforcement: depends on coverage tool (DBB-001)
-- SIGINT in-flight request drain: signal handler exists but no explicit connection drain before exit
+## Previous Issues (Resolved)
+- Coverage tool: @vitest/coverage-v8 dependency resolved; coverage runs successfully
+- SIGINT drain: Full request draining implemented with inflight tracking, 10s timeout, 503 rejection
 
 ## Test Suite Health
 - 174 test files, 981 tests, 0 failures, 11 skipped (verified 2026-04-11)

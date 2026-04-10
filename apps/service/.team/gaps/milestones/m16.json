@@ -1,12 +1,12 @@
 {
   "milestoneId": "m16",
-  "match": 78,
-  "timestamp": "2026-04-11T05:19:00.000Z",
+  "match": 100,
+  "timestamp": "2026-04-11T22:10:00.000Z",
   "criteria": [
-    { "criterion": "npm test --coverage: statements/lines/branches/functions all >=98%", "status": "partial" },
-    { "criterion": "Coverage below threshold: command exits non-zero", "status": "partial" },
+    { "criterion": "npm test --coverage: statements/lines/branches/functions all >=98%", "status": "pass" },
+    { "criterion": "Coverage below threshold: command exits non-zero", "status": "pass" },
     { "criterion": "SIGINT: service exits cleanly, exit code 0, no zombie process", "status": "pass" },
-    { "criterion": "SIGINT during request: in-flight request completes before exit", "status": "partial" },
+    { "criterion": "SIGINT during request: in-flight request completes before exit", "status": "pass" },
     { "criterion": "CDN URL uses cdn.example.com, not jsdelivr.net", "status": "pass" },
     { "criterion": "No jsdelivr.net references in src/", "status": "pass" },
     { "criterion": "Device A creates session, Device B receives sessionId broadcast", "status": "pass" },

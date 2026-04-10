@@ -3,12 +3,17 @@
   "timestamp": "2026-04-11T06:36:00.000Z",
   "gaps": [
     {
-      "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures",
+      "description": "runtime/tts.js ADAPTERS map references adapters/voice/kokoro.js but the file does not exist on disk — will throw at runtime if kokoro provider is selected",
+      "status": "missing",
+      "severity": "major"
+    },
+    {
+      "description": "adapters/embed.js is documented dead code (throws 'not implemented') still shipping in codebase — listed in Known Limitations but not cleaned up",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "adapters/embed.js is documented dead code (throws 'not implemented') still shipping in codebase — listed in Known Limitations but not cleaned up",
+      "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures",
       "status": "partial",
       "severity": "minor"
     },
