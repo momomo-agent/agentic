@@ -1,10 +1,15 @@
 import { execFile } from 'node:child_process';
-import { writeFile, unlink } from 'node:fs/promises';
+import { writeFile, unlink, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const WHISPER_BIN = process.env.WHISPER_BIN || '/opt/homebrew/bin/whisper-cpp';
+const WHISPER_BIN = process.env.WHISPER_BIN || '/opt/homebrew/bin/whisper-cli';
 const WHISPER_MODEL = process.env.WHISPER_MODEL || join(process.env.HOME, 'LOCAL/momo-agent/tools/whisper-models/ggml-small.bin');
+
+export async function check() {
+  await access(WHISPER_BIN);
+  await access(WHISPER_MODEL);
+}
 
 export async function transcribe(buffer) {
   const tmp = join(tmpdir(), `whisper-${Date.now()}.wav`);
