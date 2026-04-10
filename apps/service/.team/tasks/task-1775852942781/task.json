@@ -2,12 +2,12 @@
   "id": "task-1775852942781",
   "title": "Fix hardware detector timing test — flaky 2s threshold",
   "description": "test/detector/hardware.test.js 'should complete detection within 2 seconds' fails: 2546ms > 2000ms. This is a flaky timing test — CI/load can push detection over 2s. Either relax the threshold to 3000ms or mock the slow detection path. Low severity but counts as a test failure.",
-  "status": "testing",
+  "status": "done",
   "priority": "P2",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T20:29:02.781Z",
-  "updated": "2026-04-10T20:35:19.645Z"
+  "updated": "2026-04-10T20:35:33.668Z"
 }

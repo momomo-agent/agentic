@@ -6,14 +6,15 @@
     "compile-check",
     "unit-test",
     "integration-test",
+    "integration-test",
     "integration-test"
   ],
   "loopIterations": {},
-  "transitionDepth": 4,
+  "transitionDepth": 5,
   "nodeVisitCounts": {
     "compile-check": 1,
     "unit-test": 1,
-    "integration-test": 2
+    "integration-test": 3
   },
   "contextOverrides": {
     "refsValid": 1,
@@ -24,5 +25,5 @@
     "integrationPassed": 0,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T20:34:20.143Z"
+  "timestamp": "2026-04-10T20:35:24.071Z"
 }

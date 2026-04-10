@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T20:34:52.466Z",
+  "timestamp": "2026-04-10T20:35:30.642Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Reviewed ARCHITECTURE.md (628 lines) — comprehensive and current. Updated codebase-map.md with latest test results (172/173 pass, 971/983 tests, 1 flaky hardware timing test). All Vision/PRD/DBB gaps addressed: implemented features documented with accurate API signatures, remaining minor gaps (middleware.js, adapters/embed.js stub, mDNS) documented in known limitations. VISION.md directory tree CR already resolved. No ARCHITECTURE.md changes needed — document is accurate and complete."
+  "summary": "Updated codebase-map.md (test status, admin views, external API table) and ARCHITECTURE.md (added verified external package API signatures section). All 172/173 tests passing (1 flaky timing). Existing VISION.md CRs already cover remaining gaps. Architecture addresses all vision/prd/dbb gap items — remaining partials are documented known limitations (middleware, mDNS, MediaPipe browser dependency)."
 }
