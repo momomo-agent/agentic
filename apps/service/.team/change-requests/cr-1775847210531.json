@@ -6,8 +6,9 @@
   "targetFile": "package.json",
   "reason": "Dead import map #agentic-embed still present in package.json 'imports' field (line 43-44). No source file uses '#agentic-embed' — actual embedding goes through 'agentic-embed' package directly via src/runtime/embed.js. The #agentic-voice entry was already removed in commit e699e630 but #agentic-embed was missed. This is the last remaining dead import map flagged by DBB monitor.",
   "proposedChange": "Remove the entire 'imports' field from package.json:\n\nDelete lines 42-44:\n  \"imports\": {\n    \"#agentic-embed\": \"./src/runtime/adapters/embed.js\"\n  },\n\nThe adapters/embed.js file it points to is a stub that throws 'not implemented'. The real embed path is: runtime/embed.js → agentic-embed (package dependency).",
-  "status": "pending",
+  "status": "resolved",
   "createdAt": "2026-04-11T18:53:30.531Z",
-  "reviewedAt": null,
-  "reviewedBy": null
+  "reviewedAt": "2026-04-11T18:58:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Already done. Commit b4c9d5ce removed the entire 'imports' field from package.json. The #agentic-embed import map no longer exists. Two stale tests (m76-embed-wiring.test.js, m77-sense-imports.test.js) still assert the old import map — task created for developer to fix."
 }

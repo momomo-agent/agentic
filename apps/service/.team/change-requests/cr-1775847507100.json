@@ -1,0 +1,13 @@
+{
+  "id": "cr-1775847507100",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L1",
+  "targetFile": "PRD.md",
+  "reason": "PRD gap file reports docker-compose.yml missing OLLAMA_HOST and ./data volume, but these have already been implemented in root docker-compose.yml. The PRD gap evaluation is stale and should be re-run. Additionally, PRD specifies mDNS/Bonjour for .local hostname discovery which has not been implemented — tunnel.js provides ngrok/cloudflared LAN access instead. PRD should clarify whether mDNS is a hard requirement or if tunnel-based LAN access is acceptable.",
+  "proposedChange": "1. Re-evaluate PRD gaps — docker-compose OLLAMA_HOST and ./data volume are resolved. 2. Clarify mDNS requirement: is ngrok/cloudflared tunnel an acceptable alternative to mDNS/Bonjour .local discovery?",
+  "status": "pending",
+  "createdAt": "2026-04-10T18:58:27.000Z",
+  "reviewedAt": null,
+  "reviewedBy": null
+}

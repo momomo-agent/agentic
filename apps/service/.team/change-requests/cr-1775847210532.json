@@ -1,0 +1,13 @@
+{
+  "id": "cr-1775847210532",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L2",
+  "targetFile": "Dockerfile",
+  "reason": "Root Dockerfile line 13 has EXPOSE 3000 but the service defaults to port 1234 (bin/agentic-service.js). The install/Dockerfile correctly uses EXPOSE 1234. Docker healthcheck in docker-compose.yml targets localhost:1234. This mismatch was flagged by DBB monitor as a port inconsistency.",
+  "proposedChange": "Change line 13 of root Dockerfile from:\n  EXPOSE 3000\nto:\n  EXPOSE 1234",
+  "status": "pending",
+  "createdAt": "2026-04-11T18:54:10.532Z",
+  "reviewedAt": null,
+  "reviewedBy": null
+}

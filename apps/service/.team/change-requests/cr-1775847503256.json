@@ -1,0 +1,13 @@
+{
+  "id": "cr-1775847503256",
+  "from": "architect",
+  "fromLevel": "L2",
+  "toLevel": "L0",
+  "targetFile": "VISION.md",
+  "reason": "VISION.md architecture diagram references three files that were never created and whose functionality lives elsewhere: (1) optimizer.js — hardware optimization is in profiles.js + matcher.js, (2) runtime/llm.js — LLM logic is in server/brain.js with engine/registry.js, (3) runtime/memory.js — memory primitives are in store/index.js + runtime/embed.js. The vision gap monitor flags these as missing features (91% match) but they are architectural naming differences, not missing functionality. Updating the Vision diagram to match actual file names would improve monitor accuracy from 91% to ~95%+.",
+  "proposedChange": "In VISION.md architecture section, update the directory tree:\n- Replace 'optimizer.js  # 根据硬件选最优配置' with 'matcher.js  # 硬件-配置匹配评分' (optimizer logic is in profiles.js + matcher.js)\n- Replace 'llm.js  # agentic-core 封装' with 'brain.js lives in server/ — LLM推理+工具调用+云端fallback'\n- Replace 'memory.js  # 记忆（agentic-store）' with 'store/index.js + embed.js — KV存储 + 向量嵌入'\n- Add engine/ directory to the tree (registry.js, init.js, ollama.js, cloud.js, whisper.js, tts.js)\n- Add config.js to the tree (unified config center)",
+  "status": "pending",
+  "createdAt": "2026-04-11T18:58:23.256Z",
+  "reviewedAt": null,
+  "reviewedBy": null
+}
