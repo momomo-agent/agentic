@@ -133,10 +133,10 @@
       "severity": "major"
     },
     {
-      "description": "Test suite — 169 test files, 912 tests; 1 test failing (m28-profiles-cache.test.js — cache freshness check calls fetch unexpectedly)",
+      "description": "Test suite — 171 test files, 962 tests; 1 test failing (m13-dbb.test.js DBB-008 — profiles hot-reload onReload callback not firing)",
       "status": "partial",
       "severity": "minor",
-      "detail": "1 test file fails: m28-profiles-cache.test.js asserts no fetch when cache is fresh, but fetch is being called. Previous stale embed tests (m76, m77) were fixed in task-1775847599432."
+      "detail": "1 test fails: test/server/m13-dbb.test.js DBB-008 'onReload called when profiles change' — watchProfiles mock with etag-1 does not trigger onReload callback within 150ms. Task task-1775852504738 created for developer."
     },
     {
       "description": "Root Dockerfile EXPOSE 1234 — matches service default port",
