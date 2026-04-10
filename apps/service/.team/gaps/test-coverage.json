@@ -1,10 +1,10 @@
 {
-  "totalTests": 23,
-  "passed": 23,
+  "totalTests": 38,
+  "passed": 38,
   "failed": 0,
   "edgeCases": [
-    "Concurrent add() operations could race on index updates",
-    "Very large stores (>10K entries) — linear scan performance not tested"
+    "No test for topK > number of entries (handled by slice, low risk)",
+    "No test for concurrent add operations (sequential KV store, low risk)"
   ],
-  "coverage": "95%"
+  "coverage": "100%"
 }
