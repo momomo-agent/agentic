@@ -6,8 +6,8 @@
     "read-spec",
     "implement",
     "implement",
-    "implement",
-    "implement",
+    "self-verify-build",
+    "self-verify-test",
     "implement",
     "self-verify-build",
     "self-verify-test",
@@ -17,9 +17,9 @@
   "transitionDepth": 9,
   "nodeVisitCounts": {
     "read-spec": 1,
-    "implement": 5,
-    "self-verify-build": 1,
-    "self-verify-test": 1,
+    "implement": 3,
+    "self-verify-build": 2,
+    "self-verify-test": 2,
     "commit": 1
   },
   "contextOverrides": {
@@ -31,5 +31,5 @@
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T19:53:54.465Z"
+  "timestamp": "2026-04-10T19:54:11.427Z"
 }
