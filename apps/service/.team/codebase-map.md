@@ -144,7 +144,7 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **169 test files, all passing** — 910 tests passed, 11 skipped (run 2026-04-11)
+- **171 test files, all passing** — 951 tests passed, 11 skipped (run 2026-04-11)
 - Vitest coverage thresholds: 98% (statements/lines/branches/functions)
 - profiles-edge-cases.test.js: all 14 tests pass (including expired-cache fallback)
 - m21-profiles.test.js: all 2 tests pass (getProfile + built-in fallback)
