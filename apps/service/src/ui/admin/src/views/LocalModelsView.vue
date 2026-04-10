@@ -96,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 
 const ollama = reactive({ running: false, models: [] })
 const installedModels = ref([])
@@ -165,6 +165,14 @@ async function fetchStatus() {
         installedModels.value = ollama.models.map(name => ({ name }))
       }
     }
+    // Restore download progress from backend state
+    if (data.download?.inProgress && data.download.model) {
+      const name = data.download.model
+      if (!downloads[name]) {
+        const pct = data.download.total ? (data.download.progress / data.download.total) * 100 : 0
+        downloads[name] = { status: data.download.status || '', percent: pct }
+      }
+    }
   } catch {}
 }
 
@@ -172,10 +180,10 @@ async function pullModel(name) {
   if (!name || downloads[name]) return
   downloads[name] = { status: '准备中...', percent: 0 }
   try {
-    const res = await fetch('/api/ollama/pull', {
+    const res = await fetch('/api/models/pull', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, stream: true }),
+      body: JSON.stringify({ model: name }),
     })
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
@@ -187,9 +195,11 @@ async function pullModel(name) {
       const lines = buf.split('\n')
       buf = lines.pop()
       for (const line of lines) {
-        if (!line.trim()) continue
+        if (!line.startsWith('data: ')) continue
         try {
-          const j = JSON.parse(line)
+          const j = JSON.parse(line.slice(6))
+          if (j.error) { delete downloads[name]; alert('下载失败: ' + j.error); return }
+          if (j.status === 'success') break
           downloads[name] = {
             status: j.status || '',
             percent: j.total ? (j.completed / j.total) * 100 : (downloads[name]?.percent || 0),
@@ -225,7 +235,24 @@ async function deleteModel(name) {
   }
 }
 
-onMounted(() => { fetchStatus(); fetchPool() })
+let pollTimer = null
+onMounted(() => {
+  fetchStatus(); fetchPool()
+  // Poll every 3s to restore download progress after tab switch
+  pollTimer = setInterval(async () => {
+    if (Object.keys(downloads).length > 0) return // already tracking locally
+    try {
+      const res = await fetch('/api/status')
+      const data = await res.json()
+      if (data.download?.inProgress && data.download.model) {
+        const name = data.download.model
+        const pct = data.download.total ? (data.download.progress / data.download.total) * 100 : 0
+        downloads[name] = { status: data.download.status || '', percent: pct }
+      }
+    } catch {}
+  }, 3000)
+})
+onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 </script>
 
 <style scoped>

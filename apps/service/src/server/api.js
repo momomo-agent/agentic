@@ -321,6 +321,9 @@ function addRoutes(r) {
     const { model } = req.body;
     if (!model) return res.status(400).json({ error: 'model required' });
     
+    const { setDownloadState, clearDownloadState } = await import('../cli/download-state.js');
+    setDownloadState({ inProgress: true, model, status: 'Starting...', progress: 0, total: 0 });
+
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -335,6 +338,7 @@ function addRoutes(r) {
       });
 
       if (!response.ok) {
+        clearDownloadState();
         res.write(`data: ${JSON.stringify({ error: 'Ollama not running' })}\n\n`);
         return res.end();
       }
@@ -352,14 +356,22 @@ function addRoutes(r) {
         for (const line of lines) {
           try {
             const data = JSON.parse(line);
+            // Update persistent download state
+            if (data.total) {
+              setDownloadState({ status: data.status || '', progress: data.completed || 0, total: data.total });
+            } else if (data.status) {
+              setDownloadState({ status: data.status });
+            }
             res.write(`data: ${JSON.stringify(data)}\n\n`);
           } catch {}
         }
       }
       
+      clearDownloadState();
       res.write(`data: ${JSON.stringify({ status: 'success' })}\n\n`);
       res.end();
     } catch (e) {
+      clearDownloadState();
       res.write(`data: ${JSON.stringify({ error: e.message })}\n\n`);
       res.end();
     }
