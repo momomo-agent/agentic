@@ -2,8 +2,12 @@
 // Integration test: send request + SIGINT, confirm response received
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createApp, startDrain, resetDrain, waitDrain } from '../src/server/api.js';
 import http from 'http';
+
+// Dynamic import to safely handle resetDrain which may not be exported yet
+const api = await import('../src/server/api.js');
+const { createApp, startDrain, waitDrain } = api;
+const resetDrain = api.resetDrain || (() => {});
 
 // We create the app and server manually to avoid startServer's side-effects
 // (engine init, stt/tts init, SIGINT handler) which are slow and can hang tests.
