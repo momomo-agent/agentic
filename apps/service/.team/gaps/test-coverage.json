@@ -1,9 +1,11 @@
 {
-  "totalTests": 972,
-  "passed": 972,
+  "totalTests": 19,
+  "passed": 19,
   "failed": 0,
   "edgeCases": [
-    "Hardware detector test name says '2 seconds' but threshold is 5000ms (cosmetic)"
+    "initFromProfile concurrent with setConfig (covered by shared _writeQueue)",
+    "Disk full or permission error during atomic write (OS-level)",
+    "Very large config objects (low risk)"
   ],
   "coverage": "100%"
 }
