@@ -21,6 +21,11 @@ Was flaky in full suite, passes consistently alone. No changes needed.
 - Fix: use port 0 (OS-assigned) instead of random port in range
 - Commit: 5cf9e292
 
+### m98 test files (DONE)
+- 5 m98 test files were using `node:test`/`node:assert` instead of vitest
+- Converted to vitest `describe/it/expect` (commit 7b582b13 by tester)
+- All 5 now pass: cloud-fallback, docker-config, index-entry, readme-troubleshooting, test-suite-health
+
 ## Results
-- 161 test files pass, 0 failures, 11 skipped (Docker build tests)
-- Commits: 88cabd0e, 5cf9e292
+- 166 test files pass, 845 tests pass, 0 failures, 11 skipped
+- Commits: 88cabd0e, 5cf9e292, 7b582b13
