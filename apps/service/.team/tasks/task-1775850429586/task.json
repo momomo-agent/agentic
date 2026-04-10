@@ -2,12 +2,12 @@
   "id": "task-1775850429586",
   "title": "Implement src/runtime/memory.js — semantic memory API",
   "description": "src/runtime/memory.js does not exist but PRD requires it. Compose store/index.js (KV) + runtime/embed.js (vector embedding) into a semantic memory module.\\n\\nNOTE: memory.js is NOT referenced in PRD.md. Goal (Vision ≥90% + PRD ≥90%) is already met. Deprioritized — only implement if needed for future milestones.",
-  "status": "testing",
+  "status": "done",
   "priority": "P2",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": true,
   "created": "2026-04-10T19:47:09.586Z",
-  "updated": "2026-04-10T19:57:28.683Z"
+  "updated": "2026-04-10T19:57:49.843Z"
 }

@@ -1,9 +1,10 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 15,
+  "passed": 15,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "Concurrent add() calls — potential race condition on index array",
+    "Very large number of entries — performance of linear scan in search()"
   ],
-  "coverage": "100%"
+  "coverage": "95%"
 }
