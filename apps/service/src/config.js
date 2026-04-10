@@ -4,7 +4,7 @@
  * 新架构：modelPool[] + assignments{} 替代旧的 llm/fallback 直接配置
  *
  * modelPool: 所有可用模型（本地 Ollama 自动检测 + 用户添加的云端模型）
- * assignments: 每个能力槽位（chat/vision/stt/tts/embedding/fallback）指向 pool 中的模型 ID
+ * assignments: 每个槽位（chat/vision/stt/tts/embedding + fallback）指向 pool 中的模型 ID
  */
 
 import fs from 'fs/promises';
@@ -14,7 +14,8 @@ import os from 'os';
 const CONFIG_DIR = path.join(os.homedir(), '.agentic-service');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 
-const CAPABILITY_SLOTS = ['chat', 'vision', 'stt', 'tts', 'embedding', 'fallback'];
+const CAPABILITIES = ['chat', 'vision', 'stt', 'tts', 'embedding'];
+const ASSIGNMENT_SLOTS = [...CAPABILITIES, 'fallback'];
 
 const DEFAULTS = {
   modelPool: [],
@@ -146,7 +147,7 @@ export async function removeFromPool(id) {
   const pool = (config.modelPool || []).filter(m => m.id !== id);
   // Also clear any assignments pointing to this model
   const assignments = { ...(config.assignments || {}) };
-  for (const slot of CAPABILITY_SLOTS) {
+  for (const slot of ASSIGNMENT_SLOTS) {
     if (assignments[slot] === id) assignments[slot] = null;
   }
   await setConfig({ modelPool: pool, assignments });
@@ -326,4 +327,4 @@ function deepMerge(target, source) {
   return result;
 }
 
-export { CONFIG_PATH, CAPABILITY_SLOTS };
+export { CONFIG_PATH, CAPABILITIES, ASSIGNMENT_SLOTS };

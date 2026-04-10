@@ -223,7 +223,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 
 const tab = ref('local')
-const allCaps = ['chat', 'vision', 'stt', 'tts', 'embedding', 'fallback']
+const allCaps = ['chat', 'vision', 'stt', 'tts', 'embedding']
 
 // ─── Model Pool ───
 const pool = ref([])
