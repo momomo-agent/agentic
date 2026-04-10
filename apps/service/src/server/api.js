@@ -13,6 +13,7 @@ import * as tts from '../runtime/tts.js';
 import { errorHandler } from './middleware.js';
 import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession } from './hub.js';
 import { getConfig, setConfig, reloadConfig, CONFIG_PATH, getModelPool, addToPool, removeFromPool, getAssignments, setAssignments } from '../config.js';
+import { getEngines, discoverModels, getEngine } from '../engine/registry.js';
 
 function getLanIp() {
   for (const ifaces of Object.values(os.networkInterfaces())) {
@@ -596,6 +597,42 @@ function addRoutes(r) {
 
   r.get('/api/perf', (_req, res) => res.json(getMetrics()));
 
+  // ─── Engine API (new unified layer) ─────────────────────
+  r.get('/api/engines', async (_req, res) => {
+    try {
+      const engines = getEngines();
+      const result = [];
+      for (const e of engines) {
+        const status = await e.status().catch(() => ({ available: false }));
+        result.push({ id: e.id, name: e.name, ...status });
+      }
+      res.json(result);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+
+  r.get('/api/engines/models', async (req, res) => {
+    try {
+      const models = await discoverModels();
+      res.json(models);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+
+  r.get('/api/engines/recommended', async (_req, res) => {
+    try {
+      const engines = getEngines();
+      const all = [];
+      for (const e of engines) {
+        if (e.recommended) {
+          const recs = typeof e.recommended === 'function' ? e.recommended() : [];
+          for (const r of recs) {
+            all.push({ ...r, engineId: e.id });
+          }
+        }
+      }
+      res.json(all);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+
   // Proxy Ollama tags API so frontend doesn't need direct Ollama access
   r.get('/api/ollama/tags', async (_req, res) => {
     try {
@@ -756,6 +793,9 @@ export async function startServer(port = 3000, { https: useHttps = false } = {})
     try { await waitDrain(10_000); } catch { /* timeout, proceed */ }
     httpServer.close(() => process.exit(0));
   });
+  // Init engines + runtime
+  const { initEngines } = await import('../engine/init.js');
+  await initEngines().catch(err => console.warn('Engine init warning:', err.message));
   await Promise.all([stt.init(), tts.init()]).catch(err =>
     console.warn('Runtime init warning:', err.message)
   );

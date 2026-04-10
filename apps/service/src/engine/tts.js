@@ -1,0 +1,41 @@
+/**
+ * TTS Engine — text-to-speech
+ *
+ * 支持多个后端：kokoro, piper, macos-say, elevenlabs, openai-tts
+ * 对外统一为 tts 引擎。
+ */
+
+const TTS_MODELS = [
+  { name: 'kokoro', description: 'Kokoro — 高质量多语言 TTS', capabilities: ['tts'] },
+  { name: 'piper', description: 'Piper — 轻量离线 TTS', capabilities: ['tts'] },
+  { name: 'macos-say', description: 'macOS Say — 系统内置', capabilities: ['tts'] },
+];
+
+export default {
+  name: 'TTS',
+
+  async status() {
+    // At minimum, macos-say is always available on macOS
+    const available = process.platform === 'darwin' || true; // piper/kokoro could be anywhere
+    return { available };
+  },
+
+  async models() {
+    const models = [];
+
+    // macOS say is always available on macOS
+    if (process.platform === 'darwin') {
+      models.push({ id: 'macos-say', name: 'macos-say', description: 'macOS Say — 系统内置', capabilities: ['tts'], installed: true });
+    }
+
+    // TODO: detect kokoro/piper availability
+    models.push({ id: 'kokoro', name: 'kokoro', description: 'Kokoro — 高质量多语言 TTS', capabilities: ['tts'], installed: false });
+    models.push({ id: 'piper', name: 'piper', description: 'Piper — 轻量离线 TTS', capabilities: ['tts'], installed: false });
+
+    return models;
+  },
+
+  recommended() {
+    return TTS_MODELS;
+  },
+};
