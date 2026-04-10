@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:33:57.389Z",
+  "timestamp": "2026-04-10T21:35:59.655Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture check: 95% match, no new gaps, all modules present"
+  "summary": "Architecture scan complete — 95% match, no changes from previous assessment, all core modules present"
 }
