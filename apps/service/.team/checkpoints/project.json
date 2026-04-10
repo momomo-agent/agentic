@@ -8,17 +8,19 @@
     "pm_decide",
     "work_loop",
     "work_loop",
+    "work_loop",
+    "work_loop",
     "work_loop"
   ],
   "loopIterations": {
-    "work_loop": 12
+    "work_loop": 4
   },
-  "transitionDepth": 6,
+  "transitionDepth": 8,
   "nodeVisitCounts": {
     "startup": 1,
     "monitor": 1,
     "pm_decide": 1,
-    "work_loop": 3
+    "work_loop": 5
   },
   "contextOverrides": {
     "refsValid": 1,
@@ -29,5 +31,5 @@
     "integrationPassed": 1,
     "e2ePassed": 1
   },
-  "timestamp": "2026-04-10T19:25:34.531Z"
+  "timestamp": "2026-04-10T19:26:36.241Z"
 }
