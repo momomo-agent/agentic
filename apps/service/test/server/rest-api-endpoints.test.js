@@ -47,9 +47,8 @@ beforeEach(() => new Promise((resolve, reject) => {
   vi.resetAllMocks();
   _store = {};
   chat.mockImplementation(async function* () {});
-  const port = 3700 + Math.floor(Math.random() * 200);
-  server = createApp().listen(port);
-  server.once('listening', () => { base = `http://localhost:${port}`; resolve(); });
+  server = createApp().listen(0);
+  server.once('listening', () => { base = `http://localhost:${server.address().port}`; resolve(); });
   server.once('error', reject);
 }));
 

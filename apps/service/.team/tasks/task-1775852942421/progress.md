@@ -13,5 +13,8 @@ Changed all server test files to use `startServer(0)` (OS-assigned port) + `serv
 - test/server/hub-api.test.js
 - test/server/transcribe-api.test.js
 
+## Additional Fix
+Added `_writeQueue` promise chain to `setConfig()` and `initFromProfile()` in `src/config.js` to serialize concurrent writes and prevent ENOENT race on the shared `.tmp` file.
+
 ## Result
 173/173 test files pass, 972/983 tests pass (11 skipped), 0 failures.

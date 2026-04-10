@@ -1,7 +1,7 @@
 {
   "agent": "developer",
-  "timestamp": "2026-04-10T20:34:49.895Z",
+  "timestamp": "2026-04-10T20:36:24.302Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "No claimable tasks — 259 done, 3 in review, 2 todo (1 assigned to architect, 1 missing design)"
+  "summary": "No available tasks to claim. All todo tasks with designs are either assigned to other roles or outside developer scope. 3 tasks in review (tester), 1 todo (architect). Project appears feature-complete from the developer side."
 }

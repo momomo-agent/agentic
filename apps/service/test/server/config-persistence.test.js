@@ -1,11 +1,16 @@
 /**
  * Config persistence edge-case tests for task-1775851932380
  * Verifies atomic write pattern in _writeToDisk() and PUT/GET round-trip
+ *
+ * Uses isolated temp dir via AGENTIC_CONFIG_DIR to avoid races with parallel tests.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
+
+const TEMP_DIR = path.join(os.tmpdir(), `agentic-server-config-test-${process.pid}`);
+const CONFIG_PATH = path.join(TEMP_DIR, 'config.json');
 
 vi.mock('../../src/server/brain.js', () => ({ chat: vi.fn() }));
 vi.mock('../../src/detector/hardware.js', () => ({
@@ -17,9 +22,6 @@ vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() 
 import { startServer } from '../../src/server/api.js';
 import { reloadConfig } from '../../src/config.js';
 
-const CONFIG_DIR = path.join(os.homedir(), '.agentic-service');
-const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
-
 let server, baseUrl;
 
 async function req(method, p, body) {
@@ -28,14 +30,23 @@ async function req(method, p, body) {
   return fetch(`${baseUrl}${p}`, opts);
 }
 
+beforeAll(async () => {
+  process.env.AGENTIC_CONFIG_DIR = TEMP_DIR;
+  await fs.mkdir(TEMP_DIR, { recursive: true });
+});
+
+afterAll(async () => {
+  delete process.env.AGENTIC_CONFIG_DIR;
+  await fs.rm(TEMP_DIR, { recursive: true, force: true });
+});
+
 beforeEach(async () => {
-  server = await startServer(0);
-  const port = server.address().port;
-  baseUrl = `http://localhost:${port}`;
-  // Reset config cache and clean disk state
   await fs.rm(CONFIG_PATH, { force: true });
   await fs.rm(CONFIG_PATH + '.tmp', { force: true });
   await reloadConfig();
+  server = await startServer(0);
+  const port = server.address().port;
+  baseUrl = `http://localhost:${port}`;
 });
 
 afterEach(() => server?.close());
