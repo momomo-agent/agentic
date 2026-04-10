@@ -1,0 +1,13 @@
+{
+  "id": "task-1775847711853",
+  "title": "Fix root Dockerfile EXPOSE 3000 → 1234",
+  "description": "Root Dockerfile line 13 has EXPOSE 3000 but the service defaults to port 1234 (bin/agentic-service.js). The install/Dockerfile correctly uses EXPOSE 1234. Docker healthcheck in docker-compose.yml targets localhost:1234. Fix: Change EXPOSE 3000 to EXPOSE 1234 in root Dockerfile. This is a one-line fix.",
+  "status": "todo",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": true,
+  "created": "2026-04-10T19:01:51.853Z",
+  "updated": "2026-04-10T19:03:46.454Z"
+}

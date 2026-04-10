@@ -6,8 +6,9 @@
   "targetFile": "ARCHITECTURE.md",
   "reason": "Root Dockerfile still has EXPOSE 3000 but actual default port is 1234. The install/Dockerfile is correct (EXPOSE 1234). ARCHITECTURE.md install section correctly documents port 1234 but the Dockerfile itself is inconsistent. This is a code fix, not a doc fix — change root Dockerfile EXPOSE 3000 to EXPOSE 1234 and update CMD to match.",
   "proposedChange": "In root Dockerfile, change 'EXPOSE 3000' to 'EXPOSE 1234'. The docker-compose.yml already maps 1234:1234 correctly.",
-  "status": "pending",
+  "status": "rejected",
   "createdAt": "2026-04-10T18:58:27.000Z",
-  "reviewedAt": null,
-  "reviewedBy": null
+  "reviewedAt": "2026-04-11T19:10:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Duplicate of CR-1775847210532. Same Dockerfile EXPOSE fix. Consolidated into single developer task."
 }

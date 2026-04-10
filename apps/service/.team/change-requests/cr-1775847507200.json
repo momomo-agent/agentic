@@ -6,8 +6,9 @@
   "targetFile": "PRD.md",
   "reason": "PRD match is 58% but many gaps are stale — docker-compose fixes, cloud fallback improvements, and README updates have been implemented but the gap file hasn't been re-evaluated. The actual PRD coverage is likely 75-80%. A fresh gap evaluation would give accurate metrics.",
   "proposedChange": "Request PM to re-run PRD gap evaluation against current codebase state. Specific items that should flip to 'implemented': OLLAMA_HOST env var, ./data volume mount, cloud fallback (brain.js has 5s timeout + 3-error threshold + 60s probe recovery).",
-  "status": "pending",
+  "status": "resolved",
   "createdAt": "2026-04-10T18:58:27.000Z",
-  "reviewedAt": null,
-  "reviewedBy": null
+  "reviewedAt": "2026-04-11T19:10:00.000Z",
+  "reviewedBy": "pm",
+  "resolution": "Valid. PRD gap evaluation is stale at 58%. Cloud fallback, OLLAMA_HOST, ./data volume, README troubleshooting are all implemented. Updating PRD gaps to reflect current state."
 }

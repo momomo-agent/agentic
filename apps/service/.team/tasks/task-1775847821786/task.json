@@ -1,0 +1,13 @@
+{
+  "id": "task-1775847821786",
+  "title": "Update VISION.md directory tree to match actual file names",
+  "description": "VISION.md architecture diagram references stale file names that map to real files with different names: (1) optimizer.js → matcher.js (profiles.js + matcher.js), (2) runtime/llm.js → server/brain.js (with engine/registry.js), (3) runtime/memory.js → store/index.js + runtime/embed.js. Also add engine/ directory (registry.js, init.js, ollama.js, cloud.js, whisper.js, tts.js) and config.js. This would improve vision match from 91% to ~95%+. Per CR-1775847503256.",
+  "status": "todo",
+  "priority": "P1",
+  "assignee": "architect",
+  "blockedBy": [],
+  "groupId": "m98",
+  "hasDesign": false,
+  "created": "2026-04-10T19:03:41.786Z",
+  "updated": "2026-04-10T19:03:47.608Z"
+}
