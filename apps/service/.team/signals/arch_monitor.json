@@ -1,7 +1,7 @@
 {
   "agent": "arch_monitor",
-  "timestamp": "2026-04-10T21:51:00.051Z",
+  "timestamp": "2026-04-10T21:52:19.981Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Architecture check: 95% match, no changes from previous evaluation. Missing kokoro adapter remains the only major gap."
+  "summary": "Architecture re-evaluated at 95% match — same gaps as prior check, no changes detected"
 }
