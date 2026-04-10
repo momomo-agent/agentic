@@ -143,8 +143,8 @@ src/store/index.js  → agentic-store
 
 ## Test Status
 
-- **912+ tests, 169 test files** — 1 known test isolation issue (m21-profiles vs m28-profiles-cache)
-- profiles-edge-cases.test.js expired-cache fallback assertion fixed (task-1775848768979)
+- **905/916 tests pass (0 failures, 11 skipped), 169 test files** — clean run as of 2026-04-11
+- profiles-edge-cases.test.js: all 14 tests pass (including expired-cache fallback)
 - All previously failing tests (m76-embed-wiring, m77-sense-imports, m28-profiles-cache) now pass
 - m62-sigint-integration: all 4 tests pass
 
@@ -168,7 +168,6 @@ src/store/index.js  → agentic-store
 - `adapters/embed.js` is a dead-code stub — actual embed uses agentic-embed directly via runtime/embed.js
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js, runtime/memory.js) — CR cr-1775847503256 submitted
-- Test isolation: m28-profiles-cache.test.js may write real cache to disk, polluting m21-profiles.test.js in same vitest process
 
 ### Architecture Notes (Vision references that map to different files)
 - Vision's `optimizer.js` → hardware optimization logic lives in profiles.js + matcher.js (CR cr-1775847503256 submitted to update VISION.md)
