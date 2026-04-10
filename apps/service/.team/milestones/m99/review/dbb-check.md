@@ -1,4 +1,4 @@
-# M99 DBB Check — 2026-04-11T23:50Z
+# M99 DBB Check — 2026-04-11T04:25Z
 
 ## Milestone Match: 90%
 
@@ -17,6 +17,7 @@
 - VISION.md phantom file references — documented in ARCHITECTURE.md but VISION.md tree not corrected
 - embed.js adapter stub (dead code, harmless)
 - middleware.js minimal error handler (acceptable for local-first)
+- kokoro.js referenced in runtime/tts.js ADAPTERS map but file does not exist on disk (architecture gap, not DBB-specific)
 
 ### Verification Evidence
 - Test suite: 174 files, 992 tests, 981 passing, 0 failures, 11 skipped

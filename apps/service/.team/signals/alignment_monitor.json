@@ -1,7 +1,7 @@
 {
   "agent": "alignment_monitor",
-  "timestamp": "2026-04-10T21:46:56.107Z",
+  "timestamp": "2026-04-10T21:49:08.221Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Alignment check passed — no spec changes, scores stable (92/95/92), 0 critical issues"
+  "summary": "Verified alignment across Vision→PRD→Architecture→Tasks chain. All scores stable: Vision→PRD 92%, PRD→Architecture 95%, Architecture→Tasks 92%. 0 critical issues. 8 minor issues (all previously documented). No spec changes detected that would alter scores."
 }
