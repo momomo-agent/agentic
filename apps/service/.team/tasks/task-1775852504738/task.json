@@ -2,12 +2,12 @@
   "id": "task-1775852504738",
   "title": "Fix profiles hot-reload test — m13-dbb DBB-008 flaky/failing",
   "description": "test/server/m13-dbb.test.js DBB-008 'onReload called when profiles change' is failing. The test mocks fetch with etag-1 and expects watchProfiles to call the onReload callback within 150ms, but reloaded remains null. Error: AssertionError: expected null not to be null at line 144. Investigate whether watchProfiles correctly detects etag changes and fires the callback. This is the only failing test (1/962).",
-  "status": "todo",
+  "status": "done",
   "priority": "P0",
   "assignee": "developer",
   "blockedBy": [],
   "groupId": "m98",
   "hasDesign": false,
   "created": "2026-04-10T20:21:44.739Z",
-  "updated": "2026-04-10T20:21:48.483Z"
+  "updated": "2026-04-10T20:22:31.726Z"
 }
