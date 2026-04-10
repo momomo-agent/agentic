@@ -368,8 +368,8 @@ CONFIG_CHANGE → 重置为 LOCAL
 
 ## 测试
 
-- 169 个测试文件，916 个测试用例（903 passed, 2 failed, 11 skipped）
-- 当前失败：`test/m21-profiles.test.js` — matchProfile 对测试硬件数据抛出 "No matching profile found"（待修复）
+- 169 个测试文件，916 个测试用例（905 passed, 11 skipped）
+- 全部通过，无失败测试
 - 覆盖率阈值 ≥98%（vitest 配置）
 - 关键测试领域：硬件检测、引擎注册、配置系统、brain fallback、WebSocket hub、语音管线、Docker 部署、REST API 端点、embed 构建验证
 
