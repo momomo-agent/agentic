@@ -6,3 +6,6 @@
 - ollama.js: 1 retry for AbortError/TypeError/ECONNREFUSED, fixed 1s delay
 - cloud.js: 3 retries for 429/5xx, exponential backoff with Retry-After support
 - Wrote 8 tests in test/engine-retry.test.js — all passing
+- Updated: 6 tests in test/engine/retry.test.js — all passing (reorganized test location)
+- cloud.js: all error throws now include httpStatus + retryAfter properties
+- Status: REVIEW

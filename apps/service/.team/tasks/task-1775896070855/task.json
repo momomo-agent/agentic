@@ -2,12 +2,12 @@
   "id": "task-1775896070855",
   "title": "更新 ARCHITECTURE.md Known Limitations",
   "description": "Update ARCHITECTURE.md Known Limitations section: (1) Item 4 still says no request queue/retry — update to note M103 is implementing these. (2) Item 5 still says no model_not_found validation — update to note M103 is adding this. (3) Remove items 4-5 once M103 code ships, or update wording to reflect current state. Also fix adapter path labels in architecture diagram: adapters/sense.js → runtime/adapters/sense.js.",
-  "status": "inProgress",
+  "status": "review",
   "priority": "P2",
   "assignee": "developer",
   "blockedBy": [],
   "groupId": "m103",
-  "hasDesign": false,
+  "hasDesign": true,
   "created": "2026-04-11T08:27:50.855Z",
-  "updated": "2026-04-11T08:59:31.986Z"
+  "updated": "2026-04-11T09:01:25.774Z"
 }

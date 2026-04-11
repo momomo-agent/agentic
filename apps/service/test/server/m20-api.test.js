@@ -8,7 +8,8 @@ vi.mock('../../src/server/hub.js', () => ({
   initWebSocket: vi.fn(),
   registerDevice: vi.fn(),
   updateStatus: vi.fn(),
-  startWakeWordDetection: vi.fn()
+  startWakeWordDetection: vi.fn(),
+  closeAllConnections: vi.fn()
 }));
 vi.mock('../../src/detector/hardware.js', () => ({
   detect: vi.fn().mockResolvedValue({ platform: 'darwin', arch: 'arm64', gpu: {}, memory: 16 })
@@ -18,6 +19,8 @@ vi.mock('../../src/detector/profiles.js', () => ({
 }));
 vi.mock('../../src/runtime/stt.js', () => ({ init: vi.fn(), transcribe: vi.fn() }));
 vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() }));
+vi.mock('../../src/server/shutdown.js', () => ({ registerShutdown: vi.fn() }));
+vi.mock('../../src/engine/health.js', () => ({ stopHealthCheck: vi.fn(), getAllHealth: vi.fn(() => ({})) }));
 
 import { startServer, stopServer } from '../../src/server/api.js';
 import { chat } from '../../src/server/brain.js';

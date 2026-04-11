@@ -13,9 +13,8 @@ describe('M29 DBB: api.js wake word integration', () => {
     expect(src).toMatch(/startWakeWordPipeline\(/);
   });
 
-  it('registers SIGINT handler with stopWake', () => {
-    expect(src).toContain('SIGINT');
-    expect(src).toContain('stopWake');
+  it('registers graceful shutdown via registerShutdown', () => {
+    expect(src).toContain('registerShutdown');
   });
 
   it('broadcasts wake_word via broadcastWakeword', () => {

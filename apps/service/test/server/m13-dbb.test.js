@@ -50,18 +50,13 @@ describe('hub.js M13 broadcastWakeword', () => {
   });
 });
 
-// ── DBB-005: SIGINT handler ───────────────────────────────────────────────────
-describe('hub.js M13 SIGINT', () => {
+// ── DBB-005: Graceful shutdown support ───────────────────────────────────────
+describe('hub.js M13 shutdown support', () => {
   beforeEach(() => vi.resetModules());
 
-  it('DBB-005: SIGINT handler registered via process.once', async () => {
-    const spy = vi.spyOn(process, 'once');
-    const server = createServer();
-    const { initWebSocket } = await import('../../src/server/hub.js');
-    initWebSocket(server);
-    expect(spy.mock.calls.some(c => c[0] === 'SIGINT')).toBe(true);
-    spy.mockRestore();
-    server.close();
+  it('DBB-005: closeAllConnections export exists for graceful shutdown', async () => {
+    const hub = await import('../../src/server/hub.js');
+    expect(typeof hub.closeAllConnections).toBe('function');
   });
 });
 
