@@ -108,11 +108,7 @@ describe('Real embed module (src/runtime/embed.js) unaffected', () => {
     expect(typeof mod.embed).toBe('function');
   });
 
-  it('memory.js still imports from ./embed.js (not adapters/embed.js)', async () => {
-    const src = await fs.readFile(path.join(SRC, 'runtime/memory.js'), 'utf8');
-    expect(src).toContain("from './embed.js'");
-    expect(src).not.toContain('adapters/embed');
-  });
+  // memory.js was removed — dead file cleanup
 });
 
 // ─── vitest.config.js validity ───

@@ -4,14 +4,7 @@ import assert from 'node:assert/strict';
 
 test('dbb-fixes', async () => {
 describe('DBB fixes', () => {
-  it('memory.js exports delete (not just del)', async () => {
-    const { readFileSync } = await import('node:fs');
-    const src = readFileSync(new URL('../../src/runtime/memory.js', import.meta.url), 'utf8');
-    assert.ok(
-      src.includes('export { remove as delete }') || src.includes("export const ['delete']") || src.includes('export async function delete') || src.includes('as delete'),
-      'memory.js should export delete alias'
-    );
-  });
+  // memory.js was removed — dead file cleanup
 
   it('brain.js normalizeMessages converts tool role to Anthropic format', async () => {
     // Test via chat() with a pre-normalized message — verify no crash and format

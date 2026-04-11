@@ -1,7 +1,7 @@
 {
   "milestoneId": "m100",
   "match": 100,
-  "timestamp": "2026-04-11T06:02:00.000Z",
+  "timestamp": "2026-04-11T13:55:00.000Z",
   "criteria": [
     {
       "criterion": "DBB-001: No runtime error when kokoro TTS provider selected — ADAPTERS map includes kokoro with lazy import and try/catch fallback",
@@ -20,7 +20,7 @@
       "status": "pass"
     },
     {
-      "criterion": "DBB-005: All existing tests pass — 181 test files, 181 passed, 0 failed",
+      "criterion": "DBB-005: All existing tests pass — all test files passed, 0 failed",
       "status": "pass"
     },
     {

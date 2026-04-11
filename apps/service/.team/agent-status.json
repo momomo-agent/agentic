@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-10T22:25:26.667Z",
+    "lastRun": "2026-04-11T06:25:17.878Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -24,9 +24,9 @@
     "retryCount": 0
   },
   "developer": {
-    "status": "idle",
-    "lastRun": "2026-04-10T22:07:09.800Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-11T06:31:50.179Z",
+    "currentTask": "实现功能",
     "retryCount": 2
   },
   "tester": {
@@ -51,49 +51,49 @@
   },
   "qa_lead": {
     "status": "idle",
-    "lastRun": "2026-04-10T04:03:21.658Z",
+    "lastRun": "2026-04-11T06:02:32.921Z",
     "currentTask": null,
     "retryCount": 0
   },
   "vision_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T22:18:09.575Z",
+    "lastRun": "2026-04-11T05:55:33.203Z",
     "currentTask": null,
-    "retryCount": 0
+    "retryCount": 2
   },
   "prd_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T22:17:40.108Z",
+    "lastRun": "2026-04-11T05:55:53.160Z",
     "currentTask": null,
-    "retryCount": 0
+    "retryCount": 2
   },
   "dbb_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T22:21:11.764Z",
+    "lastRun": "2026-04-11T05:57:35.213Z",
     "currentTask": null,
-    "retryCount": 0
+    "retryCount": 2
   },
   "arch_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T22:18:43.757Z",
+    "lastRun": "2026-04-11T05:55:05.703Z",
     "currentTask": null,
-    "retryCount": 0
+    "retryCount": 2
   },
   "architect": {
     "status": "idle",
-    "lastRun": "2026-04-10T22:08:52.976Z",
+    "lastRun": "2026-04-11T06:05:47.637Z",
     "currentTask": null,
     "retryCount": 0
   },
   "tech_lead": {
     "status": "idle",
-    "lastRun": "2026-04-10T22:06:28.218Z",
+    "lastRun": "2026-04-11T06:09:58.547Z",
     "currentTask": null,
     "retryCount": 0
   },
   "alignment_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-10T22:18:11.137Z",
+    "lastRun": "2026-04-11T05:55:31.706Z",
     "currentTask": null,
     "retryCount": 0
   }

@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (architect review — adapters/embed.js deleted; kokoro.js confirmed (35 lines); voice adapter API signatures in ARCHITECTURE.md; known-limitations numbering fixed; all gap monitors ≥90%)
+Updated: 2026-04-11 (M101 ready — Engine Registry unification planned; ARCHITECTURE.md updated with M101 section; all gap monitors ≥90%)
 
 ## Technology Stack
 
@@ -200,6 +200,13 @@ src/store/index.js  → agentic-store
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CR submitted (cr-1775850000000, resolved → task-1775847821786)
 - `store/index.js` imports `open` from agentic-store but package exports `createStore` — may rely on test mocks or alias
+
+### M101 Architecture Debt (ready-for-work)
+- brain.js still uses internal resolveModel() + getModelPool — needs migration to registry.resolveModel()
+- stt.js directly calls detect()/getProfile() — needs migration to assignments.stt → registry
+- tts.js directly reads hardware profile — needs migration to assignments.tts → registry
+- Dead files pending removal: LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue, runtime/memory.js
+- Duplicate routes: /api/ollama/* overlaps /api/engines/* — /api/model-pool needs deprecation proxy
 
 ### Architecture Notes (Vision references that map to different files)
 - Full mapping table now in ARCHITECTURE.md "Vision 架构映射" section

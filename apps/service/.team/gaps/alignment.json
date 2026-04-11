@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-04-11T22:16:00Z",
+  "timestamp": "2026-04-11T23:10:00Z",
   "checks": [
     {
       "from": "vision",
@@ -9,24 +9,24 @@
       "issues": [
         {
           "type": "drift",
-          "description": "Vision says first install < 5 minutes on M4 Mac, PRD M1 relaxes to < 10 minutes",
+          "description": "Vision says first install < 5 minutes on any machine, PRD M1 relaxes to < 10 minutes",
           "severity": "minor",
-          "from_item": "Success criteria: npx agentic-service 在 M4 Mac 上 5 分钟内完成首次安装 + 启动",
+          "from_item": "Success criteria: npx agentic-service 在任何机器上 5 分钟内完成首次安装 + 启动",
           "to_item": "M1 acceptance: 首次安装（含模型下载）< 10 分钟"
         },
         {
           "type": "missing",
-          "description": "Vision mentions 'dynamic configuration — remote profiles.json with auto-recommend on model updates' as a core feature, but PRD only covers config hot-update in M4 without specifying auto-recommendation on new model releases",
+          "description": "Vision mentions dynamic configuration with auto-recommend on model updates as implicit in 'hardware adaptive', but PRD only covers config hot-update polling in M4 without specifying auto-recommendation on new model releases",
           "severity": "minor",
-          "from_item": "Core feature 5: 动态配置 — 远程 profiles.json，模型更新后自动推荐新配置",
+          "from_item": "Core value 4: 硬件自适应 — 检测硬件，自动选择最优模型配置",
           "to_item": "M4 feature 2: watchProfiles() 每 30s 轮询，ETag 条件获取 — covers hot-update but not auto-recommendation on model updates"
         },
         {
           "type": "scope_creep",
-          "description": "PRD M3 adds memory module (vector embedding search) which is not mentioned in Vision core features",
+          "description": "PRD M3 adds KV store + vector embedding (memory module) which Vision explicitly lists as non-goal ('不做记忆')",
           "severity": "minor",
-          "from_item": "Vision does not mention memory/vector search as a core feature",
-          "to_item": "M3 feature 6: KV 存储 + 向量嵌入 via agentic-store + agentic-embed"
+          "from_item": "Vision non-goals: 不做记忆 / session / agent 逻辑（业务层的事）",
+          "to_item": "M3 feature 6: KV 存储 + 向量嵌入 via agentic-store + agentic-embed; Architecture includes runtime/memory.js with add()/search()"
         }
       ]
     },
@@ -38,17 +38,17 @@
       "issues": [
         {
           "type": "drift",
-          "description": "PRD specifies latency-log.js with record()/p95()/reset() API, Architecture documents record(stage, ms)/p95(stage)/reset() — Architecture adds a 'stage' parameter not in PRD",
+          "description": "PRD specifies latency-log.js with record()/p95()/reset() API (no params), Architecture documents record(stage, ms)/p95(stage)/reset() — Architecture adds a 'stage' parameter not in PRD",
           "severity": "minor",
           "from_item": "PRD: latency-log.js 提供 record()、p95()、reset() 用于延迟统计",
           "to_item": "Architecture: latencyLog.record(stage, ms), latencyLog.p95(stage), latencyLog.reset() — adds 'stage' parameter"
         },
         {
-          "type": "missing",
-          "description": "PRD REST API table lists GET /api/devices as a dedicated endpoint, Architecture api.js route listing omits it (device info is embedded in GET /api/status instead)",
+          "type": "drift",
+          "description": "Model pool and assignments endpoint paths differ between PRD REST API table and Architecture section 4 code comments",
           "severity": "minor",
-          "from_item": "PRD REST API: GET /api/devices — 返回已连接设备列表",
-          "to_item": "Architecture server/api.js routes list omits /api/devices; GET /api/status returns device info as part of status payload"
+          "from_item": "PRD REST API: GET/POST /api/model-pool, DELETE /api/model-pool/:id, GET/PUT /api/assignments",
+          "to_item": "Architecture section 4: GET/POST /api/models/pool, DELETE /api/models/pool/:id, GET/PUT /api/models/assignments"
         },
         {
           "type": "scope_creep",
@@ -74,7 +74,7 @@
         },
         {
           "type": "missing",
-          "description": "Architecture known limitation #5 mentions memory.js full-scan performance concern, but no task addresses approximate nearest neighbor indexing or search optimization",
+          "description": "Architecture known limitation #4 mentions memory.js full-scan performance concern, but no task addresses approximate nearest neighbor indexing or search optimization",
           "severity": "minor",
           "from_item": "Architecture known limitation: runtime/memory.js 全量扫描 — search() 遍历所有条目计算余弦相似度",
           "to_item": "No task for memory.js search performance optimization"

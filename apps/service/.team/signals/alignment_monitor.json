@@ -1,7 +1,7 @@
 {
   "agent": "alignment_monitor",
-  "timestamp": "2026-04-10T22:18:11.134Z",
+  "timestamp": "2026-04-11T05:55:31.701Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Alignment check verified — Vision→PRD 92%, PRD→Architecture 95%, Architecture→Tasks 92%, 0 critical issues. No score changes needed."
+  "summary": "Alignment verified: all layers aligned, 0 critical issues, scores unchanged (92/95/92)"
 }

@@ -1,6 +1,6 @@
 {
   "match": 97,
-  "timestamp": "2026-04-11T10:16:00.000Z",
+  "timestamp": "2026-04-11T10:25:00.000Z",
   "gaps": [
     {
       "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js, kokoro.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures in ARCHITECTURE.md",

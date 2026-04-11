@@ -648,9 +648,62 @@ docker-compose up
 4. **模块化** — 每个能力独立模块，统一接口，可替换适配器
 5. **流式优先** — LLM/STT/TTS 全部支持流式处理，降低感知延迟
 
+## M101: 引擎层贯通（Engine Registry Unification）
+
+当前 brain.js / stt.js / tts.js 仍直接读取 config.modelPool 和 hardware profile 来选择模型。M101 将所有能力路由统一收敛到 `engine/registry.js`，消除架构债务。
+
+### 目标架构
+
+```mermaid
+graph LR
+    API[api.js] --> Brain[brain.js]
+    API --> STT[stt.js]
+    API --> TTS[tts.js]
+    Brain --> Reg[engine/registry.js]
+    STT --> Reg
+    TTS --> Reg
+    Reg --> Ollama[engine/ollama.js]
+    Reg --> Whisper[engine/whisper.js]
+    Reg --> TTSEng[engine/tts.js]
+    Reg --> Cloud[engine/cloud.js]
+```
+
+### 变更清单
+
+| 模块 | 当前状态 | M101 目标 |
+|------|---------|----------|
+| `brain.js` | 内部 resolveModel() + 直接读 getModelPool | 调用 `registry.resolveModel(modelId)`，Ollama/Cloud 路由移入 engine.run() |
+| `stt.js` | 直接调用 detect()/getProfile() 选择适配器 | 通过 `assignments.stt` → registry 解析引擎，whisper engine.run() 封装适配器选择 |
+| `tts.js` | 直接读 hardware profile 选择适配器 | 通过 `assignments.tts` → registry 解析引擎，tts engine.run() 封装适配器选择 |
+| `api.js` | `/api/ollama/*` 和 `/api/engines/*` 重复路由 | 删除 `/api/ollama/*`，`/api/model-pool` 代理到 `/api/engines/models` + deprecation header |
+| 死文件 | LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue, runtime/memory.js | 全部删除 |
+
+### Engine 接口规范
+
+```javascript
+// 每个 engine 必须实现:
+{
+  name: string,                          // 引擎显示名
+  capabilities: string[],               // ['chat', 'vision', 'stt', 'tts', 'embedding']
+  status() → Promise<{ available }>     // 健康检查
+  models() → Promise<Array<Model>>      // 可用模型列表
+  run(model, input) → Promise<result>   // 执行推理（M101 新增统一入口）
+  install?() → Promise<void>            // 可选: 自动安装
+}
+```
+
+### Fallback 链（M101 后）
+
+```
+assignments.chat → registry.resolveModel(modelId)
+  → engine.run(model, input)
+  → 失败 → modelsForCapability('chat') → 下一个可用引擎
+  → 全部失败 → 返回错误
+```
+
 ## 已知限制
 
 1. **middleware.js 仅含错误处理** — 无请求验证、速率限制或安全中间件。本地优先架构下可接受，生产部署需增强。
 2. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
-4. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
-5. **runtime/memory.js 全量扫描** — search() 遍历所有条目计算余弦相似度，数据量大时性能受限。生产环境可考虑近似最近邻索引。
+3. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
+4. **runtime/memory.js 全量扫描** — search() 遍历所有条目计算余弦相似度，数据量大时性能受限。生产环境可考虑近似最近邻索引。

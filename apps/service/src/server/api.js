@@ -12,7 +12,7 @@ import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
 import { errorHandler } from './middleware.js';
 import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession } from './hub.js';
-import { getConfig, setConfig, reloadConfig, CONFIG_PATH, getModelPool, addToPool, removeFromPool, getAssignments, setAssignments } from '../config.js';
+import { getConfig, setConfig, reloadConfig, CONFIG_PATH, addToPool, removeFromPool, getAssignments, setAssignments } from '../config.js';
 import { getEngines, discoverModels, getEngine } from '../engine/registry.js';
 
 function getLanIp() {
@@ -278,7 +278,9 @@ function addRoutes(r) {
   // ─── Model Pool & Assignments ─────────────────────────────
   r.get('/api/model-pool', async (req, res) => {
     try {
-      res.json(await getModelPool());
+      res.set('X-Deprecated', 'Use GET /api/engines/models instead');
+      res.set('Deprecation', 'true');
+      res.json(await discoverModels());
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -634,57 +636,35 @@ function addRoutes(r) {
     } catch (e) { res.status(500).json({ error: e.message }); }
   });
 
-  // Proxy Ollama tags API so frontend doesn't need direct Ollama access
-  r.get('/api/ollama/tags', async (_req, res) => {
+  // Pull model via engine
+  r.post('/api/engines/pull', async (req, res) => {
     try {
-      const config = await getConfig();
-      const host = config.ollamaHost || config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
-      const resp = await fetch(`${host}/api/tags`);
-      const data = await resp.json();
-      res.json(data);
-    } catch (e) {
-      res.status(502).json({ error: e.message });
-    }
-  });
-
-  // Proxy Ollama pull (streaming)
-  r.post('/api/ollama/pull', async (req, res) => {
-    try {
-      const config = await getConfig();
-      const host = config.ollamaHost || config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
-      const resp = await fetch(`${host}/api/pull`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(req.body),
-      });
+      const { model } = req.body;
+      if (!model) return res.status(400).json({ error: 'model required' });
+      const engine = getEngine('ollama');
+      if (!engine) return res.status(404).json({ error: 'ollama engine not available' });
+      const resp = await engine.pull(model);
       res.setHeader('Content-Type', 'application/x-ndjson');
       const reader = resp.body.getReader();
-      const pump = async () => {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          res.write(value);
-        }
-        res.end();
-      };
-      pump().catch(() => res.end());
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(value);
+      }
+      res.end();
     } catch (e) {
       res.status(502).json({ error: e.message });
     }
   });
 
-  // Proxy Ollama delete
-  r.delete('/api/ollama/delete', async (req, res) => {
+  // Delete model via engine
+  r.delete('/api/engines/models/:name', async (req, res) => {
     try {
-      const config = await getConfig();
-      const host = config.ollamaHost || config.llm?.ollamaHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
-      const resp = await fetch(`${host}/api/delete`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(req.body),
-      });
-      if (resp.ok) res.json({ ok: true });
-      else res.status(resp.status).json({ error: await resp.text() });
+      const engine = getEngine('ollama');
+      if (!engine) return res.status(404).json({ error: 'ollama engine not available' });
+      const ok = await engine.delete(decodeURIComponent(req.params.name));
+      if (ok) res.json({ ok: true });
+      else res.status(502).json({ error: 'delete failed' });
     } catch (e) {
       res.status(502).json({ error: e.message });
     }

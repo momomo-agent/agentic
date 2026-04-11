@@ -14,6 +14,8 @@ Vision ≥90% + PRD ≥90%
 
 ## 📦 Recent Deliverables
 ### Commits
+0e121198 plan: Vision 更新 + M101-M103 里程碑
+aa7cae85 team: sync state 2026-04-10 22:25:27
 335931cc team: sync state 2026-04-10 22:18:34
 0912d66a team: sync state 2026-04-10 22:18:30
 058ee27e team: sync state 2026-04-10 22:18:26
@@ -22,8 +24,6 @@ e0fed03c team: sync state 2026-04-10 22:17:27
 27bc1ef1 team: sync state 2026-04-10 22:16:13
 91096c80 team: sync state 2026-04-10 22:16:04
 7437efba team: sync state 2026-04-10 22:15:38
-23c334db test: tester completed
-3caf0779 test: tester completed
 
 ### Completed Tasks
 (none)

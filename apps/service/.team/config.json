@@ -122,7 +122,6 @@
   "agents": {
     "architect": {
       "prompt": "prompts/architect.md",
-      "model": "claude-sonnet-4",
       "description": "设计系统架构",
       "onFail": {
         "maxRetries": 3,
@@ -131,37 +130,30 @@
     },
     "vision_monitor": {
       "prompt": "prompts/vision_monitor.md",
-      "model": "claude-sonnet-4",
       "description": "评估愿景匹配度"
     },
     "prd_monitor": {
       "prompt": "prompts/prd_monitor.md",
-      "model": "claude-sonnet-4",
       "description": "评估PRD匹配度"
     },
     "dbb_monitor": {
       "prompt": "prompts/dbb_monitor.md",
-      "model": "claude-sonnet-4",
       "description": "评估DBB匹配度"
     },
     "arch_monitor": {
       "prompt": "prompts/arch_monitor.md",
-      "model": "claude-sonnet-4",
       "description": "评估架构匹配度"
     },
     "pm": {
       "prompt": "prompts/pm.md",
-      "model": "claude-sonnet-4",
       "description": "管理任务和里程碑"
     },
     "qa_lead": {
       "prompt": "prompts/qa_lead.md",
-      "model": "claude-sonnet-4",
       "description": "编写验收标准"
     },
     "tech_lead": {
       "prompt": "prompts/tech_lead.md",
-      "model": "claude-sonnet-4",
       "description": "出技术方案",
       "onFail": {
         "maxRetries": 3,
@@ -170,7 +162,6 @@
     },
     "developer": {
       "prompt": "prompts/developer.md",
-      "model": "claude-sonnet-4",
       "scalable": true,
       "description": "实现功能",
       "gitCommit": true,
@@ -182,7 +173,6 @@
     },
     "tester": {
       "prompt": "prompts/tester.md",
-      "model": "claude-sonnet-4",
       "scalable": true,
       "description": "验证功能",
       "gitCommit": true,

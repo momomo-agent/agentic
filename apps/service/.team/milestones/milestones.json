@@ -1,23 +1,33 @@
-[
-  {
-    "id": "m101",
-    "title": "引擎层贯通 — brain/stt/tts 全部走 Engine Registry",
-    "status": "planned",
-    "priority": 1,
-    "description": "消除架构债务：所有能力路由统一走 engine/registry，清理死文件和重复路由"
-  },
-  {
-    "id": "m102",
-    "title": "OpenAI 兼容 API 全覆盖",
-    "status": "planned",
-    "priority": 2,
-    "description": "embeddings/audio/pipeline 标准 API，任何 OpenAI SDK 客户端直接接入"
-  },
-  {
-    "id": "m103",
-    "title": "稳定性与生产就绪",
-    "status": "planned",
-    "priority": 3,
-    "description": "健康检查、自动降级、请求队列、重试、统一错误格式、API 认证"
-  }
-]
+{
+  "milestones": [
+    {
+      "id": "m101",
+      "status": "ready-for-work",
+      "priority": 1,
+      "description": "消除架构债务：所有能力路由统一走 engine/registry，清理死文件和重复路由",
+      "tasks": [
+        "task-1775887196225",
+        "task-1775887201601",
+        "task-1775887201640",
+        "task-1775887206320"
+      ],
+      "name": "引擎层贯通 — brain/stt/tts 全部走 Engine Registry"
+    },
+    {
+      "id": "m102",
+      "status": "planned",
+      "priority": 2,
+      "description": "embeddings/audio/pipeline 标准 API，任何 OpenAI SDK 客户端直接接入",
+      "tasks": [],
+      "name": "OpenAI 兼容 API 全覆盖"
+    },
+    {
+      "id": "m103",
+      "status": "planned",
+      "priority": 3,
+      "description": "健康检查、自动降级、请求队列、重试、统一错误格式、API 认证",
+      "tasks": [],
+      "name": "稳定性与生产就绪"
+    }
+  ]
+}

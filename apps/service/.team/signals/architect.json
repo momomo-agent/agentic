@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-10T22:08:52.970Z",
+  "timestamp": "2026-04-11T06:05:47.632Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Fixed ARCHITECTURE.md known-limitations numbering after adapters/embed.js removal. Verified kokoro.js adapter exists and is documented. Voice adapter API signatures already complete in ARCHITECTURE.md. Updated codebase-map.md."
+  "summary": "Codebase surveyed, gaps reviewed (Vision 91%, PRD 90%, DBB 90% — all ≥90%). ARCHITECTURE.md updated with M101 Engine Registry unification section: target architecture diagram, migration table (brain.js/stt.js/tts.js → registry.resolveModel), engine interface spec, fallback chain. Codebase-map updated with M101 debt items. No CRs needed — all gaps are implemented or documented architectural deviations."
 }
