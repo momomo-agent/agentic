@@ -31,7 +31,7 @@ describe('POST /v1/audio/transcriptions — DBB edge cases', () => {
   // DBB-009: model and language params accepted
   it('DBB-009: accepts model and language params', async () => {
     const form = new FormData();
-    form.append('file', new Blob([Buffer.from('fake-audio')], { type: 'audio/wav' }), 'audio.wav');
+    form.append('file', new Blob([Buffer.from([0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20])], { type: 'audio/wav' }), 'audio.wav');
     form.append('model', 'whisper');
     form.append('language', 'en');
     const res = await fetch(`${baseUrl}/v1/audio/transcriptions`, {
@@ -47,7 +47,7 @@ describe('POST /v1/audio/transcriptions — DBB edge cases', () => {
   // DBB-010: verbose_json has all required fields
   it('DBB-010: verbose_json has task, language, duration, text, segments', async () => {
     const form = new FormData();
-    form.append('file', new Blob([Buffer.from('fake-audio')], { type: 'audio/wav' }), 'audio.wav');
+    form.append('file', new Blob([Buffer.from([0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20])], { type: 'audio/wav' }), 'audio.wav');
     form.append('response_format', 'verbose_json');
     const res = await fetch(`${baseUrl}/v1/audio/transcriptions`, {
       method: 'POST',

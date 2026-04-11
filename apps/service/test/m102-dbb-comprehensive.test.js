@@ -291,7 +291,7 @@ describe('M102 DBB Comprehensive Tests', () => {
   describe('DBB-008: basic transcription', () => {
     it('returns { text } for valid audio', async () => {
       const form = new FormData();
-      form.append('file', new Blob([Buffer.from('fake-audio')], { type: 'audio/wav' }), 'audio.wav');
+      form.append('file', new Blob([Buffer.from([0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20])], { type: 'audio/wav' }), 'audio.wav');
       const res = await fetch(`${baseUrl}/v1/audio/transcriptions`, {
         method: 'POST',
         body: form,
@@ -307,7 +307,7 @@ describe('M102 DBB Comprehensive Tests', () => {
   describe('DBB-013: transcription response matches OpenAI schema', () => {
     it('json format returns only text field', async () => {
       const form = new FormData();
-      form.append('file', new Blob([Buffer.from('fake-audio')], { type: 'audio/wav' }), 'audio.wav');
+      form.append('file', new Blob([Buffer.from([0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45, 0x66, 0x6D, 0x74, 0x20])], { type: 'audio/wav' }), 'audio.wav');
       const res = await fetch(`${baseUrl}/v1/audio/transcriptions`, {
         method: 'POST',
         body: form,
