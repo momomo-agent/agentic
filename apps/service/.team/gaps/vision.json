@@ -1,6 +1,6 @@
 {
-  "match": 91,
-  "timestamp": "2026-04-11T23:15:00.000Z",
+  "match": 93,
+  "timestamp": "2026-04-11T07:45:00.000Z",
   "gaps": [
     {
       "description": "M1: Hardware detector, profiles, Ollama auto-install, HTTP API, Web UI, one-click install — all implemented and verified",
@@ -33,19 +33,24 @@
       "severity": "minor"
     },
     {
+      "description": "M102: OpenAI-compatible API full coverage — /v1/chat/completions, /v1/embeddings, /v1/audio/transcriptions, /v1/audio/speech, /v1/models all implemented with proper streaming and format compliance",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
       "description": "Vision: Hardware-adaptive model selection functional through profiles.js + matcher.js + config.js chain",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "Vision: Server middleware is minimal error handler only — no request validation, rate limiting, or security middleware; acceptable for local-first but limits production readiness",
+      "description": "Vision: Server middleware is minimal error handler only — no request validation, rate limiting, auth, or security middleware; acceptable for local-first but limits production readiness (M103 planned)",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "Vision: OpenAI-compatible API not yet fully standardized — M102 planned to add /v1/embeddings, /v1/audio/* standard endpoints",
+      "description": "Vision: Health checks and auto-degradation partially implemented via cloud fallback; full health-check + request queue + retry not yet in place (M103 planned)",
       "status": "partial",
-      "severity": "major"
+      "severity": "minor"
     }
   ]
 }
