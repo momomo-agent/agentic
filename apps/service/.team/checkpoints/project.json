@@ -21,17 +21,18 @@
     "monitor",
     "pm_decide",
     "work_loop",
+    "work_loop",
     "milestone_qg"
   ],
   "loopIterations": {
-    "work_loop": 4
+    "work_loop": 2
   },
-  "transitionDepth": 19,
+  "transitionDepth": 20,
   "nodeVisitCounts": {
     "startup": 1,
     "monitor": 5,
     "pm_decide": 3,
-    "work_loop": 6,
+    "work_loop": 7,
     "milestone_qg": 4
   },
   "contextOverrides": {
@@ -42,5 +43,5 @@
     "testPassed": 1,
     "integrationPassed": 0
   },
-  "timestamp": "2026-04-11T09:22:51.908Z"
+  "timestamp": "2026-04-11T09:24:22.918Z"
 }
