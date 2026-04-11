@@ -8,25 +8,25 @@
     "monitor",
     "pm_decide",
     "work_loop",
+    "work_loop",
     "milestone_qg",
-    "monitor",
-    "pm_decide",
     "work_loop",
     "milestone_qg",
     "monitor",
     "pm_decide",
+    "work_loop",
     "work_loop",
     "milestone_qg"
   ],
   "loopIterations": {
-    "work_loop": 5
+    "work_loop": 7
   },
   "transitionDepth": 14,
   "nodeVisitCounts": {
     "startup": 1,
-    "monitor": 4,
-    "pm_decide": 3,
-    "work_loop": 3,
+    "monitor": 3,
+    "pm_decide": 2,
+    "work_loop": 5,
     "milestone_qg": 3
   },
   "contextOverrides": {
@@ -34,5 +34,5 @@
     "buildPassed": 0,
     "retryCount": "retryCount + 1"
   },
-  "timestamp": "2026-04-11T08:14:51.654Z"
+  "timestamp": "2026-04-11T08:15:59.806Z"
 }
