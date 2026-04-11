@@ -1,6 +1,6 @@
 {
-  "match": 90,
-  "timestamp": "2026-04-11T13:55:00.000Z",
+  "match": 88,
+  "timestamp": "2026-04-11T14:01:00.000Z",
   "gaps": [
     {
       "description": "src/index.js — package.json 'main' entry point exists and exports core API (startServer, createApp, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed)",
@@ -18,12 +18,17 @@
       "severity": "critical"
     },
     {
-      "description": "ARCHITECTURE.md — cleaned up, no stale CR content, directory tree updated with all source files",
+      "description": "Engine Registry Unification — brain.js, stt.js, tts.js migrated to use engine/registry.js (resolveModel, modelsForCapability); getModelPool removed",
       "status": "implemented",
+      "severity": "critical"
+    },
+    {
+      "description": "engine-registry-brain.test.js failing — Ollama/Cloud engine run() tests fail (likely missing engine module exports or streaming issues)",
+      "status": "partial",
       "severity": "major"
     },
     {
-      "description": "ARCHITECTURE.md — store module, runtime adapters, profiler/latency-log, utility modules all formally documented (M99 criteria satisfied)",
+      "description": "ARCHITECTURE.md — cleaned up, no stale CR content, directory tree updated with all source files, store/runtime/utility modules documented",
       "status": "implemented",
       "severity": "major"
     },
@@ -33,17 +38,12 @@
       "severity": "major"
     },
     {
-      "description": "Test pass rate — all test files passing, 0 failures",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "ARCHITECTURE.md install section — correctly documents port 1234 for Docker",
+      "description": "Dead files removed (LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue, runtime/memory.js) and duplicate /api/ollama routes cleaned",
       "status": "implemented",
       "severity": "major"
     },
     {
-      "description": "Docker deployment — OLLAMA_HOST env var and ./data volume mount present in docker-compose.yml",
+      "description": "Legacy /api/model-pool endpoint proxied with deprecation headers (X-Deprecated, Deprecation: true)",
       "status": "implemented",
       "severity": "minor"
     },

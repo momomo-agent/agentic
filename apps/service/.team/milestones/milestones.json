@@ -16,11 +16,17 @@
     },
     {
       "id": "m102",
-      "status": "planned",
+      "status": "completed",
       "priority": 2,
       "description": "embeddings/audio/pipeline 标准 API，任何 OpenAI SDK 客户端直接接入",
-      "tasks": [],
-      "name": "OpenAI 兼容 API 全覆盖"
+      "tasks": [
+        "task-1775891304898",
+        "task-1775891304939",
+        "task-1775891304980",
+        "task-1775891305020"
+      ],
+      "name": "OpenAI 兼容 API 全覆盖",
+      "completedAt": "2026-04-11T07:37:26.915Z"
     },
     {
       "id": "m103",

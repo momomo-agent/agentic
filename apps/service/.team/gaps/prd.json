@@ -1,6 +1,6 @@
 {
   "match": 90,
-  "timestamp": "2026-04-12T05:18:00.000Z",
+  "timestamp": "2026-04-12T07:01:00.000Z",
   "gaps": [
     {
       "description": "Hardware detector — detect GPU/memory/arch/OS (hardware.js)",
@@ -108,14 +108,9 @@
       "severity": "minor"
     },
     {
-      "description": "Memory module — memory.js with search(query, topK) and add() using agentic-store + agentic-embed vector embedding",
+      "description": "KV store + vector embedding — store.js exports get/set/del/delete; embed.js wraps agentic-embed",
       "status": "implemented",
       "severity": "major"
-    },
-    {
-      "description": "store.js API — exports both del() and delete() alias; resolves naming discrepancy",
-      "status": "implemented",
-      "severity": "minor"
     },
     {
       "description": "hub.js heartbeat timeout — 60s (60000ms) matching canonical value",

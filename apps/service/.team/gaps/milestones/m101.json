@@ -1,0 +1,22 @@
+{
+  "milestoneId": "m101",
+  "match": 80,
+  "timestamp": "2026-04-11T14:01:00.000Z",
+  "criteria": [
+    { "criterion": "DBB-001: Chat completions via Engine Registry — brain.js uses resolveModel/modelsForCapability from engine/registry.js", "status": "pass" },
+    { "criterion": "DBB-002: Ollama chat endpoint /api/chat behavior unchanged", "status": "pass" },
+    { "criterion": "DBB-003: brain.js no longer imports getModelPool from config.js", "status": "pass" },
+    { "criterion": "DBB-004: STT resolves via Engine Registry — stt.js uses resolveModel/modelsForCapability", "status": "pass" },
+    { "criterion": "DBB-005: STT no longer imports detect/getProfile from detector/", "status": "pass" },
+    { "criterion": "DBB-006: STT fallback chain via engine registry", "status": "pass" },
+    { "criterion": "DBB-007: TTS resolves via Engine Registry — tts.js uses resolveModel/modelsForCapability", "status": "pass" },
+    { "criterion": "DBB-008: TTS no longer imports hardware profile from detector/", "status": "pass" },
+    { "criterion": "DBB-009: TTS backend switchable via assignments.tts", "status": "pass" },
+    { "criterion": "DBB-010: Dead files removed (LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue, runtime/memory.js)", "status": "pass" },
+    { "criterion": "DBB-011: Duplicate /api/ollama routes removed from api.js", "status": "pass" },
+    { "criterion": "DBB-012: Legacy /api/model-pool endpoint proxied to /api/engines/models", "status": "pass" },
+    { "criterion": "DBB-013: Deprecation header present on /api/model-pool (X-Deprecated, Deprecation: true)", "status": "pass" },
+    { "criterion": "DBB-014: All existing tests pass — engine-registry-brain.test.js failing (Ollama/Cloud engine run() tests)", "status": "fail" },
+    { "criterion": "DBB-015: No regression in /v1/chat/completions — cannot fully verify without running server, but code paths use engine registry", "status": "partial" }
+  ]
+}

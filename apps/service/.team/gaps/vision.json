@@ -1,106 +1,51 @@
 {
   "match": 91,
-  "timestamp": "2026-04-11T22:45:00.000Z",
+  "timestamp": "2026-04-11T23:15:00.000Z",
   "gaps": [
     {
-      "description": "M1: Hardware detector — GPU/CPU/OS/memory (src/detector/hardware.js)",
+      "description": "M1: Hardware detector, profiles, Ollama auto-install, HTTP API, Web UI, one-click install — all implemented and verified",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "M1: Remote profiles from CDN with local cache (src/detector/profiles.js)",
+      "description": "M2: STT/TTS integration with 8 voice adapters, push-to-talk UI, wake word pipeline — all implemented",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "M1: Ollama auto-install and model pull (src/detector/ollama.js, src/cli/setup.js)",
+      "description": "M3: WebSocket device hub, device tools, admin panel — all implemented",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "M1: Basic HTTP REST API (src/server/api.js)",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M1: Web UI minimal chat dialog (src/ui/client/)",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M1: One-click install script — bin/agentic-service.js + src/cli/setup.js complete, bin entry in package.json verified",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M2: STT integration — stt.js wires to agentic-voice/sensevoice, whisper, openai-whisper; agentic-voice installed in node_modules",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M2: TTS integration — tts.js wires to agentic-voice/kokoro, piper, openai-tts; agentic-voice installed in node_modules",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M2: Push-to-talk UI (PushToTalk.vue) and VAD composable (useVAD.js)",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M2: Wake word — WakeWord.vue + useWakeWord.js + server-side startWakeWordPipeline() fully implemented with node-record-lpcm16 and VAD",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M3: WebSocket device registration and heartbeat (src/server/hub.js)",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M3: Visual perception — sense.js wraps AgenticSense via adapter; agentic-sense package installed but underlying detection capabilities depend on MediaPipe browser runtime",
+      "description": "M3: Visual perception — sense.js wraps AgenticSense via adapter; agentic-sense installed but underlying MediaPipe detection requires browser runtime, limiting server-side vision capability",
       "status": "partial",
       "severity": "major"
     },
     {
-      "description": "M3: Device tools speak/display/capture (src/server/hub.js)",
+      "description": "M4: Cloud fallback (Ollama-first-then-cloud), config hot-update, Docker deployment, documentation — all implemented",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "M3: Admin panel with device list, logs, hardware, config (src/ui/admin/)",
+      "description": "M101: Engine registry unification — brain/stt/tts all route through registry, dead files cleaned, duplicate routes removed",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "M4: Cloud fallback to OpenAI/Anthropic — llm.js implements Ollama-first-then-cloud fallback with API key checks; brain.js has separate tool-call fallback",
+      "description": "Vision: Hardware-adaptive model selection functional through profiles.js + matcher.js + config.js chain",
       "status": "implemented",
       "severity": "minor"
     },
     {
-      "description": "M4: Config hot-update — profiles.js watchProfiles() polls every 30s with ETag-based conditional fetching",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M4: Docker / docker-compose deployment — Dockerfile + docker-compose.yml in project root and install/",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "M4: Complete user documentation — README.md exists (267 lines)",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "Vision: optimizer.js from vision replaced by profiles.js + matcher.js + config.js chain — hardware-based model selection IS functional through this chain; documented architectural deviation, not a functional gap",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "Vision: Server middleware (src/server/middleware.js) is a minimal error handler — no request validation, rate limiting, or security middleware; acceptable for local-first architecture but limits production readiness",
+      "description": "Vision: Server middleware is minimal error handler only — no request validation, rate limiting, or security middleware; acceptable for local-first but limits production readiness",
       "status": "partial",
       "severity": "minor"
+    },
+    {
+      "description": "Vision: OpenAI-compatible API not yet fully standardized — M102 planned to add /v1/embeddings, /v1/audio/* standard endpoints",
+      "status": "partial",
+      "severity": "major"
     }
   ]
 }
