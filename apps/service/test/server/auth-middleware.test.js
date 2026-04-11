@@ -71,6 +71,18 @@ describe('authMiddleware', () => {
     });
     expect(res.status).toBe(401);
   });
+
+  // DBB-025: /api/health must be exempt from auth
+  it('allows /api/health without auth (DBB-025)', async () => {
+    const res = await fetch(`${baseUrl}/api/health`);
+    expect(res.status).not.toBe(401);
+  });
+
+  // /v1/* routes require auth
+  it('rejects /v1/models without auth', async () => {
+    const res = await fetch(`${baseUrl}/v1/models`);
+    expect(res.status).toBe(401);
+  });
 });
 
 describe('authMiddleware disabled (no API_KEY)', () => {

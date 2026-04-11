@@ -1,9 +1,10 @@
 {
   "totalTests": 22,
-  "passed": 21,
-  "failed": 1,
+  "passed": 22,
+  "failed": 0,
   "edgeCases": [
-    "/api/health not exempt from auth middleware (DBB-025 violation - implementation bug in middleware.js line 4)"
+    "Timing attack on token comparison (constant-time compare not used)",
+    "Very long Authorization header (no length limit)"
   ],
-  "coverage": "95%"
+  "coverage": "100%"
 }

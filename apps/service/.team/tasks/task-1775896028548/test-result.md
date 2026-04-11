@@ -2,43 +2,41 @@
 
 ## Summary
 
-- Total tests: 22 (13 existing + 9 unit)
-- Passed: 21
-- Failed: 1
+- Total tests: 22 (13 unit + 9 integration)
+- Passed: 22
+- Failed: 0
 
 ## Test Files
 
-### test/server/middleware.test.js (unit tests)
+### test/server/middleware.test.js (13 unit tests)
 | # | Test | Result |
 |---|------|--------|
-| 1 | no API key configured → all requests pass through | ✅ PASS |
-| 2 | valid Bearer token → request passes through | ✅ PASS |
-| 3 | missing Authorization header → 401 | ✅ PASS |
-| 4 | invalid token → 401 | ✅ PASS |
-| 5 | /health exempt from auth | ✅ PASS |
-| 6 | /admin/* exempt from auth | ✅ PASS |
-| 7 | /api/health exempt from auth (DBB-025) | ❌ FAIL |
-| 8 | Bearer with empty token → 401 | ✅ PASS |
-| 9 | 401 response includes code field | ✅ PASS |
+| 1 | No API key configured → all requests pass through | ✅ |
+| 2 | Valid Bearer token → request passes through | ✅ |
+| 3 | Missing Authorization header → 401 | ✅ |
+| 4 | Invalid token → 401 | ✅ |
+| 5 | /health exempt from auth | ✅ |
+| 6 | /admin/* exempt from auth | ✅ |
+| 7 | /api/health exempt from auth (DBB-025) | ✅ |
+| 8 | Bearer with empty token → 401 | ✅ |
+| 9 | 401 response includes code field | ✅ |
+| 10 | Non-Bearer auth scheme → 401 | ✅ |
+| 11 | Empty string API key → pass through (DBB-026) | ✅ |
+| 12 | /v1/chat/completions requires auth when key is set | ✅ |
+| 13 | 401 error response has message, type, and code fields | ✅ |
 
-### test/server/auth-middleware.test.js (integration tests)
+### test/server/auth-middleware.test.js (9 integration tests)
 | # | Test | Result |
 |---|------|--------|
-| 1 | rejects request without Authorization header | ✅ PASS |
-| 2 | rejects request with wrong key | ✅ PASS |
-| 3 | accepts request with correct key | ✅ PASS |
-| 4 | allows /health without auth | ✅ PASS |
-| 5 | allows /admin without auth | ✅ PASS |
-| 6 | rejects non-Bearer auth scheme | ✅ PASS |
-| 7 | allows all requests when API_KEY is not set | ✅ PASS |
-
-## Bug Found
-
-**`/api/health` is NOT exempt from auth** (violates DBB-025)
-
-- `src/server/middleware.js` line 4 only checks `req.path === '/health'` and `req.path.startsWith('/admin')`
-- Missing: `req.path === '/api/health'` per design.md line 44 and DBB-025
-- Fix: add `|| req.path === '/api/health'` to the exempt check on line 4
+| 1 | Rejects request without Authorization header | ✅ |
+| 2 | Rejects request with wrong key | ✅ |
+| 3 | Accepts request with correct key | ✅ |
+| 4 | Allows /health without auth | ✅ |
+| 5 | Allows /admin without auth | ✅ |
+| 6 | Rejects non-Bearer auth scheme | ✅ |
+| 7 | Allows /api/health without auth (DBB-025) | ✅ |
+| 8 | Rejects /v1/models without auth | ✅ |
+| 9 | Allows all requests when API_KEY is not set (DBB-026) | ✅ |
 
 ## DBB Coverage
 
@@ -47,11 +45,19 @@
 | DBB-022 | Missing auth → 401 | ✅ Verified |
 | DBB-023 | Invalid key → 401 | ✅ Verified |
 | DBB-024 | Valid key → passes | ✅ Verified |
-| DBB-025 | /health and /api/health exempt | ❌ /api/health NOT exempt (BUG) |
+| DBB-025 | /health and /api/health exempt | ✅ Verified |
 | DBB-026 | No key → all pass | ✅ Verified |
 
 ## Edge Cases Identified
 
-- Empty Bearer token (tested, passes)
-- Non-Bearer auth scheme e.g. Basic (tested in integration, passes)
-- Error response format includes `code` field (tested, passes)
+- Empty Bearer token → correctly returns 401
+- Non-Bearer auth scheme (Basic) → correctly returns 401
+- Empty string API key → treated as falsy, passes through
+- /v1/* routes → correctly require auth when key is set
+- Error response format → all three fields (message, type, code) present
+
+## Notes
+
+- Initial test run caught a bug: `/api/health` was not exempt from auth (DBB-025 violation)
+- Bug was fixed by developer (line 4 of middleware.js now includes `/api/health` check)
+- All 22 tests pass after fix
