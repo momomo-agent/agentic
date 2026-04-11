@@ -30,15 +30,10 @@
     },
     {
       "id": "m103",
-      "status": "completed",
+      "status": "active",
       "priority": 3,
       "description": "健康检查、自动降级、请求队列、重试、统一错误格式、API 认证",
-      "tasks": [
-        "task-1775893487734",
-        "task-1775893487774",
-        "task-1775893487814",
-        "task-1775893487853"
-      ],
+      "tasks": [],
       "name": "稳定性与生产就绪",
       "completedAt": "2026-04-11T08:14:06.904Z"
     }

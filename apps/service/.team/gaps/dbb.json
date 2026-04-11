@@ -1,6 +1,6 @@
 {
-  "match": 93,
-  "timestamp": "2026-04-11T15:50:00.000Z",
+  "match": 95,
+  "timestamp": "2026-04-11T16:10:00.000Z",
   "gaps": [
     {
       "description": "src/index.js — package.json 'main' entry point exists and exports core API (startServer, createApp, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed)",
@@ -28,14 +28,24 @@
       "severity": "critical"
     },
     {
-      "description": "engine-registry-brain.test.js — all 14 tests pass (Ollama/Cloud engine run(), status(), models())",
+      "description": "Health endpoint (GET /api/health) returns component status for ollama, stt, tts with degraded/unavailable states",
+      "status": "implemented",
+      "severity": "critical"
+    },
+    {
+      "description": "OpenAI error format includes 'code' field — apiError() helper and errorHandler middleware both return { error: { message, type, code } }",
       "status": "implemented",
       "severity": "major"
     },
     {
-      "description": "ARCHITECTURE.md — cleaned up, no stale CR content, directory tree updated with all source files, store/runtime/utility modules documented",
+      "description": "Audio format validation via magic bytes — isValidAudio() checks before STT processing, returns 400 for invalid audio",
       "status": "implemented",
       "severity": "major"
+    },
+    {
+      "description": "ARCHITECTURE.md — cleaned up, directory tree updated, but known-limitations section still lists audio validation and error format as missing (stale text at lines 748-749)",
+      "status": "partial",
+      "severity": "minor"
     },
     {
       "description": "Import maps removed — no dead #agentic-embed or #agentic-voice in package.json",
@@ -53,17 +63,7 @@
       "severity": "minor"
     },
     {
-      "description": "Audio transcription endpoint does not validate file format before passing to STT — invalid audio files may produce 500 instead of 4xx",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "OpenAI error format missing 'code' field — errors return { message, type } but not { message, type, code }",
-      "status": "partial",
-      "severity": "minor"
-    },
-    {
-      "description": "Server middleware (src/server/middleware.js) is a 4-line error handler — no request validation, rate limiting, or security middleware",
+      "description": "Server middleware (src/server/middleware.js) is a minimal error handler — no request validation, rate limiting, or security middleware",
       "status": "partial",
       "severity": "minor",
       "detail": "Acceptable for local-first architecture. Production deployment would need enhancement."
