@@ -7,35 +7,34 @@ vi.mock('../../src/config.js', () => ({
     assignments: { chat: null, chatFallback: null },
     modelPool: [],
   })),
-  getModelPool: vi.fn(async () => []),
   getAssignments: vi.fn(async () => ({ chat: null, chatFallback: null })),
   onConfigChange: vi.fn(),
 }));
 
-// Mock fetch globally
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+let mockEngine = null;
+vi.mock('../../src/engine/registry.js', () => ({
+  resolveModel: vi.fn(async (modelId) => {
+    if (mockEngine) return { engineId: 'ollama', engine: mockEngine, model: { name: modelId }, provider: 'ollama', modelName: modelId };
+    return null;
+  }),
+  modelsForCapability: vi.fn(async () => []),
+  getEngine: vi.fn(() => mockEngine),
+}));
 
 describe('brain.js - DBB-001: tool_use response format (text field)', () => {
   beforeEach(() => {
     vi.resetModules();
-    mockFetch.mockReset();
+    mockEngine = null;
   });
 
   it('yields chunks with text field (not content) for Ollama path', async () => {
-    const lines = [
-      JSON.stringify({ message: { content: 'hello' }, done: false }),
-      JSON.stringify({ message: { content: ' world' }, done: true }),
-    ];
-    const encoder = new TextEncoder();
-    let i = 0;
-    const reader = {
-      read: vi.fn().mockImplementation(() => {
-        if (i < lines.length) return Promise.resolve({ done: false, value: encoder.encode(lines[i++] + '\n') });
-        return Promise.resolve({ done: true, value: undefined });
-      }),
+    mockEngine = {
+      async *run(modelName, input) {
+        yield { type: 'content', text: 'hello' };
+        yield { type: 'content', text: ' world' };
+        yield { type: 'done' };
+      }
     };
-    mockFetch.mockResolvedValueOnce({ ok: true, body: { getReader: () => reader } });
 
     const { chat } = await import('../../src/server/brain.js');
     const chunks = [];

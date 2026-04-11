@@ -63,4 +63,23 @@ export default {
   recommended() {
     return WHISPER_MODELS;
   },
+
+  /**
+   * Run STT transcription via the detected backend
+   * @param {string} modelName - e.g. "sensevoice", "whisper:small"
+   * @param {object} input - { audioBuffer: Buffer }
+   * @returns {Promise<string>} transcribed text
+   */
+  async run(modelName, input) {
+    const s = await this.status();
+    if (!s.available) throw new Error('No STT backend available');
+
+    if (s.backend === 'sensevoice' || modelName === 'sensevoice') {
+      const { transcribe } = await import('../runtime/adapters/voice/sensevoice.js');
+      return transcribe(input.audioBuffer);
+    }
+    // whisper-cpp
+    const { transcribe } = await import('../runtime/adapters/voice/whisper.js');
+    return transcribe(input.audioBuffer);
+  },
 };

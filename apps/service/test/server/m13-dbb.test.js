@@ -77,18 +77,19 @@ describe('brain.js M13 tool_use text field', () => {
         assignments: { chat: null, chatFallback: null },
         modelPool: [],
       })),
-      getModelPool: vi.fn(async () => []),
       getAssignments: vi.fn(async () => ({ chat: null, chatFallback: null })),
       onConfigChange: vi.fn(),
     }));
-    const line = JSON.stringify({ message: { tool_calls: [{ function: { name: 'fn', arguments: '{}' } }] }, done: true });
-    const enc = new TextEncoder();
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      body: { getReader: () => ({ read: vi.fn()
-        .mockResolvedValueOnce({ done: false, value: enc.encode(line + '\n') })
-        .mockResolvedValue({ done: true }) }) }
-    });
+    const mockEngine = {
+      async *run(modelName, input) {
+        yield { type: 'tool_use', name: 'fn', input: {}, text: '{}' };
+      }
+    };
+    vi.doMock('../../src/engine/registry.js', () => ({
+      resolveModel: vi.fn(async (modelId) => ({ engineId: 'ollama', engine: mockEngine, model: { name: modelId }, provider: 'ollama', modelName: modelId })),
+      modelsForCapability: vi.fn(async () => []),
+      getEngine: vi.fn(() => mockEngine),
+    }));
     const { chat } = await import('../../src/server/brain.js');
     const chunks = [];
     for await (const c of chat([{ role: 'user', content: 'hi' }], { tools: [{ name: 'fn' }] })) chunks.push(c);

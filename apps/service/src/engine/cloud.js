@@ -55,5 +55,112 @@ export function createCloudEngine(provider, config) {
     recommended() {
       return knownModels;
     },
+
+    /**
+     * Run inference via cloud API
+     * @param {string} modelName - e.g. "gpt-4o", "whisper-1", "tts-1"
+     * @param {object} input - { messages, tools?, stream? } for chat; { audioBuffer } for STT; { text } for TTS/embedding
+     */
+    async *run(modelName, input) {
+      if (!apiKey) throw new Error(`No API key for ${provider}`);
+      const base = baseUrl || (provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com');
+
+      // STT (e.g. whisper-1)
+      if (input.audioBuffer) {
+        const form = new FormData();
+        form.append('file', new Blob([input.audioBuffer], { type: 'audio/wav' }), 'audio.wav');
+        form.append('model', modelName);
+        const res = await fetch(`${base}/v1/audio/transcriptions`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${apiKey}` },
+          body: form,
+        });
+        if (!res.ok) throw new Error(`Cloud STT error: ${res.status}`);
+        const data = await res.json();
+        yield { type: 'transcription', text: data.text };
+        return;
+      }
+
+      // TTS (e.g. tts-1)
+      if (input.ttsText !== undefined) {
+        const res = await fetch(`${base}/v1/audio/speech`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: modelName, input: input.ttsText, voice: input.voice || 'alloy' }),
+        });
+        if (!res.ok) throw new Error(`Cloud TTS error: ${res.status}`);
+        const buf = Buffer.from(await res.arrayBuffer());
+        yield { type: 'audio', data: buf };
+        return;
+      }
+
+      // Embedding
+      if (input.text !== undefined && !input.messages) {
+        const res = await fetch(`${base}/v1/embeddings`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: modelName, input: input.text }),
+        });
+        if (!res.ok) throw new Error(`Cloud embed error: ${res.status}`);
+        const data = await res.json();
+        yield { type: 'embedding', data: data.data?.[0]?.embedding };
+        return;
+      }
+
+      // Chat (streaming SSE)
+      const chatBody = { model: modelName, messages: input.messages, stream: true };
+      if (input.tools?.length) chatBody.tools = input.tools;
+
+      const headers = { 'Content-Type': 'application/json' };
+      let url = `${base}/v1/chat/completions`;
+      if (provider === 'anthropic') {
+        headers['x-api-key'] = apiKey;
+        headers['anthropic-version'] = '2023-06-01';
+        url = `${base}/v1/messages`;
+        chatBody.max_tokens = chatBody.max_tokens || 4096;
+        delete chatBody.stream;
+        chatBody.stream = true;
+      } else {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(chatBody),
+      });
+      if (!res.ok) throw new Error(`Cloud chat error: ${res.status}`);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') { yield { type: 'done' }; return; }
+          try {
+            const json = JSON.parse(data);
+            const delta = json.choices?.[0]?.delta;
+            if (delta?.content) yield { type: 'content', text: delta.content };
+            if (delta?.tool_calls) {
+              for (const tc of delta.tool_calls) {
+                if (tc.function?.name) {
+                  const args = tc.function.arguments ? JSON.parse(tc.function.arguments) : {};
+                  yield { type: 'tool_use', name: tc.function.name, input: args, text: JSON.stringify(args) };
+                }
+              }
+            }
+          } catch { /* skip malformed SSE lines */ }
+        }
+      }
+      yield { type: 'done' };
+    },
   };
 }

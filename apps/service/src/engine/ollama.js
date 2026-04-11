@@ -92,4 +92,92 @@ export default {
       { name: 'bge-m3', description: 'BAAI BGE-M3 — 多语言嵌入', size: '~1.2 GB', capabilities: ['embedding'] },
     ];
   },
+
+  /**
+   * Run chat/embedding inference via Ollama HTTP API
+   * @param {string} modelName - e.g. "gemma4:e4b"
+   * @param {object} input - { messages, stream?, tools? } for chat; { text } for embedding
+   * @returns {AsyncGenerator} streaming chunks for chat, embedding result for embedding
+   */
+  async *run(modelName, input) {
+    const config = await getConfig();
+    const host = getHost(config);
+
+    if (input.text !== undefined) {
+      const res = await fetch(`${host}/api/embed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: modelName, input: input.text }),
+      });
+      if (!res.ok) throw new Error(`Ollama embed error: ${res.status}`);
+      const data = await res.json();
+      yield { type: 'embedding', data: data.embeddings?.[0] };
+      return;
+    }
+
+    // Chat mode (streaming)
+    const body = {
+      model: modelName,
+      messages: input.messages,
+      stream: true,
+    };
+    if (input.tools?.length) {
+      body.tools = input.tools.map(t => ({
+        type: 'function',
+        function: { name: t.name, description: t.description || '', parameters: t.parameters || {} },
+      }));
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    const res = await fetch(`${host}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      clearTimeout(timeout);
+      throw new Error(`Ollama chat error: ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    let gotFirstToken = false;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const json = JSON.parse(line);
+          if (!gotFirstToken) {
+            gotFirstToken = true;
+            clearTimeout(timeout);
+          }
+          if (json.message?.tool_calls?.length) {
+            for (const tc of json.message.tool_calls) {
+              const args = typeof tc.function.arguments === 'string'
+                ? JSON.parse(tc.function.arguments) : tc.function.arguments;
+              yield { type: 'tool_use', name: tc.function.name, input: args, text: JSON.stringify(args) };
+            }
+          }
+          if (json.message?.content) {
+            yield { type: 'content', text: json.message.content };
+          }
+          if (json.done) {
+            yield { type: 'done' };
+          }
+        }
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+  },
 };

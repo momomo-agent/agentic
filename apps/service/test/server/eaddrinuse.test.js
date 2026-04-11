@@ -1,11 +1,20 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createServer } from 'net';
-import { startServer, stopServer } from '../../src/server/api.js';
 
 vi.mock('../../src/runtime/llm.js', () => ({ chat: vi.fn() }));
 vi.mock('../../src/detector/hardware.js', () => ({
   detect: vi.fn().mockResolvedValue({})
 }));
+vi.mock('../../src/engine/registry.js', () => ({
+  resolveModel: vi.fn(async () => null),
+  modelsForCapability: vi.fn(async () => []),
+  getEngine: vi.fn(() => null),
+  getEngines: vi.fn(() => []),
+  discoverModels: vi.fn(async () => []),
+  register: vi.fn(),
+}));
+
+import { startServer, stopServer } from '../../src/server/api.js';
 
 describe('EADDRINUSE detection', () => {
   it('rejects with "Port X is already in use" when port is occupied', async () => {

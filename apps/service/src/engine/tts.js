@@ -38,4 +38,25 @@ export default {
   recommended() {
     return TTS_MODELS;
   },
+
+  /**
+   * Run TTS synthesis via the specified backend
+   * @param {string} modelName - e.g. "kokoro", "macos-say", "piper"
+   * @param {object} input - { text: string }
+   * @returns {Promise<Buffer>} audio buffer
+   */
+  async run(modelName, input) {
+    const adapterMap = {
+      'macos-say': () => import('../runtime/adapters/voice/macos-say.js'),
+      piper:       () => import('../runtime/adapters/voice/piper.js'),
+      kokoro:      () => import('../runtime/adapters/voice/kokoro.js'),
+      elevenlabs:  () => import('../runtime/adapters/voice/elevenlabs.js'),
+      openai:      () => import('../runtime/adapters/voice/openai-tts.js'),
+    };
+    const load = adapterMap[modelName];
+    if (!load) throw new Error(`Unknown TTS model: ${modelName}`);
+    const mod = await load();
+    const adapter = mod.synthesize ? mod : mod.default;
+    return adapter.synthesize(input.text);
+  },
 };

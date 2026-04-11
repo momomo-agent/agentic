@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock config to provide a model so brain.js doesn't throw "No chat model configured"
+// Mock config
 vi.mock('../../src/config.js', () => ({
   getConfig: vi.fn(async () => ({
     llm: { provider: 'ollama', model: 'test-model' },
@@ -8,30 +8,44 @@ vi.mock('../../src/config.js', () => ({
     assignments: { chat: null, chatFallback: null },
     modelPool: [],
   })),
-  getModelPool: vi.fn(async () => []),
   getAssignments: vi.fn(async () => ({ chat: null, chatFallback: null })),
   onConfigChange: vi.fn(),
 }));
 
-// Mock fetch globally
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
-
-// Helper to create a readable stream from NDJSON lines
-function makeStream(lines) {
-  const encoder = new TextEncoder();
-  const chunks = lines.map(l => encoder.encode(l + '\n'));
-  let i = 0;
+// Helper to create a mock engine with run() that streams NDJSON-like chunks
+function makeMockEngine(lines) {
   return {
-    getReader() {
-      return {
-        read: async () => i < chunks.length
-          ? { done: false, value: chunks[i++] }
-          : { done: true, value: undefined }
-      };
+    async *run(modelName, input) {
+      for (const line of lines) {
+        const json = typeof line === 'string' ? JSON.parse(line) : line;
+        if (json.message?.tool_calls?.length) {
+          for (const tc of json.message.tool_calls) {
+            const args = typeof tc.function.arguments === 'string'
+              ? JSON.parse(tc.function.arguments) : tc.function.arguments;
+            yield { type: 'tool_use', name: tc.function.name, input: args, text: JSON.stringify(args) };
+          }
+        }
+        if (json.message?.content) {
+          yield { type: 'content', text: json.message.content };
+        }
+        if (json.done) {
+          yield { type: 'done' };
+        }
+      }
     }
   };
 }
+
+// Mock registry — returns a mock ollama engine for legacy config.llm fallback
+let mockEngine = null;
+vi.mock('../../src/engine/registry.js', () => ({
+  resolveModel: vi.fn(async (modelId) => {
+    if (mockEngine) return { engineId: 'ollama', engine: mockEngine, model: { name: modelId }, provider: 'ollama', modelName: modelId };
+    return null;
+  }),
+  modelsForCapability: vi.fn(async () => []),
+  getEngine: vi.fn((id) => mockEngine),
+}));
 
 // Helper to collect all chunks from the chat generator
 async function collect(gen) {
@@ -43,17 +57,12 @@ async function collect(gen) {
 import { chat } from '../../src/server/brain.js';
 
 describe('brain.js — DBB-008: tool_use chunks', () => {
-  beforeEach(() => mockFetch.mockReset());
+  beforeEach(() => { mockEngine = null; });
 
   it('yields tool_use chunk when Ollama returns tool_calls', async () => {
-    const ollamaLine = JSON.stringify({
-      message: { tool_calls: [{ function: { name: 'get_weather', arguments: { city: 'NYC' } } }] },
-      done: true
-    });
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      body: makeStream([ollamaLine])
-    });
+    mockEngine = makeMockEngine([
+      { message: { tool_calls: [{ function: { name: 'get_weather', arguments: { city: 'NYC' } } }] }, done: true }
+    ]);
 
     const messages = [{ role: 'user', content: 'What is the weather in NYC?' }];
     const tools = [{ name: 'get_weather', description: 'Get weather', parameters: { type: 'object', properties: { city: { type: 'string' } } } }];
@@ -67,17 +76,12 @@ describe('brain.js — DBB-008: tool_use chunks', () => {
 });
 
 describe('brain.js — DBB-009: content chunks without tools', () => {
-  beforeEach(() => mockFetch.mockReset());
+  beforeEach(() => { mockEngine = null; });
 
   it('yields content chunk when no tools provided', async () => {
-    const ollamaLine = JSON.stringify({
-      message: { content: 'Hello there!' },
-      done: true
-    });
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      body: makeStream([ollamaLine])
-    });
+    mockEngine = makeMockEngine([
+      { message: { content: 'Hello there!' }, done: true }
+    ]);
 
     const messages = [{ role: 'user', content: 'Hi' }];
     const chunks = await collect(chat(messages, {}));
@@ -89,10 +93,12 @@ describe('brain.js — DBB-009: content chunks without tools', () => {
 });
 
 describe('brain.js — error handling', () => {
-  beforeEach(() => mockFetch.mockReset());
+  beforeEach(() => { mockEngine = null; });
 
-  it('yields error chunk when Ollama is unreachable and no tools', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+  it('yields error chunk when engine is unreachable and no tools', async () => {
+    mockEngine = {
+      async *run() { throw new Error('ECONNREFUSED'); }
+    };
 
     const chunks = await collect(chat([{ role: 'user', content: 'Hi' }], ));
     const errChunk = chunks.find(c => c.type === 'error');
@@ -100,9 +106,10 @@ describe('brain.js — error handling', () => {
     expect(errChunk.error).toBeTruthy();
   });
 
-  it('falls back to cloud when Ollama fails with tools (no API key → error chunk)', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Ollama tool_use unsupported'));
-    delete process.env.OPENAI_API_KEY;
+  it('falls back to cloud when engine fails with tools (no fallback → error chunk)', async () => {
+    mockEngine = {
+      async *run() { throw new Error('engine error'); }
+    };
 
     const tools = [{ name: 'test_tool', description: 'test' }];
     const chunks = await collect(chat([{ role: 'user', content: 'use tool' }], { tools }));

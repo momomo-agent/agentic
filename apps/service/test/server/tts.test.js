@@ -1,20 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-vi.mock('fs', async () => {
-  const actual = await vi.importActual('fs');
-  return {
-    ...actual,
-    promises: {
-      ...actual.promises,
-      readFile: vi.fn().mockRejectedValue(new Error('no config')),
-    },
-  };
-});
+vi.mock('../../src/config.js', () => ({
+  getConfig: vi.fn(async () => ({
+    assignments: {},
+    tts: { provider: 'default' },
+  })),
+}));
+vi.mock('../../src/engine/registry.js', () => ({
+  resolveModel: vi.fn(async () => null),
+  modelsForCapability: vi.fn(async () => []),
+}));
 vi.mock('../../src/runtime/adapters/voice/kokoro.js', () => ({ synthesize: vi.fn() }));
 vi.mock('../../src/runtime/adapters/voice/piper.js', () => ({ synthesize: vi.fn() }));
 vi.mock('../../src/runtime/adapters/voice/openai-tts.js', () => ({ synthesize: vi.fn() }));
-vi.mock('../../src/detector/hardware.js', () => ({ detect: vi.fn().mockResolvedValue({}) }));
-vi.mock('../../src/detector/profiles.js', () => ({ getProfile: vi.fn().mockResolvedValue({ tts: { provider: 'default' } }) }));
 vi.mock('../../src/runtime/profiler.js', () => ({ startMark: vi.fn(), endMark: vi.fn().mockReturnValue(0) }));
 vi.mock('../../src/runtime/latency-log.js', () => ({ record: vi.fn() }));
 

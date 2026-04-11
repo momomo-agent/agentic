@@ -1,0 +1,13 @@
+{
+  "id": "task-1775887196225",
+  "title": "brain.js 切到 Engine Registry",
+  "description": "F1: resolveModel() 改为调用 registry.resolveModel(modelId)。删除 brain.js 内部的 resolveModel 函数和对 getModelPool 的依赖。Ollama chat 和 Cloud chat 的路由逻辑移到对应 engine 的 run() 方法。保持 /v1/chat/completions 和 /api/chat 行为不变。验收：brain.js 不再 import config.js 的 getModelPool。",
+  "status": "review",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m101",
+  "hasDesign": true,
+  "created": "2026-04-11T05:59:56.225Z",
+  "updated": "2026-04-11T06:26:32.651Z"
+}
