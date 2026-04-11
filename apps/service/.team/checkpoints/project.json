@@ -8,9 +8,9 @@
     "monitor",
     "pm_decide",
     "work_loop",
-    "work_loop",
     "milestone_qg",
-    "work_loop",
+    "monitor",
+    "pm_decide",
     "work_loop",
     "milestone_qg"
   ],
@@ -20,14 +20,14 @@
   "transitionDepth": 10,
   "nodeVisitCounts": {
     "startup": 1,
-    "monitor": 2,
-    "pm_decide": 1,
-    "work_loop": 4,
+    "monitor": 3,
+    "pm_decide": 2,
+    "work_loop": 2,
     "milestone_qg": 2
   },
   "contextOverrides": {
     "refsValid": 1,
     "buildPassed": 0
   },
-  "timestamp": "2026-04-11T07:37:27.145Z"
+  "timestamp": "2026-04-11T07:39:24.059Z"
 }
