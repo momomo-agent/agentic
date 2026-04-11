@@ -1,9 +1,12 @@
 {
-  "totalTests": 10,
-  "passed": 10,
+  "totalTests": 29,
+  "passed": 29,
   "failed": 0,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "Health endpoint behavior under concurrent requests not tested",
+    "Error format for Anthropic-compatible endpoints not verified (only OpenAI endpoints tested)",
+    "Audio validation for MP4/M4A ftyp offset-based detection not tested",
+    "AMR format acceptance not tested"
   ],
   "coverage": "100%"
 }
