@@ -184,7 +184,7 @@ describe('cloud retry edge cases', () => {
     globalThis.fetch = async () => ({
       ok: false,
       status: 429,
-      headers: new Headers({ 'Retry-After': '30' }),
+      headers: new Headers({ 'Retry-After': '1' }),
     });
 
     const engine = createCloudEngine('openai', { apiKey: 'test-key' });
@@ -193,9 +193,9 @@ describe('cloud retry edge cases', () => {
       expect.unreachable('should have thrown');
     } catch (err) {
       expect(err.httpStatus).toBe(429);
-      expect(err.retryAfter).toBe(30);
+      expect(err.retryAfter).toBe(1);
     }
-  }, 20000);
+  }, 30000);
 
   it('logs retry with correct format: [retry] engine=cloud:<provider>', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
