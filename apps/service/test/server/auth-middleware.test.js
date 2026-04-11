@@ -20,7 +20,7 @@ describe('authMiddleware', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     chat.mockImplementation(async function* () {});
-    process.env.API_KEY = TEST_KEY;
+    process.env.AGENTIC_API_KEY = TEST_KEY;
     await new Promise((resolve, reject) => {
       server = createApp().listen(0);
       server.once('listening', () => { baseUrl = `http://localhost:${server.address().port}`; resolve(); });
@@ -29,7 +29,7 @@ describe('authMiddleware', () => {
   });
 
   afterEach(async () => {
-    delete process.env.API_KEY;
+    delete process.env.AGENTIC_API_KEY;
     await new Promise(r => server.close(r));
   });
 
@@ -79,7 +79,7 @@ describe('authMiddleware disabled (no API_KEY)', () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     chat.mockImplementation(async function* () {});
-    delete process.env.API_KEY;
+    delete process.env.AGENTIC_API_KEY;
     await new Promise((resolve, reject) => {
       server = createApp().listen(0);
       server.once('listening', () => { baseUrl = `http://localhost:${server.address().port}`; resolve(); });

@@ -2,12 +2,12 @@
   "id": "task-1775896028548",
   "title": "API 认证中间件 (middleware.js)",
   "description": "Add authMiddleware to src/server/middleware.js per ARCHITECTURE.md M103 spec. AGENTIC_API_KEY env var: if not set → skip auth (local dev mode). If set → all /api/* and /v1/* routes require Authorization: Bearer <key>. /health and /api/health exempt (ops probes). Return 401 { error: { message, type: authentication_error, code: invalid_api_key } } on failure. ≥4 tests required.",
-  "status": "review",
+  "status": "blocked",
   "priority": "P1",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m103",
   "hasDesign": true,
   "created": "2026-04-11T08:27:08.548Z",
-  "updated": "2026-04-11T08:56:24.173Z"
+  "updated": "2026-04-11T08:59:37.906Z"
 }
