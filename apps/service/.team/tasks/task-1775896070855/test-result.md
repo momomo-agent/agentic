@@ -8,31 +8,27 @@
 
 All tests PASS. ARCHITECTURE.md Known Limitations section correctly updated from 6 to 3 items.
 
+## Test Files
+- `test/m103-architecture-doc.test.js` (tester-written): 8 tests, 8 passed
+
 ## Test Results
 
-| # | Test | Result |
-|---|------|--------|
-| 1 | section exists | ✅ PASS |
-| 2 | has exactly 3 limitation items | ✅ PASS |
-| 3 | item 1: mDNS/Bonjour present | ✅ PASS |
-| 4 | item 2: sense.js MediaPipe present | ✅ PASS |
-| 5 | item 3: model_not_found present | ✅ PASS |
-| 6 | removed: middleware.js error-only gone | ✅ PASS |
-| 7 | removed: cloud.js no-retry gone | ✅ PASS |
-| 8 | removed: incomplete shutdown gone | ✅ PASS |
-| 9 | shutdown.js documented | ✅ PASS |
-| 10 | shutdown.js file exists | ✅ PASS |
-| 11 | cloud.js retry no longer a limitation | ✅ PASS |
-| 12 | authMiddleware documented | ✅ PASS |
-| 13 | registerShutdown documented | ✅ PASS |
-| 14 | shutdown documented as implemented | ✅ PASS |
+| # | Test | Result | DBB |
+|---|------|--------|-----|
+| 1 | has exactly 3 known limitations | PASS | DBB-010 |
+| 2 | does NOT reference removed: middleware.js 仅含错误处理 | PASS | DBB-010 |
+| 3 | does NOT reference removed: cloud.js 无重试逻辑 | PASS | DBB-010 |
+| 4 | does NOT reference removed: 优雅关闭不完整 | PASS | DBB-010 |
+| 5 | retains mDNS/Bonjour limitation | PASS | DBB-010 |
+| 6 | retains sense.js MediaPipe limitation | PASS | DBB-010 |
+| 7 | retains model_not_found limitation | PASS | DBB-010 |
+| 8 | does not reference removed files as active components | PASS | DBB-010 |
 
-**Total: 14 passed, 0 failed**
+**Total: 8 passed, 0 failed**
 
 ## DBB Coverage
 
-- DBB-010 (no stale references): ✅ Verified — removed items no longer appear
-- DBB-011 (existing tests pass): ✅ Verified
+- DBB-010 (no stale references): Verified — removed items no longer appear as active components
 
 ## Minor Note
 
