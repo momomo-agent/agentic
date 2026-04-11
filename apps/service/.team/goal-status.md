@@ -14,6 +14,8 @@ Vision ≥90% + PRD ≥90%
 
 ## 📦 Recent Deliverables
 ### Commits
+991dccd6 feat: implement task
+06a63f6e feat: developer completed
 a621ea8f feat: implement task
 5f74e2a4 feat: developer completed
 cc5da85b feat: implement graceful shutdown (shutdown.js)
@@ -22,8 +24,6 @@ cc5da85b feat: implement graceful shutdown (shutdown.js)
 024f584e test: tester completed
 4b11c164 test: auth middleware tests — /api/health exempt bug found (DBB-025)
 a21127cd test: tester completed
-3fea2890 feat: implement task
-06d35647 reset M103: 重开稳定性里程碑，上轮没写核心代码
 
 ### Completed Tasks
 (none)

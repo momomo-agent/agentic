@@ -1,8 +1,8 @@
 {
   "pm": {
-    "status": "running",
-    "lastRun": "2026-04-11T09:04:13.228Z",
-    "currentTask": "管理任务和里程碑",
+    "status": "idle",
+    "lastRun": "2026-04-11T09:21:06.260Z",
+    "currentTask": null,
     "retryCount": 1
   },
   "tech_lead-1": {
@@ -30,9 +30,9 @@
     "retryCount": 1
   },
   "tester": {
-    "status": "idle",
-    "lastRun": "2026-04-11T09:02:25.971Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-11T09:19:45.881Z",
+    "currentTask": "验证功能",
     "retryCount": 1
   },
   "tester-1": {

@@ -1,6 +1,6 @@
 {
-  "match": 88,
-  "timestamp": "2026-04-11T15:17:00.000Z",
+  "match": 93,
+  "timestamp": "2026-04-11T17:10:00.000Z",
   "gaps": [
     {
       "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented matching ARCHITECTURE.md — M101 engine registry unification complete, voice adapter API signatures documented",
@@ -13,44 +13,44 @@
       "severity": "minor"
     },
     {
-      "description": "GET /api/health response structure mismatch: ARCHITECTURE.md specifies { status, components: { ollama, stt, tts } } but implementation returns { status, uptime, ollama, stt, tts, responseTime } — components are flat at top level instead of nested under 'components' key",
-      "status": "partial",
-      "severity": "major"
+      "description": "GET /api/health response structure — task to fix nested components structure completed and verified",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
-      "description": "ARCHITECTURE.md Known Limitations section (items 4 and 5) still lists audio format validation as missing and error code field as incomplete, but both are now implemented — doc is stale in the limitations section",
+      "description": "ARCHITECTURE.md Known Limitations section — update task in review, pending tester verification",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "Architecture diagram shows adapters at 'adapters/sense.js' and 'adapters/voice/*' but actual path is 'runtime/adapters/sense.js' and 'runtime/adapters/voice/*' — diagram labels are slightly inaccurate",
+      "description": "Architecture diagram adapter path labels (adapters/sense.js → runtime/adapters/sense.js) — included in Known Limitations update task, in review",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "M103 expanded scope: src/engine/health.js (engine health check + auto-degradation) not implemented — file does not exist, not yet in ARCHITECTURE.md",
-      "status": "missing",
-      "severity": "major"
+      "description": "src/engine/health.js (engine health check + auto-degradation) — implemented, tested, verified by tester",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
-      "description": "M103 expanded scope: src/server/queue.js (request queue + concurrency control for local models) not implemented — file does not exist",
-      "status": "missing",
-      "severity": "major"
+      "description": "src/server/queue.js (request queue + concurrency control) — implemented, tested, verified by tester",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
-      "description": "M103 expanded scope: retry logic in engine/ollama.js and engine/cloud.js not implemented — no retry patterns found in either file",
-      "status": "missing",
-      "severity": "major"
+      "description": "Retry logic in engine/ollama.js and engine/cloud.js — implemented, in review pending tester verification",
+      "status": "partial",
+      "severity": "minor"
     },
     {
-      "description": "M103 expanded scope: auth middleware (AGENTIC_API_KEY bearer token) not implemented in middleware.js",
-      "status": "missing",
-      "severity": "major"
+      "description": "Auth middleware (AGENTIC_API_KEY bearer token) in middleware.js — implemented, tested, verified by tester",
+      "status": "implemented",
+      "severity": "minor"
     },
     {
-      "description": "M103 expanded scope: graceful shutdown (SIGINT/SIGTERM handling, drain connections) not implemented — no shutdown.js or equivalent",
-      "status": "missing",
-      "severity": "major"
+      "description": "Graceful shutdown (shutdown.js) — implemented, in review pending tester verification",
+      "status": "partial",
+      "severity": "minor"
     }
   ]
 }
