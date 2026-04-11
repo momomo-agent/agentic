@@ -7,3 +7,4 @@
 - Routes through runtime/embed.js (localEmbed)
 - Response matches OpenAI format: `{ object: 'list', data: [{object: 'embedding', embedding, index}], model, usage }`
 - Test: test/v1-embeddings.test.js — 4 tests passing
+- Verified: full suite 187 files, 1117 tests, all passing

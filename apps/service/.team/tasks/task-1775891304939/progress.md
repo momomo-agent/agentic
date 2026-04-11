@@ -8,3 +8,4 @@
 - Routes through runtime/stt.js transcribe()
 - Supports `json` (default) and `verbose_json` response formats
 - Test: test/v1-audio-transcriptions.test.js — 4 tests passing
+- Verified: full suite 187 files, 1117 tests, all passing

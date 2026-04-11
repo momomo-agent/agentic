@@ -7,3 +7,4 @@
 - Each discovered model added with `{ id, object: 'model', created, owned_by }`
 - Gracefully falls back to base model if registry throws
 - Test: test/v1-models.test.js — 3 tests passing
+- Verified: full suite 187 files, 1117 tests, all passing
