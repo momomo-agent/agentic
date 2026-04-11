@@ -16,6 +16,32 @@ import { getConfig, setConfig, reloadConfig, CONFIG_PATH, addToPool, removeFromP
 import { getEngines, discoverModels, getEngine, modelsForCapability, resolveModel } from '../engine/registry.js';
 import { embed } from '../runtime/embed.js';
 
+function apiError(res, status, message, type = 'invalid_request_error', code = null) {
+  res.status(status).json({ error: { message, type, code } });
+}
+
+// Supported audio magic bytes
+const AUDIO_SIGNATURES = [
+  { ext: 'wav',  magic: [0x52, 0x49, 0x46, 0x46] },           // RIFF
+  { ext: 'mp3',  magic: [0xFF, 0xFB] },                        // MP3 frame sync
+  { ext: 'mp3',  magic: [0xFF, 0xF3] },                        // MP3 frame sync (alt)
+  { ext: 'mp3',  magic: [0xFF, 0xF2] },                        // MP3 frame sync (alt)
+  { ext: 'mp3',  magic: [0x49, 0x44, 0x33] },                  // ID3 tag
+  { ext: 'ogg',  magic: [0x4F, 0x67, 0x67, 0x53] },           // OggS
+  { ext: 'flac', magic: [0x66, 0x4C, 0x61, 0x43] },           // fLaC
+  { ext: 'webm', magic: [0x1A, 0x45, 0xDF, 0xA3] },           // EBML (WebM/MKV)
+  { ext: 'mp4',  offset: 4, magic: [0x66, 0x74, 0x79, 0x70] }, // ftyp (M4A/MP4)
+  { ext: 'amr',  magic: [0x23, 0x21, 0x41, 0x4D, 0x52] },     // #!AMR
+];
+
+function isValidAudio(buffer) {
+  if (!buffer || buffer.length < 12) return false;
+  return AUDIO_SIGNATURES.some(sig => {
+    const offset = sig.offset || 0;
+    return sig.magic.every((byte, i) => buffer[offset + i] === byte);
+  });
+}
+
 function getLanIp() {
   for (const ifaces of Object.values(os.networkInterfaces())) {
     for (const iface of ifaces) {
@@ -74,6 +100,47 @@ async function getOllamaStatus() {
 function addRoutes(r) {
   r.get('/health', (req, res) => res.json({ status: 'ok' }));
 
+  // ─── Detailed health check ────────────────────────────────
+  r.get('/api/health', async (req, res) => {
+    const start = Date.now();
+
+    const ollamaResult = await getOllamaStatus();
+    const ollama = ollamaResult.running
+      ? { status: 'ok', models: ollamaResult.models }
+      : { status: 'degraded', error: ollamaResult.error };
+
+    let sttStatus;
+    try {
+      const sttModels = await modelsForCapability('stt');
+      sttStatus = sttModels.length > 0
+        ? { status: 'ok', models: sttModels.map(m => m.id) }
+        : { status: 'unavailable' };
+    } catch {
+      sttStatus = { status: 'unavailable' };
+    }
+
+    let ttsStatus;
+    try {
+      const ttsModels = await modelsForCapability('tts');
+      ttsStatus = ttsModels.length > 0
+        ? { status: 'ok', models: ttsModels.map(m => m.id) }
+        : { status: 'unavailable' };
+    } catch {
+      ttsStatus = { status: 'unavailable' };
+    }
+
+    const overall = ollama.status === 'ok' ? 'ok' : 'degraded';
+
+    res.json({
+      status: overall,
+      uptime: process.uptime(),
+      ollama,
+      stt: sttStatus,
+      tts: ttsStatus,
+      responseTime: Date.now() - start,
+    });
+  });
+
   // ─── OpenAI-compatible API ───────────────────────────────
   r.get('/v1/models', async (req, res) => {
     const created = Math.floor(Date.now() / 1000);
@@ -93,7 +160,7 @@ function addRoutes(r) {
 
   r.post('/v1/chat/completions', async (req, res) => {
     const { messages = [], model, stream = false, temperature, max_tokens, tools } = req.body;
-    if (!messages.length) return res.status(400).json({ error: { message: 'No messages provided', type: 'invalid_request_error' } });
+    if (!messages.length) return apiError(res, 400, 'No messages provided', 'invalid_request_error', 'missing_required_field');
 
     const id = `chatcmpl-${Date.now()}`;
     const created = Math.floor(Date.now() / 1000);
@@ -142,14 +209,14 @@ function addRoutes(r) {
           usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
         });
       } catch (error) {
-        res.status(500).json({ error: { message: error.message, type: 'server_error' } });
+        apiError(res, 500, error.message, 'server_error', null);
       }
     }
   });
   // ─── POST /v1/embeddings — OpenAI-compatible embedding API ──
   r.post('/v1/embeddings', async (req, res) => {
     const { model, input } = req.body;
-    if (!input) return res.status(400).json({ error: { message: 'input is required', type: 'invalid_request_error' } });
+    if (!input) return apiError(res, 400, 'input is required', 'invalid_request_error', 'missing_required_field');
 
     try {
       const inputs = Array.isArray(input) ? input : [input];
@@ -168,13 +235,18 @@ function addRoutes(r) {
         usage: { prompt_tokens: totalTokens, total_tokens: totalTokens },
       });
     } catch (error) {
-      res.status(500).json({ error: { message: error.message, type: 'server_error' } });
+      apiError(res, 500, error.message, 'server_error', null);
     }
   });
 
   // ─── POST /v1/audio/transcriptions — OpenAI-compatible STT API ──
   r.post('/v1/audio/transcriptions', upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: { message: 'file is required', type: 'invalid_request_error' } });
+    if (!req.file) return apiError(res, 400, 'file is required', 'invalid_request_error', 'missing_required_field');
+
+    // Validate audio format via magic bytes
+    if (!isValidAudio(req.file.buffer)) {
+      return apiError(res, 400, 'Invalid audio format. Supported: wav, mp3, ogg, flac, webm, mp4/m4a, amr', 'invalid_request_error', 'invalid_audio_format');
+    }
 
     const responseFormat = req.body?.response_format || 'json';
     try {
@@ -185,14 +257,14 @@ function addRoutes(r) {
         res.json({ text });
       }
     } catch (error) {
-      res.status(500).json({ error: { message: error.message, type: 'server_error' } });
+      apiError(res, 500, error.message, 'server_error', null);
     }
   });
 
   // ─── POST /v1/audio/speech — OpenAI-compatible TTS API ──
   r.post('/v1/audio/speech', async (req, res) => {
     const { model, input, voice, response_format = 'mp3', speed } = req.body;
-    if (!input) return res.status(400).json({ error: { message: 'input is required', type: 'invalid_request_error' } });
+    if (!input) return apiError(res, 400, 'input is required', 'invalid_request_error', 'missing_required_field');
 
     const contentTypes = { mp3: 'audio/mpeg', wav: 'audio/wav', opus: 'audio/opus', flac: 'audio/flac' };
     try {
@@ -200,7 +272,7 @@ function addRoutes(r) {
       res.setHeader('Content-Type', contentTypes[response_format] || 'audio/mpeg');
       res.send(audio);
     } catch (error) {
-      res.status(500).json({ error: { message: error.message, type: 'server_error' } });
+      apiError(res, 500, error.message, 'server_error', null);
     }
   });
 

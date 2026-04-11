@@ -1,0 +1,13 @@
+{
+  "id": "task-1775893487853",
+  "title": "音频格式校验 — transcriptions 端点前置检查",
+  "description": "/v1/audio/transcriptions 当前不校验音频文件格式，无效文件导致 500 而非 4xx。需要在传入 STT 引擎前校验文件 magic bytes 或 content-type，无效格式返回 400。DBB-012 partial gap。",
+  "status": "review",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m103",
+  "hasDesign": true,
+  "created": "2026-04-11T07:44:47.853Z",
+  "updated": "2026-04-11T07:55:22.559Z"
+}

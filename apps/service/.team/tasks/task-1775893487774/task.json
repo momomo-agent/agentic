@@ -1,0 +1,13 @@
+{
+  "id": "task-1775893487774",
+  "title": "ARCHITECTURE.md 清理 — 删除已移除文件引用",
+  "description": "ARCHITECTURE.md 仍引用已删除的 runtime/memory.js、admin 组件 ConfigPanel、LocalModels/CloudModels。需要：1) 删除 memory.js 的目录结构条目和 API 文档 2) 将 ConfigPanel 从 admin 组件列表移除 3) 将 LocalModels/CloudModels 替换为 ModelsView.vue。Architecture gap: 3 partial items。",
+  "status": "todo",
+  "priority": "P2",
+  "assignee": "architect",
+  "blockedBy": [],
+  "groupId": "m103",
+  "hasDesign": true,
+  "created": "2026-04-11T07:44:47.775Z",
+  "updated": "2026-04-11T07:51:02.614Z"
+}
