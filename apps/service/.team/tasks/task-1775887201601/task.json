@@ -2,12 +2,12 @@
   "id": "task-1775887201601",
   "title": "stt.js 切到 Engine Registry",
   "description": "F2: 删除 stt.js 对 detect()/getProfile() 的直接调用。通过 assignments.stt 指向的模型 ID 找到对应引擎。whisper engine 的 run() 方法封装适配器选择逻辑。fallback 链：assignments 指定 → engine status check → 自动降级。验收：stt.js 不再 import detector/。",
-  "status": "review",
+  "status": "done",
   "priority": "P0",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m101",
   "hasDesign": true,
   "created": "2026-04-11T06:00:01.601Z",
-  "updated": "2026-04-11T06:30:29.091Z"
+  "updated": "2026-04-11T06:58:40.889Z"
 }

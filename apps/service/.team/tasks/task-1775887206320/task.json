@@ -2,9 +2,9 @@
   "id": "task-1775887206320",
   "title": "清理死文件和重复路由",
   "description": "F4+F5: 删除 LocalModelsView.vue、CloudModelsView.vue、App-old.vue、ConfigPanel.vue、runtime/memory.js（未被引用）。清理 api.js 中的 /api/ollama/* 重复路由（保留 /api/engines/*）。/api/model-pool 改为代理到 /api/engines/models 并加 deprecation warning header。验收：所有死文件已删除，现有测试全部通过。",
-  "status": "review",
+  "status": "done",
   "priority": "P1",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [
     "task-1775887196225",
     "task-1775887201601",
@@ -13,5 +13,5 @@
   "groupId": "m101",
   "hasDesign": true,
   "created": "2026-04-11T06:00:06.320Z",
-  "updated": "2026-04-11T06:38:13.617Z"
+  "updated": "2026-04-11T06:58:40.950Z"
 }

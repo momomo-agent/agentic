@@ -2,12 +2,12 @@
   "id": "task-1775887201640",
   "title": "tts.js 切到 Engine Registry",
   "description": "F3: 同 F2，删除对 hardware profile 的直接依赖。tts engine 的 run() 方法封装适配器选择。支持通过 assignments.tts 切换 TTS 后端。验收：tts.js 不再 import detector/。",
-  "status": "review",
+  "status": "done",
   "priority": "P0",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m101",
   "hasDesign": true,
   "created": "2026-04-11T06:00:01.640Z",
-  "updated": "2026-04-11T06:27:52.667Z"
+  "updated": "2026-04-11T06:58:40.920Z"
 }
