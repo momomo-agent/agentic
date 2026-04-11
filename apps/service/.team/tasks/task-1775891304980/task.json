@@ -1,0 +1,13 @@
+{
+  "id": "task-1775891304980",
+  "title": "POST /v1/audio/speech — OpenAI 兼容语音合成 API",
+  "description": "在 api.js 添加 POST /v1/audio/speech 端点。请求格式 { model, input, voice, response_format, speed }。通过 engine registry 路由到 tts 引擎（kokoro/piper/macos-say/cloud）。响应为音频流，Content-Type 根据 response_format 设置（mp3/wav/opus/flac）。需要测试文件 test/v1-audio-speech.test.js。",
+  "status": "todo",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m102",
+  "hasDesign": false,
+  "created": "2026-04-11T07:08:24.980Z",
+  "updated": "2026-04-11T07:08:31.074Z"
+}

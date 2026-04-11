@@ -1,0 +1,17 @@
+{
+  "id": "task-1775891305020",
+  "title": "更新 GET /v1/models 列出 embedding 和 audio 模型",
+  "description": "扩展现有 GET /v1/models 端点，除了 chat 模型外，还列出 embedding 模型（如 bge-m3）和 audio 模型（whisper/sensevoice/kokoro/piper）。每个模型的 object 字段为 'model'，包含 id/created/owned_by。通过 registry.modelsForCapability('embed'/'stt'/'tts') 获取。需要更新现有 /v1/models 测试。",
+  "status": "todo",
+  "priority": "P2",
+  "assignee": "developer",
+  "blockedBy": [
+    "task-1775891304898",
+    "task-1775891304939",
+    "task-1775891304980"
+  ],
+  "groupId": "m102",
+  "hasDesign": false,
+  "created": "2026-04-11T07:08:25.020Z",
+  "updated": "2026-04-11T07:08:31.104Z"
+}

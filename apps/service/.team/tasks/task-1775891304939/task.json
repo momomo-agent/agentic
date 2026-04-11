@@ -1,0 +1,13 @@
+{
+  "id": "task-1775891304939",
+  "title": "POST /v1/audio/transcriptions — OpenAI 兼容语音识别 API",
+  "description": "在 api.js 添加 POST /v1/audio/transcriptions 端点。请求格式 multipart/form-data（file 字段为音频文件，可选 model/language/response_format）。通过 engine registry 路由到 whisper/sensevoice。响应格式匹配 OpenAI: { text } 或 verbose_json { task, language, duration, text, segments }。复用现有 multer upload 中间件。需要测试文件 test/v1-audio-transcriptions.test.js。",
+  "status": "todo",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m102",
+  "hasDesign": false,
+  "created": "2026-04-11T07:08:24.939Z",
+  "updated": "2026-04-11T07:08:31.043Z"
+}
