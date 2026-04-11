@@ -40,8 +40,8 @@ export function authMiddleware(apiKey) {
     // No key configured → pass through (local dev mode)
     if (!apiKey) return next();
 
-    // Exempt routes
-    if (req.path === '/health' || req.path.startsWith('/admin')) return next();
+    // Exempt routes (per ARCHITECTURE.md: /health and /api/health are ops probes)
+    if (req.path === '/health' || req.path === '/api/health' || req.path.startsWith('/admin')) return next();
 
     // Validate Bearer token
     const auth = req.headers.authorization;
@@ -107,10 +107,11 @@ Note: `authMiddleware` must be applied BEFORE routes but AFTER body parsing. The
 // Test 3: Missing Authorization header → 401 with authentication_error
 // Test 4: Invalid token → 401 with authentication_error
 // Test 5: /health exempt from auth
-// Test 6: /admin/* exempt from auth
+// Test 6: /api/health exempt from auth (per ARCHITECTURE.md)
+// Test 7: /admin/* exempt from auth
 ```
 
 ## ⚠️ Unverified Assumptions
 
 - `createApp()` structure: verified from source — it uses `express()`, `cors()`, `express.json()`, then router, then `errorHandler`. The auth middleware fits between json parsing and router.
-- Exempt routes: task says `/health` and `/admin`. Current routes: `GET /health` (line 101), admin routes are under `/admin/*` in the Vue static serving. Need to verify exact admin route paths.
+- Exempt routes: ARCHITECTURE.md specifies `/health` and `/api/health` (运维探针). Task also exempts `/admin/*` for the Vue admin dashboard. Current routes: `GET /health` (line 101), `GET /api/health` (line 104), admin routes served as static files under `/admin/*`.
