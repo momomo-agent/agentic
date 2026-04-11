@@ -2,13 +2,13 @@
   "id": "task-1775891304898",
   "title": "POST /v1/embeddings — OpenAI 兼容嵌入 API",
   "description": "在 api.js 添加 POST /v1/embeddings 端点。请求格式 { model, input }（input 为 string 或 string[]），通过 engine registry 路由到 embed 引擎，响应格式严格匹配 OpenAI: { object: 'list', data: [{ object: 'embedding', embedding: [...], index }], model, usage: { prompt_tokens, total_tokens } }。参考 runtime/embed.js 的 localEmbed API。需要对应测试文件 test/v1-embeddings.test.js。",
-  "status": "review",
+  "status": "done",
   "priority": "P1",
-  "assignee": "developer",
+  "assignee": null,
   "blockedBy": [],
   "groupId": "m102",
   "hasDesign": true,
   "created": "2026-04-11T07:08:24.898Z",
-  "updated": "2026-04-11T07:16:57.966Z",
+  "updated": "2026-04-11T07:34:59.273Z",
   "milestoneId": "m102"
 }
