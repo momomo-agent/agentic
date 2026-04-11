@@ -1,6 +1,6 @@
 {
   "match": 95,
-  "timestamp": "2026-04-11T16:10:00.000Z",
+  "timestamp": "2026-04-11T16:19:00.000Z",
   "gaps": [
     {
       "description": "src/index.js — package.json 'main' entry point exists and exports core API (startServer, createApp, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed)",
@@ -43,7 +43,7 @@
       "severity": "major"
     },
     {
-      "description": "ARCHITECTURE.md — cleaned up, directory tree updated, but known-limitations section still lists audio validation and error format as missing (stale text at lines 748-749)",
+      "description": "ARCHITECTURE.md known-limitations section (lines 748-749) still lists audio validation and error format as missing — stale text, both are now implemented",
       "status": "partial",
       "severity": "minor"
     },
@@ -60,6 +60,11 @@
     {
       "description": "Legacy /api/model-pool endpoint proxied with deprecation headers (X-Deprecated, Deprecation: true)",
       "status": "implemented",
+      "severity": "minor"
+    },
+    {
+      "description": "/v1/chat/completions does not validate model param against available models — no model_not_found error code for non-existent model IDs (DBB-005)",
+      "status": "partial",
       "severity": "minor"
     },
     {

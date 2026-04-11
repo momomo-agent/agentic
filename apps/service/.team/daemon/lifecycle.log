@@ -43,3 +43,5 @@
 {"ts":"2026-04-11T07:24:01.987Z","event":"watchdog_reset","pid":31451,"reason":"busy_30min","uptime":5400}
 {"ts":"2026-04-11T07:54:02.004Z","event":"watchdog_reset","pid":31451,"reason":"busy_30min","uptime":7200}
 {"ts":"2026-04-11T08:18:48.135Z","event":"stop","pid":31451,"reason":"sigterm","uptime":8687}
+{"ts":"2026-04-11T08:19:42.083Z","event":"start","pid":27893,"reason":"manual","uptime":0}
+{"ts":"2026-04-11T08:49:42.341Z","event":"watchdog_reset","pid":27893,"reason":"busy_30min","uptime":1800}

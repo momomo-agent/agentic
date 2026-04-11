@@ -1,7 +1,7 @@
 {
   "pm": {
     "status": "idle",
-    "lastRun": "2026-04-11T08:17:24.512Z",
+    "lastRun": "2026-04-11T08:52:06.759Z",
     "currentTask": null,
     "retryCount": 1
   },
@@ -24,15 +24,15 @@
     "retryCount": 0
   },
   "developer": {
-    "status": "idle",
-    "lastRun": "2026-04-11T08:03:27.607Z",
+    "status": "error",
+    "lastRun": "2026-04-11T08:54:29.605Z",
     "currentTask": null,
     "retryCount": 2
   },
   "tester": {
-    "status": "idle",
-    "lastRun": "2026-04-11T08:14:47.245Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-11T08:52:30.709Z",
+    "currentTask": "验证功能",
     "retryCount": 1
   },
   "tester-1": {
@@ -57,43 +57,43 @@
   },
   "vision_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-11T08:18:42.246Z",
+    "lastRun": "2026-04-11T08:22:11.888Z",
     "currentTask": null,
     "retryCount": 2
   },
   "prd_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-11T08:18:21.311Z",
+    "lastRun": "2026-04-11T08:22:58.488Z",
     "currentTask": null,
     "retryCount": 2
   },
   "dbb_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-11T08:17:29.981Z",
+    "lastRun": "2026-04-11T08:24:31.861Z",
     "currentTask": null,
     "retryCount": 2
   },
   "arch_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-11T08:17:53.969Z",
+    "lastRun": "2026-04-11T08:22:01.492Z",
     "currentTask": null,
     "retryCount": 2
   },
   "architect": {
-    "status": "idle",
-    "lastRun": "2026-04-11T07:53:37.283Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-11T08:52:06.988Z",
+    "currentTask": "设计系统架构",
     "retryCount": 0
   },
   "tech_lead": {
-    "status": "idle",
-    "lastRun": "2026-04-11T07:52:06.786Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-11T08:52:06.878Z",
+    "currentTask": "出技术方案",
     "retryCount": 0
   },
   "alignment_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-11T08:18:46.514Z",
+    "lastRun": "2026-04-11T08:23:06.489Z",
     "currentTask": null,
     "retryCount": 0
   }

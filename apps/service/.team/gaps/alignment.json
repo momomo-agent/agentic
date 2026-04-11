@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-04-12T00:25:00Z",
+  "timestamp": "2026-04-11T08:25:00Z",
   "checks": [
     {
       "from": "vision",
       "to": "prd",
       "aligned": true,
-      "coverage": 92,
+      "coverage": 90,
       "issues": [
         {
           "type": "drift",
@@ -16,6 +16,13 @@
         },
         {
           "type": "missing",
+          "description": "Vision says '所有能力 API 兼容 OpenAI 标准格式' but PRD REST API table only lists /v1/models, /v1/chat/completions, /v1/messages. Missing /v1/embeddings, /v1/audio/transcriptions, /v1/audio/speech which are implemented in code",
+          "severity": "major",
+          "from_item": "Success criteria: 所有能力 API 兼容 OpenAI 标准格式",
+          "to_item": "PRD OpenAI/Anthropic 兼容 API section only lists 3 endpoints, missing embeddings and audio endpoints"
+        },
+        {
+          "type": "missing",
           "description": "Vision mentions dynamic configuration with auto-recommend on model updates as implicit in 'hardware adaptive', but PRD only covers config hot-update polling in M4 without specifying auto-recommendation on new model releases",
           "severity": "minor",
           "from_item": "Core value 4: 硬件自适应 — 检测硬件，自动选择最优模型配置",
@@ -23,10 +30,10 @@
         },
         {
           "type": "scope_creep",
-          "description": "PRD M3 adds KV store + vector embedding (memory module) which Vision explicitly lists as non-goal ('不做记忆')",
+          "description": "PRD M3 adds KV store + vector embedding which Vision explicitly lists as non-goal ('不做记忆'). While store/embed are atomic capabilities (not memory/session), the boundary is blurry",
           "severity": "minor",
           "from_item": "Vision non-goals: 不做记忆 / session / agent 逻辑（业务层的事）",
-          "to_item": "M3 feature 6: KV 存储 + 向量嵌入 via agentic-store + agentic-embed; Architecture includes runtime/memory.js with add()/search()"
+          "to_item": "M3 feature 6: KV 存储 + 向量嵌入 via agentic-store + agentic-embed"
         }
       ]
     },
@@ -34,7 +41,7 @@
       "from": "prd",
       "to": "architecture",
       "aligned": true,
-      "coverage": 95,
+      "coverage": 93,
       "issues": [
         {
           "type": "drift",
@@ -42,6 +49,13 @@
           "severity": "minor",
           "from_item": "PRD: latency-log.js 提供 record()、p95()、reset() 用于延迟统计",
           "to_item": "Architecture: latencyLog.record(stage, ms), latencyLog.p95(stage), latencyLog.reset() — adds 'stage' parameter"
+        },
+        {
+          "type": "missing",
+          "description": "Architecture main API listing (section 4) only lists /v1/models, /v1/chat/completions, /v1/messages — missing /v1/embeddings, /v1/audio/transcriptions, /v1/audio/speech which exist in code and are referenced elsewhere in Architecture",
+          "severity": "major",
+          "from_item": "PRD M2 STT/TTS features + Vision OpenAI compatibility requirement",
+          "to_item": "Architecture section 4 API listing omits /v1/embeddings, /v1/audio/transcriptions, /v1/audio/speech from main endpoint table"
         },
         {
           "type": "drift",
@@ -63,21 +77,21 @@
       "from": "architecture",
       "to": "tasks",
       "aligned": true,
-      "coverage": 92,
+      "coverage": 93,
       "issues": [
         {
           "type": "drift",
-          "description": "342 cancelled tasks vs 274 done tasks — high cancellation rate indicates significant rework cycles across many components (Docker, agentic-sense, optimizer.js, VAD). All components now covered by at least one completed task.",
+          "description": "342 cancelled tasks vs 278 done tasks — high cancellation rate indicates significant rework cycles. All Architecture components now covered by completed tasks.",
           "severity": "minor",
           "from_item": "Architecture: clean module boundaries for all components",
-          "to_item": "Task history: 342 cancelled, 282 done — many components have 3-5 cancelled variants before successful completion"
+          "to_item": "Task history: 342 cancelled, 278 done — many components have multiple cancelled variants before successful completion"
         },
         {
           "type": "missing",
-          "description": "Architecture known limitation #4 mentions memory.js full-scan performance concern, but no task addresses approximate nearest neighbor indexing or search optimization",
+          "description": "M103 milestone was reset (commit 06d35647) but no new tasks have been created yet for the 3 planned items: health check, OpenAI error format, audio format validation",
           "severity": "minor",
-          "from_item": "Architecture known limitation: runtime/memory.js 全量扫描 — search() 遍历所有条目计算余弦相似度",
-          "to_item": "No task for memory.js search performance optimization"
+          "from_item": "Architecture M103: 3 planned tasks — GET /api/health, OpenAI error format, audio format validation",
+          "to_item": "No active M103 tasks exist after milestone reset"
         }
       ]
     }

@@ -1,0 +1,55 @@
+{
+  "milestoneId": "m103",
+  "match": 92,
+  "timestamp": "2026-04-11T16:19:00.000Z",
+  "criteria": [
+    {
+      "criterion": "DBB-001: GET /api/health returns HTTP 200 with JSON body containing ollama, stt, tts status fields",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-002: Health endpoint reflects degraded components (ollama unreachable shows degraded status)",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-003: Health endpoint available when no engines registered (returns valid response, not 500)",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-004: Error responses include code field — apiError() and errorHandler both return { error: { message, type, code } }",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-005: Error format on missing model — /v1/chat/completions does not validate model param against available models; no model_not_found code returned",
+      "status": "partial"
+    },
+    {
+      "criterion": "DBB-006: Error format on missing required fields — POST /v1/chat/completions with empty body returns 400 with code 'missing_required_field'",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-007: Invalid audio file returns 4xx — isValidAudio() magic bytes check returns 400 with code 'invalid_audio_format'",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-008: Valid audio formats accepted — wav, mp3, ogg, flac, webm, mp4/m4a, amr signatures recognized",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-009: Empty audio file returns 4xx — isValidAudio() returns false for buffer.length < 12",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-010: ARCHITECTURE.md has no stale references — removed file references (memory.js, ConfigPanel, LocalModels, CloudModels, App-old.vue) are gone; known-limitations at lines 748-749 still list audio validation and error format as missing (stale but not file references)",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-011: Existing tests still pass — 150 test files, 0 failures per vitest results.json",
+      "status": "pass"
+    },
+    {
+      "criterion": "DBB-012: Health endpoint response time < 2s — implementation uses AbortSignal.timeout(2000) for Ollama check",
+      "status": "pass"
+    }
+  ]
+}

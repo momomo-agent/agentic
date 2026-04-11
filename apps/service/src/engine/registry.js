@@ -8,6 +8,16 @@
 
 const engines = new Map();
 
+// Lazy import to avoid circular dependency at module load time
+let _isHealthy;
+async function getIsHealthy() {
+  if (!_isHealthy) {
+    const mod = await import('./health.js');
+    _isHealthy = mod.isHealthy;
+  }
+  return _isHealthy;
+}
+
 /**
  * 注册一个引擎
  * @param {string} id - 引擎 ID (ollama, whisper, kokoro, cloud:openai, ...)
@@ -41,7 +51,9 @@ export function getEngine(id) {
  */
 export async function discoverModels() {
   const all = [];
+  const isHealthy = await getIsHealthy();
   for (const [engineId, engine] of engines) {
+    if (!isHealthy(engineId)) continue;
     try {
       const status = await engine.status();
       if (!status.available) continue;
@@ -70,9 +82,11 @@ export async function discoverModels() {
  */
 export async function resolveModel(modelId) {
   if (!modelId) return null;
+  const isHealthy = await getIsHealthy();
 
   // 先在所有引擎的模型里精确匹配
   for (const [engineId, engine] of engines) {
+    if (!isHealthy(engineId)) continue;
     try {
       const status = await engine.status();
       if (!status.available) continue;

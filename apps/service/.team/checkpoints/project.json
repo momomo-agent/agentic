@@ -1,7 +1,7 @@
 {
   "workflowId": "project",
-  "nodeId": "monitor",
-  "stepIndex": 0,
+  "nodeId": "work_loop",
+  "stepIndex": 3,
   "visitedNodes": [
     "startup",
     "monitor",
@@ -17,23 +17,26 @@
     "pm_decide",
     "work_loop",
     "milestone_qg",
-    "monitor"
+    "monitor",
+    "monitor",
+    "pm_decide",
+    "work_loop",
+    "work_loop"
   ],
   "loopIterations": {
-    "work_loop": 5
+    "work_loop": 1
   },
-  "transitionDepth": 15,
+  "transitionDepth": 19,
   "nodeVisitCounts": {
     "startup": 1,
-    "monitor": 4,
-    "pm_decide": 2,
-    "work_loop": 5,
+    "monitor": 5,
+    "pm_decide": 3,
+    "work_loop": 7,
     "milestone_qg": 3
   },
   "contextOverrides": {
-    "refsValid": 1,
-    "buildPassed": 0,
+    "refsValid": 0,
     "retryCount": "retryCount + 1"
   },
-  "timestamp": "2026-04-11T08:17:29.979Z"
+  "timestamp": "2026-04-11T08:52:06.845Z"
 }

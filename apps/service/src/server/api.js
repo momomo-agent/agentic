@@ -14,7 +14,12 @@ import { errorHandler } from './middleware.js';
 import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession } from './hub.js';
 import { getConfig, setConfig, reloadConfig, CONFIG_PATH, addToPool, removeFromPool, getAssignments, setAssignments } from '../config.js';
 import { getEngines, discoverModels, getEngine, modelsForCapability, resolveModel } from '../engine/registry.js';
+import { getAllHealth } from '../engine/health.js';
 import { embed } from '../runtime/embed.js';
+import { createQueue, enqueue, getQueueStats } from './queue.js';
+
+const localQueue = createQueue('local', { maxConcurrency: 1, maxQueueSize: 50 });
+const cloudQueue = createQueue('cloud', { maxConcurrency: 5, maxQueueSize: 100 });
 
 function apiError(res, status, message, type = 'invalid_request_error', code = null) {
   res.status(status).json({ error: { message, type, code } });
@@ -134,9 +139,11 @@ function addRoutes(r) {
     res.json({
       status: overall,
       uptime: process.uptime(),
-      ollama,
-      stt: sttStatus,
-      tts: ttsStatus,
+      components: {
+        ollama,
+        stt: sttStatus,
+        tts: ttsStatus,
+      },
       responseTime: Date.now() - start,
     });
   });
@@ -164,53 +171,64 @@ function addRoutes(r) {
 
     const id = `chatcmpl-${Date.now()}`;
     const created = Math.floor(Date.now() / 1000);
+    const queue = model && model.includes('cloud:') ? cloudQueue : localQueue;
 
-    if (stream) {
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-      try {
-        for await (const chunk of chat(messages, { tools })) {
-          if (chunk.type === 'content') {
-            const delta = { role: 'assistant', content: chunk.content ?? chunk.text ?? '' };
-            res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta, finish_reason: null }] })}\n\n`);
+    try {
+      await enqueue(queue, async () => {
+        if (stream) {
+          res.setHeader('Content-Type', 'text/event-stream');
+          res.setHeader('Cache-Control', 'no-cache');
+          res.setHeader('Connection', 'keep-alive');
+          try {
+            for await (const chunk of chat(messages, { tools })) {
+              if (chunk.type === 'content') {
+                const delta = { role: 'assistant', content: chunk.content ?? chunk.text ?? '' };
+                res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta, finish_reason: null }] })}\n\n`);
+              }
+              if (chunk.type === 'tool_use') {
+                const delta = { role: 'assistant', tool_calls: [{ index: 0, id: chunk.id, type: 'function', function: { name: chunk.name, arguments: JSON.stringify(chunk.input) } }] };
+                res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta, finish_reason: null }] })}\n\n`);
+              }
+            }
+            res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] })}\n\n`);
+            res.write('data: [DONE]\n\n');
+          } catch (error) {
+            res.write(`data: ${JSON.stringify({ error: { message: error.message } })}\n\n`);
           }
-          if (chunk.type === 'tool_use') {
-            const delta = { role: 'assistant', tool_calls: [{ index: 0, id: chunk.id, type: 'function', function: { name: chunk.name, arguments: JSON.stringify(chunk.input) } }] };
-            res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta, finish_reason: null }] })}\n\n`);
-          }
-        }
-        res.write(`data: ${JSON.stringify({ id, object: 'chat.completion.chunk', created, model: model || 'agentic-service', choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] })}\n\n`);
-        res.write('data: [DONE]\n\n');
-      } catch (error) {
-        res.write(`data: ${JSON.stringify({ error: { message: error.message } })}\n\n`);
-      }
-      res.end();
-    } else {
-      try {
-        const chunks = [];
-        const toolCalls = [];
-        for await (const chunk of chat(messages, { tools })) {
-          if (chunk.type === 'content') chunks.push(chunk.content ?? chunk.text ?? '');
-          if (chunk.type === 'tool_use') {
-            toolCalls.push({
-              id: chunk.id,
-              type: 'function',
-              function: { name: chunk.name, arguments: JSON.stringify(chunk.input) }
+          res.end();
+        } else {
+          try {
+            const chunks = [];
+            const toolCalls = [];
+            for await (const chunk of chat(messages, { tools })) {
+              if (chunk.type === 'content') chunks.push(chunk.content ?? chunk.text ?? '');
+              if (chunk.type === 'tool_use') {
+                toolCalls.push({
+                  id: chunk.id,
+                  type: 'function',
+                  function: { name: chunk.name, arguments: JSON.stringify(chunk.input) }
+                });
+              }
+            }
+            const content = chunks.join('');
+            const message = { role: 'assistant', content };
+            if (toolCalls.length) message.tool_calls = toolCalls;
+            res.json({
+              id, object: 'chat.completion', created, model: model || 'agentic-service',
+              choices: [{ index: 0, message, finish_reason: toolCalls.length ? 'tool_calls' : 'stop' }],
+              usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
             });
+          } catch (error) {
+            apiError(res, 500, error.message, 'server_error', null);
           }
         }
-        const content = chunks.join('');
-        const message = { role: 'assistant', content };
-        if (toolCalls.length) message.tool_calls = toolCalls;
-        res.json({
-          id, object: 'chat.completion', created, model: model || 'agentic-service',
-          choices: [{ index: 0, message, finish_reason: toolCalls.length ? 'tool_calls' : 'stop' }],
-          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-        });
-      } catch (error) {
-        apiError(res, 500, error.message, 'server_error', null);
+      });
+    } catch (err) {
+      if (err.status === 429) {
+        res.set('Retry-After', String(err.retryAfter));
+        return apiError(res, 429, 'Too many requests', 'rate_limit_error', 'queue_full');
       }
+      throw err;
     }
   });
   // ─── POST /v1/embeddings — OpenAI-compatible embedding API ──
@@ -370,26 +388,37 @@ function addRoutes(r) {
     } else {
       return res.status(400).json({ error: 'message or messages required' });
     }
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    const assistantChunks = [];
+
     try {
-      for await (const chunk of chat(chatMessages, { tools })) {
-        res.write(`data: ${JSON.stringify(chunk)}\n\n`);
-        if (chunk.type === 'content') assistantChunks.push(chunk.content ?? chunk.text);
+      await enqueue(localQueue, async () => {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        const assistantChunks = [];
+        try {
+          for await (const chunk of chat(chatMessages, { tools })) {
+            res.write(`data: ${JSON.stringify(chunk)}\n\n`);
+            if (chunk.type === 'content') assistantChunks.push(chunk.content ?? chunk.text);
+          }
+          res.write('data: [DONE]\n\n');
+          if (sessionId) {
+            const updatedHistory = [...chatMessages, { role: 'assistant', content: assistantChunks.join('') }];
+            setSessionData(sessionId, 'history', updatedHistory);
+            broadcastSession(sessionId);
+          }
+        } catch (error) {
+          console.log(`[chat] error: ${error.message}`);
+          res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+        }
+        res.end();
+      });
+    } catch (err) {
+      if (err.status === 429) {
+        res.set('Retry-After', String(err.retryAfter));
+        return apiError(res, 429, 'Too many requests', 'rate_limit_error', 'queue_full');
       }
-      res.write('data: [DONE]\n\n');
-      if (sessionId) {
-        const updatedHistory = [...chatMessages, { role: 'assistant', content: assistantChunks.join('') }];
-        setSessionData(sessionId, 'history', updatedHistory);
-        broadcastSession(sessionId);
-      }
-    } catch (error) {
-      console.log(`[chat] error: ${error.message}`);
-      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+      throw err;
     }
-    res.end();
   });
 
   r.get('/api/status', async (req, res) => {
@@ -740,6 +769,13 @@ function addRoutes(r) {
 
   r.get('/api/perf', (_req, res) => res.json(getMetrics()));
 
+  r.get('/api/queue/stats', (_req, res) => {
+    res.json({
+      local: getQueueStats(localQueue),
+      cloud: getQueueStats(cloudQueue),
+    });
+  });
+
   // ─── Engine API (new unified layer) ─────────────────────
   r.get('/api/engines', async (_req, res) => {
     try {
@@ -774,6 +810,11 @@ function addRoutes(r) {
       }
       res.json(all);
     } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+
+  // Engine health
+  r.get('/api/engines/health', (_req, res) => {
+    res.json(getAllHealth());
   });
 
   // Pull model via engine

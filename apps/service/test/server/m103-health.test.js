@@ -28,17 +28,18 @@ describe('GET /api/health — detailed health check', () => {
 
   afterEach(() => new Promise(r => server.close(r)));
 
-  it('DBB-001: returns 200 with ollama, stt, tts fields', async () => {
+  it('DBB-001: returns 200 with nested components (ollama, stt, tts)', async () => {
     const res = await fetch(`${baseUrl}/api/health`);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toHaveProperty('status');
-    expect(body).toHaveProperty('ollama');
-    expect(body).toHaveProperty('stt');
-    expect(body).toHaveProperty('tts');
-    expect(body.ollama).toHaveProperty('status');
-    expect(body.stt).toHaveProperty('status');
-    expect(body.tts).toHaveProperty('status');
+    expect(body).toHaveProperty('components');
+    expect(body.components).toHaveProperty('ollama');
+    expect(body.components).toHaveProperty('stt');
+    expect(body.components).toHaveProperty('tts');
+    expect(body.components.ollama).toHaveProperty('status');
+    expect(body.components.stt).toHaveProperty('status');
+    expect(body.components.tts).toHaveProperty('status');
   });
 
   it('DBB-002: returns degraded when Ollama is down', async () => {
@@ -49,7 +50,7 @@ describe('GET /api/health — detailed health check', () => {
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.status).toBe('degraded');
-      expect(body.ollama.status).toBe('degraded');
+      expect(body.components.ollama.status).toBe('degraded');
     } finally {
       if (orig !== undefined) process.env.OLLAMA_HOST = orig;
       else delete process.env.OLLAMA_HOST;
@@ -61,8 +62,8 @@ describe('GET /api/health — detailed health check', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     // No engines registered in test env
-    expect(body.stt.status).toBe('unavailable');
-    expect(body.tts.status).toBe('unavailable');
+    expect(body.components.stt.status).toBe('unavailable');
+    expect(body.components.tts.status).toBe('unavailable');
   });
 
   it('DBB-012: responds within 2000ms', async () => {

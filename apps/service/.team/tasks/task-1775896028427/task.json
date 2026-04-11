@@ -1,0 +1,13 @@
+{
+  "id": "task-1775896028427",
+  "title": "引擎健康检查 + 自动降级 (health.js)",
+  "description": "新建 src/engine/health.js，实现 startHealthCheck / stopHealthCheck / getEngineHealth / getAllHealth。Ollama 健康检查 GET /api/tags 超时 5s，Cloud 检查 /v1/models 超时 10s。引擎 down 时 registry.resolveModel() 跳过，恢复后标记 healthy。降级事件 emit EventEmitter。新增 GET /api/engines/health 端点。测试 ≥5 个。详见 .team/milestones/m103/overview.md F1。",
+  "status": "testing",
+  "priority": "P0",
+  "assignee": "tester",
+  "blockedBy": [],
+  "groupId": "m103",
+  "hasDesign": true,
+  "created": "2026-04-11T08:27:08.427Z",
+  "updated": "2026-04-11T08:53:01.078Z"
+}

@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-11T07:53:37.281Z",
+  "timestamp": "2026-04-11T08:44:18.863Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Verified ARCHITECTURE.md (749 lines) and codebase-map.md are current. All architecture gap monitor items (memory.js, ConfigPanel, LocalModels/CloudModels, voice adapter signatures) already resolved. M103 section present. Updated codebase-map.md timestamp."
+  "summary": "Updated ARCHITECTURE.md: fixed /api/health response spec to nested components format, aligned health.js API signatures with engine.design.md (startHealthCheck/stopHealthCheck/getAllHealth/onHealthChange), added Health response restructuring to M103 Phase 2 table, updated shutdown.js spec. Updated codebase-map.md: added planned M103 files (health.js, queue.js, shutdown.js), fixed stale graceful-shutdown note, added /api/health nesting to open issues."
 }

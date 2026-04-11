@@ -1,0 +1,13 @@
+{
+  "id": "task-1775896070822",
+  "title": "修复 /api/health 响应结构 — 嵌套 components",
+  "description": "ARCHITECTURE.md 规定 GET /api/health 返回 { status, components: { ollama, stt, tts } }，但实际实现返回 { status, uptime, ollama, stt, tts, responseTime }（flat 结构）。需要决定：是改代码匹配文档，还是改文档匹配代码。建议改代码以匹配 ARCHITECTURE.md 规范。如果决定改文档，architect 更新 ARCHITECTURE.md。",
+  "status": "review",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m103",
+  "hasDesign": true,
+  "created": "2026-04-11T08:27:50.822Z",
+  "updated": "2026-04-11T08:43:22.844Z"
+}

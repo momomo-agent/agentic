@@ -1,0 +1,15 @@
+{
+  "id": "task-1775896028586",
+  "title": "优雅关闭 (shutdown)",
+  "description": "Implement graceful shutdown per ARCHITECTURE.md M103 spec. Create src/server/shutdown.js: export registerShutdown(server, hub, queue, { stopHealthCheck }). On SIGINT/SIGTERM → mark shutting_down → reject new requests with 503 → drain request queue (max 10s) → close WebSocket hub → stop health check loop → process.exit(0). ≥3 tests required. Blocked by health.js task.",
+  "status": "todo",
+  "priority": "P1",
+  "assignee": "developer",
+  "blockedBy": [
+    "task-1775896028427"
+  ],
+  "groupId": "m103",
+  "hasDesign": true,
+  "created": "2026-04-11T08:27:08.586Z",
+  "updated": "2026-04-11T08:51:46.639Z"
+}

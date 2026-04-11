@@ -1,10 +1,10 @@
 # M102 DBB Check — OpenAI 兼容 API 全覆盖
 
-**Match: 89%** | **Timestamp:** 2026-04-11T15:50:00Z
+**Match: 100%** | **Timestamp:** 2026-04-11T16:16:00Z
 
 ## Summary
 
-M102 implements all 4 OpenAI-compatible API endpoints with comprehensive test coverage. 26 of 28 DBB criteria pass, 2 partial (audio format validation, error code field).
+All 28 M102 DBB criteria pass. Previously-partial items (DBB-012, DBB-025) are now resolved in implementation.
 
 ## Test Results
 
@@ -27,7 +27,7 @@ M102 implements all 4 OpenAI-compatible API endpoints with comprehensive test co
 | 009 | Model + language params | pass |
 | 010 | verbose_json format | pass |
 | 011 | Missing file → 400 | pass |
-| 012 | Invalid audio format → 4xx | partial — no format validation before STT |
+| 012 | Invalid audio format → 4xx | pass — isValidAudio() magic byte check at api.js:247 |
 | 013 | OpenAI SDK compat (transcriptions) | pass |
 | 014 | Basic speech → audio binary | pass |
 | 015 | Voice parameter accepted | pass |
@@ -40,12 +40,14 @@ M102 implements all 4 OpenAI-compatible API endpoints with comprehensive test co
 | 022 | Embed models in list | pass |
 | 023 | STT/TTS models in list | pass |
 | 024 | Model item schema | pass |
-| 025 | Unified JSON error format | partial — missing `code` field per OpenAI spec |
+| 025 | Unified JSON error format | pass — apiError() at api.js:19 always includes code field |
 | 026 | POST endpoints reject GET | pass |
 | 027 | Chat completions no regression | pass |
 | 028 | All tests pass | pass |
 
-## Gaps
+## Evidence
 
-1. **DBB-012 (minor):** `/v1/audio/transcriptions` does not validate audio file format before passing to STT engine. Invalid files may produce 500 instead of 4xx.
-2. **DBB-025 (minor):** OpenAI error responses include `message` and `type` but omit `code` field. The M102 dbb.md specifies `{ message, type, code }`.
+- `src/server/api.js:19-20` — `apiError(res, status, message, type, code)` → `{ error: { message, type, code } }`
+- `src/server/api.js:24-43` — AUDIO_SIGNATURES array + isValidAudio() function
+- `src/server/api.js:247-248` — Format validation gate before `stt.transcribe()`
+- All apiError calls pass explicit code values (e.g., `'missing_required_field'`, `'invalid_audio_format'`)

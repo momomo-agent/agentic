@@ -74,8 +74,8 @@ graph TD
     Brain --> Config
     OllamaEng --> Config
 
-    Sense[runtime/sense.js] --> SenseAdapter[adapters/sense.js]
-    STT --> VoiceAdapters[adapters/voice/*]
+    Sense[runtime/sense.js] --> SenseAdapter[runtime/adapters/sense.js]
+    STT --> VoiceAdapters[runtime/adapters/voice/*]
     TTS --> VoiceAdapters
 
     Embed[runtime/embed.js] -.-> ae[agentic-embed]
@@ -720,30 +720,123 @@ assignments.chat → registry.resolveModel(modelId)
   → 全部失败 → 返回错误
 ```
 
-## M103: 稳定性与生产就绪（计划中）
+## M103: 稳定性与生产就绪
 
 ### 目标
 
-健康检查、错误格式统一、音频格式校验 — 提升 API 的生产可靠性。
+健康检查、自动降级、请求队列、重试机制、API 认证、优雅关闭 — 提升 API 的生产可靠性和运维能力。
 
-### 变更计划
+### 已完成（Phase 1）
 
-| 任务 | 说明 | 影响文件 |
-|------|------|---------|
-| `GET /api/health` | 返回 JSON 包含 ollama/stt/tts 组件状态 | `server/api.js` |
-| OpenAI 错误格式 | error response 添加 `code` 字段: `{ error: { message, type, code } }` | `server/api.js`, `server/middleware.js` |
-| 音频格式校验 | `/v1/audio/transcriptions` 在传入 STT 前校验文件格式，无效返回 4xx | `server/api.js` |
+| 任务 | 说明 | 状态 |
+|------|------|------|
+| `GET /api/health` | 返回 `{ status, uptime, components: { ollama, stt, tts }, responseTime }`，Ollama 检查带 2s 超时 | ✅ 已实现（响应结构待嵌套化） |
+| OpenAI 错误格式 | `apiError()` + `errorHandler` 均返回 `{ error: { message, type, code } }` | ✅ 已实现 |
+| 音频格式校验 | `isValidAudio()` magic bytes 检查，无效返回 400 `invalid_audio_format` | ✅ 已实现 |
+
+### 计划中（Phase 2）
+
+```mermaid
+graph LR
+    REQ[Request] --> Auth[middleware.js<br/>Bearer Token]
+    Auth --> Queue[queue.js<br/>并发控制]
+    Queue --> Engine[engine/*]
+    Engine -->|失败| Retry[retry 逻辑]
+    Retry -->|重试| Engine
+    Engine --> Health[health.js<br/>引擎健康监控]
+    Health -->|降级| Registry[registry.js]
+
+    SIGINT[SIGINT/SIGTERM] --> Shutdown[shutdown.js<br/>优雅关闭]
+    Shutdown -->|drain| Queue
+```
+
+#### 新增模块
+
+| 模块 | 文件路径 | 职责 | 关键 API |
+|------|---------|------|---------|
+| Health 响应嵌套化 | `src/server/api.js` | `/api/health` 响应改为 `{ status, uptime, components: { ollama, stt, tts }, responseTime }` | 修改 `addRoutes()` 中 `/api/health` 路由 |
+| 引擎健康检查 | `src/engine/health.js` | 周期性探测引擎可用性，自动标记 degraded/unavailable | `startHealthCheck()`, `stopHealthCheck()`, `getEngineHealth(id)`, `getAllHealth()`, `onHealthChange(cb)` |
+| 请求队列 | `src/server/queue.js` | 本地模型并发控制（Ollama 单 GPU 串行），防止 OOM | `enqueue(fn, priority)`, `getQueueStats()` |
+| 重试机制 | `src/engine/ollama.js` + `cloud.js` | 指数退避重试（max 3 次），区分可重试/不可重试错误 | 内嵌于 engine `run()` 方法 |
+| API 认证 | `src/server/middleware.js` | `AGENTIC_API_KEY` 环境变量，Bearer token 校验，未设置则跳过 | `authMiddleware(req, res, next)` |
+| 优雅关闭 | `src/server/shutdown.js` | SIGINT/SIGTERM → 停止接受新连接 → drain 队列 → 关闭 WebSocket → exit | `registerShutdown(server, hub, queue)` |
+| Model 校验 | `src/server/api.js` | `/v1/chat/completions` 校验 model 参数存在性，返回 `model_not_found` | 内嵌于路由处理 |
+
+#### 引擎健康检查 — `src/engine/health.js`
+
+```javascript
+// 设计规格
+const PROBE_INTERVAL = 30_000;  // 30s 探测间隔
+const FAILURE_THRESHOLD = 3;     // 连续 3 次失败标记 degraded
+const RECOVERY_THRESHOLD = 1;    // 1 次成功恢复 ok
+
+// 状态机: ok → degraded → unavailable → ok
+// 每个引擎独立状态，通过 registry.js 的 engine.status() 探测
+export function startHealthCheck(intervalMs = 30_000);
+export function stopHealthCheck();
+export function getEngineHealth(engineId); // → { status, lastCheck, latency, error, consecutiveFailures }
+export function getAllHealth();             // → { [engineId]: HealthState }
+export function onHealthChange(fn);        // emitter.on('change', fn)
+export function offHealthChange(fn);       // emitter.off('change', fn)
+```
+
+#### 请求队列 — `src/server/queue.js`
+
+```javascript
+// 设计规格
+const MAX_CONCURRENT_LOCAL = 1;   // 本地模型（Ollama）串行执行
+const MAX_CONCURRENT_CLOUD = 5;   // 云端模型并发
+const MAX_QUEUE_SIZE = 50;        // 队列满返回 429
+
+export function createQueue(options);
+export function enqueue(fn, { priority, timeout }); // → Promise
+export function getQueueStats(); // → { pending, active, completed, rejected }
+```
+
+#### 重试策略
+
+```
+engine.run(model, input)
+  → 失败（网络/超时/5xx）→ 等待 1s → 重试
+  → 再失败 → 等待 2s → 重试
+  → 第三次失败 → 标记引擎 degraded → fallback 到下一引擎
+  → 4xx 错误（bad request）→ 不重试，直接返回
+```
+
+#### API 认证 — `src/server/middleware.js`
+
+```javascript
+// 设计规格
+// 环境变量 AGENTIC_API_KEY 未设置 → 跳过认证（本地开发模式）
+// 设置后 → 所有 /api/* 和 /v1/* 路由需 Authorization: Bearer <key>
+// /health 和 /api/health 免认证（运维探针）
+export function authMiddleware(req, res, next);
+```
+
+#### 优雅关闭 — `src/server/shutdown.js`
+
+```javascript
+// 设计规格
+// SIGINT/SIGTERM → 标记 shutting_down → 拒绝新请求(503)
+// → drain 请求队列（最长等待 10s）→ 关闭 WebSocket hub
+// → 停止健康检查循环 → process.exit(0)
+export function registerShutdown(server, hub, queue, { stopHealthCheck });
+```
 
 ### 验收标准
 
-- `GET /api/health` 返回 `{ status, components: { ollama, stt, tts } }`
+- `GET /api/health` 返回 `{ status, uptime, components: { ollama, stt, tts }, responseTime }`
 - 所有 API 错误响应包含 `{ error: { message, type, code } }`
-- 无效音频文件返回 400/415 而非 500
+- 无效音频文件返回 400 而非 500
+- `/v1/chat/completions` 对不存在的 model 返回 404 `model_not_found`
+- `AGENTIC_API_KEY` 设置后，无 token 请求返回 401
+- Ollama 不可用时请求自动 fallback 到云端，无需手动干预
+- SIGINT 后 in-flight 请求完成再退出，不丢数据
 
 ## 已知限制
 
-1. **middleware.js 仅含错误处理** — 无请求验证、速率限制或安全中间件。本地优先架构下可接受，M103 将部分改善。
+1. **middleware.js 仅含错误处理** — 无请求验证、速率限制或安全中间件。本地优先架构下可接受，M103 将添加 API 认证和请求队列。
 2. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
 3. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
-4. **音频格式校验缺失** — `/v1/audio/transcriptions` 端点未在传入 STT 前校验文件格式，无效音频可能返回 500 而非 4xx（M103 计划修复）。
-5. **OpenAI 错误格式不完整** — 错误响应返回 `{ message, type }` 但缺少 `code` 字段（M103 计划修复）。
+4. **无请求队列或重试逻辑** — 云端回退存在但失败请求不会重试或排队（M103 计划实现）。
+5. **无 model_not_found 校验** — `/v1/chat/completions` 不校验 model 参数是否存在于已注册引擎中（DBB-005，M103 计划修复）。

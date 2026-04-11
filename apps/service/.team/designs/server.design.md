@@ -6,13 +6,31 @@
 ## Verified Exports (from src/server/api.js)
 
 ```javascript
-export function startDrain()                          // line 41
-export function resetDrain()                          // line 42
-export function waitDrain(timeout = 10_000)           // line 44
-export function createRouter()                        // line 712
-export function createApp()                           // line 718
-export async function startServer(port = 3000, { https: useHttps = false } = {})  // line 743
-export function stopServer(server)                    // line 809
+export function startDrain()                          // line 68
+export function resetDrain()                          // line 69
+export function waitDrain(timeout = 10_000)           // line 71
+export function createRouter()                        // line ~812 (after addRoutes)
+export function createApp()                           // line ~818
+export async function startServer(port = 3000, { https: useHttps = false } = {})  // line ~843
+export function stopServer(server)                    // line ~929
+```
+
+## Verified Internal Functions (api.js)
+
+```javascript
+function apiError(res, status, message, type, code)   // line 19 — OpenAI error format helper
+function isValidAudio(buffer)                          // line 37 — magic byte validation
+function getLanIp()                                    // line 45
+function getOllamaHost(config)                         // line 81
+async function getOllamaStatus()                       // line 85 — 2s timeout to Ollama /api/tags
+function addRoutes(r)                                  // line 100 — all route definitions
+```
+
+## Verified Internal State (api.js)
+
+```javascript
+let inflight = 0;     // line 65 — in-flight request counter
+let draining = false;  // line 66 — drain mode flag
 ```
 
 ## Internal Dependencies
@@ -28,10 +46,17 @@ export function stopServer(server)                    // line 809
 
 ## SIGINT / Graceful Shutdown
 
-Already implemented in `startServer()` (lines 791-795):
-- Calls `startDrain()` to reject new requests with 503
-- Calls `waitDrain(10_000)` to wait for in-flight requests
-- Calls `httpServer.close()` then `process.exit(0)`
+Already implemented in `startServer()` (lines 913-918):
+- `process.once('SIGINT', ...)` handler
+- Calls `startDrain()` to set `draining = true`
+- Calls `waitDrain(10_000)` — polls `inflight` every 50ms, rejects after 10s
+- Calls `httpServer.close(() => process.exit(0))`
+
+⚠️ Current limitations (M103 tasks will address):
+- Only handles SIGINT, not SIGTERM
+- Does not close WebSocket connections (hub.js has no closeAll export)
+- Does not stop health check timers (health.js doesn't exist yet)
+- Does not clean up temp files
 
 ## Port Note
 
@@ -40,11 +65,32 @@ Already implemented in `startServer()` (lines 791-795):
 ## M103 Additions
 
 ### Health Endpoint (`GET /api/health`)
-- New route in `addRoutes(r)`, separate from existing `GET /health` liveness probe
-- Returns per-component status: `{ status, uptime, ollama, stt, tts, responseTime }`
-- Uses `getOllamaStatus()` (local, 2s timeout) + `modelsForCapability()` (imported)
+- Route in `addRoutes(r)` at line 104, separate from `GET /health` liveness probe (line 101)
+- Current response (NESTED — matches ARCHITECTURE.md, verified lines 134-143):
+  ```json
+  { "status": "ok|degraded", "uptime": 123.4, "components": { "ollama": {...}, "stt": {...}, "tts": {...} }, "responseTime": 45 }
+  ```
+- Uses `getOllamaStatus()` (local, 2s timeout) + `modelsForCapability('stt'|'tts')`
 - Always HTTP 200; top-level `status` is `'ok'` or `'degraded'`
-- See task-1775893487734/design.md
+
+### Request Queue (NEW — M103)
+- New file: `src/server/queue.js`
+- Wraps chat endpoints with concurrency control
+- Local model: concurrency=1, Cloud: concurrency=5
+- Queue full → HTTP 429 + Retry-After header
+- New endpoint: `GET /api/queue/stats`
+
+### Auth Middleware (NEW — M103)
+- Added to `src/server/middleware.js` alongside existing `errorHandler`
+- `AGENTIC_API_KEY` env var enables auth
+- Bearer token validation
+- Exempt routes: `/health`, `/admin/*`
+
+### Graceful Shutdown Enhancement (NEW — M103)
+- Extend existing SIGINT handler to also handle SIGTERM
+- Add WebSocket close notification
+- Stop health check timers
+- Clean up temp files
 
 ### OpenAI Error Format (`code` field)
 - New `apiError(res, status, message, type, code)` helper in api.js
@@ -58,11 +104,14 @@ Already implemented in `startServer()` (lines 791-795):
 - Applied to `POST /v1/audio/transcriptions` before `stt.transcribe()`
 - See task-1775893487853/design.md
 
-### Implementation Order
+### Implementation Order (M103 expanded)
 
-1. task-1775893487814 (error format + apiError helper) — no dependencies
-2. task-1775893487734 (health endpoint) — no dependencies, benefits from apiError for error cases
-3. task-1775893487853 (audio validation) — uses apiError from step 1
+1. task-1775896028548 (auth middleware) — no dependencies, adds to middleware.js
+2. task-1775896070822 (fix /api/health response) — no dependencies, modifies api.js
+3. task-1775896028427 (engine health check) — new file, no dependencies
+4. task-1775896028470 (request queue) — new file, no dependencies
+5. task-1775896028509 (retry mechanism) — modifies ollama.js + cloud.js
+6. task-1775896028586 (graceful shutdown) — depends on health.js (task-1775896028427)
 
 ## Constraints
 

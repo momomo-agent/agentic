@@ -8,6 +8,7 @@ import whisper from './whisper.js';
 import tts from './tts.js';
 import { createCloudEngine } from './cloud.js';
 import { getConfig } from '../config.js';
+import { startHealthCheck } from './health.js';
 
 export async function initEngines() {
   // 1. 本地引擎 — 始终注册，status() 会检测可用性
@@ -42,4 +43,5 @@ export async function initEngines() {
 
   const engineIds = ['ollama', 'whisper', 'tts', ...[...seenProviders].map(p => `cloud:${p}`)];
   console.log(`[engines] registered: ${engineIds.join(', ')}`);
+  startHealthCheck();
 }

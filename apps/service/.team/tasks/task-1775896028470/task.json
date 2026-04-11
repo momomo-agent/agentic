@@ -1,0 +1,13 @@
+{
+  "id": "task-1775896028470",
+  "title": "请求队列 + 并发控制 (queue.js)",
+  "description": "新建 src/server/queue.js，实现 createQueue / enqueue / getQueueStats。本地模型 concurrency=1，云端 concurrency=5（可配置）。队列满返回 HTTP 429 + Retry-After。/v1/chat/completions 和 /api/chat 走队列。新增 GET /api/queue/stats 端点。测试 ≥5 个。详见 .team/milestones/m103/overview.md F2。",
+  "status": "done",
+  "priority": "P0",
+  "assignee": "developer",
+  "blockedBy": [],
+  "groupId": "m103",
+  "hasDesign": true,
+  "created": "2026-04-11T08:27:08.470Z",
+  "updated": "2026-04-11T08:54:32.748Z"
+}
