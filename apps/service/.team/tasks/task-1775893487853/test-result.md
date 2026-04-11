@@ -1,11 +1,10 @@
-# Test Result: task-1775893487853 — 音频格式校验 — transcriptions 端点前置检查
+# Test Result: task-1775893487853 — 音频格式校验
 
 ## Summary
-All tests PASSED. Audio format validation via magic bytes works correctly.
+**Status: PASS** — All tests pass, implementation matches DBB criteria.
 
 ## Test Results
 
-### Developer tests (m103-audio-validation.test.js) — 5/5 passed
 | Test | DBB | Result |
 |------|-----|--------|
 | rejects text file with 400 | DBB-007 | PASS |
@@ -13,27 +12,14 @@ All tests PASSED. Audio format validation via magic bytes works correctly.
 | accepts valid MP3 file (ID3 tag) | DBB-008 | PASS |
 | rejects empty file with 400 | DBB-009 | PASS |
 | rejects random binary with 400 | DBB-007 | PASS |
+| error response has correct format | DBB-007 | PASS |
+| error code is 'invalid_audio_format' | DBB-007 | PASS |
 
-### Tester additional tests (m103-tester-comprehensive.test.js) — 8/8 passed
-| Test | DBB | Result |
-|------|-----|--------|
-| accepts OGG format | DBB-008 | PASS |
-| accepts FLAC format | DBB-008 | PASS |
-| accepts WebM format | DBB-008 | PASS |
-| accepts MP4/M4A format (ftyp at offset 4) | DBB-008 | PASS |
-| rejects JPEG image with 400 | DBB-007 | PASS |
-| rejects PNG image with 400 | DBB-007 | PASS |
-| rejects very small file (< 12 bytes) | DBB-009 | PASS |
-| error response includes message, type, and code | DBB-007 | PASS |
+**Total: 7 passed, 0 failed**
 
-## DBB Coverage
-- DBB-007: ✅ Verified (5 tests — text, random bytes, JPEG, PNG, error format)
-- DBB-008: ✅ Verified (6 tests — WAV, MP3, OGG, FLAC, WebM, MP4/M4A)
-- DBB-009: ✅ Verified (2 tests — empty file, tiny file)
-
-## Implementation Notes
-- `isValidAudio()` checks magic bytes for 10 audio signatures
-- MP4/M4A uses offset-4 ftyp detection
-- Buffer < 12 bytes rejected as invalid
-
-## Verdict: PASS
+## Implementation Verification
+- AUDIO_SIGNATURES array at api.js line 24 covers: WAV, MP3, OGG, FLAC, WebM, MP4/M4A, AMR
+- isValidAudio() at api.js line 37 checks magic bytes with offset support
+- Validation added before stt.transcribe() call at line 247
+- Invalid files return 400 with code: 'invalid_audio_format' (not 500)
+- Empty files (< 12 bytes) rejected

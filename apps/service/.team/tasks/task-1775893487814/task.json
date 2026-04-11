@@ -2,12 +2,12 @@
   "id": "task-1775893487814",
   "title": "OpenAI 兼容错误格式 — 添加 code 字段",
   "description": "当前 API 错误响应缺少 OpenAI 规范要求的 code 字段。所有错误响应需返回 { error: { message, type, code } }。DBB-025 partial gap。影响文件：server/api.js 或统一错误处理中间件。需要测试覆盖。",
-  "status": "testing",
+  "status": "done",
   "priority": "P1",
   "assignee": "tester",
   "blockedBy": [],
   "groupId": "m103",
   "hasDesign": true,
   "created": "2026-04-11T07:44:47.814Z",
-  "updated": "2026-04-11T08:10:25.875Z"
+  "updated": "2026-04-11T08:12:46.666Z"
 }
