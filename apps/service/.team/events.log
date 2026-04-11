@@ -7128,3 +7128,98 @@
 {"ts":"2026-04-11T08:54:53.565Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
 {"ts":"2026-04-11T08:54:53.566Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":43,"memoryTotalMB":47,"cpuUser":2.555226,"cpuSystem":3.987511}}}
 {"ts":"2026-04-11T08:54:53.566Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}
+{"ts":"2026-04-11T08:54:53.952Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 开发完成，任务进入 review","performance":{"memoryMB":43,"memoryTotalMB":47,"cpuUser":2.555761,"cpuSystem":3.98815}}}
+{"ts":"2026-04-11T08:54:53.952Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← developer done"}}
+{"ts":"2026-04-11T08:54:54.004Z","type":"workflow","agent":"post","data":{"details":"[POST] task-1775896028548: inProgress → review"}}
+{"ts":"2026-04-11T08:54:54.075Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] triage-blocked: blockedCount > 0"}}
+{"ts":"2026-04-11T08:54:54.224Z","type":"workflow","agent":"work_loop","data":{"details":"[LOOP] Iteration 3"}}
+{"ts":"2026-04-11T08:54:54.239Z","type":"workflow","agent":"work_loop","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/goal-check.js"}}
+{"ts":"2026-04-11T08:54:54.646Z","type":"workflow","agent":"work_loop","data":{"details":"[EXEC] pm"}}
+{"ts":"2026-04-11T08:54:54.646Z","type":"agent_start","agent":"pm","data":{"details":"管理任务和里程碑","performance":{"memoryMB":15,"memoryTotalMB":19,"cpuUser":2.624301,"cpuSystem":4.221176}}}
+{"ts":"2026-04-11T08:54:54.807Z","type":"perf","agent":"daemon","data":{"details":"{\"rss\":\"135MB\",\"heapUsed\":\"35MB\",\"uptime\":\"2113s\"}"}}
+{"ts":"2026-04-11T08:55:19.005Z","type":"task_status","agent":"developer","data":{"taskId":"task-1775896028509","from":"todo","to":"inProgress","title":"重试机制 (ollama.js + cloud.js)"}}
+{"ts":"2026-04-11T08:55:19.039Z","type":"task_status","agent":null,"data":{"taskId":"task-1775896028548","from":"review","to":"inProgress","title":"API 认证中间件 (middleware.js)"}}
+{"ts":"2026-04-11T08:55:33.292Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775896028427","from":"testing","to":"done","title":"引擎健康检查 + 自动降级 (health.js)"}}
+{"ts":"2026-04-11T08:55:47.319Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775896070822","from":"review","to":"testing","title":"修复 /api/health 响应结构 — 嵌套 components"}}
+{"ts":"2026-04-11T08:56:13.190Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775896070822","from":"testing","to":"done","title":"修复 /api/health 响应结构 — 嵌套 components"}}
+{"ts":"2026-04-11T08:56:24.174Z","type":"task_status","agent":"developer","data":{"taskId":"task-1775896028548","from":"inProgress","to":"review","title":"API 认证中间件 (middleware.js)"}}
+{"ts":"2026-04-11T08:56:47.905Z","type":"agent_complete","agent":"tester","data":{"details":"completed successfully","performance":{"memoryMB":40,"memoryTotalMB":44,"cpuUser":2.7496,"cpuSystem":4.370361}}}
+{"ts":"2026-04-11T08:56:47.906Z","type":"workflow","agent":"tester","data":{"details":"[SIGNAL] completed: Tested 2 review tasks (task-1775896028427, task-1775896070822). Wrote 9 new tests in test/m103-engin"}}
+{"ts":"2026-04-11T08:56:48.080Z","type":"workflow","agent":"integration-test","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test"}}
+{"ts":"2026-04-11T08:57:09.550Z","type":"workflow","agent":"integration-test","data":{"details":"[BRANCH] integrationPassed == 1 → true → (nested)"}}
+{"ts":"2026-04-11T08:57:09.551Z","type":"workflow","agent":"integration-test","data":{"details":"[BRANCH] hasE2E == 1 → false → report"}}
+{"ts":"2026-04-11T08:57:09.551Z","type":"agent_start","agent":"report","data":{"details":"[NODE] report - Tester agent 写测试报告","performance":{"memoryMB":41,"memoryTotalMB":45,"cpuUser":2.751061,"cpuSystem":4.372217}}}
+{"ts":"2026-04-11T08:57:09.551Z","type":"workflow","agent":"report","data":{"details":"[EXEC] tester"}}
+{"ts":"2026-04-11T08:57:09.551Z","type":"agent_start","agent":"tester","data":{"details":"验证功能","performance":{"memoryMB":41,"memoryTotalMB":45,"cpuUser":2.751223,"cpuSystem":4.372518}}}
+{"ts":"2026-04-11T08:57:28.296Z","type":"agent_complete","agent":"pm","data":{"details":"completed successfully","performance":{"memoryMB":13,"memoryTotalMB":33,"cpuUser":2.77465,"cpuSystem":4.400813}}}
+{"ts":"2026-04-11T08:57:28.297Z","type":"workflow","agent":"pm","data":{"details":"[SIGNAL] completed: Assigned unassigned API auth task to developer, added M103 section to PRD, updated test counts. 2/7 "}}
+{"ts":"2026-04-11T08:57:28.378Z","type":"workflow","agent":"work_loop","data":{"details":"[SKIP] write-dbb: milestoneNeedsDBB > 0"}}
+{"ts":"2026-04-11T08:57:28.378Z","type":"workflow","agent":"work_loop","data":{"details":"[PARALLEL] architecture, write-design, implement, test"}}
+{"ts":"2026-04-11T08:57:28.379Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] → architect (depth 1)"}}
+{"ts":"2026-04-11T08:57:28.379Z","type":"workflow","agent":null,"data":{"details":"[RESUME] Resuming from checkpoint: node=design, step=0"}}
+{"ts":"2026-04-11T08:57:28.396Z","type":"agent_start","agent":"design","data":{"details":"[NODE] design - Architect agent 设计/更新 ARCHITECTURE.md","performance":{"memoryMB":33,"memoryTotalMB":37,"cpuUser":2.792651,"cpuSystem":4.466134}}}
+{"ts":"2026-04-11T08:57:28.397Z","type":"workflow","agent":"design","data":{"details":"[EXEC] architect"}}
+{"ts":"2026-04-11T08:57:28.397Z","type":"agent_start","agent":"architect","data":{"details":"设计系统架构","performance":{"memoryMB":34,"memoryTotalMB":37,"cpuUser":2.792893,"cpuSystem":4.466462}}}
+{"ts":"2026-04-11T08:57:28.397Z","type":"workflow","agent":"work_loop","data":{"details":"[EXEC] tech_lead"}}
+{"ts":"2026-04-11T08:57:28.398Z","type":"agent_start","agent":"tech_lead","data":{"details":"出技术方案","performance":{"memoryMB":34,"memoryTotalMB":37,"cpuUser":2.79342,"cpuSystem":4.46692}}}
+{"ts":"2026-04-11T08:57:28.398Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] → developer (depth 1)"}}
+{"ts":"2026-04-11T08:57:28.398Z","type":"agent_start","agent":"read-spec","data":{"details":"[NODE] read-spec - 读取任务 spec、设计文档、历史错误日志","performance":{"memoryMB":34,"memoryTotalMB":38,"cpuUser":2.793799,"cpuSystem":4.467341}}}
+{"ts":"2026-04-11T08:57:28.399Z","type":"workflow","agent":"read-spec","data":{"details":"[SHELL] cat .team/verify-errors/latest-build.log 2>/dev/null || echo 'No previous build errors'"}}
+{"ts":"2026-04-11T08:57:28.412Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] → tester (depth 1)"}}
+{"ts":"2026-04-11T08:57:28.413Z","type":"workflow","agent":null,"data":{"details":"[RESUME] Resuming from checkpoint: node=report, step=0"}}
+{"ts":"2026-04-11T08:57:28.430Z","type":"agent_start","agent":"report","data":{"details":"[NODE] report - Tester agent 写测试报告","performance":{"memoryMB":35,"memoryTotalMB":39,"cpuUser":2.794979,"cpuSystem":4.469439}}}
+{"ts":"2026-04-11T08:57:28.430Z","type":"workflow","agent":"report","data":{"details":"[EXEC] tester"}}
+{"ts":"2026-04-11T08:57:28.430Z","type":"agent_start","agent":"tester","data":{"details":"验证功能","performance":{"memoryMB":35,"memoryTotalMB":39,"cpuUser":2.795192,"cpuSystem":4.469797}}}
+{"ts":"2026-04-11T08:57:28.431Z","type":"agent_start","agent":"implement","data":{"details":"[NODE] implement - Developer 实现代码","performance":{"memoryMB":35,"memoryTotalMB":39,"cpuUser":2.795483,"cpuSystem":4.470187}}}
+{"ts":"2026-04-11T08:57:28.431Z","type":"workflow","agent":"implement","data":{"details":"[EXEC] developer"}}
+{"ts":"2026-04-11T08:57:28.431Z","type":"agent_start","agent":"developer","data":{"details":"实现功能","performance":{"memoryMB":35,"memoryTotalMB":39,"cpuUser":2.795595,"cpuSystem":4.470491}}}
+{"ts":"2026-04-11T08:57:48.066Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775896028548","from":"review","to":"testing","title":"API 认证中间件 (middleware.js)"}}
+{"ts":"2026-04-11T08:57:54.775Z","type":"agent_complete","agent":"tech_lead","data":{"details":"completed successfully","performance":{"memoryMB":14,"memoryTotalMB":47,"cpuUser":2.82839,"cpuSystem":4.51032}}}
+{"ts":"2026-04-11T08:57:54.776Z","type":"workflow","agent":"tech_lead","data":{"details":"[SIGNAL] completed: Updated engine.design.md and server.design.md to ready-for-review reflecting actual M103 implementat"}}
+{"ts":"2026-04-11T08:58:01.194Z","type":"task_status","agent":"developer","data":{"taskId":"task-1775896028586","from":"todo","to":"inProgress","title":"优雅关闭 (shutdown)"}}
+{"ts":"2026-04-11T08:58:54.431Z","type":"task_status","agent":"developer","data":{"taskId":"task-1775896028509","from":"inProgress","to":"review","title":"重试机制 (ollama.js + cloud.js)"}}
+{"ts":"2026-04-11T08:59:31.987Z","type":"task_status","agent":"developer","data":{"taskId":"task-1775896070855","from":"todo","to":"inProgress","title":"更新 ARCHITECTURE.md Known Limitations"}}
+{"ts":"2026-04-11T08:59:37.907Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775896028548","from":"testing","to":"blocked","title":"API 认证中间件 (middleware.js)"}}
+{"ts":"2026-04-11T08:59:42.347Z","type":"agent_start","agent":"daemon","data":{"details":"Still busy (10min), skipping","performance":{"memoryMB":67,"memoryTotalMB":84,"cpuUser":2.934032,"cpuSystem":4.653176}}}
+{"ts":"2026-04-11T08:59:49.233Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":67,"memoryTotalMB":84,"cpuUser":2.935616,"cpuSystem":4.654648}}}
+{"ts":"2026-04-11T08:59:49.233Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Updated ARCHITECTURE.md and codebase-map.md to sync M103 module specs with actual implementation — h"}}
+{"ts":"2026-04-11T08:59:49.234Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":67,"memoryTotalMB":84,"cpuUser":2.936062,"cpuSystem":4.655201}}}
+{"ts":"2026-04-11T08:59:49.234Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-11T08:59:49.274Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":67,"memoryTotalMB":84,"cpuUser":2.936764,"cpuSystem":4.656092}}}
+{"ts":"2026-04-11T08:59:49.274Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-11T08:59:49.549Z","type":"agent_complete","agent":"tester","data":{"details":"completed successfully","performance":{"memoryMB":67,"memoryTotalMB":84,"cpuUser":2.9374,"cpuSystem":4.656659}}}
+{"ts":"2026-04-11T08:59:49.549Z","type":"workflow","agent":"tester","data":{"details":"[SIGNAL] completed: Tested auth middleware task-1775896028548: 21/22 pass, 1 bug found (/api/health not exempt per DBB-0"}}
+{"ts":"2026-04-11T08:59:49.715Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 所有测试通过，任务标记 done","performance":{"memoryMB":68,"memoryTotalMB":84,"cpuUser":2.938864,"cpuSystem":4.657714}}}
+{"ts":"2026-04-11T08:59:49.715Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← tester done"}}
+{"ts":"2026-04-11T08:59:54.811Z","type":"perf","agent":"daemon","data":{"details":"{\"rss\":\"152MB\",\"heapUsed\":\"70MB\",\"uptime\":\"2413s\"}"}}
+{"ts":"2026-04-11T09:00:18.060Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775896028548","from":"blocked","to":"review","title":"API 认证中间件 (middleware.js)"}}
+{"ts":"2026-04-11T09:01:25.775Z","type":"task_status","agent":"developer","data":{"taskId":"task-1775896070855","from":"inProgress","to":"review","title":"更新 ARCHITECTURE.md Known Limitations"}}
+{"ts":"2026-04-11T09:01:39.747Z","type":"workflow","agent":"monitor","data":{"details":"⚠️ [ALERT:no_progress] No progress for 5min (active:4, done:281)"}}
+{"ts":"2026-04-11T09:01:39.747Z","type":"monitor_alert","agent":"monitor","data":{"details":"{\"type\":\"no_progress\",\"message\":\"No progress for 5min (active:4, done:281)\"}"}}
+{"ts":"2026-04-11T09:01:48.649Z","type":"task_status","agent":"tester","data":{"taskId":"task-1775896028548","from":"review","to":"done","title":"API 认证中间件 (middleware.js)"}}
+{"ts":"2026-04-11T09:02:07.196Z","type":"error","agent":"developer","data":{"details":"hung (0% CPU for 10min across process tree), killing"}}
+{"ts":"2026-04-11T09:02:07.198Z","type":"workflow","agent":"developer","data":{"details":"hung detected, retrying (1/2) after 30s"}}
+{"ts":"2026-04-11T09:02:25.972Z","type":"agent_complete","agent":"tester","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":18,"cpuUser":3.106115,"cpuSystem":4.866094}}}
+{"ts":"2026-04-11T09:02:25.972Z","type":"workflow","agent":"tester","data":{"details":"[SIGNAL] completed: Tested task-1775896028548 (auth middleware): 22/22 tests pass, all DBB-022–026 verified, task marked"}}
+{"ts":"2026-04-11T09:02:26.338Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 所有测试通过，任务标记 done","performance":{"memoryMB":16,"memoryTotalMB":18,"cpuUser":3.107266,"cpuSystem":4.866989}}}
+{"ts":"2026-04-11T09:02:26.339Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← tester done"}}
+{"ts":"2026-04-11T09:02:37.201Z","type":"agent_start","agent":"developer","data":{"details":"实现功能 (hung-retry 1)","performance":{"memoryMB":19,"memoryTotalMB":21,"cpuUser":3.111087,"cpuSystem":4.884362}}}
+{"ts":"2026-04-11T09:02:46.849Z","type":"agent_complete","agent":"tech_lead","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":19,"cpuUser":3.13913,"cpuSystem":4.907236}}}
+{"ts":"2026-04-11T09:02:46.850Z","type":"workflow","agent":"tech_lead","data":{"details":"[SIGNAL] completed: Wrote task design for task-1775896070855 (ARCHITECTURE.md Known Limitations update). Verified all M1"}}
+{"ts":"2026-04-11T09:03:07.108Z","type":"agent_complete","agent":"architect","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":19,"cpuUser":3.140418,"cpuSystem":4.907952}}}
+{"ts":"2026-04-11T09:03:07.109Z","type":"workflow","agent":"architect","data":{"details":"[SIGNAL] completed: Updated ARCHITECTURE.md and codebase-map.md to reflect M103 Phase 2 progress: cloud.js withRetry() ("}}
+{"ts":"2026-04-11T09:03:07.109Z","type":"agent_start","agent":"validate-refs","data":{"details":"[NODE] validate-refs - 验证 ARCHITECTURE.md 引用的 API 是否真实存在","performance":{"memoryMB":16,"memoryTotalMB":19,"cpuUser":3.140867,"cpuSystem":4.908536}}}
+{"ts":"2026-04-11T09:03:07.110Z","type":"workflow","agent":"validate-refs","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/validate-arch-refs.js"}}
+{"ts":"2026-04-11T09:03:07.152Z","type":"agent_start","agent":"complete","data":{"details":"[NODE] complete - 架构设计完成","performance":{"memoryMB":16,"memoryTotalMB":19,"cpuUser":3.141347,"cpuSystem":4.90947}}}
+{"ts":"2026-04-11T09:03:07.152Z","type":"workflow","agent":"work_loop","data":{"details":"[TEAM] ← architect done"}}
+{"ts":"2026-04-11T09:03:44.003Z","type":"task_status","agent":"developer","data":{"taskId":"task-1775896028586","from":"inProgress","to":"review","title":"优雅关闭 (shutdown)"}}
+{"ts":"2026-04-11T09:03:49.310Z","type":"agent_complete","agent":"developer","data":{"details":"completed successfully","performance":{"memoryMB":16,"memoryTotalMB":23,"cpuUser":3.210625,"cpuSystem":4.987926}}}
+{"ts":"2026-04-11T09:03:49.311Z","type":"workflow","agent":"developer","data":{"details":"[SIGNAL] completed: Implemented graceful shutdown (shutdown.js): registerShutdown with drain→WS close→health stop→server"}}
+{"ts":"2026-04-11T09:03:49.550Z","type":"agent_start","agent":"self-verify-build","data":{"details":"[NODE] self-verify-build - 编译验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":19,"memoryTotalMB":23,"cpuUser":3.213378,"cpuSystem":4.998836}}}
+{"ts":"2026-04-11T09:03:49.551Z","type":"workflow","agent":"self-verify-build","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js build"}}
+{"ts":"2026-04-11T09:03:49.622Z","type":"workflow","agent":"self-verify-build","data":{"details":"[BRANCH] buildPassed == 1 → true → self-verify-test"}}
+{"ts":"2026-04-11T09:03:49.622Z","type":"agent_start","agent":"self-verify-test","data":{"details":"[NODE] self-verify-test - 测试验证 — 失败则回到 implement 重试（最多 3 次）","performance":{"memoryMB":19,"memoryTotalMB":23,"cpuUser":3.21421,"cpuSystem":4.999571}}}
+{"ts":"2026-04-11T09:03:49.623Z","type":"workflow","agent":"self-verify-test","data":{"details":"[SHELL] node /Users/kenefe/LOCAL/momo-agent/tools/team/scripts/verify.js test"}}
+{"ts":"2026-04-11T09:04:12.396Z","type":"workflow","agent":"self-verify-test","data":{"details":"[BRANCH] testPassed == 1 → true → commit"}}
+{"ts":"2026-04-11T09:04:12.396Z","type":"agent_start","agent":"commit","data":{"details":"[NODE] commit - Git commit 通过验证的代码","performance":{"memoryMB":19,"memoryTotalMB":23,"cpuUser":3.214808,"cpuSystem":5.000322}}}
+{"ts":"2026-04-11T09:04:12.396Z","type":"workflow","agent":"commit","data":{"details":"[SHELL] git add -A && git diff --cached --quiet || git commit -m 'feat: implement task' 2>&1"}}

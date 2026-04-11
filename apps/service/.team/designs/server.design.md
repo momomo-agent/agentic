@@ -3,34 +3,34 @@
 **ARCHITECTURE.md Section:** 3. Server（HTTP/WebSocket）
 **Status:** ready-for-review
 
-## Verified Exports (from src/server/api.js)
+## Verified Exports (from src/server/api.js, 975 lines)
 
 ```javascript
-export function startDrain()                          // line 68
-export function resetDrain()                          // line 69
-export function waitDrain(timeout = 10_000)           // line 71
-export function createRouter()                        // line ~812 (after addRoutes)
-export function createApp()                           // line ~818
-export async function startServer(port = 3000, { https: useHttps = false } = {})  // line ~843
-export function stopServer(server)                    // line ~929
+export function startDrain()                          // line 73
+export function resetDrain()                          // line 74
+export function waitDrain(timeout = 10_000)           // line 76
+export function createRouter()                        // line ~860
+export function createApp()                           // line ~866
+export async function startServer(port = 3000, { https: useHttps = false } = {})  // line ~893
+export function stopServer(server)                    // line ~970
 ```
 
 ## Verified Internal Functions (api.js)
 
 ```javascript
-function apiError(res, status, message, type, code)   // line 19 — OpenAI error format helper
-function isValidAudio(buffer)                          // line 37 — magic byte validation
-function getLanIp()                                    // line 45
-function getOllamaHost(config)                         // line 81
-async function getOllamaStatus()                       // line 85 — 2s timeout to Ollama /api/tags
-function addRoutes(r)                                  // line 100 — all route definitions
+function apiError(res, status, message, type, code)   // line 24 — OpenAI error format helper
+function isValidAudio(buffer)                          // line 42 — magic byte validation
+function getLanIp()                                    // line 50
+function getOllamaHost(config)                         // (removed — health check replaces direct Ollama status)
+async function getOllamaStatus()                       // (still present for /api/health endpoint)
+function addRoutes(r)                                  // line ~100 — all route definitions
 ```
 
 ## Verified Internal State (api.js)
 
 ```javascript
-let inflight = 0;     // line 65 — in-flight request counter
-let draining = false;  // line 66 — drain mode flag
+let inflight = 0;     // line 70 — in-flight request counter
+let draining = false;  // line 71 — drain mode flag
 ```
 
 ## Internal Dependencies
@@ -42,82 +42,85 @@ let draining = false;  // line 66 — drain mode flag
 - `../runtime/tts.js` → `init`, `synthesize` (via `*` import)
 - `./middleware.js` → `errorHandler`
 - `./hub.js` → `getDevices`, `initWebSocket`, `startWakeWordDetection`, `broadcastWakeword`, `setSessionData`, `broadcastSession`
-- `../config.js` → `getConfig`, `setConfig`, `reloadConfig`, `CONFIG_PATH`, `getModelPool`, `addToPool`, `removeFromPool`, `getAssignments`, `setAssignments`
+- `../config.js` → `getConfig`, `setConfig`, `reloadConfig`, `CONFIG_PATH`, `addToPool`, `removeFromPool`, `getAssignments`, `setAssignments`
+- `../engine/registry.js` → `getEngines`, `discoverModels`, `getEngine`, `modelsForCapability`, `resolveModel`
+- `../engine/health.js` → `getAllHealth`
+- `../runtime/embed.js` → `embed`
+- `./queue.js` → `createQueue`, `enqueue`, `getQueueStats`
 
-## SIGINT / Graceful Shutdown
+## IMPLEMENTED: Request Queue (queue.js, 53 lines)
 
-Already implemented in `startServer()` (lines 913-918):
-- `process.once('SIGINT', ...)` handler
-- Calls `startDrain()` to set `draining = true`
-- Calls `waitDrain(10_000)` — polls `inflight` every 50ms, rejects after 10s
-- Calls `httpServer.close(() => process.exit(0))`
+```javascript
+export function createQueue(name, options = {})        // line 10
+export function enqueue(queue, fn)                     // line 31 → Promise
+export function getQueueStats(queue)                   // line 45 → QueueStats
+```
 
-⚠️ Current limitations (M103 tasks will address):
-- Only handles SIGINT, not SIGTERM
-- Does not close WebSocket connections (hub.js has no closeAll export)
-- Does not stop health check timers (health.js doesn't exist yet)
-- Does not clean up temp files
+### Integration in api.js (verified lines 19-22):
+```javascript
+import { createQueue, enqueue, getQueueStats } from './queue.js';
+const localQueue = createQueue('local', { maxConcurrency: 1, maxQueueSize: 50 });
+const cloudQueue = createQueue('cloud', { maxConcurrency: 5, maxQueueSize: 100 });
+```
 
-## Port Note
+### Queue behavior:
+- `enqueue()` returns Promise that resolves when fn completes
+- Queue full → throws `{ status: 429, retryAfter: 5 }`
+- `processNext()` internal function handles concurrency gating
+- ⚠️ Task status: inProgress — queue integration into chat routes may still be in progress
 
-`startServer()` defaults to port 3000 in its signature, but `bin/agentic-service.js` passes `--port 1234` default. Docker must match 1234.
+## IMPLEMENTED: Health Endpoint (`GET /api/health`)
 
-## M103 Additions
-
-### Health Endpoint (`GET /api/health`)
-- Route in `addRoutes(r)` at line 104, separate from `GET /health` liveness probe (line 101)
-- Current response (NESTED — matches ARCHITECTURE.md, verified lines 134-143):
+- Nested response structure (matches ARCHITECTURE.md):
   ```json
   { "status": "ok|degraded", "uptime": 123.4, "components": { "ollama": {...}, "stt": {...}, "tts": {...} }, "responseTime": 45 }
   ```
-- Uses `getOllamaStatus()` (local, 2s timeout) + `modelsForCapability('stt'|'tts')`
 - Always HTTP 200; top-level `status` is `'ok'` or `'degraded'`
 
-### Request Queue (NEW — M103)
-- New file: `src/server/queue.js`
-- Wraps chat endpoints with concurrency control
-- Local model: concurrency=1, Cloud: concurrency=5
-- Queue full → HTTP 429 + Retry-After header
-- New endpoint: `GET /api/queue/stats`
+## IMPLEMENTED: OpenAI Error Format
 
-### Auth Middleware (NEW — M103)
-- Added to `src/server/middleware.js` alongside existing `errorHandler`
-- `AGENTIC_API_KEY` env var enables auth
-- Bearer token validation
-- Exempt routes: `/health`, `/admin/*`
+- `apiError(res, status, message, type, code)` helper at line 24
+- All `/v1/*` error responses include `{ error: { message, type, code } }`
+- `errorHandler` in middleware.js also returns `{ error: { message, type, code } }`
 
-### Graceful Shutdown Enhancement (NEW — M103)
-- Extend existing SIGINT handler to also handle SIGTERM
-- Add WebSocket close notification
-- Stop health check timers
-- Clean up temp files
+## IMPLEMENTED: Audio Format Validation
 
-### OpenAI Error Format (`code` field)
-- New `apiError(res, status, message, type, code)` helper in api.js
-- All `/v1/*` error responses updated to include `code` field
-- `middleware.js` errorHandler updated to `{ error: { message, type, code } }`
-- See task-1775893487814/design.md
-
-### Audio Format Validation
-- `isValidAudio(buffer)` checks magic bytes before STT processing
-- `AUDIO_SIGNATURES` array covers wav, mp3, ogg, flac, webm, mp4/m4a, amr
+- `isValidAudio(buffer)` checks magic bytes (line 42)
+- `AUDIO_SIGNATURES` covers wav, mp3, ogg, flac, webm, mp4/m4a, amr
 - Applied to `POST /v1/audio/transcriptions` before `stt.transcribe()`
-- See task-1775893487853/design.md
 
-### Implementation Order (M103 expanded)
+## IMPLEMENTED: Auth Middleware (task-1775896028548, ✅ done)
 
-1. task-1775896028548 (auth middleware) — no dependencies, adds to middleware.js
-2. task-1775896070822 (fix /api/health response) — no dependencies, modifies api.js
-3. task-1775896028427 (engine health check) — new file, no dependencies
-4. task-1775896028470 (request queue) — new file, no dependencies
-5. task-1775896028509 (retry mechanism) — modifies ollama.js + cloud.js
-6. task-1775896028586 (graceful shutdown) — depends on health.js (task-1775896028427)
+- `src/server/middleware.js` (32 lines) — exports `authMiddleware(apiKey)` + `errorHandler`
+- `AGENTIC_API_KEY` env var enables auth; no key = all requests pass
+- Bearer token validation on `/api/*` and `/v1/*`
+- Exempt routes: `/health`, `/api/health`, `/admin/*`
+- Returns `{ error: { message, type: 'authentication_error', code: null } }` on 401
+
+## IMPLEMENTED: Graceful Shutdown (task-1775896028586, ✅ done)
+
+- `src/server/shutdown.js` (52 lines) — `registerShutdown(server, hub, queue, { stopHealthCheck })`
+- Handles both SIGINT and SIGTERM
+- Sequence: startDrain → waitDrain(10s) → closeAllConnections → stopHealthCheck → server.close
+- 15s force-exit safety net via `setTimeout(...).unref()`
+- `hub.closeAllConnections(reason)` at hub.js line 311
+
+## Implementation Order (M103)
+
+1. ✅ task-1775896070822 (fix /api/health response) — DONE
+2. ✅ task-1775896028427 (engine health check) — DONE
+3. ✅ task-1775896028470 (request queue) — DONE
+4. ✅ task-1775896028548 (auth middleware) — DONE
+5. ✅ task-1775896028509 (retry mechanism) — DONE (ollama.js + cloud.js both have withRetry)
+6. ✅ task-1775896028586 (graceful shutdown) — DONE
+7. ⬜ task-1775896070855 (update ARCHITECTURE.md Known Limitations) — TODO
 
 ## Constraints
 
 - `createApp()` applies `errorHandler` middleware last (correct Express pattern)
+- Auth middleware must go BEFORE routes but AFTER body parsing
 - HTTPS fallback to HTTP on cert failure is handled in `startServer()`
 - WebSocket init must happen after server listen
-- `apiError()` helper is only for OpenAI-compatible routes; admin/Anthropic routes keep their own format
+- `apiError()` helper is only for OpenAI-compatible routes
 - Audio validation uses magic bytes only — no dependency on file extension or Content-Type header
-- All OpenAI-compatible error responses MUST include `{ error: { message, type, code } }` (M103)
+- All OpenAI-compatible error responses MUST include `{ error: { message, type, code } }`

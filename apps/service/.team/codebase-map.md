@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (M102 complete; M103 Phase 1 complete — health check, error format, audio validation all implemented; Phase 2 active — health.js, queue.js, retry, auth, shutdown, /api/health nested response)
+Updated: 2026-04-11 (M103 Phase 2 nearly complete — health check, error format, audio validation, auth middleware, cloud retry, request queue, graceful shutdown all implemented; only model_not_found validation pending)
 
 ## Technology Stack
 
@@ -36,11 +36,11 @@ src/
   engine/
     registry.js               (116 lines) Engine registry — register/unregister/discoverModels/resolveModel/modelsForCapability
     init.js                   (45 lines)  Engine bootstrap — initEngines() registers ollama, whisper, tts, cloud engines
-    ollama.js                 (95 lines)  Ollama engine — status/models/run for chat/vision/embedding (M103: +retry on timeout/connection)
-    cloud.js                  (59 lines)  Cloud engine factory — createCloudEngine(provider, config) (M103: +retry on 429/5xx)
+    ollama.js                 (217 lines) Ollama engine — status/models/run for chat/vision/embedding + withRetry(1 retry, 1s delay)
+    cloud.js                  (228 lines) Cloud engine factory — createCloudEngine(provider, config) + withRetry(3 retries, exponential backoff for 429/5xx, Retry-After header support)
     tts.js                    (41 lines)  TTS engine — kokoro/piper/macos-say model discovery
     whisper.js                (66 lines)  Whisper engine — whisper.cpp/SenseVoice STT model discovery
-    health.js                 (PLANNED)   Engine health monitor — startHealthCheck/stopHealthCheck/getEngineHealth/getAllHealth/onHealthChange
+    health.js                 (77 lines)  Engine health monitor — startHealthCheck/stopHealthCheck/getEngineHealth/getAllHealth/isHealthy/onHealthChange
 
   runtime/
     stt.js                    (51 lines)  Speech-to-text — init(config), transcribe(audioBuffer)
@@ -63,14 +63,14 @@ src/
         whisper.js            (29 lines)  Whisper.cpp STT adapter (local binary) — check(), transcribe(buffer) → string
 
   server/
-    api.js                    (813 lines) Express routes — REST + OpenAI-compatible + Anthropic-compatible + admin + voice + /api/perf (M103: /api/health nested response)
+    api.js                    (813 lines) Express routes — REST + OpenAI-compatible + Anthropic-compatible + admin + voice + /api/perf + /api/health (nested components) + request queuing via queue.js
     brain.js                  (299 lines) LLM inference + tool calling + cloud fallback — chat(), registerTool(), chatSession()
     hub.js                    (313 lines) WebSocket device mgmt — init(), joinSession(), broadcastSession()
-    middleware.js             (4 lines)   Error handler only (M103: +authMiddleware for Bearer token via AGENTIC_API_KEY)
+    middleware.js             (31 lines)  Auth middleware (Bearer token via AGENTIC_API_KEY) + error handler — authMiddleware(apiKey), errorHandler(err, req, res, next)
     cert.js                   (7 lines)   Self-signed cert generation — generateCert()
     httpsServer.js            (7 lines)   HTTPS server factory — createHttpsServer(app)
-    queue.js                  (PLANNED)   Request queue — enqueue/getQueueStats, concurrency control (local=1, cloud=5)
-    shutdown.js               (PLANNED)   Graceful shutdown — registerShutdown(server, hub, queue, { stopHealthCheck })
+    queue.js                  (53 lines)  Request queue — createQueue(name, opts)/enqueue(queue, fn)/getQueueStats(queue), concurrency control (local=1, cloud=5)
+    shutdown.js               (52 lines)  Graceful shutdown — registerShutdown(server, hub, queue, { stopHealthCheck }); SIGINT/SIGTERM → drain(10s) → close WS → stop health → close HTTP → exit(0); 15s force exit
 
   store/
     index.js                  (29 lines)  KV store wrapper — get/set/del/delete via agentic-store
@@ -193,14 +193,15 @@ src/store/index.js  → agentic-store
 - ~~m13-dbb profiles hot-reload flaky~~ — now passing consistently
 
 ### Open
-- `middleware.js` is a 4-line error handler — M103 Phase 2 will add `authMiddleware` (Bearer token via `AGENTIC_API_KEY`)
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
 - `store/index.js` imports `open` from agentic-store but package exports `createStore` — may rely on test mocks or alias
 - `/v1/chat/completions` does not validate model param against available models — no `model_not_found` error (DBB-005, M103 planned)
-- No request queue or retry/backoff logic — cloud fallback exists but failed requests not retried or queued (M103 Phase 2)
-- `/api/health` response is flat — M103 Phase 2 will nest under `components: { ollama, stt, tts }`
-- Graceful shutdown only handles SIGINT — M103 Phase 2 will add SIGTERM, WebSocket drain, health timer cleanup via shutdown.js
+
+### Resolved (M103 Phase 2)
+- ~~`middleware.js` is a 9-line error handler~~ — now 31 lines with `authMiddleware(apiKey)` + `errorHandler()`
+- ~~`cloud.js` has no retry logic~~ — `withRetry()` implemented: 3 retries, exponential backoff for 429/5xx, Retry-After header support
+- ~~Graceful shutdown incomplete~~ — `shutdown.js` (52 lines) implements full SIGINT/SIGTERM → drain → close WS → stop health → exit
 
 ### M101 Architecture Debt (COMPLETED)
 - ~~brain.js still uses internal resolveModel() + getModelPool~~ — migrated to registry.resolveModel()

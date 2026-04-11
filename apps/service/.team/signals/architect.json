@@ -1,7 +1,7 @@
 {
   "agent": "architect",
-  "timestamp": "2026-04-11T08:44:18.863Z",
+  "timestamp": "2026-04-11T09:03:07.102Z",
   "exitCode": 0,
   "status": "completed",
-  "summary": "Updated ARCHITECTURE.md: fixed /api/health response spec to nested components format, aligned health.js API signatures with engine.design.md (startHealthCheck/stopHealthCheck/getAllHealth/onHealthChange), added Health response restructuring to M103 Phase 2 table, updated shutdown.js spec. Updated codebase-map.md: added planned M103 files (health.js, queue.js, shutdown.js), fixed stale graceful-shutdown note, added /api/health nesting to open issues."
+  "summary": "Updated ARCHITECTURE.md and codebase-map.md to reflect M103 Phase 2 progress: cloud.js withRetry() (3 retries, exponential backoff for 429/5xx), authMiddleware (Bearer token via AGENTIC_API_KEY), shutdown.js (52 lines, SIGINT/SIGTERM → drain → exit) all marked as implemented. Updated directory tree (added health.js, queue.js, shutdown.js), mermaid diagrams, module API signatures, and removed 3 stale known limitations. Only model_not_found validation remains pending."
 }

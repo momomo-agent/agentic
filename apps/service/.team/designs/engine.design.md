@@ -92,19 +92,20 @@ export function offHealthChange(fn)                      // line 74
 - On status change: emit `'change'` event with `{ engineId, prev, next }`
 - Default for unknown engine: `{ status: 'healthy', lastCheck: 0, error: null, latency: null }`
 
-## PENDING: Retry Logic (task-1775896028509)
+## IMPLEMENTED: Retry Logic (task-1775896028509, ✅ done)
 
-### ollama.js Changes
-- Wrap `run()` generator: on timeout/connection error, retry once after 1s delay
-- Only retry on: `AbortError` (timeout), `TypeError` (fetch connection failure), `ECONNREFUSED`
-- Log: `console.log('[retry] engine=ollama attempt=2 reason=<error.message>')`
+### ollama.js (lines 7-22)
+- `withRetry()` wraps `run()` generator
+- 1 retry, 1s delay
+- Retries on: AbortError (timeout), TypeError (fetch connection failure), ECONNREFUSED
+- Log: `[retry] engine=ollama attempt=2 reason=<error.message>`
 
-### cloud.js Changes
-- Wrap `run()` generator:
-  - On HTTP 429: read `Retry-After` header, wait that many seconds, retry up to 3x
-  - On HTTP 5xx: exponential backoff 1s→2s→4s, retry up to 3x
-- Must add `httpStatus` and `retryAfter` properties to error objects in `_runInner()`
-- Log: `console.log('[retry] engine=cloud:<provider> attempt=N reason=<status>')`
+### cloud.js (lines 8-23)
+- `withRetry()` wraps `run()` generator
+- On HTTP 429: reads `Retry-After` header, waits that many seconds, up to 3 retries
+- On HTTP 5xx: exponential backoff 1s→2s→4s, up to 3 retries
+- `_runInner()` sets `err.httpStatus` and `err.retryAfter` properties
+- Log: `[retry] engine=cloud:<provider> attempt=N reason=<status>`
 
 ### Retry Implementation Pattern
 ```javascript

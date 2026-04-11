@@ -56,6 +56,7 @@ graph TD
     EngInit --> WhisperEng[engine/whisper.js]
     EngInit --> TTSEng[engine/tts.js]
     EngInit --> CloudEng[engine/cloud.js]
+    EngInit --> HealthEng[engine/health.js]
     EngInit --> Config[config.js]
 
     API --> Brain[server/brain.js]
@@ -84,6 +85,9 @@ graph TD
     VoiceAdapters -.-> av[agentic-voice]
 
     API --> MW[server/middleware.js]
+    API --> Queue[server/queue.js]
+    API --> Health[engine/health.js]
+    API --> Shutdown[server/shutdown.js]
     API --> HTTPS[server/httpsServer.js]
     HTTPS --> Cert[server/cert.js]
     API --> Tunnel[tunnel.js]
@@ -114,10 +118,11 @@ src/
   engine/
     registry.js                # 引擎注册中心 — register/discoverModels/resolveModel
     init.js                    # 引擎启动 — initEngines() 注册所有引擎
-    ollama.js                  # Ollama 引擎 — chat/vision/embedding 模型发现
-    cloud.js                   # 云端引擎工厂 — createCloudEngine(provider, config)
+    ollama.js                  # Ollama 引擎 — chat/vision/embedding 模型发现 + withRetry()
+    cloud.js                   # 云端引擎工厂 — createCloudEngine(provider, config) + withRetry()
     tts.js                     # TTS 引擎 — kokoro/piper/macos-say 模型发现
     whisper.js                 # Whisper 引擎 — whisper.cpp/SenseVoice STT 模型发现
+    health.js                  # 引擎健康检查 — 30s 周期探测 + 状态变更事件
 
   runtime/
     stt.js                     # 语音识别（多提供商自适应）
@@ -143,7 +148,9 @@ src/
     api.js                     # Express 路由 — REST + OpenAI 兼容 + 管理 + 语音
     brain.js                   # LLM 推理 + 工具注册/调用
     hub.js                     # WebSocket 设备管理 + 会话共享
-    middleware.js              # 错误处理中间件
+    middleware.js              # API 认证 (Bearer token) + 错误处理中间件
+    queue.js                   # 请求队列 + 并发控制（local: 1, cloud: 5）
+    shutdown.js                # 优雅关闭（SIGINT/SIGTERM → drain → exit）
     cert.js                    # 自签名证书生成
     httpsServer.js             # HTTPS 服务器工厂
 
@@ -370,7 +377,17 @@ broadcastWakeword() → void
 // 设备注册: { type: "register", deviceId, capabilities }
 
 // server/middleware.js
-errorHandler(err, req, res, next) → void  // Express 错误处理
+authMiddleware(apiKey) → (req, res, next)  // Bearer token 校验，apiKey falsy 则跳过
+errorHandler(err, req, res, next) → void  // Express 错误处理，返回 { error: { message, type, code } }
+
+// server/queue.js
+createQueue(name, options) → queue         // options: { maxConcurrency, maxQueueSize }
+enqueue(queue, fn) → Promise               // 排队执行，队列满 reject 429
+getQueueStats(queue) → { pending, active, maxConcurrency, maxQueueSize }
+
+// server/shutdown.js
+registerShutdown(server, hub, queue, { stopHealthCheck }) → void
+// SIGINT/SIGTERM → drain(10s) → close WS → stop health → close HTTP → exit
 
 // server/cert.js
 generateCert() → { key, cert }  // selfsigned 自签名证书
@@ -734,92 +751,104 @@ assignments.chat → registry.resolveModel(modelId)
 | OpenAI 错误格式 | `apiError()` + `errorHandler` 均返回 `{ error: { message, type, code } }` | ✅ 已实现 |
 | 音频格式校验 | `isValidAudio()` magic bytes 检查，无效返回 400 `invalid_audio_format` | ✅ 已实现 |
 
-### 计划中（Phase 2）
+### Phase 2 — ✅ 大部分已完成
 
 ```mermaid
 graph LR
-    REQ[Request] --> Auth[middleware.js<br/>Bearer Token]
-    Auth --> Queue[queue.js<br/>并发控制]
+    REQ[Request] --> Auth[middleware.js<br/>Bearer Token ✅]
+    Auth --> Queue[queue.js<br/>并发控制 ✅]
     Queue --> Engine[engine/*]
-    Engine -->|失败| Retry[retry 逻辑]
+    Engine -->|失败| Retry[retry 逻辑 ✅]
     Retry -->|重试| Engine
-    Engine --> Health[health.js<br/>引擎健康监控]
+    Engine --> Health[health.js<br/>引擎健康监控 ✅]
     Health -->|降级| Registry[registry.js]
 
-    SIGINT[SIGINT/SIGTERM] --> Shutdown[shutdown.js<br/>优雅关闭]
+    SIGINT[SIGINT/SIGTERM] --> Shutdown[shutdown.js<br/>优雅关闭 ✅]
     Shutdown -->|drain| Queue
 ```
 
 #### 新增模块
 
-| 模块 | 文件路径 | 职责 | 关键 API |
-|------|---------|------|---------|
-| Health 响应嵌套化 | `src/server/api.js` | `/api/health` 响应改为 `{ status, uptime, components: { ollama, stt, tts }, responseTime }` | 修改 `addRoutes()` 中 `/api/health` 路由 |
-| 引擎健康检查 | `src/engine/health.js` | 周期性探测引擎可用性，自动标记 degraded/unavailable | `startHealthCheck()`, `stopHealthCheck()`, `getEngineHealth(id)`, `getAllHealth()`, `onHealthChange(cb)` |
-| 请求队列 | `src/server/queue.js` | 本地模型并发控制（Ollama 单 GPU 串行），防止 OOM | `enqueue(fn, priority)`, `getQueueStats()` |
-| 重试机制 | `src/engine/ollama.js` + `cloud.js` | 指数退避重试（max 3 次），区分可重试/不可重试错误 | 内嵌于 engine `run()` 方法 |
-| API 认证 | `src/server/middleware.js` | `AGENTIC_API_KEY` 环境变量，Bearer token 校验，未设置则跳过 | `authMiddleware(req, res, next)` |
-| 优雅关闭 | `src/server/shutdown.js` | SIGINT/SIGTERM → 停止接受新连接 → drain 队列 → 关闭 WebSocket → exit | `registerShutdown(server, hub, queue)` |
-| Model 校验 | `src/server/api.js` | `/v1/chat/completions` 校验 model 参数存在性，返回 `model_not_found` | 内嵌于路由处理 |
+| 模块 | 文件路径 | 状态 | 职责 | 关键 API |
+|------|---------|------|------|---------|
+| Health 响应嵌套化 | `src/server/api.js` | ✅ 已实现 | `/api/health` 返回 `{ status, uptime, components: { ollama, stt, tts }, responseTime }` | `GET /api/health` |
+| 引擎健康检查 | `src/engine/health.js` (77 lines) | ✅ 已实现 | 30s 周期探测引擎可用性，EventEmitter 通知状态变更 | `startHealthCheck()`, `stopHealthCheck()`, `getEngineHealth(id)`, `getAllHealth()`, `isHealthy(id)`, `onHealthChange(cb)` |
+| 请求队列 | `src/server/queue.js` (53 lines) | ✅ 已实现 | 本地模型串行（maxConcurrency=1），云端并发（maxConcurrency=5），队列满返回 429 | `createQueue(name, opts)`, `enqueue(queue, fn)`, `getQueueStats(queue)` |
+| 重试机制 | `src/engine/ollama.js` | ✅ 已实现 | Ollama: 1 次重试，1s 延迟，仅重试 AbortError/TypeError/ECONNREFUSED | `withRetry()` 包装 `run()` |
+| 重试机制 | `src/engine/cloud.js` | ✅ 已实现 | 云端 429/5xx 指数退避重试（max 3 次），Retry-After header 支持 | `withRetry()` 包装 `run()` → `_runInner()` |
+| API 认证 | `src/server/middleware.js` | ✅ 已实现 | `AGENTIC_API_KEY` Bearer token 校验，/health 和 /admin 免认证 | `authMiddleware(apiKey)` 返回中间件函数 |
+| 优雅关闭 | `src/server/api.js` | ✅ 已实现 | `startDrain()`/`waitDrain()` 标记 draining + 等待 in-flight 请求完成 | `startDrain()`, `waitDrain(timeout)` |
+| 优雅关闭 | `src/server/shutdown.js` (52 lines) | ✅ 已实现 | SIGINT/SIGTERM → drain(10s) → 关闭 WebSocket → 停止健康检查 → 关闭 HTTP → exit | `registerShutdown(server, hub, queue, { stopHealthCheck })` |
+| Model 校验 | `src/server/api.js` | ⏳ 待实现 | `/v1/chat/completions` 校验 model 参数，返回 `model_not_found` | 内嵌于路由处理 |
 
-#### 引擎健康检查 — `src/engine/health.js`
+#### 引擎健康检查 — `src/engine/health.js` (77 lines, ✅ 已实现)
 
 ```javascript
-// 设计规格
-const PROBE_INTERVAL = 30_000;  // 30s 探测间隔
-const FAILURE_THRESHOLD = 3;     // 连续 3 次失败标记 degraded
-const RECOVERY_THRESHOLD = 1;    // 1 次成功恢复 ok
+// 实际实现（已验证）
+// 30s 默认探测间隔，每个引擎独立状态
+// 状态: healthy | down（通过 engine.status().available 判定）
+// 5s 超时保护（Promise.race）
+// 状态变更时 emit 'change' 事件
 
-// 状态机: ok → degraded → unavailable → ok
-// 每个引擎独立状态，通过 registry.js 的 engine.status() 探测
 export function startHealthCheck(intervalMs = 30_000);
 export function stopHealthCheck();
-export function getEngineHealth(engineId); // → { status, lastCheck, latency, error, consecutiveFailures }
-export function getAllHealth();             // → { [engineId]: HealthState }
-export function onHealthChange(fn);        // emitter.on('change', fn)
-export function offHealthChange(fn);       // emitter.off('change', fn)
+export function getEngineHealth(engineId); // → { status: 'healthy'|'down', lastCheck, latency, error }
+export function getAllHealth();             // → Map entries as Object
+export function isHealthy(engineId);       // → boolean (status !== 'down')
+export function onHealthChange(fn);        // emitter.on('change', { engineId, prev, next })
+export function offHealthChange(fn);
 ```
 
-#### 请求队列 — `src/server/queue.js`
+#### 请求队列 — `src/server/queue.js` (53 lines, ✅ 已实现)
 
 ```javascript
-// 设计规格
-const MAX_CONCURRENT_LOCAL = 1;   // 本地模型（Ollama）串行执行
-const MAX_CONCURRENT_CLOUD = 5;   // 云端模型并发
-const MAX_QUEUE_SIZE = 50;        // 队列满返回 429
+// 实际实现（已验证）
+// api.js 创建两个队列实例:
+//   localQueue = createQueue('local', { maxConcurrency: 1, maxQueueSize: 50 })
+//   cloudQueue = createQueue('cloud', { maxConcurrency: 5, maxQueueSize: 100 })
+// 队列满时 reject 429 + retryAfter: 5
 
-export function createQueue(options);
-export function enqueue(fn, { priority, timeout }); // → Promise
-export function getQueueStats(); // → { pending, active, completed, rejected }
+export function createQueue(name, options);  // options: { maxConcurrency, maxQueueSize }
+export function enqueue(queue, fn);          // → Promise (resolves with fn result)
+export function getQueueStats(queue);        // → { pending, active, maxConcurrency, maxQueueSize }
 ```
 
 #### 重试策略
 
 ```
-engine.run(model, input)
-  → 失败（网络/超时/5xx）→ 等待 1s → 重试
-  → 再失败 → 等待 2s → 重试
-  → 第三次失败 → 标记引擎 degraded → fallback 到下一引擎
-  → 4xx 错误（bad request）→ 不重试，直接返回
+Ollama (✅ 已实现 — engine/ollama.js withRetry()):
+  engine.run(model, input)
+    → 失败（AbortError/TypeError/ECONNREFUSED）→ 等待 1s → 重试 1 次
+    → 其他错误 → 不重试，直接抛出
+
+Cloud (✅ 已实现 — engine/cloud.js withRetry()):
+  engine.run(model, input)
+    → 429 → 读取 Retry-After header（秒 × 1000ms），否则指数退避
+    → 5xx → 指数退避重试（1s, 2s, 4s），最多 3 次
+    → 4xx（非 429）→ 不重试，直接返回
 ```
 
-#### API 认证 — `src/server/middleware.js`
+#### API 认证 — `src/server/middleware.js` (✅ 已实现)
 
 ```javascript
-// 设计规格
-// 环境变量 AGENTIC_API_KEY 未设置 → 跳过认证（本地开发模式）
-// 设置后 → 所有 /api/* 和 /v1/* 路由需 Authorization: Bearer <key>
-// /health 和 /api/health 免认证（运维探针）
-export function authMiddleware(req, res, next);
+// 实际实现（已验证）
+// authMiddleware(apiKey) 返回 Express 中间件函数
+// apiKey 为 falsy → 跳过认证（本地开发模式）
+// req.path === '/health' 或 startsWith('/admin') → 免认证
+// 缺少 Authorization header 或非 Bearer 格式 → 401 authentication_error
+// token !== apiKey → 401 authentication_error
+// api.js 中: app.use(authMiddleware(process.env.AGENTIC_API_KEY))
+export function authMiddleware(apiKey) → (req, res, next);
+export function errorHandler(err, req, res, next);
 ```
 
-#### 优雅关闭 — `src/server/shutdown.js`
+#### 优雅关闭 — `src/server/shutdown.js` (52 lines, ✅ 已实现)
 
 ```javascript
-// 设计规格
-// SIGINT/SIGTERM → 标记 shutting_down → 拒绝新请求(503)
-// → drain 请求队列（最长等待 10s）→ 关闭 WebSocket hub
-// → 停止健康检查循环 → process.exit(0)
+// 实际实现（已验证）
+// SIGINT/SIGTERM → startDrain() → waitDrain(10s) → hub.closeAllConnections()
+// → stopHealthCheck() → server.close() → process.exit(0)
+// 15s 强制退出保护（setTimeout + unref）
 export function registerShutdown(server, hub, queue, { stopHealthCheck });
 ```
 
@@ -835,8 +864,6 @@ export function registerShutdown(server, hub, queue, { stopHealthCheck });
 
 ## 已知限制
 
-1. **middleware.js 仅含错误处理** — 无请求验证、速率限制或安全中间件。本地优先架构下可接受，M103 将添加 API 认证和请求队列。
-2. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
-3. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
-4. **无请求队列或重试逻辑** — 云端回退存在但失败请求不会重试或排队（M103 计划实现）。
-5. **无 model_not_found 校验** — `/v1/chat/completions` 不校验 model 参数是否存在于已注册引擎中（DBB-005，M103 计划修复）。
+1. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
+2. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
+3. **无 model_not_found 校验** — `/v1/chat/completions` 不校验 model 参数是否存在于已注册引擎中（DBB-005，M103 计划修复）。

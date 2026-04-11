@@ -109,6 +109,30 @@ agentic-service 是一个本地优先的 AI 服务，自动检测硬件、选择
 
 ---
 
+## M103: 稳定性与生产就绪
+
+**目标：** 健康检查、自动降级、请求队列、重试、统一错误格式、API 认证、优雅关闭 — 让服务可靠运行于生产环境
+
+### Features
+
+1. **引擎健康检查 + 自动降级** (`src/engine/health.js`) — `startHealthCheck()` / `stopHealthCheck()` / `getEngineHealth()` / `getAllHealth()`。Ollama 检查 `GET /api/tags` 超时 5s，Cloud 检查 `/v1/models` 超时 10s。引擎 down 时 `registry.resolveModel()` 跳过，恢复后标记 healthy。降级事件通过 EventEmitter 发出。新增 `GET /api/engines/health` 端点
+2. **请求队列 + 并发控制** (`src/server/queue.js`) — 本地模型请求排队，防止 OOM；可配置并发上限
+3. **重试机制** — `engine/ollama.js`: timeout/connection/5xx 指数退避重试 (1s→2s→4s, 最多 3 次)；`engine/cloud.js`: 429 读取 Retry-After (最多 3 次)，5xx 指数退避；4xx 不重试。第 3 次失败标记引擎 degraded → fallback
+4. **API 认证中间件** (`src/server/middleware.js`) — 环境变量 `AGENTIC_API_KEY` 未设置 → 跳过认证（本地开发模式）；设置后 → 所有 `/api/*` 和 `/v1/*` 路由需 `Authorization: Bearer <key>`；`/health` 和 `/api/health` 免认证（运维探针）
+5. **优雅关闭** (`src/server/shutdown.js`) — SIGINT/SIGTERM → 标记 shutting_down → 拒绝新请求(503) → drain 请求队列（最长 10s）→ 关闭 WebSocket hub → 停止健康检查 → `process.exit(0)`
+
+### 验收标准
+
+- [ ] `GET /api/health` 返回 `{ status, uptime, components: { ollama, stt, tts }, responseTime }`
+- [ ] 所有 API 错误响应包含 `{ error: { message, type, code } }`
+- [ ] 无效音频文件返回 400 而非 500
+- [ ] `/v1/chat/completions` 对不存在的 model 返回 404 `model_not_found`
+- [ ] `AGENTIC_API_KEY` 设置后，无 token 请求返回 401
+- [ ] Ollama 不可用时请求自动 fallback 到云端，无需手动干预
+- [ ] SIGINT 后 in-flight 请求完成再退出，不丢数据
+
+---
+
 ## 引擎架构
 
 **目标：** 统一模型发现与路由，用户只看到模型，引擎是内部实现
@@ -368,7 +392,7 @@ CONFIG_CHANGE → 重置为 LOCAL
 
 ## 测试
 
-- 181 个测试文件，1088 个测试用例（1077 passed, 11 skipped）
+- 206 个测试文件，1270 个测试用例（1259 passed, 11 skipped）
 - 全部通过，无失败测试
 - 覆盖率阈值 ≥98%（vitest 配置）
 - 关键测试领域：硬件检测、引擎注册、配置系统、brain fallback、WebSocket hub、语音管线、Docker 部署、REST API 端点、embed 构建验证
