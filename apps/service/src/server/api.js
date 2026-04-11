@@ -13,7 +13,8 @@ import * as tts from '../runtime/tts.js';
 import { errorHandler } from './middleware.js';
 import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession } from './hub.js';
 import { getConfig, setConfig, reloadConfig, CONFIG_PATH, addToPool, removeFromPool, getAssignments, setAssignments } from '../config.js';
-import { getEngines, discoverModels, getEngine } from '../engine/registry.js';
+import { getEngines, discoverModels, getEngine, modelsForCapability, resolveModel } from '../engine/registry.js';
+import { embed } from '../runtime/embed.js';
 
 function getLanIp() {
   for (const ifaces of Object.values(os.networkInterfaces())) {
@@ -74,11 +75,20 @@ function addRoutes(r) {
   r.get('/health', (req, res) => res.json({ status: 'ok' }));
 
   // ─── OpenAI-compatible API ───────────────────────────────
-  r.get('/v1/models', (req, res) => {
-    res.json({
-      object: 'list',
-      data: [{ id: 'agentic-service', object: 'model', created: Date.now(), owned_by: 'local' }],
-    });
+  r.get('/v1/models', async (req, res) => {
+    const created = Math.floor(Date.now() / 1000);
+    const data = [{ id: 'agentic-service', object: 'model', created, owned_by: 'local' }];
+    try {
+      const [embedModels, sttModels, ttsModels] = await Promise.all([
+        modelsForCapability('embed'),
+        modelsForCapability('stt'),
+        modelsForCapability('tts'),
+      ]);
+      for (const m of [...embedModels, ...sttModels, ...ttsModels]) {
+        data.push({ id: m.id, object: 'model', created, owned_by: m.engineId || 'local' });
+      }
+    } catch { /* registry not ready, return base model only */ }
+    res.json({ object: 'list', data });
   });
 
   r.post('/v1/chat/completions', async (req, res) => {
@@ -136,6 +146,64 @@ function addRoutes(r) {
       }
     }
   });
+  // ─── POST /v1/embeddings — OpenAI-compatible embedding API ──
+  r.post('/v1/embeddings', async (req, res) => {
+    const { model, input } = req.body;
+    if (!input) return res.status(400).json({ error: { message: 'input is required', type: 'invalid_request_error' } });
+
+    try {
+      const inputs = Array.isArray(input) ? input : [input];
+      const data = [];
+      let totalTokens = 0;
+      for (let i = 0; i < inputs.length; i++) {
+        const text = inputs[i];
+        totalTokens += Math.ceil(text.length / 4); // rough token estimate
+        const vector = await embed(text);
+        data.push({ object: 'embedding', embedding: vector, index: i });
+      }
+      res.json({
+        object: 'list',
+        data,
+        model: model || 'bge-m3',
+        usage: { prompt_tokens: totalTokens, total_tokens: totalTokens },
+      });
+    } catch (error) {
+      res.status(500).json({ error: { message: error.message, type: 'server_error' } });
+    }
+  });
+
+  // ─── POST /v1/audio/transcriptions — OpenAI-compatible STT API ──
+  r.post('/v1/audio/transcriptions', upload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: { message: 'file is required', type: 'invalid_request_error' } });
+
+    const responseFormat = req.body?.response_format || 'json';
+    try {
+      const text = await stt.transcribe(req.file.buffer);
+      if (responseFormat === 'verbose_json') {
+        res.json({ task: 'transcribe', language: req.body?.language || 'en', duration: 0, text, segments: [] });
+      } else {
+        res.json({ text });
+      }
+    } catch (error) {
+      res.status(500).json({ error: { message: error.message, type: 'server_error' } });
+    }
+  });
+
+  // ─── POST /v1/audio/speech — OpenAI-compatible TTS API ──
+  r.post('/v1/audio/speech', async (req, res) => {
+    const { model, input, voice, response_format = 'mp3', speed } = req.body;
+    if (!input) return res.status(400).json({ error: { message: 'input is required', type: 'invalid_request_error' } });
+
+    const contentTypes = { mp3: 'audio/mpeg', wav: 'audio/wav', opus: 'audio/opus', flac: 'audio/flac' };
+    try {
+      const audio = await tts.synthesize(input);
+      res.setHeader('Content-Type', contentTypes[response_format] || 'audio/mpeg');
+      res.send(audio);
+    } catch (error) {
+      res.status(500).json({ error: { message: error.message, type: 'server_error' } });
+    }
+  });
+
   // ─── End OpenAI-compatible API ───────────────────────────
 
   // ─── Anthropic-compatible API ──────────────────────────────
