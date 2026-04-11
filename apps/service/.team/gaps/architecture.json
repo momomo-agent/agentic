@@ -1,14 +1,29 @@
 {
-  "match": 97,
-  "timestamp": "2026-04-11T14:01:00.000Z",
+  "match": 95,
+  "timestamp": "2026-04-11T14:37:00.000Z",
   "gaps": [
+    {
+      "description": "ARCHITECTURE.md directory structure (line 127) still lists runtime/memory.js with full API docs, but the file was deleted during M101 dead file cleanup — doc is stale",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "ARCHITECTURE.md (line 158) lists ConfigPanel as an admin component, but it was removed — only DeviceList, HardwarePanel, LogViewer, SystemStatus exist",
+      "status": "partial",
+      "severity": "minor"
+    },
+    {
+      "description": "ARCHITECTURE.md (line 159) lists LocalModels and CloudModels as admin views, but they were removed and replaced by unified ModelsView.vue",
+      "status": "partial",
+      "severity": "minor"
+    },
     {
       "description": "Voice adapters (sensevoice.js, whisper.js, piper.js, openai-tts.js, openai-whisper.js, elevenlabs.js, macos-say.js, kokoro.js) listed in directory structure with one-line descriptions but lack formal API sections with function signatures in ARCHITECTURE.md",
       "status": "partial",
       "severity": "minor"
     },
     {
-      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented matching ARCHITECTURE.md — M101 engine registry unification complete: brain.js/stt.js/tts.js route through registry.resolveModel, /api/ollama/* removed, dead files deleted",
+      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented matching ARCHITECTURE.md — M101 engine registry unification complete: brain.js routes through registry.resolveModel, /api/ollama/* removed, dead files deleted",
       "status": "implemented",
       "severity": "minor"
     }

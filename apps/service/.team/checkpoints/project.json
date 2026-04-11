@@ -8,7 +8,7 @@
     "monitor",
     "pm_decide",
     "work_loop",
-    "milestone_qg",
+    "work_loop",
     "milestone_qg",
     "work_loop",
     "milestone_qg"
@@ -21,12 +21,12 @@
     "startup": 1,
     "monitor": 2,
     "pm_decide": 1,
-    "work_loop": 2,
-    "milestone_qg": 3
+    "work_loop": 3,
+    "milestone_qg": 2
   },
   "contextOverrides": {
     "refsValid": 1,
     "buildPassed": 0
   },
-  "timestamp": "2026-04-11T07:40:07.240Z"
+  "timestamp": "2026-04-11T07:41:16.938Z"
 }
