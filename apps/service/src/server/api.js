@@ -10,8 +10,10 @@ import { getMetrics, startMark, endMark } from '../runtime/profiler.js';
 import { detectVoiceActivity } from '../runtime/vad.js';
 import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
-import { errorHandler } from './middleware.js';
-import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession } from './hub.js';
+import { errorHandler, authMiddleware } from './middleware.js';
+import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession, closeAllConnections } from './hub.js';
+import { registerShutdown } from './shutdown.js';
+import { stopHealthCheck } from '../engine/health.js';
 import { getConfig, setConfig, reloadConfig, CONFIG_PATH, addToPool, removeFromPool, getAssignments, setAssignments } from '../config.js';
 import { getEngines, discoverModels, getEngine, modelsForCapability, resolveModel } from '../engine/registry.js';
 import { getAllHealth } from '../engine/health.js';
@@ -880,6 +882,7 @@ export function createApp() {
   const app = express();
   app.use(cors());
   app.use(express.json({ limit: '50mb' }));
+  app.use(authMiddleware(process.env.AGENTIC_API_KEY));
   app.use((req, res, next) => {
     if (draining) return res.status(503).json({ error: 'server draining' });
     inflight++;
@@ -949,12 +952,7 @@ export async function startServer(port = 3000, { https: useHttps = false } = {})
   initWebSocket(httpServer);
   startWakeWordDetection();
   // const stopWake = startWakeWordPipeline(() => broadcastWakeword('server')); // Disabled for basic demos
-  process.once('SIGINT', async () => {
-    startDrain();
-    // stopWake(); // Disabled
-    try { await waitDrain(10_000); } catch { /* timeout, proceed */ }
-    httpServer.close(() => process.exit(0));
-  });
+  registerShutdown(httpServer, { closeAllConnections }, null, { stopHealthCheck });
   // Init engines + runtime
   const { initEngines } = await import('../engine/init.js');
   await initEngines().catch(err => console.warn('Engine init warning:', err.message));

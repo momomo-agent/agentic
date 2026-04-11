@@ -305,9 +305,15 @@ export function initWebSocket(httpServer) {
     }
   }, 30000);
 
-  process.once('SIGINT', () => {
-    wss.close(() => process.exit(0));
-  });
-
   return wss;
+}
+
+export function closeAllConnections(reason = 'shutdown') {
+  for (const [id, device] of registry) {
+    try {
+      device.ws.send(JSON.stringify({ type: 'shutdown', reason }));
+      device.ws.close(1001, reason);
+    } catch { /* ignore already-closed connections */ }
+  }
+  registry.clear();
 }
