@@ -2,12 +2,12 @@
   "id": "task-1775896028509",
   "title": "重试机制 (ollama.js + cloud.js)",
   "description": "Add retry logic per ARCHITECTURE.md M103 spec. src/engine/ollama.js: retry on timeout/connection/5xx with exponential backoff (1s,2s,4s, max 3x). src/engine/cloud.js: read Retry-After for 429 (max 3x), exponential backoff for 5xx. 4xx errors NOT retried. On 3rd failure mark engine degraded → fallback to next engine. Log [retry] engine=xxx attempt=N reason=xxx. Transparent to caller. ≥4 tests required.",
-  "status": "review",
+  "status": "done",
   "priority": "P1",
-  "assignee": "developer",
+  "assignee": "tester",
   "blockedBy": [],
   "groupId": "m103",
   "hasDesign": true,
   "created": "2026-04-11T08:27:08.509Z",
-  "updated": "2026-04-11T09:00:17.962Z"
+  "updated": "2026-04-11T09:12:29.235Z"
 }
