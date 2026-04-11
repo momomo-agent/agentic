@@ -5,6 +5,23 @@
  * 一个 API key 可以提供多种能力 (chat, vision, stt, tts, embedding)。
  */
 
+async function* withRetry(fn, { maxRetries, shouldRetry, getDelay, engineName }) {
+  let lastError;
+  for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+    try {
+      yield* fn();
+      return;
+    } catch (err) {
+      lastError = err;
+      if (attempt > maxRetries || !shouldRetry(err)) throw err;
+      const delay = getDelay(err, attempt);
+      console.log(`[retry] engine=${engineName} attempt=${attempt + 1} reason=${err.message}`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  throw lastError;
+}
+
 export function createCloudEngine(provider, config) {
   const { apiKey, baseUrl, models: modelList } = config;
 
@@ -62,6 +79,26 @@ export function createCloudEngine(provider, config) {
      * @param {object} input - { messages, tools?, stream? } for chat; { audioBuffer } for STT; { text } for TTS/embedding
      */
     async *run(modelName, input) {
+      yield* withRetry(
+        () => this._runInner(modelName, input),
+        {
+          maxRetries: 3,
+          shouldRetry: (err) => {
+            const status = err.httpStatus;
+            return status === 429 || (status >= 500 && status < 600);
+          },
+          getDelay: (err, attempt) => {
+            if (err.httpStatus === 429 && err.retryAfter) {
+              return err.retryAfter * 1000;
+            }
+            return 1000 * Math.pow(2, attempt - 1);
+          },
+          engineName: `cloud:${provider}`,
+        }
+      );
+    },
+
+    async *_runInner(modelName, input) {
       if (!apiKey) throw new Error(`No API key for ${provider}`);
       const base = baseUrl || (provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com');
 
@@ -75,7 +112,13 @@ export function createCloudEngine(provider, config) {
           headers: { 'Authorization': `Bearer ${apiKey}` },
           body: form,
         });
-        if (!res.ok) throw new Error(`Cloud STT error: ${res.status}`);
+        if (!res.ok) {
+          const err = new Error(`Cloud STT error: ${res.status}`);
+          err.httpStatus = res.status;
+          const retryAfter = res.headers.get('Retry-After');
+          if (retryAfter) err.retryAfter = parseInt(retryAfter, 10);
+          throw err;
+        }
         const data = await res.json();
         yield { type: 'transcription', text: data.text };
         return;
@@ -88,7 +131,13 @@ export function createCloudEngine(provider, config) {
           headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ model: modelName, input: input.ttsText, voice: input.voice || 'alloy' }),
         });
-        if (!res.ok) throw new Error(`Cloud TTS error: ${res.status}`);
+        if (!res.ok) {
+          const err = new Error(`Cloud TTS error: ${res.status}`);
+          err.httpStatus = res.status;
+          const retryAfter = res.headers.get('Retry-After');
+          if (retryAfter) err.retryAfter = parseInt(retryAfter, 10);
+          throw err;
+        }
         const buf = Buffer.from(await res.arrayBuffer());
         yield { type: 'audio', data: buf };
         return;
@@ -101,7 +150,13 @@ export function createCloudEngine(provider, config) {
           headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ model: modelName, input: input.text }),
         });
-        if (!res.ok) throw new Error(`Cloud embed error: ${res.status}`);
+        if (!res.ok) {
+          const err = new Error(`Cloud embed error: ${res.status}`);
+          err.httpStatus = res.status;
+          const retryAfter = res.headers.get('Retry-After');
+          if (retryAfter) err.retryAfter = parseInt(retryAfter, 10);
+          throw err;
+        }
         const data = await res.json();
         yield { type: 'embedding', data: data.data?.[0]?.embedding };
         return;
@@ -129,7 +184,13 @@ export function createCloudEngine(provider, config) {
         headers,
         body: JSON.stringify(chatBody),
       });
-      if (!res.ok) throw new Error(`Cloud chat error: ${res.status}`);
+      if (!res.ok) {
+        const err = new Error(`Cloud chat error: ${res.status}`);
+        err.httpStatus = res.status;
+        const retryAfter = res.headers.get('Retry-After');
+        if (retryAfter) err.retryAfter = parseInt(retryAfter, 10);
+        throw err;
+      }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();

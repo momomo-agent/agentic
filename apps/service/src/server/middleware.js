@@ -1,7 +1,7 @@
 export function authMiddleware(apiKey) {
   return (req, res, next) => {
     if (!apiKey) return next();
-    if (req.path === '/health' || req.path.startsWith('/admin')) return next();
+    if (req.path === '/health' || req.path === '/api/health' || req.path.startsWith('/admin')) return next();
 
     const auth = req.headers.authorization;
     if (!auth || !auth.startsWith('Bearer ')) {

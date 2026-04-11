@@ -4,6 +4,23 @@
 
 import { getConfig } from '../config.js';
 
+async function* withRetry(fn, { maxRetries, shouldRetry, getDelay, engineName }) {
+  let lastError;
+  for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+    try {
+      yield* fn();
+      return;
+    } catch (err) {
+      lastError = err;
+      if (attempt > maxRetries || !shouldRetry(err)) throw err;
+      const delay = getDelay(err, attempt);
+      console.log(`[retry] engine=${engineName} attempt=${attempt + 1} reason=${err.message}`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  throw lastError;
+}
+
 function getHost(config) {
   return config?.ollamaHost || config?.ollama?.host || process.env.OLLAMA_HOST || 'http://localhost:11434';
 }
@@ -100,6 +117,22 @@ export default {
    * @returns {AsyncGenerator} streaming chunks for chat, embedding result for embedding
    */
   async *run(modelName, input) {
+    yield* withRetry(
+      () => this._runInner(modelName, input),
+      {
+        maxRetries: 1,
+        shouldRetry: (err) => {
+          return err.name === 'AbortError'
+            || err.name === 'TypeError'
+            || err.message?.includes('ECONNREFUSED');
+        },
+        getDelay: () => 1000,
+        engineName: 'ollama',
+      }
+    );
+  },
+
+  async *_runInner(modelName, input) {
     const config = await getConfig();
     const host = getHost(config);
 
