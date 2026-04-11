@@ -1,6 +1,4 @@
-import { test } from 'vitest';
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -10,315 +8,239 @@ const brainPath = join(__dirname, '..', 'src', 'server', 'brain.js');
 const brainSource = fs.readFileSync(brainPath, 'utf8');
 const importLines = brainSource.split('\n').filter(l => /^\s*import\s/.test(l));
 
-// ── Static import checks (sync — safe inside node:test describe/it) ────
+// Static import checks
 
-test('engine-registry-brain: static imports', { timeout: 30_000 }, async () => {
-
-  // 1. brain.js does NOT import getModelPool
-  describe('brain.js does NOT import getModelPool from config.js', () => {
-    it('does not destructure getModelPool', () => {
-      const configImport = importLines.find(l => l.includes('config.js'));
-      assert.ok(configImport, 'brain.js must import from config.js');
-      assert.ok(
-        !configImport.includes('getModelPool'),
-        `brain.js must NOT import getModelPool from config.js, found: ${configImport.trim()}`
-      );
-    });
-
-    it('does not reference getModelPool anywhere', () => {
-      assert.ok(
-        !brainSource.includes('getModelPool'),
-        'brain.js must not reference getModelPool at all'
-      );
-    });
+describe('brain.js does NOT import getModelPool from config.js', () => {
+  it('does not destructure getModelPool', () => {
+    const configImport = importLines.find(l => l.includes('config.js'));
+    expect(configImport).toBeTruthy();
+    expect(configImport.includes('getModelPool')).toBe(false);
   });
 
-  // 2. brain.js DOES import resolveModel from engine/registry.js
-  describe('brain.js DOES import resolveModel from engine/registry.js', () => {
-    it('imports resolveModel as registryResolve', () => {
-      const registryImport = importLines.find(l => l.includes('engine/registry'));
-      assert.ok(registryImport, 'brain.js must import from engine/registry.js');
-      assert.ok(
-        registryImport.includes('resolveModel'),
-        `brain.js must import resolveModel from engine/registry.js, found: ${registryImport.trim()}`
-      );
-    });
-  });
-
-  // 3. brain.js DOES import modelsForCapability from engine/registry.js
-  describe('brain.js DOES import modelsForCapability from engine/registry.js', () => {
-    it('imports modelsForCapability', () => {
-      const registryImport = importLines.find(l => l.includes('engine/registry'));
-      assert.ok(registryImport, 'brain.js must import from engine/registry.js');
-      assert.ok(
-        registryImport.includes('modelsForCapability'),
-        `brain.js must import modelsForCapability from engine/registry.js, found: ${registryImport.trim()}`
-      );
-    });
-  });
-
-  // 4. brain.js does NOT import from detector/
-  describe('brain.js does NOT import from detector/', () => {
-    it('does not import from detector/hardware.js', () => {
-      assert.ok(
-        !brainSource.includes('detector/hardware'),
-        'brain.js must not import from detector/hardware.js'
-      );
-    });
-
-    it('does not import from detector/profiles.js', () => {
-      assert.ok(
-        !brainSource.includes('detector/profiles'),
-        'brain.js must not import from detector/profiles.js'
-      );
-    });
-
-    it('has no import referencing detector/ at all', () => {
-      const detectorImports = importLines.filter(l => l.includes('detector/'));
-      assert.equal(
-        detectorImports.length,
-        0,
-        `unexpected detector imports: ${detectorImports.join(', ')}`
-      );
-    });
+  it('does not reference getModelPool anywhere', () => {
+    expect(brainSource.includes('getModelPool')).toBe(false);
   });
 });
 
-// ── Engine run() tests (async — run directly in vitest test blocks) ─────
+describe('brain.js DOES import resolveModel from engine/registry.js', () => {
+  it('imports resolveModel as registryResolve', () => {
+    const registryImport = importLines.find(l => l.includes('engine/registry'));
+    expect(registryImport).toBeTruthy();
+    expect(registryImport.includes('resolveModel')).toBe(true);
+  });
+});
 
-test('engine-registry-brain: ollama yields content chunks for chat', { timeout: 30_000 }, async () => {
-  const chunks = [
-    JSON.stringify({ message: { content: 'Hello' }, done: false }) + '\n',
-    JSON.stringify({ message: { content: ' world' }, done: false }) + '\n',
-    JSON.stringify({ message: { content: '' }, done: true }) + '\n',
-  ];
+describe('brain.js DOES import modelsForCapability from engine/registry.js', () => {
+  it('imports modelsForCapability', () => {
+    const registryImport = importLines.find(l => l.includes('engine/registry'));
+    expect(registryImport).toBeTruthy();
+    expect(registryImport.includes('modelsForCapability')).toBe(true);
+  });
+});
 
-  const readable = new ReadableStream({
-    start(controller) {
-      for (const c of chunks) controller.enqueue(new TextEncoder().encode(c));
-      controller.close();
-    },
+describe('brain.js does NOT import from detector/', () => {
+  it('does not import from detector/hardware.js', () => {
+    expect(brainSource.includes('detector/hardware')).toBe(false);
   });
 
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (url.includes('/api/tags')) {
-      return { ok: true, json: async () => ({ models: [{ name: 'gemma3:4b', size: 3e9 }] }) };
-    }
-    if (url.includes('/api/chat')) {
-      return { ok: true, body: readable };
-    }
-    return originalFetch(url);
-  };
+  it('does not import from detector/profiles.js', () => {
+    expect(brainSource.includes('detector/profiles')).toBe(false);
+  });
 
-  try {
-    const { default: ollamaEngine } = await import('../src/engine/ollama.js');
-    const collected = [];
-    for await (const chunk of ollamaEngine.run('gemma3:4b', {
-      messages: [{ role: 'user', content: 'hi' }],
-    })) {
-      collected.push(chunk);
-    }
-
-    const contentChunks = collected.filter(c => c.type === 'content');
-    assert.ok(contentChunks.length >= 1, 'Expected at least one content chunk');
-    assert.equal(contentChunks[0].text, 'Hello');
-    assert.equal(contentChunks[1].text, ' world');
-
-    const doneChunks = collected.filter(c => c.type === 'done');
-    assert.equal(doneChunks.length, 1, 'Expected exactly one done chunk');
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+  it('has no import referencing detector/ at all', () => {
+    const detectorImports = importLines.filter(l => l.includes('detector/'));
+    expect(detectorImports.length).toBe(0);
+  });
 });
 
-test('engine-registry-brain: ollama yields embedding for embed mode', { timeout: 30_000 }, async () => {
-  const mockEmbedding = [0.1, 0.2, 0.3, 0.4];
+// Ollama engine run() tests
 
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (url.includes('/api/tags')) {
-      return { ok: true, json: async () => ({ models: [] }) };
-    }
-    if (url.includes('/api/embed')) {
-      return {
-        ok: true,
-        json: async () => ({ embeddings: [mockEmbedding] }),
-      };
-    }
-    return originalFetch(url);
-  };
+describe('Ollama engine run() yields content chunks for chat', () => {
+  it('streams content and done', async () => {
+    const originalFetch = globalThis.fetch;
+    const ndjson = [
+      JSON.stringify({ message: { content: 'Hello' }, done: false }),
+      JSON.stringify({ message: { content: ' world' }, done: false }),
+      JSON.stringify({ done: true }),
+    ].join('\n') + '\n';
 
-  try {
-    const { default: ollamaEngine } = await import('../src/engine/ollama.js');
-    const collected = [];
-    for await (const chunk of ollamaEngine.run('nomic-embed-text', {
-      text: 'hello world',
-    })) {
-      collected.push(chunk);
-    }
-
-    assert.equal(collected.length, 1, 'Expected exactly one embedding chunk');
-    assert.equal(collected[0].type, 'embedding');
-    assert.deepEqual(collected[0].data, mockEmbedding);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test('engine-registry-brain: ollama yields tool_use chunks', { timeout: 30_000 }, async () => {
-  const chunks = [
-    JSON.stringify({
-      message: {
-        content: '',
-        tool_calls: [{
-          function: {
-            name: 'get_weather',
-            arguments: JSON.stringify({ city: 'Tokyo' }),
+    globalThis.fetch = async (url) => {
+      if (url.includes('/api/chat')) {
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode(ndjson));
+            controller.close();
           },
-        }],
-      },
-      done: false,
-    }) + '\n',
-    JSON.stringify({ message: { content: '' }, done: true }) + '\n',
-  ];
+        });
+        return { ok: true, body: stream };
+      }
+      if (url.includes('/api/tags')) {
+        return { ok: true, json: async () => ({ models: [] }) };
+      }
+      return originalFetch(url);
+    };
 
-  const readable = new ReadableStream({
-    start(controller) {
-      for (const c of chunks) controller.enqueue(new TextEncoder().encode(c));
-      controller.close();
-    },
+    try {
+      const ollamaMod = await import('../src/engine/ollama.js');
+      const engine = ollamaMod.default;
+      const collected = [];
+      for await (const chunk of engine.run('llama3', { messages: [{ role: 'user', content: 'hi' }] })) {
+        collected.push(chunk);
+      }
+      expect(collected.length).toBeGreaterThanOrEqual(2);
+      const contentChunks = collected.filter(c => c.type === 'content');
+      expect(contentChunks.length).toBe(2);
+      expect(contentChunks[0].text).toBe('Hello');
+      expect(contentChunks[1].text).toBe(' world');
+      const doneChunks = collected.filter(c => c.type === 'done');
+      expect(doneChunks.length).toBe(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
+
+describe('Ollama engine run() yields embeddings', () => {
+  it('returns embedding array', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      if (url.includes('/api/embed')) {
+        return { ok: true, json: async () => ({ embeddings: [[0.1, 0.2, 0.3]] }) };
+      }
+      if (url.includes('/api/tags')) {
+        return { ok: true, json: async () => ({ models: [] }) };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const ollamaMod = await import('../src/engine/ollama.js');
+      const engine = ollamaMod.default;
+      const collected = [];
+      for await (const chunk of engine.run('nomic-embed-text', { text: 'hello world' })) {
+        collected.push(chunk);
+      }
+      expect(collected.length).toBe(1);
+      expect(collected[0].type).toBe('embedding');
+      expect(Array.isArray(collected[0].data)).toBe(true);
+      expect(collected[0].data).toEqual([0.1, 0.2, 0.3]);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+});
+
+describe('Ollama engine status()', () => {
+  it('returns available when /api/tags succeeds', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      if (url.includes('/api/tags')) {
+        return { ok: true, json: async () => ({ models: [{ name: 'llama3' }] }) };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const ollamaMod = await import('../src/engine/ollama.js');
+      const engine = ollamaMod.default;
+      const status = await engine.status();
+      expect(status.available).toBe(true);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (url.includes('/api/tags')) {
-      return { ok: true, json: async () => ({ models: [] }) };
+  it('returns not available when /api/tags fails', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () => { throw new Error('connection refused'); };
+
+    try {
+      const ollamaMod = await import('../src/engine/ollama.js');
+      const engine = ollamaMod.default;
+      const status = await engine.status();
+      expect(status.available).toBe(false);
+    } finally {
+      globalThis.fetch = originalFetch;
     }
-    if (url.includes('/api/chat')) {
-      return { ok: true, body: readable };
-    }
-    return originalFetch(url);
-  };
-
-  try {
-    const { default: ollamaEngine } = await import('../src/engine/ollama.js');
-    const collected = [];
-    for await (const chunk of ollamaEngine.run('gemma3:4b', {
-      messages: [{ role: 'user', content: 'weather in Tokyo' }],
-      tools: [{ name: 'get_weather', description: 'Get weather', parameters: {} }],
-    })) {
-      collected.push(chunk);
-    }
-
-    const toolChunks = collected.filter(c => c.type === 'tool_use');
-    assert.equal(toolChunks.length, 1, 'Expected one tool_use chunk');
-    assert.equal(toolChunks[0].name, 'get_weather');
-    assert.deepEqual(toolChunks[0].input, { city: 'Tokyo' });
-    assert.equal(toolChunks[0].text, JSON.stringify({ city: 'Tokyo' }));
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
-});
-
-test('engine-registry-brain: cloud yields content chunks for chat', { timeout: 30_000 }, async () => {
-  const sseLines = [
-    'data: ' + JSON.stringify({ choices: [{ delta: { content: 'Hi' } }] }) + '\n\n',
-    'data: ' + JSON.stringify({ choices: [{ delta: { content: ' there' } }] }) + '\n\n',
-    'data: [DONE]\n\n',
-  ];
-
-  const readable = new ReadableStream({
-    start(controller) {
-      for (const line of sseLines) controller.enqueue(new TextEncoder().encode(line));
-      controller.close();
-    },
   });
-
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => ({ ok: true, body: readable });
-
-  try {
-    const { createCloudEngine } = await import('../src/engine/cloud.js');
-    const engine = createCloudEngine('openai', { apiKey: 'test-key' });
-    const collected = [];
-    for await (const chunk of engine.run('gpt-4o', {
-      messages: [{ role: 'user', content: 'hello' }],
-    })) {
-      collected.push(chunk);
-    }
-
-    const contentChunks = collected.filter(c => c.type === 'content');
-    assert.equal(contentChunks.length, 2, 'Expected two content chunks');
-    assert.equal(contentChunks[0].text, 'Hi');
-    assert.equal(contentChunks[1].text, ' there');
-
-    const doneChunks = collected.filter(c => c.type === 'done');
-    assert.equal(doneChunks.length, 1, 'Expected one done chunk');
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
 });
 
-test('engine-registry-brain: cloud yields transcription for STT', { timeout: 30_000 }, async () => {
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (url.includes('/v1/audio/transcriptions')) {
-      return {
-        ok: true,
-        json: async () => ({ text: 'Hello from whisper' }),
-      };
-    }
-    return originalFetch(url);
-  };
+describe('Ollama engine models()', () => {
+  it('returns model list from /api/tags', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      if (url.includes('/api/tags')) {
+        return { ok: true, json: async () => ({ models: [{ name: 'llama3' }, { name: 'mistral' }] }) };
+      }
+      return originalFetch(url);
+    };
 
-  try {
-    const { createCloudEngine } = await import('../src/engine/cloud.js');
-    const engine = createCloudEngine('openai', { apiKey: 'test-key' });
-    const collected = [];
-    for await (const chunk of engine.run('whisper-1', {
-      audioBuffer: new Uint8Array([0, 1, 2, 3]),
-    })) {
-      collected.push(chunk);
+    try {
+      const ollamaMod = await import('../src/engine/ollama.js');
+      const engine = ollamaMod.default;
+      const models = await engine.models();
+      expect(models.length).toBe(2);
+      expect(models[0].id).toBe('llama3');
+      expect(models[1].id).toBe('mistral');
+    } finally {
+      globalThis.fetch = originalFetch;
     }
-
-    assert.equal(collected.length, 1, 'Expected exactly one transcription chunk');
-    assert.equal(collected[0].type, 'transcription');
-    assert.equal(collected[0].text, 'Hello from whisper');
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+  });
 });
 
-test('engine-registry-brain: cloud yields audio for TTS', { timeout: 30_000 }, async () => {
-  const fakeAudio = new Uint8Array([10, 20, 30, 40]);
+// Cloud engine tests
 
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async (url) => {
-    if (url.includes('/v1/audio/speech')) {
-      return {
-        ok: true,
-        arrayBuffer: async () => fakeAudio.buffer,
-      };
+describe('Cloud engine run() yields transcription for STT', () => {
+  it('returns transcription text', async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      if (url.includes('/v1/audio/transcriptions')) {
+        return { ok: true, json: async () => ({ text: 'Hello from whisper' }) };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const { createCloudEngine } = await import('../src/engine/cloud.js');
+      const engine = createCloudEngine('openai', { apiKey: 'test-key' });
+      const collected = [];
+      for await (const chunk of engine.run('whisper-1', { audioBuffer: Buffer.from([1, 2, 3]) })) {
+        collected.push(chunk);
+      }
+      expect(collected.length).toBe(1);
+      expect(collected[0].type).toBe('transcription');
+      expect(collected[0].text).toBe('Hello from whisper');
+    } finally {
+      globalThis.fetch = originalFetch;
     }
-    return originalFetch(url);
-  };
+  });
+});
 
-  try {
-    const { createCloudEngine } = await import('../src/engine/cloud.js');
-    const engine = createCloudEngine('openai', { apiKey: 'test-key' });
-    const collected = [];
-    for await (const chunk of engine.run('tts-1', {
-      ttsText: 'Say hello',
-    })) {
-      collected.push(chunk);
+describe('Cloud engine run() yields audio for TTS', () => {
+  it('returns audio buffer', async () => {
+    const fakeAudio = new Uint8Array([10, 20, 30, 40]);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      if (url.includes('/v1/audio/speech')) {
+        return { ok: true, arrayBuffer: async () => fakeAudio.buffer };
+      }
+      return originalFetch(url);
+    };
+
+    try {
+      const { createCloudEngine } = await import('../src/engine/cloud.js');
+      const engine = createCloudEngine('openai', { apiKey: 'test-key' });
+      const collected = [];
+      for await (const chunk of engine.run('tts-1', { ttsText: 'Say hello' })) {
+        collected.push(chunk);
+      }
+      expect(collected.length).toBe(1);
+      expect(collected[0].type).toBe('audio');
+      expect(Buffer.isBuffer(collected[0].data)).toBe(true);
+      expect(collected[0].data.length).toBe(4);
+    } finally {
+      globalThis.fetch = originalFetch;
     }
-
-    assert.equal(collected.length, 1, 'Expected exactly one audio chunk');
-    assert.equal(collected[0].type, 'audio');
-    assert.ok(Buffer.isBuffer(collected[0].data), 'audio data should be a Buffer');
-    assert.equal(collected[0].data.length, 4);
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+  });
 });

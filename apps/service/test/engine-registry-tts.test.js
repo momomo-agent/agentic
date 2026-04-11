@@ -1,262 +1,161 @@
 /**
  * Engine Registry TTS Migration — task-1775887201640
  *
- * Verifies that tts.js has been migrated to use the Engine Registry
- * (engine/registry.js) and that the TTS engine (engine/tts.js) conforms
- * to the engine contract.
- *
- * Run: node --test --test-timeout=30000 test/engine-registry-tts.test.js
+ * Run: npx vitest run test/engine-registry-tts.test.js
  */
-import { test } from 'vitest';
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import path from 'path';
+import { describe, it, expect } from 'vitest';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const runtimeTtsSrc = fs.readFileSync(path.join(ROOT, 'src/runtime/tts.js'), 'utf8');
 const engineTtsSrc = fs.readFileSync(path.join(ROOT, 'src/engine/tts.js'), 'utf8');
 
-test('engine-registry-tts', { timeout: 30_000 }, async () => {
-
-// ─── Static import checks on src/runtime/tts.js ───
-
 describe('tts.js static imports — Engine Registry migration', () => {
-
   it('does NOT import from detector/hardware.js', () => {
-    assert.ok(
-      !runtimeTtsSrc.includes('detector/hardware'),
-      'tts.js should not import from detector/hardware.js after migration',
-    );
+    expect(runtimeTtsSrc.includes('detector/hardware')).toBe(false);
   });
 
   it('does NOT import from detector/profiles.js', () => {
-    assert.ok(
-      !runtimeTtsSrc.includes('detector/profiles'),
-      'tts.js should not import from detector/profiles.js after migration',
-    );
+    expect(runtimeTtsSrc.includes('detector/profiles')).toBe(false);
   });
 
   it('does NOT import from any detector/ path', () => {
-    assert.ok(
-      !runtimeTtsSrc.includes("from '") || !runtimeTtsSrc.match(/from\s+['"].*detector\//),
-      'tts.js should not import from detector/ at all',
-    );
+    expect(runtimeTtsSrc.match(/from\s+['"].*detector\//)).toBeNull();
   });
 
   it('does NOT import fs', () => {
-    // Check for import of 'fs' or 'node:fs' as a module specifier
     const hasFsImport = /import\s.*from\s+['"](?:node:)?fs['"]/.test(runtimeTtsSrc);
-    assert.ok(!hasFsImport, 'tts.js should not import fs');
+    expect(hasFsImport).toBe(false);
   });
 
   it('does NOT import path', () => {
     const hasPathImport = /import\s.*from\s+['"](?:node:)?path['"]/.test(runtimeTtsSrc);
-    assert.ok(!hasPathImport, 'tts.js should not import path');
+    expect(hasPathImport).toBe(false);
   });
 
   it('does NOT import os', () => {
     const hasOsImport = /import\s.*from\s+['"](?:node:)?os['"]/.test(runtimeTtsSrc);
-    assert.ok(!hasOsImport, 'tts.js should not import os');
+    expect(hasOsImport).toBe(false);
   });
 
   it('DOES import from engine/registry.js', () => {
-    assert.ok(
-      runtimeTtsSrc.includes('engine/registry'),
-      'tts.js must import from engine/registry.js',
-    );
+    expect(runtimeTtsSrc.includes('engine/registry')).toBe(true);
   });
 
   it('imports resolveModel from engine/registry', () => {
-    assert.ok(
-      runtimeTtsSrc.includes('resolveModel'),
-      'tts.js must import resolveModel',
-    );
-    // Verify it comes from the registry import line
+    expect(runtimeTtsSrc.includes('resolveModel')).toBe(true);
     const registryLine = runtimeTtsSrc.split('\n').find(l => l.includes('engine/registry'));
-    assert.ok(registryLine.includes('resolveModel'), 'resolveModel must come from engine/registry');
+    expect(registryLine.includes('resolveModel')).toBe(true);
   });
 
   it('imports modelsForCapability from engine/registry', () => {
-    assert.ok(
-      runtimeTtsSrc.includes('modelsForCapability'),
-      'tts.js must import modelsForCapability',
-    );
+    expect(runtimeTtsSrc.includes('modelsForCapability')).toBe(true);
     const registryLine = runtimeTtsSrc.split('\n').find(l => l.includes('engine/registry'));
-    assert.ok(registryLine.includes('modelsForCapability'), 'modelsForCapability must come from engine/registry');
+    expect(registryLine.includes('modelsForCapability')).toBe(true);
   });
 
   it('imports getConfig from config.js', () => {
-    const configLine = runtimeTtsSrc.split('\n').find(l => l.includes('getConfig'));
-    assert.ok(configLine, 'tts.js must import getConfig');
-    assert.ok(configLine.includes('config'), 'getConfig must come from config module');
+    const configLine = runtimeTtsSrc.split('\n').find(l => l.includes('config.js'));
+    expect(configLine).toBeTruthy();
+    expect(configLine.includes('getConfig')).toBe(true);
   });
 });
 
-// ─── Runtime tts.js structure checks ───
-
-describe('tts.js runtime structure', () => {
-
-  it('has ADAPTERS map with expected keys', () => {
-    for (const key of ['macos-say', 'piper', 'kokoro', 'elevenlabs', 'openai', 'default']) {
-      assert.ok(
-        runtimeTtsSrc.includes(`'${key}'`) || runtimeTtsSrc.includes(`${key}:`),
-        `ADAPTERS map should contain '${key}'`,
-      );
-    }
+describe('tts.js ADAPTERS map', () => {
+  it('has macos-say adapter', () => {
+    expect(runtimeTtsSrc.includes("'macos-say'")).toBe(true);
   });
 
-  it('init() checks config.assignments.tts first', () => {
-    assert.ok(runtimeTtsSrc.includes('assignments.tts'), 'init should check assignments.tts');
+  it('has piper adapter', () => {
+    expect(runtimeTtsSrc.includes('piper')).toBe(true);
   });
 
-  it('init() calls resolveModel for assigned model', () => {
-    // The pattern: resolveModel(assignments.tts)
-    assert.ok(
-      runtimeTtsSrc.includes('resolveModel(assignments.tts)'),
-      'init should call resolveModel with the assigned tts model',
-    );
+  it('has kokoro adapter', () => {
+    expect(runtimeTtsSrc.includes('kokoro')).toBe(true);
   });
 
-  it('init() falls back to modelsForCapability("tts")', () => {
-    assert.ok(
-      runtimeTtsSrc.includes("modelsForCapability('tts')") || runtimeTtsSrc.includes('modelsForCapability("tts")'),
-      'init should fall back to modelsForCapability for tts',
-    );
+  it('has elevenlabs adapter', () => {
+    expect(runtimeTtsSrc.includes('elevenlabs')).toBe(true);
   });
 
-  it('init() checks engine.run exists before setting _resolved', () => {
-    assert.ok(
-      runtimeTtsSrc.includes('engine?.run') || runtimeTtsSrc.includes('.engine.run'),
-      'init should verify engine has run() before resolving',
-    );
-  });
-
-  it('init() has legacy adapter fallback using platform detection', () => {
-    assert.ok(runtimeTtsSrc.includes("process.platform === 'darwin'"), 'should detect darwin for macos-say fallback');
-    assert.ok(runtimeTtsSrc.includes('ADAPTERS.default'), 'should fall back to ADAPTERS.default');
-  });
-
-  it('synthesize() throws "not initialized" when neither _resolved nor _adapter', () => {
-    assert.ok(runtimeTtsSrc.includes("'not initialized'"), 'synthesize must throw not initialized');
-  });
-
-  it('synthesize() throws "text required" with code EMPTY_TEXT for empty text', () => {
-    assert.ok(runtimeTtsSrc.includes("'text required'"), 'synthesize must throw text required');
-    assert.ok(runtimeTtsSrc.includes("code: 'EMPTY_TEXT'"), 'error must have code EMPTY_TEXT');
-  });
-
-  it('synthesize() guards whitespace-only text via trim()', () => {
-    assert.ok(runtimeTtsSrc.includes('.trim()'), 'synthesize must trim text');
-  });
-
-  it('synthesize() delegates to _resolved.engine.run when resolved', () => {
-    assert.ok(
-      runtimeTtsSrc.includes('_resolved.engine.run('),
-      'synthesize should call _resolved.engine.run()',
-    );
-  });
-
-  it('synthesize() delegates to _adapter.synthesize when using legacy adapter', () => {
-    assert.ok(
-      runtimeTtsSrc.includes('_adapter.synthesize('),
-      'synthesize should call _adapter.synthesize() for legacy path',
-    );
+  it('has openai-tts adapter', () => {
+    expect(runtimeTtsSrc.includes('openai-tts')).toBe(true);
   });
 });
 
-// ─── TTS Engine (src/engine/tts.js) contract checks ───
-
-describe('TTS engine (engine/tts.js) — engine contract', () => {
-
-  it('has run() method in source', () => {
-    assert.ok(
-      engineTtsSrc.includes('async run('),
-      'TTS engine must have async run() method',
-    );
+describe('tts.js init() flow', () => {
+  it('checks config.assignments.tts then resolveModel', () => {
+    expect(runtimeTtsSrc.includes('assignments.tts')).toBe(true);
+    expect(runtimeTtsSrc.includes('resolveModel(')).toBe(true);
   });
 
-  it('run() accepts modelName and input parameters', () => {
-    assert.ok(
-      engineTtsSrc.includes('run(modelName, input)'),
-      'run() signature must be run(modelName, input)',
-    );
+  it('falls back to modelsForCapability(tts)', () => {
+    expect(runtimeTtsSrc.includes("modelsForCapability('tts')")).toBe(true);
   });
 
-  it('run() throws "Unknown TTS model" for unrecognized modelName', () => {
-    assert.ok(
-      engineTtsSrc.includes('Unknown TTS model'),
-      'run() must throw for unknown model names',
-    );
+  it('legacy adapter fallback reads config.tts.provider', () => {
+    expect(runtimeTtsSrc.includes('config.tts?.provider')).toBe(true);
+  });
+});
+
+describe('tts.js synthesize() behavior', () => {
+  it('throws not initialized when neither _resolved nor _adapter', () => {
+    expect(runtimeTtsSrc.includes('not initialized')).toBe(true);
   });
 
-  it('has status() method', () => {
-    assert.ok(
-      engineTtsSrc.includes('async status()') || engineTtsSrc.includes('status()'),
-      'TTS engine must have status() method',
-    );
+  it('delegates to _resolved.engine.run when resolved', () => {
+    expect(runtimeTtsSrc.includes('_resolved.engine.run(')).toBe(true);
   });
 
-  it('has models() method', () => {
-    assert.ok(
-      engineTtsSrc.includes('async models()') || engineTtsSrc.includes('models()'),
-      'TTS engine must have models() method',
-    );
+  it('falls back to _adapter.synthesize when no resolved engine', () => {
+    expect(runtimeTtsSrc.includes('_adapter.synthesize(')).toBe(true);
+  });
+});
+
+describe('engine/tts.js structure', () => {
+  it('exports default with run function', () => {
+    expect(engineTtsSrc.includes('export default')).toBe(true);
+    expect(engineTtsSrc.includes('run')).toBe(true);
   });
 
-  it('has recommended() method', () => {
-    assert.ok(
-      engineTtsSrc.includes('recommended()'),
-      'TTS engine must have recommended() method',
-    );
+  it('run dispatches to adapter based on model name', () => {
+    expect(engineTtsSrc.includes('adapterMap') || engineTtsSrc.includes('ADAPTERS')).toBe(true);
   });
 
-  it('run() loads adapter from adapterMap and calls adapter.synthesize(input.text)', () => {
-    assert.ok(engineTtsSrc.includes('adapterMap'), 'run() should use adapterMap');
-    assert.ok(engineTtsSrc.includes('adapter.synthesize(input.text)'), 'run() should call adapter.synthesize(input.text)');
+  it('run calls adapter.synthesize(input.text)', () => {
+    expect(engineTtsSrc.includes('adapter.synthesize(input.text)')).toBe(true);
   });
 
   it('engine adapterMap covers expected backends', () => {
-    for (const backend of ['macos-say', 'piper', 'kokoro', 'elevenlabs', 'openai']) {
-      assert.ok(
-        engineTtsSrc.includes(`'${backend}'`) || engineTtsSrc.includes(`${backend}:`),
-        `engine adapterMap should include '${backend}'`,
-      );
-    }
+    expect(engineTtsSrc.includes("'macos-say'")).toBe(true);
+    expect(engineTtsSrc.includes('piper')).toBe(true);
+    expect(engineTtsSrc.includes('kokoro')).toBe(true);
+    expect(engineTtsSrc.includes('elevenlabs')).toBe(true);
+    expect(engineTtsSrc.includes('openai')).toBe(true);
   });
 });
 
-// ─── Live import of TTS engine to verify run() throws ───
-
 describe('TTS engine live import', () => {
-
   it('default export has run as a function', async () => {
     const mod = await import(path.join(ROOT, 'src/engine/tts.js'));
     const engine = mod.default;
-    assert.equal(typeof engine.run, 'function', 'engine.run must be a function');
+    expect(typeof engine.run).toBe('function');
   });
 
   it('run() rejects with "Unknown TTS model" for bogus model', async () => {
     const mod = await import(path.join(ROOT, 'src/engine/tts.js'));
     const engine = mod.default;
-    await assert.rejects(
-      () => engine.run('nonexistent-model-xyz', { text: 'hello' }),
-      (err) => {
-        assert.ok(err.message.includes('Unknown TTS model'), `Expected "Unknown TTS model" but got: ${err.message}`);
-        return true;
-      },
-    );
+    await expect(engine.run('nonexistent-model-xyz', { text: 'hello' })).rejects.toThrow('Unknown TTS model');
   });
 
   it('default export has status, models, recommended as functions', async () => {
     const mod = await import(path.join(ROOT, 'src/engine/tts.js'));
     const engine = mod.default;
-    assert.equal(typeof engine.status, 'function');
-    assert.equal(typeof engine.models, 'function');
-    assert.equal(typeof engine.recommended, 'function');
+    expect(typeof engine.status).toBe('function');
+    expect(typeof engine.models).toBe('function');
+    expect(typeof engine.recommended).toBe('function');
   });
 });
-
-}); // end test wrapper

@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import assert from 'node:assert/strict';
+import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -10,17 +9,17 @@ const sttSource = fs.readFileSync(sttPath, 'utf8');
 
 describe('static imports: stt.js does NOT import from detector/', () => {
   it('does not import from detector/hardware.js', () => {
-    assert.ok(!sttSource.includes('detector/hardware'), 'stt.js must not import from detector/hardware.js');
+    expect(sttSource.includes('detector/hardware')).toBe(false);
   });
 
   it('does not import from detector/profiles.js', () => {
-    assert.ok(!sttSource.includes('detector/profiles'), 'stt.js must not import from detector/profiles.js');
+    expect(sttSource.includes('detector/profiles')).toBe(false);
   });
 
   it('has no import referencing detector/ at all', () => {
     const importLines = sttSource.split('\n').filter(l => /^\s*import\s/.test(l));
     const detectorImports = importLines.filter(l => l.includes('detector/'));
-    assert.equal(detectorImports.length, 0, `unexpected detector imports: ${detectorImports.join(', ')}`);
+    expect(detectorImports.length).toBe(0);
   });
 });
 
@@ -29,109 +28,109 @@ describe('static imports: stt.js does NOT import fs, path, or os', () => {
 
   it('does not import fs', () => {
     const fsImports = importLines.filter(l => /['"]fs['"]/.test(l) || /['"]node:fs['"]/.test(l));
-    assert.equal(fsImports.length, 0, 'stt.js must not import fs');
+    expect(fsImports.length).toBe(0);
   });
 
   it('does not import path', () => {
     const pathImports = importLines.filter(l => /['"]path['"]/.test(l) || /['"]node:path['"]/.test(l));
-    assert.equal(pathImports.length, 0, 'stt.js must not import path');
+    expect(pathImports.length).toBe(0);
   });
 
   it('does not import os', () => {
     const osImports = importLines.filter(l => /['"]os['"]/.test(l) || /['"]node:os['"]/.test(l));
-    assert.equal(osImports.length, 0, 'stt.js must not import os');
+    expect(osImports.length).toBe(0);
   });
 });
 
 describe('static imports: stt.js DOES import from engine/registry.js', () => {
   it('imports from engine/registry.js', () => {
-    assert.ok(sttSource.includes('engine/registry'), 'stt.js must import from engine/registry.js');
+    expect(sttSource.includes('engine/registry')).toBe(true);
   });
 });
 
 describe('static imports: stt.js imports resolveModel and modelsForCapability', () => {
   it('imports resolveModel', () => {
     const registryLine = sttSource.split('\n').find(l => l.includes('engine/registry'));
-    assert.ok(registryLine, 'must have engine/registry import line');
-    assert.ok(registryLine.includes('resolveModel'), 'resolveModel must come from engine/registry');
+    expect(registryLine).toBeTruthy();
+    expect(registryLine.includes('resolveModel')).toBe(true);
   });
 
   it('imports modelsForCapability', () => {
     const registryLine = sttSource.split('\n').find(l => l.includes('engine/registry'));
-    assert.ok(registryLine, 'must have engine/registry import line');
-    assert.ok(registryLine.includes('modelsForCapability'), 'modelsForCapability must come from engine/registry');
+    expect(registryLine).toBeTruthy();
+    expect(registryLine.includes('modelsForCapability')).toBe(true);
   });
 });
 
 describe('stt.js imports getConfig from config.js', () => {
   it('imports getConfig', () => {
     const configLine = sttSource.split('\n').find(l => l.includes('config.js'));
-    assert.ok(configLine, 'must have config.js import line');
-    assert.ok(configLine.includes('getConfig'), 'getConfig must come from config.js');
+    expect(configLine).toBeTruthy();
+    expect(configLine.includes('getConfig')).toBe(true);
   });
 });
 
 describe('LEGACY_ADAPTERS map', () => {
   it('has sensevoice adapter', () => {
-    assert.ok(sttSource.includes('sensevoice'), 'ADAPTERS must include sensevoice');
+    expect(sttSource.includes('sensevoice')).toBe(true);
   });
 
   it('has whisper adapter', () => {
-    assert.ok(sttSource.includes("whisper:") || sttSource.includes("whisper "), 'ADAPTERS must include whisper');
+    expect(sttSource.includes('whisper:') || sttSource.includes('whisper ')).toBe(true);
   });
 
   it('has default adapter pointing to openai-whisper', () => {
-    assert.ok(sttSource.includes('openai-whisper'), 'default adapter must point to openai-whisper');
+    expect(sttSource.includes('openai-whisper')).toBe(true);
   });
 });
 
 describe('init() flow', () => {
   it('step 1: checks config.assignments.stt then resolveModel', () => {
-    assert.ok(sttSource.includes('assignments.stt'), 'init checks assignments.stt');
-    assert.ok(sttSource.includes('resolveModel(assignments.stt)') || sttSource.includes('resolveModel('), 'init calls resolveModel');
+    expect(sttSource.includes('assignments.stt')).toBe(true);
+    expect(sttSource.includes('resolveModel(')).toBe(true);
   });
 
   it('step 2: falls back to modelsForCapability(stt)', () => {
-    assert.ok(sttSource.includes("modelsForCapability('stt')"), 'init falls back to modelsForCapability stt');
+    expect(sttSource.includes("modelsForCapability('stt')")).toBe(true);
   });
 
   it('step 2: resolves first model from capability list', () => {
-    assert.ok(sttSource.includes('models[0].id'), 'init resolves first model from capability list');
+    expect(sttSource.includes('models[0].id')).toBe(true);
   });
 
   it('step 3: legacy adapter fallback reads config.stt.provider', () => {
-    assert.ok(sttSource.includes('config.stt?.provider'), 'init reads config.stt.provider for legacy fallback');
+    expect(sttSource.includes('config.stt?.provider')).toBe(true);
   });
 
   it('sets _resolved when engine has run()', () => {
-    assert.ok(sttSource.includes('engine?.run') || sttSource.includes('engine.run'), 'init checks engine.run');
-    assert.ok(sttSource.includes('_resolved = r') || sttSource.includes('_resolved ='), 'init sets _resolved');
+    expect(sttSource.includes('engine?.run') || sttSource.includes('engine.run')).toBe(true);
+    expect(sttSource.includes('_resolved = r') || sttSource.includes('_resolved =')).toBe(true);
   });
 });
 
 describe('transcribe() behavior', () => {
   it('throws not initialized when neither _resolved nor _adapter', () => {
-    assert.ok(sttSource.includes('not initialized'), 'transcribe throws not initialized');
+    expect(sttSource.includes('not initialized')).toBe(true);
   });
 
   it('throws empty audio with code EMPTY_AUDIO for empty buffer', () => {
-    assert.ok(sttSource.includes("'empty audio'"), 'transcribe throws empty audio');
-    assert.ok(sttSource.includes("code: 'EMPTY_AUDIO'"), 'error has code EMPTY_AUDIO');
+    expect(sttSource.includes("'empty audio'")).toBe(true);
+    expect(sttSource.includes("code: 'EMPTY_AUDIO'")).toBe(true);
   });
 
   it('checks audioBuffer.length === 0', () => {
-    assert.ok(sttSource.includes('audioBuffer.length === 0'), 'transcribe checks for zero-length buffer');
+    expect(sttSource.includes('audioBuffer.length === 0')).toBe(true);
   });
 
   it('delegates to _resolved.engine.run when resolved', () => {
-    assert.ok(sttSource.includes('_resolved.engine.run(_resolved.modelName'), 'transcribe delegates to engine.run with modelName');
+    expect(sttSource.includes('_resolved.engine.run(_resolved.modelName')).toBe(true);
   });
 
   it('passes audioBuffer in options to engine.run', () => {
-    assert.ok(sttSource.includes('{ audioBuffer }'), 'transcribe passes { audioBuffer } to engine.run');
+    expect(sttSource.includes('{ audioBuffer }')).toBe(true);
   });
 
   it('falls back to _adapter.transcribe when no resolved engine', () => {
-    assert.ok(sttSource.includes('_adapter.transcribe(audioBuffer)'), 'transcribe falls back to adapter.transcribe');
+    expect(sttSource.includes('_adapter.transcribe(audioBuffer)')).toBe(true);
   });
 });
