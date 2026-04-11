@@ -1,9 +1,9 @@
 {
-  "totalTests": 10,
-  "passed": 10,
-  "failed": 0,
+  "totalTests": 22,
+  "passed": 21,
+  "failed": 1,
   "edgeCases": [
-    "No test for matchProfile() logic against this file"
+    "/api/health not exempt from auth middleware (DBB-025 violation - implementation bug in middleware.js line 4)"
   ],
-  "coverage": "100%"
+  "coverage": "95%"
 }
