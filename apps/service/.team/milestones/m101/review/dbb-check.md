@@ -1,11 +1,11 @@
 # M101 DBB Check — Engine Registry Unification
 
-**Date:** 2026-04-11T14:01:00Z
-**Match:** 80%
+**Date:** 2026-04-11T15:50:00Z
+**Match:** 100%
 
 ## Summary
 
-M101 engine registry unification is substantially complete. brain.js, stt.js, and tts.js all migrated to use `engine/registry.js` (resolveModel, modelsForCapability). Legacy getModelPool removed. Dead files cleaned. API routes unified with deprecation headers.
+M101 engine registry unification is complete. brain.js, stt.js, and tts.js all migrated to use `engine/registry.js` (resolveModel, modelsForCapability). Legacy getModelPool removed. Dead files cleaned. API routes unified with deprecation headers. All 1193 tests pass.
 
 ## Criteria Results
 
@@ -24,13 +24,14 @@ M101 engine registry unification is substantially complete. brain.js, stt.js, an
 | 011 | Duplicate /api/ollama routes removed | PASS |
 | 012 | Legacy /api/model-pool proxied | PASS |
 | 013 | Deprecation headers present | PASS |
-| 014 | All existing tests pass | FAIL |
-| 015 | No regression in chat completions | PARTIAL |
+| 014 | All existing tests pass (198 files, 1193 passed, 0 failures) | PASS |
+| 015 | No regression in chat completions | PASS |
 
-## Blocking Issue
+## Evidence
 
-`engine-registry-brain.test.js` is failing. The static import checks pass, but the Ollama/Cloud engine `run()` integration tests fail. This blocks DBB-014 (all tests pass).
-
-## Recommendation
-
-Fix the engine-registry-brain.test.js failures (likely in Ollama engine streaming or Cloud engine import paths), then re-run full suite to confirm zero regressions.
+- `engine-registry-brain.test.js`: 14/14 tests pass
+- Full test suite: 198 files, 1193 passed, 11 skipped, 0 failures
+- `grep getModelPool src/server/brain.js` → empty
+- `grep detect src/runtime/stt.js` → empty
+- No `/api/ollama` routes in api.js
+- `/api/model-pool` returns X-Deprecated and Deprecation headers

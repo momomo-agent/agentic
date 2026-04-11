@@ -1,6 +1,6 @@
 {
   "match": 95,
-  "timestamp": "2026-04-11T14:37:00.000Z",
+  "timestamp": "2026-04-11T14:41:00.000Z",
   "gaps": [
     {
       "description": "ARCHITECTURE.md directory structure (line 127) still lists runtime/memory.js with full API docs, but the file was deleted during M101 dead file cleanup — doc is stale",
@@ -23,7 +23,7 @@
       "severity": "minor"
     },
     {
-      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented matching ARCHITECTURE.md — M101 engine registry unification complete: brain.js routes through registry.resolveModel, /api/ollama/* removed, dead files deleted",
+      "description": "All core modules (detector/, engine/, runtime/, server/, cli/, store/, tunnel.js, config.js, index.js, ui/) are implemented matching ARCHITECTURE.md — M101 engine registry unification complete: brain.js/stt.js/tts.js route through registry.resolveModel, /api/ollama/* removed, dead files deleted",
       "status": "implemented",
       "severity": "minor"
     }

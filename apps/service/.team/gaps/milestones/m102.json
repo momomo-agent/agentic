@@ -1,7 +1,7 @@
 {
   "milestoneId": "m102",
   "match": 89,
-  "timestamp": "2026-04-11T15:40:00.000Z",
+  "timestamp": "2026-04-11T15:43:00.000Z",
   "criteria": [
     { "criterion": "DBB-001: Single string embedding request — POST /v1/embeddings returns { object:'list', data:[{object:'embedding', embedding:[...], index:0}], model, usage }", "status": "pass" },
     { "criterion": "DBB-002: Batch string embedding — input array returns correct indices (0,1,2) with non-empty embeddings", "status": "pass" },
@@ -27,7 +27,7 @@
     { "criterion": "DBB-022: Models list includes embedding models from registry", "status": "pass" },
     { "criterion": "DBB-023: Models list includes STT and TTS models from registry", "status": "pass" },
     { "criterion": "DBB-024: Every model has id, object='model', created (number), owned_by (string)", "status": "pass" },
-    { "criterion": "DBB-025: All new endpoints return JSON error format { error: { message, type } }", "status": "pass" },
+    { "criterion": "DBB-025: All new endpoints return JSON error format { error: { message, type, code } } — missing 'code' field", "status": "partial" },
     { "criterion": "DBB-026: POST-only endpoints reject GET requests (return non-200)", "status": "pass" },
     { "criterion": "DBB-027: Existing chat completions — no regression (streaming + non-streaming)", "status": "pass" },
     { "criterion": "DBB-028: All tests pass (198 files, 1193 passed, 0 failures)", "status": "pass" }

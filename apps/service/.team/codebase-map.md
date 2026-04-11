@@ -1,6 +1,6 @@
 # Codebase Map — agentic-service
 
-Updated: 2026-04-11 (M101 ready — Engine Registry unification planned; ARCHITECTURE.md updated with M101 section; all gap monitors ≥90%)
+Updated: 2026-04-11 (M102 complete; M103 tasks pending — health check, error format, audio validation; all stale refs cleaned; architecture gap monitor items resolved)
 
 ## Technology Stack
 
@@ -46,7 +46,6 @@ src/
     tts.js                    (71 lines)  Text-to-speech — init(config), synthesize(text)
     sense.js                  (120 lines) Visual perception — detect(frame), start()/stop(), startHeadless(), startWakeWordPipeline()
     embed.js                  (9 lines)   Vector embedding — embed(text) via agentic-embed
-    memory.js               (58 lines)  Semantic memory — add(text, metadata), search(query, topK), remove(id), clear(); uses store + embed
     profiler.js               (29 lines)  CPU profiling — startMark/endMark(→ms)/getMetrics(→{last,avg,count})/measurePipeline
     latency-log.js            (17 lines)  Latency recording — record(stage, ms), p95(stage), reset()
     vad.js                    (9 lines)   Voice activity detection — createVAD(options), detectVoiceActivity(buffer)
@@ -80,7 +79,6 @@ src/
       src/App.vue             (101 lines) Router + sidebar layout
       src/main.js             (5 lines)   Vue app mount
       src/components/
-        ConfigPanel.vue       (30 lines)  LLM/STT/TTS config editor
         DeviceList.vue        (23 lines)  Connected device table
         HardwarePanel.vue     (11 lines)  Hardware info display
         LogViewer.vue         (14 lines)  Scrollable log viewer
@@ -88,15 +86,13 @@ src/
       src/views/
         StatusView.vue        (318 lines) Dashboard overview
         ConfigView.vue        (223 lines) Config management
-        ModelsView.vue        (307 lines) Model management
-        LocalModelsView.vue   (308 lines) Local model browser
-        CloudModelsView.vue   (276 lines) Cloud model browser
+        ModelsView.vue        (307 lines) Unified model management
         LogsView.vue          (136 lines) Log viewer
         TestView.vue          (288 lines) API test console
         ExamplesView.vue      (2485 lines) Usage examples
       src/main.js             Vue app bootstrap
-      src/components/         ConfigPanel, DeviceList, HardwarePanel, LogViewer, SystemStatus
-      src/views/              CloudModelsView, ConfigView, ExamplesView, LocalModelsView, LogsView, ModelsView, StatusView, TestView
+      src/components/         DeviceList, HardwarePanel, LogViewer, SystemStatus
+      src/views/              ConfigView, ExamplesView, LogsView, ModelsView, StatusView, TestView
       vite.config.js          Build config → dist/admin
     client/                   Chat UI (Vue 3 + Vite)
       src/App.vue             (73 lines)  Chat interface
@@ -188,29 +184,30 @@ src/store/index.js  → agentic-store
 - ~~m21-profiles.test.js failing~~ — all 2 tests pass
 - ~~m28-profiles-cache.test.js failing~~ — cache timestamp now updated after successful fetch
 - ~~ARCHITECTURE.md underdocumented modules~~ — store, embed, adapters, profiler, latency-log, CLI tools now have formal module descriptions
-- ~~`runtime/memory.js` pending~~ — implemented (58 lines): add/search/remove/clear using store + embed
+- ~~`runtime/memory.js` pending~~ — deleted during M101 cleanup; semantic memory is a business-layer concern, service provides store + embed primitives
 - ~~Config persistence tests failing~~ — api-layer and api-m2 tests all passing
 - ~~1 flaky test: hardware detector timing~~ — now passing consistently (515ms)
 - ~~m13-dbb profiles hot-reload flaky~~ — now passing consistently
 
 ### Open
-- `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first service)
-- ~~`adapters/embed.js` is a dead-code stub~~ — deleted from disk
+- `middleware.js` is a 4-line error handler — no validation/rate-limiting (acceptable for local-first; M103 planned)
 - mDNS/Bonjour `.local` hostname discovery not implemented — tunnel.js (ngrok/cloudflared) provides LAN access
 - `detector/optimizer.js` does not exist — functionality covered by profiles.js + matcher.js + config.js
-- VISION.md directory tree references stale file names (optimizer.js, runtime/llm.js) — CR submitted (cr-1775850000000, resolved → task-1775847821786)
 - `store/index.js` imports `open` from agentic-store but package exports `createStore` — may rely on test mocks or alias
+- OpenAI error format missing `code` field — M103 planned
+- Audio transcription endpoint lacks file format validation — M103 planned
+- `GET /api/health` endpoint not yet implemented — M103 planned
 
-### M101 Architecture Debt (ready-for-work)
-- brain.js still uses internal resolveModel() + getModelPool — needs migration to registry.resolveModel()
-- stt.js directly calls detect()/getProfile() — needs migration to assignments.stt → registry
-- tts.js directly reads hardware profile — needs migration to assignments.tts → registry
-- Dead files pending removal: LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue, runtime/memory.js
-- Duplicate routes: /api/ollama/* overlaps /api/engines/* — /api/model-pool needs deprecation proxy
+### M101 Architecture Debt (COMPLETED)
+- ~~brain.js still uses internal resolveModel() + getModelPool~~ — migrated to registry.resolveModel()
+- ~~stt.js directly calls detect()/getProfile()~~ — migrated to assignments.stt → registry
+- ~~tts.js directly reads hardware profile~~ — migrated to assignments.tts → registry
+- ~~Dead files pending removal~~ — LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue, runtime/memory.js all deleted
+- ~~Duplicate routes~~ — /api/ollama/* removed, /api/model-pool proxied with deprecation headers
 
 ### Architecture Notes (Vision references that map to different files)
 - Full mapping table now in ARCHITECTURE.md "Vision 架构映射" section
 - Vision's `optimizer.js` → profiles.js + matcher.js + config.js
 - Vision's `runtime/llm.js` → server/brain.js + engine/
-- Vision's `runtime/memory.js` → runtime/memory.js (58 lines) — fully implemented: add/search/remove/clear using store/index.js + embed.js
+- Vision's `runtime/memory.js` → deleted (M101); service provides store/index.js (KV) + embed.js (vectors) as primitives
 - ARCHITECTURE.md now documents: src/index.js entry point, hardware-adaptive model selection, CPU profiling/latency, /api/perf endpoint, Vision mapping table, formal module sections for all runtime/store/adapter modules

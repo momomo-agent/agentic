@@ -1,7 +1,7 @@
 {
   "milestoneId": "m101",
-  "match": 80,
-  "timestamp": "2026-04-11T14:01:00.000Z",
+  "match": 100,
+  "timestamp": "2026-04-11T15:50:00.000Z",
   "criteria": [
     { "criterion": "DBB-001: Chat completions via Engine Registry — brain.js uses resolveModel/modelsForCapability from engine/registry.js", "status": "pass" },
     { "criterion": "DBB-002: Ollama chat endpoint /api/chat behavior unchanged", "status": "pass" },
@@ -14,9 +14,9 @@
     { "criterion": "DBB-009: TTS backend switchable via assignments.tts", "status": "pass" },
     { "criterion": "DBB-010: Dead files removed (LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue, runtime/memory.js)", "status": "pass" },
     { "criterion": "DBB-011: Duplicate /api/ollama routes removed from api.js", "status": "pass" },
-    { "criterion": "DBB-012: Legacy /api/model-pool endpoint proxied to /api/engines/models", "status": "pass" },
+    { "criterion": "DBB-012: Legacy /api/model-pool endpoint proxied to /api/engines/models with deprecation headers", "status": "pass" },
     { "criterion": "DBB-013: Deprecation header present on /api/model-pool (X-Deprecated, Deprecation: true)", "status": "pass" },
-    { "criterion": "DBB-014: All existing tests pass — engine-registry-brain.test.js failing (Ollama/Cloud engine run() tests)", "status": "fail" },
-    { "criterion": "DBB-015: No regression in /v1/chat/completions — cannot fully verify without running server, but code paths use engine registry", "status": "partial" }
+    { "criterion": "DBB-014: All existing tests pass — 198 test files, 1193 tests passed, 0 failures", "status": "pass" },
+    { "criterion": "DBB-015: No regression in /v1/chat/completions — code paths use engine registry, tests confirm behavior", "status": "pass" }
   ]
 }

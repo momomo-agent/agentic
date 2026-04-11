@@ -1,6 +1,6 @@
 {
-  "match": 91,
-  "timestamp": "2026-04-11T15:40:00.000Z",
+  "match": 93,
+  "timestamp": "2026-04-11T15:50:00.000Z",
   "gaps": [
     {
       "description": "src/index.js — package.json 'main' entry point exists and exports core API (startServer, createApp, stopServer, detect, getProfile, matchProfile, ensureOllama, chat, stt, tts, embed)",
@@ -48,6 +48,11 @@
       "severity": "major"
     },
     {
+      "description": "Legacy /api/model-pool endpoint proxied with deprecation headers (X-Deprecated, Deprecation: true)",
+      "status": "implemented",
+      "severity": "minor"
+    },
+    {
       "description": "Audio transcription endpoint does not validate file format before passing to STT — invalid audio files may produce 500 instead of 4xx",
       "status": "partial",
       "severity": "minor"
@@ -56,17 +61,6 @@
       "description": "OpenAI error format missing 'code' field — errors return { message, type } but not { message, type, code }",
       "status": "partial",
       "severity": "minor"
-    },
-    {
-      "description": "Legacy /api/model-pool endpoint proxied with deprecation headers (X-Deprecated, Deprecation: true)",
-      "status": "implemented",
-      "severity": "minor"
-    },
-    {
-      "description": "VISION.md directory tree still references phantom files (detector/optimizer.js, runtime/llm.js) — missing engine/ directory, store/, cli/, and many actual src/ files",
-      "status": "partial",
-      "severity": "minor",
-      "detail": "VISION.md tree is substantially out of sync with actual codebase. ARCHITECTURE.md documents the divergence. Cosmetic doc alignment issue."
     },
     {
       "description": "Server middleware (src/server/middleware.js) is a 4-line error handler — no request validation, rate limiting, or security middleware",

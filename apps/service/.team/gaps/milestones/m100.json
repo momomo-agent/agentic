@@ -1,35 +1,14 @@
 {
   "milestoneId": "m100",
   "match": 100,
-  "timestamp": "2026-04-11T13:55:00.000Z",
+  "timestamp": "2026-04-11T15:50:00.000Z",
   "criteria": [
-    {
-      "criterion": "DBB-001: No runtime error when kokoro TTS provider selected — ADAPTERS map includes kokoro with lazy import and try/catch fallback",
-      "status": "pass"
-    },
-    {
-      "criterion": "DBB-002: TTS adapter map consistent with files on disk — all 5 adapters (macos-say, piper, kokoro, elevenlabs, openai-tts) exist",
-      "status": "pass"
-    },
-    {
-      "criterion": "DBB-003: Architecture gap scanner reports no 'missing' for kokoro — kokoro.js adapter exists on disk",
-      "status": "pass"
-    },
-    {
-      "criterion": "DBB-004: Existing TTS providers unaffected — piper, openai-tts, elevenlabs, macos-say adapter files all present",
-      "status": "pass"
-    },
-    {
-      "criterion": "DBB-005: All existing tests pass — all test files passed, 0 failed",
-      "status": "pass"
-    },
-    {
-      "criterion": "DBB-006: Dead code adapters/embed.js removed — file does not exist, no references in src/",
-      "status": "pass"
-    },
-    {
-      "criterion": "DBB-007: vitest.config.js has no stale #agentic-embed alias — confirmed clean config",
-      "status": "pass"
-    }
+    { "criterion": "DBB-001: No runtime error when kokoro TTS provider selected — adapter exists at src/runtime/adapters/voice/kokoro.js, registered in ADAPTERS map", "status": "pass" },
+    { "criterion": "DBB-002: TTS adapter map consistent with files on disk — all 5 adapters (macos-say, piper, kokoro, elevenlabs, openai-tts) exist and importable", "status": "pass" },
+    { "criterion": "DBB-003: Architecture gap scanner reports no 'missing' for kokoro — kokoro.js adapter exists on disk", "status": "pass" },
+    { "criterion": "DBB-004: Existing TTS providers unaffected — piper, openai-tts, elevenlabs, macos-say adapter files all present", "status": "pass" },
+    { "criterion": "DBB-005: All existing tests pass — 198 test files, 1193 tests passed, 0 failures", "status": "pass" },
+    { "criterion": "DBB-006: Dead code adapters/embed.js removed — file does not exist, no references in src/", "status": "pass" },
+    { "criterion": "DBB-007: vitest.config.js has no stale #agentic-embed alias — confirmed clean config", "status": "pass" }
   ]
 }

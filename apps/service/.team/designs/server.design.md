@@ -37,8 +37,38 @@ Already implemented in `startServer()` (lines 791-795):
 
 `startServer()` defaults to port 3000 in its signature, but `bin/agentic-service.js` passes `--port 1234` default. Docker must match 1234.
 
+## M103 Additions
+
+### Health Endpoint (`GET /api/health`)
+- New route in `addRoutes(r)`, separate from existing `GET /health` liveness probe
+- Returns per-component status: `{ status, uptime, ollama, stt, tts, responseTime }`
+- Uses `getOllamaStatus()` (local, 2s timeout) + `modelsForCapability()` (imported)
+- Always HTTP 200; top-level `status` is `'ok'` or `'degraded'`
+- See task-1775893487734/design.md
+
+### OpenAI Error Format (`code` field)
+- New `apiError(res, status, message, type, code)` helper in api.js
+- All `/v1/*` error responses updated to include `code` field
+- `middleware.js` errorHandler updated to `{ error: { message, type, code } }`
+- See task-1775893487814/design.md
+
+### Audio Format Validation
+- `isValidAudio(buffer)` checks magic bytes before STT processing
+- `AUDIO_SIGNATURES` array covers wav, mp3, ogg, flac, webm, mp4/m4a, amr
+- Applied to `POST /v1/audio/transcriptions` before `stt.transcribe()`
+- See task-1775893487853/design.md
+
+### Implementation Order
+
+1. task-1775893487814 (error format + apiError helper) — no dependencies
+2. task-1775893487734 (health endpoint) — no dependencies, benefits from apiError for error cases
+3. task-1775893487853 (audio validation) — uses apiError from step 1
+
 ## Constraints
 
 - `createApp()` applies `errorHandler` middleware last (correct Express pattern)
 - HTTPS fallback to HTTP on cert failure is handled in `startServer()`
 - WebSocket init must happen after server listen
+- `apiError()` helper is only for OpenAI-compatible routes; admin/Anthropic routes keep their own format
+- Audio validation uses magic bytes only — no dependency on file extension or Content-Type header
+- All OpenAI-compatible error responses MUST include `{ error: { message, type, code } }` (M103)

@@ -124,7 +124,6 @@ src/
     tts.js                     # 语音合成（多提供商自适应）
     sense.js                   # 视觉感知（agentic-sense 封装）
     embed.js                   # 向量嵌入（agentic-embed 封装）
-    memory.js                  # 语义记忆 — add(text) + search(query, topK) 基于 store + embed
     profiler.js                # CPU 性能分析 — startMark/endMark/getMetrics
     latency-log.js             # 延迟记录 — record(label, ms)/getLog()
     vad.js                     # 语音活动检测（RMS 能量阈值）
@@ -155,8 +154,8 @@ src/
 
   ui/
     admin/                     # 管理面板（Vue 3 + Vite）
-      src/components/          # ConfigPanel, DeviceList, HardwarePanel, LogViewer, SystemStatus
-      src/views/               # Status, Config, Logs, Models, LocalModels, CloudModels, Test, Examples
+      src/components/          # DeviceList, HardwarePanel, LogViewer, SystemStatus
+      src/views/               # Status, Config, Logs, Models, Test, Examples
     client/                    # 聊天界面（Vue 3 + Vite）
       src/components/          # ChatBox, InputBox, MessageList, PushToTalk, WakeWord
       src/composables/         # useVAD.js, useWakeWord.js
@@ -271,16 +270,6 @@ stopWakeWordPipeline() → void
 // runtime/embed.js
 embed(text) → number[]        // 委托 agentic-embed
 
-// runtime/memory.js — 语义记忆模块（基于 store + embed）
-// 内部: store/index.js (KV 持久化) + runtime/embed.js (向量嵌入)
-// 存储格式: key="memory:{id}" → { id, text, vector, createdAt }
-// 索引: key="memory:index" → [id1, id2, ...]
-add(text, metadata?) → Promise<string>   // embed(text) → 存储 { id, text, vector, ...metadata }
-search(query, topK=5) → Promise<Array<{ id, text, score, metadata }>>
-  // embed(query) → 遍历所有 memory → 余弦相似度排序 → 取 topK
-remove(id) → Promise<void>              // 删除单条记忆 + 更新索引
-clear() → Promise<void>                 // 清空所有记忆
-
 // runtime/profiler.js
 startMark(label) → void
 endMark(label) → number|null   // 返回 elapsed ms
@@ -294,6 +283,36 @@ reset() → void                // 清空采样数据
 
 // runtime/vad.js
 detectVoiceActivity(buffer) → boolean  // RMS 能量阈值检测（Int16 PCM）
+
+// --- Voice Adapters (runtime/adapters/voice/) ---
+// STT 适配器（统一接口: check() + transcribe(buffer) → string）
+// sensevoice.js  — SenseVoice HTTP API (Apple Silicon 优先)
+check() → Promise<void>               // 检测 SenseVoice 服务可用性
+transcribe(buffer) → Promise<string>   // 音频 → 文本
+
+// whisper.js — Whisper.cpp 本地二进制 (NVIDIA 优先)
+check() → Promise<void>               // 检测 whisper-cpp 二进制
+transcribe(buffer) → Promise<string>
+
+// openai-whisper.js — OpenAI Whisper 云端 (CPU-only fallback)
+transcribe(buffer) → Promise<string>
+
+// TTS 适配器（统一接口: synthesize(text) → Buffer）
+// kokoro.js — Kokoro 本地 HTTP (localhost:8880)
+synthesize(text) → Promise<Buffer>
+
+// piper.js — Piper TTS (自动下载二进制)
+synthesize(text) → Promise<Buffer>
+
+// macos-say.js — macOS say 命令
+synthesize(text) → Promise<Buffer>
+listVoices() → Promise<string[]>
+
+// openai-tts.js — OpenAI TTS 云端
+synthesize(text) → Promise<Buffer>
+
+// elevenlabs.js — ElevenLabs TTS 云端
+synthesize(text) → Promise<Buffer>
 ```
 
 ### 4. Server（HTTP/WebSocket）
@@ -620,7 +639,7 @@ VISION.md 中规划的部分模块在实现中采用了不同的架构拆分：
 |---|---|---|
 | `detector/optimizer.js` | `profiles.js` + `matcher.js` + `config.js` | 硬件优化逻辑分散到配置匹配链中，无需独立优化器 |
 | `runtime/llm.js` | `server/brain.js` + `engine/` | LLM 推理与工具调用紧耦合，放在 server 层；引擎发现独立为 engine/ |
-| `runtime/memory.js` | `runtime/memory.js` — 基于 `store/index.js` (KV) + `runtime/embed.js` (向量) | 组合层: add() 存储文本+向量, search() 余弦相似度检索 |
+| `runtime/memory.js` | 已删除（M101 清理） | 语义记忆功能由业务层实现，service 层提供 `store/index.js` (KV) + `runtime/embed.js` (向量) 原子能力 |
 | — | `engine/` (6 files) | 新增引擎注册中心，支持多引擎发现和统一模型解析 |
 | — | `cli/` (3 files) | 新增 CLI 工具层，处理安装向导和浏览器启动 |
 | — | `runtime/profiler.js` + `latency-log.js` + `vad.js` | 新增性能监控和语音活动检测 |
@@ -648,11 +667,11 @@ docker-compose up
 4. **模块化** — 每个能力独立模块，统一接口，可替换适配器
 5. **流式优先** — LLM/STT/TTS 全部支持流式处理，降低感知延迟
 
-## M101: 引擎层贯通（Engine Registry Unification）
+## M101: 引擎层贯通（Engine Registry Unification）✅ 已完成
 
-当前 brain.js / stt.js / tts.js 仍直接读取 config.modelPool 和 hardware profile 来选择模型。M101 将所有能力路由统一收敛到 `engine/registry.js`，消除架构债务。
+brain.js / stt.js / tts.js 已全部迁移到 `engine/registry.js` 统一路由。重复路由已删除，死文件已清理。
 
-### 目标架构
+### 架构
 
 ```mermaid
 graph LR
@@ -668,15 +687,15 @@ graph LR
     Reg --> Cloud[engine/cloud.js]
 ```
 
-### 变更清单
+### 变更记录
 
-| 模块 | 当前状态 | M101 目标 |
-|------|---------|----------|
-| `brain.js` | 内部 resolveModel() + 直接读 getModelPool | 调用 `registry.resolveModel(modelId)`，Ollama/Cloud 路由移入 engine.run() |
-| `stt.js` | 直接调用 detect()/getProfile() 选择适配器 | 通过 `assignments.stt` → registry 解析引擎，whisper engine.run() 封装适配器选择 |
-| `tts.js` | 直接读 hardware profile 选择适配器 | 通过 `assignments.tts` → registry 解析引擎，tts engine.run() 封装适配器选择 |
-| `api.js` | `/api/ollama/*` 和 `/api/engines/*` 重复路由 | 删除 `/api/ollama/*`，`/api/model-pool` 代理到 `/api/engines/models` + deprecation header |
-| 死文件 | LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue, runtime/memory.js | 全部删除 |
+| 模块 | 变更 |
+|------|------|
+| `brain.js` | 调用 `registry.resolveModel(modelId)` 路由到引擎，Ollama/Cloud 路由移入 engine.run() |
+| `stt.js` | 通过 `assignments.stt` → registry 解析引擎，whisper engine.run() 封装适配器选择 |
+| `tts.js` | 通过 `assignments.tts` → registry 解析引擎，tts engine.run() 封装适配器选择 |
+| `api.js` | 删除 `/api/ollama/*` 重复路由，`/api/model-pool` 代理到 `/api/engines/models` + deprecation header |
+| 死文件 | 已删除: LocalModelsView.vue, CloudModelsView.vue, App-old.vue, ConfigPanel.vue |
 
 ### Engine 接口规范
 
@@ -701,9 +720,30 @@ assignments.chat → registry.resolveModel(modelId)
   → 全部失败 → 返回错误
 ```
 
+## M103: 稳定性与生产就绪（计划中）
+
+### 目标
+
+健康检查、错误格式统一、音频格式校验 — 提升 API 的生产可靠性。
+
+### 变更计划
+
+| 任务 | 说明 | 影响文件 |
+|------|------|---------|
+| `GET /api/health` | 返回 JSON 包含 ollama/stt/tts 组件状态 | `server/api.js` |
+| OpenAI 错误格式 | error response 添加 `code` 字段: `{ error: { message, type, code } }` | `server/api.js`, `server/middleware.js` |
+| 音频格式校验 | `/v1/audio/transcriptions` 在传入 STT 前校验文件格式，无效返回 4xx | `server/api.js` |
+
+### 验收标准
+
+- `GET /api/health` 返回 `{ status, components: { ollama, stt, tts } }`
+- 所有 API 错误响应包含 `{ error: { message, type, code } }`
+- 无效音频文件返回 400/415 而非 500
+
 ## 已知限制
 
-1. **middleware.js 仅含错误处理** — 无请求验证、速率限制或安全中间件。本地优先架构下可接受，生产部署需增强。
+1. **middleware.js 仅含错误处理** — 无请求验证、速率限制或安全中间件。本地优先架构下可接受，M103 将部分改善。
 2. **mDNS/Bonjour 未实现** — 设备发现依赖 tunnel.js (ngrok/cloudflared) 而非 .local 广播。
 3. **sense.js 视觉检测依赖 MediaPipe 浏览器运行时** — agentic-sense 包已安装，createPipeline() 可调用，但底层 MediaPipe 模型加载需浏览器环境。服务端通过 startHeadless() + startWakeWordPipeline() 提供音频感知路径。
-4. **runtime/memory.js 全量扫描** — search() 遍历所有条目计算余弦相似度，数据量大时性能受限。生产环境可考虑近似最近邻索引。
+4. **音频格式校验缺失** — `/v1/audio/transcriptions` 端点未在传入 STT 前校验文件格式，无效音频可能返回 500 而非 4xx（M103 计划修复）。
+5. **OpenAI 错误格式不完整** — 错误响应返回 `{ message, type }` 但缺少 `code` 字段（M103 计划修复）。

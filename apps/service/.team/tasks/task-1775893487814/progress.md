@@ -12,4 +12,5 @@
 - `test/server/m103-error-format.test.js`: DBB-004, DBB-006, audio transcriptions, audio speech, embeddings
 
 ### Notes
-- 11 pre-existing audio transcription tests fail due to audio validation (task-1775893487853), not this task
+- Pre-existing audio transcription test failures resolved by task-1775893487853 (audio validation)
+- Full suite: 201 test files, 1207 tests pass

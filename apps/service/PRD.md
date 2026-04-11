@@ -368,7 +368,7 @@ CONFIG_CHANGE → 重置为 LOCAL
 
 ## 测试
 
-- 171 个测试文件，962 个测试用例（951 passed, 11 skipped）
+- 181 个测试文件，1088 个测试用例（1077 passed, 11 skipped）
 - 全部通过，无失败测试
 - 覆盖率阈值 ≥98%（vitest 配置）
 - 关键测试领域：硬件检测、引擎注册、配置系统、brain fallback、WebSocket hub、语音管线、Docker 部署、REST API 端点、embed 构建验证

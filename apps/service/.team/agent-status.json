@@ -1,8 +1,8 @@
 {
   "pm": {
-    "status": "idle",
-    "lastRun": "2026-04-11T07:41:16.639Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-11T07:58:23.936Z",
+    "currentTask": "管理任务和里程碑",
     "retryCount": 1
   },
   "tech_lead-1": {
@@ -24,9 +24,9 @@
     "retryCount": 0
   },
   "developer": {
-    "status": "idle",
-    "lastRun": "2026-04-11T07:30:16.047Z",
-    "currentTask": null,
+    "status": "running",
+    "lastRun": "2026-04-11T07:58:41.139Z",
+    "currentTask": "实现功能",
     "retryCount": 2
   },
   "tester": {
@@ -51,50 +51,50 @@
   },
   "qa_lead": {
     "status": "idle",
-    "lastRun": "2026-04-11T07:13:02.749Z",
+    "lastRun": "2026-04-11T07:47:04.366Z",
     "currentTask": null,
     "retryCount": 0
   },
   "vision_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-11T07:40:25.311Z",
+    "lastRun": "2026-04-11T07:43:45.208Z",
     "currentTask": null,
     "retryCount": 2
   },
   "prd_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-11T07:40:49.250Z",
+    "lastRun": "2026-04-11T07:43:15.167Z",
     "currentTask": null,
     "retryCount": 2
   },
   "dbb_monitor": {
-    "status": "running",
-    "lastRun": "2026-04-11T07:40:12.057Z",
-    "currentTask": "评估DBB匹配度",
+    "status": "idle",
+    "lastRun": "2026-04-11T07:46:43.037Z",
+    "currentTask": null,
     "retryCount": 2
   },
   "arch_monitor": {
     "status": "idle",
-    "lastRun": "2026-04-11T07:40:56.983Z",
+    "lastRun": "2026-04-11T07:44:44.459Z",
     "currentTask": null,
     "retryCount": 2
   },
   "architect": {
     "status": "idle",
-    "lastRun": "2026-04-11T06:05:47.637Z",
+    "lastRun": "2026-04-11T07:53:37.283Z",
     "currentTask": null,
     "retryCount": 0
   },
   "tech_lead": {
     "status": "idle",
-    "lastRun": "2026-04-11T06:09:58.547Z",
+    "lastRun": "2026-04-11T07:52:06.786Z",
     "currentTask": null,
     "retryCount": 0
   },
   "alignment_monitor": {
-    "status": "running",
-    "lastRun": "2026-04-11T07:40:12.058Z",
-    "currentTask": "检查层间一致性（Vision→PRD→Architecture→Tasks）",
+    "status": "idle",
+    "lastRun": "2026-04-11T07:44:49.104Z",
+    "currentTask": null,
     "retryCount": 0
   }
 }
