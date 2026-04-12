@@ -66,6 +66,14 @@ describe('M93 wake word pipeline verification', () => {
       record: vi.fn(() => ({ stream: () => stream, stop: vi.fn() }))
     };
     vi.doMock('node-record-lpcm16', () => ({ default: mockRecord }));
+    // Ensure 'which sox' succeeds even if sox is not in PATH
+    vi.doMock('node:child_process', async () => {
+      const actual = await vi.importActual('node:child_process');
+      return { ...actual, execSync: vi.fn((cmd, opts) => {
+        if (typeof cmd === 'string' && cmd.includes('which sox')) return '/usr/bin/sox';
+        return actual.execSync(cmd, opts);
+      })};
+    });
 
     const { startWakeWordPipeline, stopWakeWordPipeline } = await import('../src/runtime/sense.js?t=' + Date.now()).catch(() => ({}));
     if (!startWakeWordPipeline) return;
@@ -89,6 +97,13 @@ describe('M93 wake word pipeline verification', () => {
       record: vi.fn(() => ({ stream: () => stream, stop: vi.fn() }))
     };
     vi.doMock('node-record-lpcm16', () => ({ default: mockRecord }));
+    vi.doMock('node:child_process', async () => {
+      const actual = await vi.importActual('node:child_process');
+      return { ...actual, execSync: vi.fn((cmd, opts) => {
+        if (typeof cmd === 'string' && cmd.includes('which sox')) return '/usr/bin/sox';
+        return actual.execSync(cmd, opts);
+      })};
+    });
 
     const { startWakeWordPipeline } = await import('../src/runtime/sense.js?t=' + Date.now()).catch(() => ({}));
     if (!startWakeWordPipeline) return;

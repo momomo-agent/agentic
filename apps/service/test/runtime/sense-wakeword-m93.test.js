@@ -17,6 +17,13 @@ describe('startWakeWordPipeline', () => {
     const mockStream = { on: vi.fn().mockReturnThis(), pipe: vi.fn() };
     const mockRecorder = { record: vi.fn(() => ({ stream: () => mockStream, process: null })) };
     vi.doMock('node-record-lpcm16', () => ({ default: mockRecorder }));
+    vi.doMock('node:child_process', async () => {
+      const actual = await vi.importActual('node:child_process');
+      return { ...actual, execSync: vi.fn((cmd, opts) => {
+        if (typeof cmd === 'string' && cmd.includes('which sox')) return '/usr/bin/sox';
+        return actual.execSync(cmd, opts);
+      })};
+    });
 
     const { startWakeWordPipeline } = await import('../../src/runtime/sense.js');
     const onWakeWord = vi.fn();
