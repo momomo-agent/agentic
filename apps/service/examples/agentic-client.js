@@ -40,24 +40,19 @@ var AgenticError = class extends Error {
     this.code = code;
   }
 };
-function resolveAdapter(preference) {
-  if (preference === "browser") return "browser";
-  if (preference === "node") return "node";
-  return typeof window !== "undefined" ? "browser" : "node";
-}
 function createTransport(baseUrl, options = {}) {
-  const env = resolveAdapter(options.adapter);
-  if (env === "browser") {
-    return createFetchAdapter(baseUrl, options);
-  }
-  return createFetchAdapter(baseUrl, options, true);
-}
-function createFetchAdapter(baseUrl, options, isNode = false) {
   const timeout = options.timeout || 3e4;
+  const streamTimeout = options.streamTimeout || 12e4;
+  const isNode = typeof window === "undefined";
+  function makeHeaders(extra = {}) {
+    const h = { ...extra };
+    if (options.apiKey) h["Authorization"] = `Bearer ${options.apiKey}`;
+    return h;
+  }
   async function request(method, path, body) {
-    const opts = { method, signal: AbortSignal.timeout(timeout) };
+    const opts = { method, signal: AbortSignal.timeout(timeout), headers: makeHeaders() };
     if (body !== void 0) {
-      opts.headers = { "Content-Type": "application/json" };
+      opts.headers["Content-Type"] = "application/json";
       opts.body = JSON.stringify(body);
     }
     let res;
@@ -73,124 +68,87 @@ function createFetchAdapter(baseUrl, options, isNode = false) {
       const text = await res.text().catch(() => res.statusText);
       throw new AgenticError(res.status, text);
     }
-    return res.json();
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("json")) return res.json();
+    return res.text();
   }
-  return {
-    async get(path) {
-      return request("GET", path);
-    },
-    async post(path, body) {
-      return request("POST", path, body);
-    },
-    async put(path, body) {
-      return request("PUT", path, body);
-    },
-    async del(path) {
-      return request("DELETE", path);
-    },
-    async *stream(path, body) {
-      let res;
-      try {
-        res = await fetch(`${baseUrl}${path}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
-      } catch (err) {
-        throw new AgenticError("NETWORK", err.message);
-      }
-      if (!res.ok) {
-        const text = await res.text().catch(() => res.statusText);
-        throw new AgenticError(res.status, text);
-      }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop();
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const data = line.slice(6);
-          if (data === "[DONE]") return;
-          try {
-            yield JSON.parse(data);
-          } catch {
-          }
+  async function* streamSSE(method, path, body) {
+    const opts = { method, headers: makeHeaders() };
+    if (body !== void 0) {
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    let res;
+    try {
+      res = await fetch(`${baseUrl}${path}`, opts);
+    } catch (err) {
+      throw new AgenticError("NETWORK", err.message);
+    }
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new AgenticError(res.status, text);
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6);
+        if (data === "[DONE]") return;
+        try {
+          yield JSON.parse(data);
+        } catch {
         }
       }
-    },
-    async postBinary(path, body) {
-      let res;
-      try {
-        res = await fetch(`${baseUrl}${path}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(timeout)
-        });
-      } catch (err) {
-        if (err.name === "TimeoutError" || err.name === "AbortError") {
-          throw new AgenticError("TIMEOUT", `Request timed out after ${timeout}ms`);
-        }
-        throw new AgenticError("NETWORK", err.message);
+    }
+  }
+  async function fetchBinary(method, path, body, headers = {}) {
+    const opts = { method, signal: AbortSignal.timeout(streamTimeout), headers: makeHeaders(headers) };
+    if (body !== void 0) {
+      if (body instanceof FormData || typeof FormData !== "undefined" && body.constructor?.name === "FormData") {
+        opts.body = body;
+      } else {
+        opts.headers["Content-Type"] = "application/json";
+        opts.body = JSON.stringify(body);
       }
-      if (!res.ok) {
-        const text = await res.text().catch(() => res.statusText);
-        throw new AgenticError(res.status, text);
+    }
+    let res;
+    try {
+      res = await fetch(`${baseUrl}${path}`, opts);
+    } catch (err) {
+      if (err.name === "TimeoutError" || err.name === "AbortError") {
+        throw new AgenticError("TIMEOUT", `Request timed out after ${streamTimeout}ms`);
       }
-      const ab = await res.arrayBuffer();
-      return isNode ? Buffer.from(ab) : ab;
-    },
-    async postFormData(path, formData) {
-      let res;
-      try {
-        res = await fetch(`${baseUrl}${path}`, {
-          method: "POST",
-          body: formData,
-          signal: AbortSignal.timeout(timeout)
-        });
-      } catch (err) {
-        if (err.name === "TimeoutError" || err.name === "AbortError") {
-          throw new AgenticError("TIMEOUT", `Request timed out after ${timeout}ms`);
-        }
-        throw new AgenticError("NETWORK", err.message);
-      }
-      if (!res.ok) {
-        const text = await res.text().catch(() => res.statusText);
-        throw new AgenticError(res.status, text);
-      }
-      const ct = res.headers.get("content-type") || "";
-      if (ct.includes("audio/") || ct.includes("application/octet-stream")) {
-        const ab = await res.arrayBuffer();
-        return isNode ? Buffer.from(ab) : ab;
-      }
-      return res.json();
-    },
-    async postBinaryFormData(path, formData) {
-      let res;
-      try {
-        res = await fetch(`${baseUrl}${path}`, {
-          method: "POST",
-          body: formData,
-          signal: AbortSignal.timeout(timeout)
-        });
-      } catch (err) {
-        if (err.name === "TimeoutError" || err.name === "AbortError") {
-          throw new AgenticError("TIMEOUT", `Request timed out after ${timeout}ms`);
-        }
-        throw new AgenticError("NETWORK", err.message);
-      }
-      if (!res.ok) {
-        const text = await res.text().catch(() => res.statusText);
-        throw new AgenticError(res.status, text);
-      }
+      throw new AgenticError("NETWORK", err.message);
+    }
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new AgenticError(res.status, text);
+    }
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("json")) return res.json();
+    if (ct.includes("audio/") || ct.includes("application/octet-stream") || ct.includes("image/")) {
       const ab = await res.arrayBuffer();
       return isNode ? Buffer.from(ab) : ab;
     }
+    return res.json();
+  }
+  return {
+    get: (path) => request("GET", path),
+    post: (path, body) => request("POST", path, body),
+    put: (path, body) => request("PUT", path, body),
+    del: (path) => request("DELETE", path),
+    stream: (path, body) => streamSSE("POST", path, body),
+    streamGet: (path) => streamSSE("GET", path),
+    postBinary: (path, body) => fetchBinary("POST", path, body),
+    postFormData: (path, formData) => fetchBinary("POST", path, formData),
+    baseUrl
   };
 }
 
@@ -199,12 +157,16 @@ function think(transport, input, options = {}) {
   const body = {};
   if (typeof input === "string") {
     body.message = input;
-  } else {
+  } else if (Array.isArray(input)) {
     body.messages = input;
+  } else {
+    Object.assign(body, input);
   }
   if (options.model) body.model = options.model;
   if (options.history) body.history = options.history;
   if (options.sessionId) body.sessionId = options.sessionId;
+  if (options.temperature != null) body.temperature = options.temperature;
+  if (options.maxTokens != null) body.max_tokens = options.maxTokens;
   if (options.tools) {
     body.tools = options.tools.map((t) => {
       if (t.type === "function" && t.function) return t;
@@ -220,8 +182,7 @@ function think(transport, input, options = {}) {
   }
   if (options.toolChoice) body.tool_choice = options.toolChoice;
   if (options.stream) {
-    const gen = streamThink(transport, body);
-    return makeAsyncIterablePromise(gen);
+    return makeAsyncIterablePromise(streamThink(transport, body));
   }
   return collectThink(transport, body, options);
 }
@@ -257,79 +218,140 @@ async function* streamThink(transport, body) {
   yield { type: "done", stopReason: "end_turn" };
 }
 function makeAsyncIterablePromise(asyncGen) {
-  const wrapper = {
+  return {
     [Symbol.asyncIterator]() {
       return asyncGen;
     },
-    // Also expose .then() so `await think(...)` still works
     then(resolve, reject) {
       return Promise.resolve(asyncGen).then(resolve, reject);
     }
   };
-  return wrapper;
 }
 
 // src/listen.js
-async function listen(transport, audio) {
-  const formData = new FormData();
-  formData.append("audio", audio, "audio.wav");
-  const result = await transport.postFormData("/api/transcribe", formData);
-  if (result.skipped) return "";
-  return result.text;
+async function listen(transport, audio, options = {}) {
+  const fd = new FormData();
+  if (audio instanceof Blob) {
+    fd.append("audio", audio, "audio.webm");
+  } else if (typeof File !== "undefined" && audio instanceof File) {
+    fd.append("audio", audio);
+  } else {
+    const blob = new Blob([audio], { type: "audio/webm" });
+    fd.append("audio", blob, "audio.webm");
+  }
+  if (options.language) fd.append("language", options.language);
+  const result = await transport.postFormData("/api/transcribe", fd);
+  return typeof result === "string" ? result : result.text || result.transcript || "";
 }
 
 // src/speak.js
-async function speak(transport, text) {
-  return transport.postBinary("/api/synthesize", { text });
+async function speak(transport, text, options = {}) {
+  const body = { text };
+  if (options.voice) body.voice = options.voice;
+  if (options.speed) body.speed = options.speed;
+  return transport.postBinary("/api/synthesize", body);
 }
 
 // src/see.js
-async function see(transport, image, prompt = "Describe this image", options = {}) {
-  const base64 = await toBase64(image);
-  const body = { image: base64, prompt };
-  if (options.stream) {
-    return streamSee(transport, body);
+function see(transport, image, prompt, options = {}) {
+  const body = { prompt: prompt || "Describe this image." };
+  if (typeof image === "string") {
+    if (image.startsWith("data:") || image.startsWith("http")) {
+      body.image = image;
+    } else {
+      body.image = `data:image/jpeg;base64,${image}`;
+    }
+  } else if (image instanceof Blob) {
+    return blobToBase64See(transport, image, body, options);
   }
+  if (options.model) body.model = options.model;
+  if (options.stream) {
+    return makeAsyncIterablePromise2(streamSee(transport, body));
+  }
+  return collectSee(transport, body);
+}
+async function blobToBase64See(transport, blob, body, options) {
+  const buffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  const b64 = typeof btoa !== "undefined" ? btoa(binary) : Buffer.from(buffer).toString("base64");
+  body.image = `data:${blob.type || "image/jpeg"};base64,${b64}`;
+  if (options.model) body.model = options.model;
+  if (options.stream) {
+    const gen = streamSee(transport, body);
+    const result = { answer: "" };
+    for await (const chunk of gen) {
+      if (chunk.type === "text_delta") result.answer += chunk.text;
+    }
+    return result;
+  }
+  return collectSee(transport, body);
+}
+async function collectSee(transport, body) {
   let text = "";
   for await (const chunk of transport.stream("/api/vision", body)) {
     if (chunk.type === "content") text += chunk.text || "";
   }
-  return text;
+  return { answer: text };
 }
 async function* streamSee(transport, body) {
   for await (const chunk of transport.stream("/api/vision", body)) {
-    if (chunk.type === "content") yield { type: "content", text: chunk.text || "" };
+    if (chunk.type === "content") {
+      yield { type: "text_delta", text: chunk.text || "" };
+    } else if (chunk.type === "error") {
+      yield { type: "error", error: chunk.error || "unknown error" };
+    }
   }
-  yield { type: "done" };
+  yield { type: "done", stopReason: "end_turn" };
 }
-async function toBase64(input) {
-  if (typeof input === "string") return input;
-  if (typeof Buffer !== "undefined" && Buffer.isBuffer(input)) {
-    return input.toString("base64");
-  }
-  if (input instanceof ArrayBuffer) {
-    if (typeof Buffer !== "undefined") return Buffer.from(input).toString("base64");
-    return arrayBufferToBase64(input);
-  }
-  if (typeof Blob !== "undefined" && input instanceof Blob) {
-    const ab = await input.arrayBuffer();
-    if (typeof Buffer !== "undefined") return Buffer.from(ab).toString("base64");
-    return arrayBufferToBase64(ab);
-  }
-  throw new Error("Unsupported image input type");
-}
-function arrayBufferToBase64(ab) {
-  const bytes = new Uint8Array(ab);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
+function makeAsyncIterablePromise2(asyncGen) {
+  return {
+    [Symbol.asyncIterator]() {
+      return asyncGen;
+    },
+    then(resolve, reject) {
+      return Promise.resolve(asyncGen).then(resolve, reject);
+    }
+  };
 }
 
 // src/converse.js
-async function converse(transport, audio) {
-  const formData = new FormData();
-  formData.append("audio", audio, "audio.wav");
-  return transport.postBinaryFormData("/api/voice", formData);
+async function converse(transport, audio, options = {}) {
+  const fd = new FormData();
+  if (audio instanceof Blob) {
+    fd.append("audio", audio, "audio.webm");
+  } else if (typeof File !== "undefined" && audio instanceof File) {
+    fd.append("audio", audio);
+  } else {
+    const blob = new Blob([audio], { type: "audio/webm" });
+    fd.append("audio", blob, "audio.webm");
+  }
+  if (options.voice) fd.append("voice", options.voice);
+  if (options.model) fd.append("model", options.model);
+  if (options.sessionId) fd.append("sessionId", options.sessionId);
+  const result = await transport.postFormData("/api/voice", fd);
+  if (result instanceof ArrayBuffer || typeof Buffer !== "undefined" && Buffer.isBuffer(result)) {
+    return { text: "", audio: result };
+  }
+  return {
+    text: result.text || result.transcript || "",
+    audio: result.audio || null
+  };
+}
+
+// src/embed.js
+async function embed(transport, input, options = {}) {
+  const body = {
+    input: Array.isArray(input) ? input : [input]
+  };
+  if (options.model) body.model = options.model;
+  const result = await transport.post("/v1/embeddings", body);
+  return {
+    embeddings: (result.data || []).map((d) => d.embedding),
+    model: result.model,
+    usage: result.usage
+  };
 }
 
 // src/capabilities.js
@@ -344,7 +366,8 @@ async function capabilities(transport) {
     listen: hasStt,
     speak: hasTts,
     see: ollamaRunning && hasModels,
-    converse: ollamaRunning && hasModels && hasStt && hasTts
+    converse: ollamaRunning && hasModels && hasStt && hasTts,
+    embed: ollamaRunning && hasModels
   };
 }
 
@@ -353,438 +376,106 @@ var Admin = class {
   constructor(transport) {
     this.transport = transport;
   }
+  // ── Health & Status ──
+  async health() {
+    return this.transport.get("/api/health");
+  }
   async status() {
     return this.transport.get("/api/status");
-  }
-  async config(newConfig) {
-    if (newConfig) return this.transport.put("/api/config", newConfig);
-    return this.transport.get("/api/config");
-  }
-  async models() {
-    const status = await this.transport.get("/api/status");
-    return status.ollama?.models || [];
-  }
-  async *pullModel(model, onProgress) {
-    for await (const chunk of this.transport.stream("/api/models/pull", { model })) {
-      if (onProgress) onProgress(chunk);
-      yield chunk;
-    }
-  }
-  async deleteModel(name) {
-    return this.transport.del(`/api/models/${encodeURIComponent(name)}`);
-  }
-  async logs(limit = 50) {
-    return this.transport.get("/api/logs");
   }
   async perf() {
     return this.transport.get("/api/perf");
   }
+  async queueStats() {
+    return this.transport.get("/api/queue/stats");
+  }
   async devices() {
     return this.transport.get("/api/devices");
   }
+  async logs(limit = 50) {
+    return this.transport.get("/api/logs");
+  }
+  // ── Config ──
+  async config(newConfig) {
+    if (newConfig) return this.transport.put("/api/config", newConfig);
+    return this.transport.get("/api/config");
+  }
+  // ── Engines (new multi-engine API) ──
+  async engines() {
+    return this.transport.get("/api/engines");
+  }
+  async engineModels(engine) {
+    const params = engine ? `?engine=${encodeURIComponent(engine)}` : "";
+    return this.transport.get(`/api/engines/models${params}`);
+  }
+  async engineRecommended() {
+    return this.transport.get("/api/engines/recommended");
+  }
+  async engineHealth() {
+    return this.transport.get("/api/engines/health");
+  }
+  async *pullModel(model, options = {}) {
+    const body = { model };
+    if (options.engine) body.engine = options.engine;
+    for await (const chunk of this.transport.stream("/api/engines/pull", body)) {
+      yield chunk;
+    }
+  }
+  async deleteModel(name) {
+    return this.transport.del(`/api/engines/models/${encodeURIComponent(name)}`);
+  }
+  // ── Assignments (role → model mapping) ──
+  async assignments() {
+    return this.transport.get("/api/assignments");
+  }
+  async setAssignments(assignments) {
+    return this.transport.put("/api/assignments", assignments);
+  }
+  // ── OpenAI-compatible models list ──
+  async models() {
+    return this.transport.get("/v1/models");
+  }
 };
-
-// src/chat.js
-function matchProvider(providers, model) {
-  for (const p of providers) {
-    if (!p.models) return p;
-    for (const pattern of p.models) {
-      if (globMatch(pattern, model)) return p;
-    }
-  }
-  return null;
-}
-function globMatch(pattern, str) {
-  const re = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
-  return re.test(str);
-}
-function buildOpenAIBody(messages, options) {
-  const body = {
-    model: options.model,
-    messages,
-    stream: options.stream ?? false
-  };
-  if (options.maxTokens != null) body.max_tokens = options.maxTokens;
-  if (options.temperature != null) body.temperature = options.temperature;
-  if (options.tools?.length) {
-    body.tools = options.tools;
-    if (options.toolChoice) body.tool_choice = options.toolChoice;
-  }
-  return body;
-}
-async function* streamOpenAI(baseUrl, apiKey, messages, options) {
-  const body = buildOpenAIBody(messages, { ...options, stream: true });
-  const headers = { "Content-Type": "application/json" };
-  if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
-  let res;
-  try {
-    res = await fetch(`${baseUrl}/v1/chat/completions`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body)
-    });
-  } catch (err) {
-    yield { type: "error", error: err.message };
-    return;
-  }
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    yield { type: "error", error: `HTTP ${res.status}: ${text}` };
-    return;
-  }
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  const toolCallAccum = {};
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop();
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      const data = line.slice(6);
-      if (data === "[DONE]") {
-        for (const tc of Object.values(toolCallAccum)) {
-          let input = {};
-          try {
-            input = JSON.parse(tc.arguments);
-          } catch {
-          }
-          yield { type: "tool_use", id: tc.id, name: tc.name, input };
-        }
-        yield { type: "done", stopReason: "end_turn" };
-        return;
-      }
-      let parsed;
-      try {
-        parsed = JSON.parse(data);
-      } catch {
-        continue;
-      }
-      if (parsed.error) {
-        yield { type: "error", error: parsed.error.message || JSON.stringify(parsed.error) };
-        continue;
-      }
-      const choice = parsed.choices?.[0];
-      if (!choice) continue;
-      const delta = choice.delta || {};
-      if (delta.content) {
-        yield { type: "text_delta", text: delta.content };
-      }
-      if (delta.tool_calls) {
-        for (const tc of delta.tool_calls) {
-          const idx = tc.index ?? 0;
-          if (!toolCallAccum[idx]) {
-            toolCallAccum[idx] = { id: tc.id || "", name: tc.function?.name || "", arguments: "" };
-          }
-          if (tc.id) toolCallAccum[idx].id = tc.id;
-          if (tc.function?.name) toolCallAccum[idx].name = tc.function.name;
-          if (tc.function?.arguments) toolCallAccum[idx].arguments += tc.function.arguments;
-        }
-      }
-      if (choice.finish_reason) {
-        const reason = choice.finish_reason === "tool_calls" ? "tool_use" : choice.finish_reason === "stop" ? "end_turn" : choice.finish_reason;
-        for (const tc of Object.values(toolCallAccum)) {
-          let input = {};
-          try {
-            input = JSON.parse(tc.arguments);
-          } catch {
-          }
-          yield { type: "tool_use", id: tc.id, name: tc.name, input };
-        }
-        const usage = parsed.usage ? { inputTokens: parsed.usage.prompt_tokens, outputTokens: parsed.usage.completion_tokens } : void 0;
-        yield { type: "done", stopReason: reason, ...usage && { usage } };
-        return;
-      }
-    }
-  }
-  yield { type: "done", stopReason: "end_turn" };
-}
-async function chatOpenAINonStream(baseUrl, apiKey, messages, options) {
-  const body = buildOpenAIBody(messages, { ...options, stream: false });
-  const headers = { "Content-Type": "application/json" };
-  if (apiKey) headers["Authorization"] = `Bearer ${apiKey}`;
-  const res = await fetch(`${baseUrl}/v1/chat/completions`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new AgenticError(res.status, text);
-  }
-  const data = await res.json();
-  const choice = data.choices?.[0];
-  const msg = choice?.message || {};
-  const result = { answer: msg.content || "" };
-  if (msg.tool_calls?.length) {
-    result.toolCalls = msg.tool_calls.map((tc) => ({
-      id: tc.id,
-      name: tc.function.name,
-      args: JSON.parse(tc.function.arguments || "{}")
-    }));
-  }
-  return result;
-}
-function convertMessagesToAnthropic(messages) {
-  let system = void 0;
-  const msgs = [];
-  for (const m of messages) {
-    if (m.role === "system") {
-      system = system ? system + "\n" + m.content : m.content;
-    } else if (m.role === "tool") {
-      msgs.push({
-        role: "user",
-        content: [{
-          type: "tool_result",
-          tool_use_id: m.tool_call_id,
-          content: m.content
-        }]
-      });
-    } else {
-      msgs.push({ role: m.role, content: m.content });
-    }
-  }
-  return { system, messages: msgs };
-}
-function convertToolsToAnthropic(tools) {
-  if (!tools?.length) return void 0;
-  return tools.map((t) => {
-    const fn = t.type === "function" ? t.function : t;
-    return {
-      name: fn.name,
-      description: fn.description || "",
-      input_schema: fn.parameters || { type: "object", properties: {} }
-    };
-  });
-}
-function buildAnthropicBody(messages, options) {
-  const { system, messages: msgs } = convertMessagesToAnthropic(messages);
-  const body = {
-    model: options.model,
-    messages: msgs,
-    max_tokens: options.maxTokens || 4096,
-    stream: options.stream ?? false
-  };
-  if (system) body.system = system;
-  if (options.temperature != null) body.temperature = options.temperature;
-  const tools = convertToolsToAnthropic(options.tools);
-  if (tools) body.tools = tools;
-  if (options.toolChoice) {
-    const tc = options.toolChoice;
-    body.tool_choice = tc === "auto" ? { type: "auto" } : tc === "none" ? { type: "none" } : { type: "any" };
-  }
-  return body;
-}
-async function* streamAnthropic(baseUrl, apiKey, messages, options) {
-  const body = buildAnthropicBody(messages, { ...options, stream: true });
-  const headers = {
-    "Content-Type": "application/json",
-    "x-api-key": apiKey,
-    "anthropic-version": "2023-06-01"
-  };
-  let res;
-  try {
-    res = await fetch(`${baseUrl}/v1/messages`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body)
-    });
-  } catch (err) {
-    yield { type: "error", error: err.message };
-    return;
-  }
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    yield { type: "error", error: `HTTP ${res.status}: ${text}` };
-    return;
-  }
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buf = "";
-  let usage = void 0;
-  const blocks = {};
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += decoder.decode(value, { stream: true });
-    const lines = buf.split("\n");
-    buf = lines.pop();
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      let parsed;
-      try {
-        parsed = JSON.parse(line.slice(6));
-      } catch {
-        continue;
-      }
-      switch (parsed.type) {
-        case "message_start":
-          if (parsed.message?.usage) {
-            usage = { inputTokens: parsed.message.usage.input_tokens, outputTokens: 0 };
-          }
-          break;
-        case "content_block_start": {
-          const idx = parsed.index ?? 0;
-          const block = parsed.content_block || {};
-          if (block.type === "tool_use") {
-            blocks[idx] = { type: "tool_use", id: block.id || "", name: block.name || "", inputJson: "" };
-          } else {
-            blocks[idx] = { type: "text" };
-          }
-          break;
-        }
-        case "content_block_delta": {
-          const idx = parsed.index ?? 0;
-          const delta = parsed.delta || {};
-          if (delta.type === "text_delta") {
-            yield { type: "text_delta", text: delta.text };
-          } else if (delta.type === "input_json_delta") {
-            if (blocks[idx]) blocks[idx].inputJson += delta.partial_json || "";
-          }
-          break;
-        }
-        case "content_block_stop": {
-          const idx = parsed.index ?? 0;
-          const block = blocks[idx];
-          if (block?.type === "tool_use") {
-            let input = {};
-            try {
-              input = JSON.parse(block.inputJson);
-            } catch {
-            }
-            yield { type: "tool_use", id: block.id, name: block.name, input };
-          }
-          delete blocks[idx];
-          break;
-        }
-        case "message_delta": {
-          const delta = parsed.delta || {};
-          if (parsed.usage?.output_tokens && usage) {
-            usage.outputTokens = parsed.usage.output_tokens;
-          }
-          const stopReason = delta.stop_reason || "end_turn";
-          yield { type: "done", stopReason, ...usage && { usage } };
-          return;
-        }
-        case "message_stop":
-          break;
-        case "error":
-          yield { type: "error", error: parsed.error?.message || JSON.stringify(parsed.error) };
-          return;
-      }
-    }
-  }
-  yield { type: "done", stopReason: "end_turn", ...usage && { usage } };
-}
-async function chatAnthropicNonStream(baseUrl, apiKey, messages, options) {
-  const body = buildAnthropicBody(messages, { ...options, stream: false });
-  const headers = {
-    "Content-Type": "application/json",
-    "x-api-key": apiKey,
-    "anthropic-version": "2023-06-01"
-  };
-  const res = await fetch(`${baseUrl}/v1/messages`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new AgenticError(res.status, text);
-  }
-  const data = await res.json();
-  const result = { answer: "" };
-  const toolCalls = [];
-  for (const block of data.content || []) {
-    if (block.type === "text") result.answer += block.text;
-    if (block.type === "tool_use") {
-      toolCalls.push({ id: block.id, name: block.name, args: block.input || {} });
-    }
-  }
-  if (toolCalls.length) result.toolCalls = toolCalls;
-  return result;
-}
-function chat(providers, messages, options = {}) {
-  const model = options.model;
-  const provider = model ? matchProvider(providers, model) : null;
-  if (!provider) {
-    throw new AgenticError(400, `No provider matched for model "${model}"`);
-  }
-  if (options.stream) {
-    const gen = provider.type === "anthropic" ? streamAnthropic(provider.baseUrl, provider.apiKey, messages, options) : streamOpenAI(provider.baseUrl, provider.apiKey, messages, options);
-    return makeAsyncIterablePromise2(gen);
-  }
-  return provider.type === "anthropic" ? chatAnthropicNonStream(provider.baseUrl, provider.apiKey, messages, options) : chatOpenAINonStream(provider.baseUrl, provider.apiKey, messages, options);
-}
-function makeAsyncIterablePromise2(asyncGen) {
-  return {
-    [Symbol.asyncIterator]() {
-      return asyncGen;
-    },
-    then(resolve, reject) {
-      return Promise.resolve(asyncGen).then(resolve, reject);
-    }
-  };
-}
 
 // src/client.js
 var AgenticClient = class {
   /**
-   * @param {string} baseUrlOrConfig - Service URL string, or config object
+   * @param {string} baseUrl - Server URL (e.g. 'http://localhost:1234')
    * @param {object} [options]
-   *
-   * Supports two constructor forms:
-   *   new AgenticClient('http://localhost:11435')                    // existing
-   *   new AgenticClient('http://localhost:11435', { providers: [] }) // existing + providers
-   *   new AgenticClient({ serviceUrl, providers })                  // config object
+   * @param {string} [options.apiKey] - API key for authenticated endpoints
+   * @param {number} [options.timeout=30000] - Request timeout in ms
+   * @param {number} [options.streamTimeout=120000] - Stream/binary timeout in ms
    */
-  constructor(baseUrlOrConfig, options = {}) {
-    if (typeof baseUrlOrConfig === "string") {
-      this.baseUrl = baseUrlOrConfig.replace(/\/$/, "");
-      this.providers = options.providers || [];
-    } else {
-      const config = baseUrlOrConfig;
-      this.baseUrl = config.serviceUrl ? config.serviceUrl.replace(/\/$/, "") : null;
-      this.providers = config.providers || [];
+  constructor(baseUrl = "http://localhost:1234", options = {}) {
+    if (typeof baseUrl === "object") {
+      options = baseUrl;
+      baseUrl = options.baseUrl || "http://localhost:1234";
     }
-    if (this.baseUrl) {
-      this.transport = createTransport(this.baseUrl, options);
-      this.admin = new Admin(this.transport);
-    } else {
-      this.transport = null;
-      this.admin = null;
-    }
+    this.baseUrl = baseUrl.replace(/\/$/, "");
+    this.transport = createTransport(this.baseUrl, options);
+    this.admin = new Admin(this.transport);
   }
-  capabilities() {
-    return capabilities(this.transport);
-  }
+  // ── Core AI Methods ──
   think(input, options) {
     return think(this.transport, input, options);
   }
-  listen(audio) {
-    return listen(this.transport, audio);
+  listen(audio, options) {
+    return listen(this.transport, audio, options);
   }
-  speak(text) {
-    return speak(this.transport, text);
+  speak(text, options) {
+    return speak(this.transport, text, options);
   }
   see(image, prompt, options) {
     return see(this.transport, image, prompt, options);
   }
-  converse(audio) {
-    return converse(this.transport, audio);
+  converse(audio, options) {
+    return converse(this.transport, audio, options);
   }
-  /**
-   * Direct provider chat — routes to the right provider by model name.
-   * Falls back to serviceUrl (via think()) if no provider matches.
-   *
-   * @param {Array} messages - Array of { role, content } messages
-   * @param {object} [options] - { model, stream, maxTokens, temperature, tools, toolChoice }
-   */
-  chat(messages, options = {}) {
-    return chat(this.providers, messages, options);
+  embed(input, options) {
+    return embed(this.transport, input, options);
+  }
+  capabilities() {
+    return capabilities(this.transport);
   }
 };
 

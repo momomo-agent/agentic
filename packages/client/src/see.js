@@ -1,46 +1,76 @@
-export async function see(transport, image, prompt = 'Describe this image', options = {}) {
-  const base64 = await toBase64(image)
-  const body = { image: base64, prompt }
+/**
+ * see() — Vision (image understanding)
+ *
+ * Usage:
+ *   const { answer } = await ai.see(imageUrl, 'describe this')
+ *   const { answer } = await ai.see(base64Data, 'what is this?', { stream: true })
+ */
+export function see(transport, image, prompt, options = {}) {
+  const body = { prompt: prompt || 'Describe this image.' }
 
-  if (options.stream) {
-    return streamSee(transport, body)
+  if (typeof image === 'string') {
+    if (image.startsWith('data:') || image.startsWith('http')) {
+      body.image = image
+    } else {
+      // Assume base64
+      body.image = `data:image/jpeg;base64,${image}`
+    }
+  } else if (image instanceof Blob) {
+    // Convert blob to base64 — need async wrapper
+    return blobToBase64See(transport, image, body, options)
   }
 
+  if (options.model) body.model = options.model
+
+  if (options.stream) {
+    return makeAsyncIterablePromise(streamSee(transport, body))
+  }
+  return collectSee(transport, body)
+}
+
+async function blobToBase64See(transport, blob, body, options) {
+  const buffer = await blob.arrayBuffer()
+  const bytes = new Uint8Array(buffer)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+  const b64 = typeof btoa !== 'undefined' ? btoa(binary) : Buffer.from(buffer).toString('base64')
+  body.image = `data:${blob.type || 'image/jpeg'};base64,${b64}`
+
+  if (options.model) body.model = options.model
+
+  if (options.stream) {
+    const gen = streamSee(transport, body)
+    const result = { answer: '' }
+    for await (const chunk of gen) {
+      if (chunk.type === 'text_delta') result.answer += chunk.text
+    }
+    return result
+  }
+  return collectSee(transport, body)
+}
+
+async function collectSee(transport, body) {
   let text = ''
   for await (const chunk of transport.stream('/api/vision', body)) {
     if (chunk.type === 'content') text += chunk.text || ''
   }
-  return text
+  return { answer: text }
 }
 
 async function* streamSee(transport, body) {
   for await (const chunk of transport.stream('/api/vision', body)) {
-    if (chunk.type === 'content') yield { type: 'content', text: chunk.text || '' }
+    if (chunk.type === 'content') {
+      yield { type: 'text_delta', text: chunk.text || '' }
+    } else if (chunk.type === 'error') {
+      yield { type: 'error', error: chunk.error || 'unknown error' }
+    }
   }
-  yield { type: 'done' }
+  yield { type: 'done', stopReason: 'end_turn' }
 }
 
-async function toBase64(input) {
-  if (typeof input === 'string') return input
-  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
-    return input.toString('base64')
+function makeAsyncIterablePromise(asyncGen) {
+  return {
+    [Symbol.asyncIterator]() { return asyncGen },
+    then(resolve, reject) { return Promise.resolve(asyncGen).then(resolve, reject) },
   }
-  if (input instanceof ArrayBuffer) {
-    if (typeof Buffer !== 'undefined') return Buffer.from(input).toString('base64')
-    return arrayBufferToBase64(input)
-  }
-  // Blob (browser)
-  if (typeof Blob !== 'undefined' && input instanceof Blob) {
-    const ab = await input.arrayBuffer()
-    if (typeof Buffer !== 'undefined') return Buffer.from(ab).toString('base64')
-    return arrayBufferToBase64(ab)
-  }
-  throw new Error('Unsupported image input type')
-}
-
-function arrayBufferToBase64(ab) {
-  const bytes = new Uint8Array(ab)
-  let binary = ''
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
-  return btoa(binary)
 }

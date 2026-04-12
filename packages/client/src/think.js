@@ -1,18 +1,29 @@
+/**
+ * think() — LLM chat with optional vision, tools, streaming
+ *
+ * Usage:
+ *   const { answer } = await ai.think('hello')
+ *   const { answer, toolCalls } = await ai.think(messages, { tools, stream: false })
+ *   for await (const chunk of ai.think('hello', { stream: true })) { ... }
+ */
 export function think(transport, input, options = {}) {
   const body = {}
 
   if (typeof input === 'string') {
     body.message = input
-  } else {
+  } else if (Array.isArray(input)) {
     body.messages = input
+  } else {
+    Object.assign(body, input)
   }
 
   if (options.model) body.model = options.model
   if (options.history) body.history = options.history
   if (options.sessionId) body.sessionId = options.sessionId
+  if (options.temperature != null) body.temperature = options.temperature
+  if (options.maxTokens != null) body.max_tokens = options.maxTokens
   if (options.tools) {
     body.tools = options.tools.map(t => {
-      // Accept both OpenAI format ({ type:'function', function:{...} }) and flat format
       if (t.type === 'function' && t.function) return t
       return {
         type: 'function',
@@ -27,14 +38,8 @@ export function think(transport, input, options = {}) {
   if (options.toolChoice) body.tool_choice = options.toolChoice
 
   if (options.stream) {
-    // Return an object that is both a Promise and an AsyncIterable
-    // so callers can do either:
-    //   for await (const chunk of ai.think(msg, {stream:true})) { ... }
-    //   for await (const chunk of await ai.think(msg, {stream:true})) { ... }
-    const gen = streamThink(transport, body)
-    return makeAsyncIterablePromise(gen)
+    return makeAsyncIterablePromise(streamThink(transport, body))
   }
-
   return collectThink(transport, body, options)
 }
 
@@ -74,13 +79,9 @@ async function* streamThink(transport, body) {
   yield { type: 'done', stopReason: 'end_turn' }
 }
 
-// Makes an async generator also work as a direct async iterable,
-// so `for await...of think(...)` works without an extra `await`
 function makeAsyncIterablePromise(asyncGen) {
-  const wrapper = {
+  return {
     [Symbol.asyncIterator]() { return asyncGen },
-    // Also expose .then() so `await think(...)` still works
     then(resolve, reject) { return Promise.resolve(asyncGen).then(resolve, reject) },
   }
-  return wrapper
 }

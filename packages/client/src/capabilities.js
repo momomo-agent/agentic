@@ -1,3 +1,6 @@
+/**
+ * capabilities() — Check what the server can do
+ */
 export async function capabilities(transport) {
   const status = await transport.get('/api/status')
 
@@ -11,6 +14,7 @@ export async function capabilities(transport) {
     listen: hasStt,
     speak: hasTts,
     see: ollamaRunning && hasModels,
-    converse: ollamaRunning && hasModels && hasStt && hasTts
+    converse: ollamaRunning && hasModels && hasStt && hasTts,
+    embed: ollamaRunning && hasModels,
   }
 }

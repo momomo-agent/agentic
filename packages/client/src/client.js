@@ -1,91 +1,91 @@
+/**
+ * AgenticClient — JavaScript SDK for agentic-service
+ *
+ * Usage:
+ *   const ai = new AgenticClient('http://localhost:1234')
+ *
+ *   // Chat
+ *   const { answer } = await ai.think('hello')
+ *   for await (const chunk of ai.think('hello', { stream: true })) { ... }
+ *
+ *   // Speech-to-text
+ *   const text = await ai.listen(audioBlob)
+ *
+ *   // Text-to-speech
+ *   const audio = await ai.speak('hello', { voice: 'nova' })
+ *
+ *   // Vision
+ *   const { answer } = await ai.see(imageUrl, 'describe this')
+ *
+ *   // Voice conversation (listen + think + speak)
+ *   const { text, audio } = await ai.converse(audioBlob)
+ *
+ *   // Embeddings
+ *   const { embeddings } = await ai.embed('hello world')
+ *
+ *   // Admin
+ *   const status = await ai.admin.status()
+ *   const config = await ai.admin.config()
+ *   for await (const p of ai.admin.pullModel('gemma3:4b')) { ... }
+ */
+
 import { createTransport, AgenticError } from './transport.js'
-import { think as _think } from './think.js'
-import { listen as _listen } from './listen.js'
-import { speak as _speak } from './speak.js'
-import { see as _see } from './see.js'
-import { converse as _converse } from './converse.js'
-import { capabilities as _capabilities } from './capabilities.js'
+import { think } from './think.js'
+import { listen } from './listen.js'
+import { speak } from './speak.js'
+import { see } from './see.js'
+import { converse } from './converse.js'
+import { embed } from './embed.js'
+import { capabilities } from './capabilities.js'
 import { Admin } from './admin.js'
-import { chat as _chat } from './chat.js'
 
 export { AgenticError }
 
-/**
- * @typedef {{ type: 'text_delta', text: string }
- *   | { type: 'tool_use', id: string, name: string, input: Record<string, unknown> }
- *   | { type: 'done', stopReason: string, usage?: { inputTokens: number, outputTokens: number } }
- *   | { type: 'error', error: string }} ChatEvent
- */
-
-/**
- * @typedef {Object} ProviderConfig
- * @property {'openai' | 'anthropic'} type
- * @property {string} baseUrl
- * @property {string} apiKey
- * @property {string[]} [models] - Glob patterns for model matching
- */
-
 export class AgenticClient {
   /**
-   * @param {string} baseUrlOrConfig - Service URL string, or config object
+   * @param {string} baseUrl - Server URL (e.g. 'http://localhost:1234')
    * @param {object} [options]
-   *
-   * Supports two constructor forms:
-   *   new AgenticClient('http://localhost:11435')                    // existing
-   *   new AgenticClient('http://localhost:11435', { providers: [] }) // existing + providers
-   *   new AgenticClient({ serviceUrl, providers })                  // config object
+   * @param {string} [options.apiKey] - API key for authenticated endpoints
+   * @param {number} [options.timeout=30000] - Request timeout in ms
+   * @param {number} [options.streamTimeout=120000] - Stream/binary timeout in ms
    */
-  constructor(baseUrlOrConfig, options = {}) {
-    if (typeof baseUrlOrConfig === 'string') {
-      this.baseUrl = baseUrlOrConfig.replace(/\/$/, '')
-      this.providers = options.providers || []
-    } else {
-      const config = baseUrlOrConfig
-      this.baseUrl = config.serviceUrl ? config.serviceUrl.replace(/\/$/, '') : null
-      this.providers = config.providers || []
+  constructor(baseUrl = 'http://localhost:1234', options = {}) {
+    if (typeof baseUrl === 'object') {
+      options = baseUrl
+      baseUrl = options.baseUrl || 'http://localhost:1234'
     }
-
-    if (this.baseUrl) {
-      this.transport = createTransport(this.baseUrl, options)
-      this.admin = new Admin(this.transport)
-    } else {
-      this.transport = null
-      this.admin = null
-    }
+    this.baseUrl = baseUrl.replace(/\/$/, '')
+    this.transport = createTransport(this.baseUrl, options)
+    this.admin = new Admin(this.transport)
   }
 
-  capabilities() {
-    return _capabilities(this.transport)
-  }
+  // ── Core AI Methods ──
 
   think(input, options) {
-    return _think(this.transport, input, options)
+    return think(this.transport, input, options)
   }
 
-  listen(audio) {
-    return _listen(this.transport, audio)
+  listen(audio, options) {
+    return listen(this.transport, audio, options)
   }
 
-  speak(text) {
-    return _speak(this.transport, text)
+  speak(text, options) {
+    return speak(this.transport, text, options)
   }
 
   see(image, prompt, options) {
-    return _see(this.transport, image, prompt, options)
+    return see(this.transport, image, prompt, options)
   }
 
-  converse(audio) {
-    return _converse(this.transport, audio)
+  converse(audio, options) {
+    return converse(this.transport, audio, options)
   }
 
-  /**
-   * Direct provider chat — routes to the right provider by model name.
-   * Falls back to serviceUrl (via think()) if no provider matches.
-   *
-   * @param {Array} messages - Array of { role, content } messages
-   * @param {object} [options] - { model, stream, maxTokens, temperature, tools, toolChoice }
-   */
-  chat(messages, options = {}) {
-    return _chat(this.providers, messages, options)
+  embed(input, options) {
+    return embed(this.transport, input, options)
+  }
+
+  capabilities() {
+    return capabilities(this.transport)
   }
 }

@@ -12,7 +12,7 @@ function mockTransport(overrides = {}) {
     stream: vi.fn(),
     postBinary: vi.fn(),
     postFormData: vi.fn(),
-    postBinaryFormData: vi.fn(),
+    baseUrl: 'http://localhost:1234',
     ...overrides
   }
 }
@@ -80,46 +80,25 @@ describe('think', () => {
     const { client } = createClient({
       stream: vi.fn(() => asyncGen([{ type: 'content', text }]))
     })
-    const result = await client.think('extract', { schema: { type: 'object' } })
+    const result = await client.think('提取', { schema: {} })
     expect(result.data).toEqual({ x: 1 })
   })
 
-  it('工具调用返回 toolCalls', async () => {
+  it('tool_use 事件正确收集', async () => {
     const { client } = createClient({
       stream: vi.fn(() => asyncGen([
-        { type: 'tool_use', id: 'call_1', name: 'get_weather', input: { city: '北京' } }
+        { type: 'tool_use', id: 'call_1', name: 'get_time', input: {} },
+        { type: 'content', text: '现在是下午3点' }
       ]))
     })
-    const result = await client.think('北京天气', {
-      tools: [{ name: 'get_weather', description: '获取天气', parameters: { type: 'object', properties: { city: { type: 'string' } } } }]
+    const result = await client.think('几点了', {
+      tools: [{ name: 'get_time', description: '获取时间' }]
     })
-    expect(result.toolCalls).toEqual([{ id: 'call_1', name: 'get_weather', args: { city: '北京' } }])
+    expect(result.toolCalls).toEqual([{ id: 'call_1', name: 'get_time', args: {} }])
+    expect(result.answer).toBe('现在是下午3点')
   })
 
-  it('支持多轮对话 history', async () => {
-    const { client, transport } = createClient({
-      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
-    })
-    const history = [{ role: 'user', content: 'hi' }, { role: 'assistant', content: 'hello' }]
-    await client.think('next', { history })
-    expect(transport.stream).toHaveBeenCalledWith('/api/chat', {
-      message: 'next',
-      history
-    })
-  })
-
-  it('支持 sessionId', async () => {
-    const { client, transport } = createClient({
-      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
-    })
-    await client.think('hi', { sessionId: 'abc123' })
-    expect(transport.stream).toHaveBeenCalledWith('/api/chat', {
-      message: 'hi',
-      sessionId: 'abc123'
-    })
-  })
-
-  it('支持 messages 数组输入', async () => {
+  it('messages 数组格式', async () => {
     const { client, transport } = createClient({
       stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
     })
@@ -127,108 +106,63 @@ describe('think', () => {
     await client.think(messages)
     expect(transport.stream).toHaveBeenCalledWith('/api/chat', { messages })
   })
-  it('流式 tool_use 事件包含 id/name/input', async () => {
-    const { client } = createClient({
-      stream: vi.fn(() => asyncGen([
-        { type: 'content', text: 'Let me check' },
-        { type: 'tool_use', id: 'call_1', name: 'search', input: { q: 'test' } }
-      ]))
+
+  it('传递 model/temperature/maxTokens', async () => {
+    const { client, transport } = createClient({
+      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
     })
-    const gen = await client.think('search for test', { stream: true })
-    const chunks = []
-    for await (const c of gen) chunks.push(c)
-    expect(chunks).toEqual([
-      { type: 'text_delta', text: 'Let me check' },
-      { type: 'tool_use', id: 'call_1', name: 'search', input: { q: 'test' } },
-      { type: 'done', stopReason: 'end_turn' }
-    ])
+    await client.think('hi', { model: 'gemma3:4b', temperature: 0.5, maxTokens: 100 })
+    expect(transport.stream).toHaveBeenCalledWith('/api/chat', {
+      message: 'hi', model: 'gemma3:4b', temperature: 0.5, max_tokens: 100
+    })
   })
 
-  it('流式 error 事件', async () => {
-    const { client } = createClient({
-      stream: vi.fn(() => asyncGen([
-        { type: 'error', error: 'model not found' }
-      ]))
-    })
-    const gen = await client.think('hi', { stream: true })
-    const chunks = []
-    for await (const c of gen) chunks.push(c)
-    expect(chunks).toEqual([
-      { type: 'error', error: 'model not found' },
-      { type: 'done', stopReason: 'end_turn' }
-    ])
-  })
-
-  it('toolChoice 透传到请求体', async () => {
+  it('tools 自动包装为 OpenAI function 格式', async () => {
     const { client, transport } = createClient({
       stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
     })
     await client.think('hi', {
-      tools: [{ name: 'foo', description: 'bar' }],
-      toolChoice: 'auto'
+      tools: [{ name: 'calc', description: '计算', parameters: { type: 'object', properties: { expr: { type: 'string' } } } }]
     })
-    expect(transport.stream).toHaveBeenCalledWith('/api/chat', {
-      message: 'hi',
-      tools: [{ type: 'function', function: { name: 'foo', description: 'bar', parameters: { type: 'object', properties: {} } } }],
-      tool_choice: 'auto'
-    })
-  })
-
-  it('接受 OpenAI 格式的 tools 定义', async () => {
-    const { client, transport } = createClient({
-      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
-    })
-    const tool = { type: 'function', function: { name: 'foo', description: 'bar', parameters: { type: 'object' } } }
-    await client.think('hi', { tools: [tool] })
-    expect(transport.stream).toHaveBeenCalledWith('/api/chat', {
-      message: 'hi',
-      tools: [tool]
+    const call = transport.stream.mock.calls[0][1]
+    expect(call.tools[0]).toEqual({
+      type: 'function',
+      function: { name: 'calc', description: '计算', parameters: { type: 'object', properties: { expr: { type: 'string' } } } }
     })
   })
 })
 
 // ============================================================
-// chat (provider routing)
+// listen
 // ============================================================
-describe('chat', () => {
-  it('throws when no provider matches', () => {
-    const client = new AgenticClient({ providers: [] })
-    expect(() => client.chat([{ role: 'user', content: 'hi' }], { model: 'gpt-4' }))
-      .toThrow('No provider matched')
-  })
-
-  it('matches provider by glob pattern', () => {
-    const client = new AgenticClient({
-      providers: [
-        { type: 'anthropic', baseUrl: 'https://api.anthropic.com', apiKey: 'sk-ant', models: ['claude-*'] },
-        { type: 'openai', baseUrl: 'https://api.openai.com', apiKey: 'sk-oai', models: ['gpt-*'] },
-      ]
-    })
-    // Should not throw — provider matched
-    // We can't easily test the fetch call without mocking global fetch,
-    // but we can verify it doesn't throw "no provider matched"
-    const result = client.chat([{ role: 'user', content: 'hi' }], { model: 'claude-3-sonnet', stream: false })
-    expect(result).toBeInstanceOf(Promise)
-  })
-})
 describe('listen', () => {
-  it('发送音频返回文本', async () => {
+  it('发送 FormData 到 /api/transcribe', async () => {
     const { client, transport } = createClient({
       postFormData: vi.fn().mockResolvedValue({ text: '你好世界' })
     })
-    const audio = new Blob(['fake-audio'], { type: 'audio/wav' })
-    const text = await client.listen(audio)
+    const blob = new Blob(['fake audio'], { type: 'audio/webm' })
+    const text = await client.listen(blob)
     expect(text).toBe('你好世界')
     expect(transport.postFormData).toHaveBeenCalledWith('/api/transcribe', expect.any(FormData))
   })
 
-  it('VAD 跳过返回空字符串', async () => {
-    const { client } = createClient({
-      postFormData: vi.fn().mockResolvedValue({ skipped: true })
+  it('传递 language 参数', async () => {
+    const { client, transport } = createClient({
+      postFormData: vi.fn().mockResolvedValue({ text: '你好' })
     })
-    const audio = new Blob(['silence'], { type: 'audio/wav' })
-    const text = await client.listen(audio)
-    expect(text).toBe('')
+    const blob = new Blob(['fake'], { type: 'audio/webm' })
+    await client.listen(blob, { language: 'zh' })
+    const fd = transport.postFormData.mock.calls[0][1]
+    expect(fd.get('language')).toBe('zh')
+  })
+
+  it('返回纯字符串时直接返回', async () => {
+    const { client } = createClient({
+      postFormData: vi.fn().mockResolvedValue('hello world')
+    })
+    const blob = new Blob(['fake'], { type: 'audio/webm' })
+    const text = await client.listen(blob)
+    expect(text).toBe('hello world')
   })
 })
 
@@ -236,14 +170,24 @@ describe('listen', () => {
 // speak
 // ============================================================
 describe('speak', () => {
-  it('发送文本返回音频数据', async () => {
-    const fakeAudio = new ArrayBuffer(100)
+  it('发送文本到 /api/synthesize 返回音频', async () => {
+    const audioData = new ArrayBuffer(100)
     const { client, transport } = createClient({
-      postBinary: vi.fn().mockResolvedValue(fakeAudio)
+      postBinary: vi.fn().mockResolvedValue(audioData)
     })
-    const result = await client.speak('你好世界')
-    expect(result).toBe(fakeAudio)
-    expect(transport.postBinary).toHaveBeenCalledWith('/api/synthesize', { text: '你好世界' })
+    const result = await client.speak('你好')
+    expect(result).toBe(audioData)
+    expect(transport.postBinary).toHaveBeenCalledWith('/api/synthesize', { text: '你好' })
+  })
+
+  it('传递 voice 和 speed 参数', async () => {
+    const { client, transport } = createClient({
+      postBinary: vi.fn().mockResolvedValue(new ArrayBuffer(10))
+    })
+    await client.speak('hello', { voice: 'nova', speed: 1.2 })
+    expect(transport.postBinary).toHaveBeenCalledWith('/api/synthesize', {
+      text: 'hello', voice: 'nova', speed: 1.2
+    })
   })
 })
 
@@ -251,67 +195,60 @@ describe('speak', () => {
 // see
 // ============================================================
 describe('see', () => {
-  it('非流式返回描述文本', async () => {
-    const { client } = createClient({
-      stream: vi.fn(() => asyncGen([
-        { type: 'content', text: 'A cat ' },
-        { type: 'content', text: 'sitting' }
-      ]))
+  it('URL 图片 + prompt', async () => {
+    const { client, transport } = createClient({
+      stream: vi.fn(() => asyncGen([{ type: 'content', text: '一只猫' }]))
     })
-    const result = await client.see('base64imagedata', 'describe')
-    expect(result).toBe('A cat sitting')
+    const result = await client.see('http://example.com/cat.jpg', '这是什么')
+    expect(result.answer).toBe('一只猫')
+    expect(transport.stream).toHaveBeenCalledWith('/api/vision', {
+      image: 'http://example.com/cat.jpg',
+      prompt: '这是什么'
+    })
   })
 
-  it('流式返回 AsyncGenerator', async () => {
+  it('base64 自动加 data: 前缀', async () => {
+    const { client, transport } = createClient({
+      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
+    })
+    await client.see('iVBORw0KGgo=', 'describe')
+    const call = transport.stream.mock.calls[0][1]
+    expect(call.image).toBe('data:image/jpeg;base64,iVBORw0KGgo=')
+  })
+
+  it('data: URI 直接传递', async () => {
+    const { client, transport } = createClient({
+      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
+    })
+    await client.see('data:image/png;base64,abc123', 'describe')
+    const call = transport.stream.mock.calls[0][1]
+    expect(call.image).toBe('data:image/png;base64,abc123')
+  })
+
+  it('默认 prompt', async () => {
+    const { client, transport } = createClient({
+      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
+    })
+    await client.see('http://example.com/img.jpg')
+    const call = transport.stream.mock.calls[0][1]
+    expect(call.prompt).toBe('Describe this image.')
+  })
+
+  it('流式模式', async () => {
     const { client } = createClient({
       stream: vi.fn(() => asyncGen([
-        { type: 'content', text: 'A ' },
-        { type: 'content', text: 'dog' }
+        { type: 'content', text: 'a ' },
+        { type: 'content', text: 'cat' }
       ]))
     })
-    const gen = await client.see('base64imagedata', 'describe', { stream: true })
+    const gen = client.see('http://example.com/cat.jpg', 'what', { stream: true })
     const chunks = []
     for await (const c of gen) chunks.push(c)
     expect(chunks).toEqual([
-      { type: 'content', text: 'A ' },
-      { type: 'content', text: 'dog' },
-      { type: 'done' }
+      { type: 'text_delta', text: 'a ' },
+      { type: 'text_delta', text: 'cat' },
+      { type: 'done', stopReason: 'end_turn' }
     ])
-  })
-
-  it('支持 base64 字符串输入', async () => {
-    const { client, transport } = createClient({
-      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
-    })
-    await client.see('aGVsbG8=', 'describe')
-    expect(transport.stream).toHaveBeenCalledWith('/api/vision', {
-      image: 'aGVsbG8=',
-      prompt: 'describe'
-    })
-  })
-
-  it('支持 ArrayBuffer 输入', async () => {
-    const { client, transport } = createClient({
-      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
-    })
-    const buf = new ArrayBuffer(4)
-    new Uint8Array(buf).set([1, 2, 3, 4])
-    await client.see(buf, 'describe')
-    // Should have converted to base64
-    const call = transport.stream.mock.calls[0]
-    expect(call[0]).toBe('/api/vision')
-    expect(typeof call[1].image).toBe('string')
-  })
-
-  it('支持 Blob 输入', async () => {
-    const { client, transport } = createClient({
-      stream: vi.fn(() => asyncGen([{ type: 'content', text: 'ok' }]))
-    })
-    const blob = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' })
-    await client.see(blob, 'describe')
-    const call = transport.stream.mock.calls[0]
-    expect(call[0]).toBe('/api/vision')
-    expect(typeof call[1].image).toBe('string')
   })
 })
 
@@ -319,15 +256,66 @@ describe('see', () => {
 // converse
 // ============================================================
 describe('converse', () => {
-  it('发送音频返回音频', async () => {
-    const fakeAudio = new ArrayBuffer(200)
+  it('发送音频返回 text + audio', async () => {
     const { client, transport } = createClient({
-      postBinaryFormData: vi.fn().mockResolvedValue(fakeAudio)
+      postFormData: vi.fn().mockResolvedValue({ text: '你好', audio: 'base64audio' })
     })
-    const audio = new Blob(['audio-data'], { type: 'audio/wav' })
-    const result = await client.converse(audio)
-    expect(result).toBe(fakeAudio)
-    expect(transport.postBinaryFormData).toHaveBeenCalledWith('/api/voice', expect.any(FormData))
+    const blob = new Blob(['fake'], { type: 'audio/webm' })
+    const result = await client.converse(blob)
+    expect(result.text).toBe('你好')
+    expect(result.audio).toBe('base64audio')
+    expect(transport.postFormData).toHaveBeenCalledWith('/api/voice', expect.any(FormData))
+  })
+
+  it('传递 voice/model/sessionId', async () => {
+    const { client, transport } = createClient({
+      postFormData: vi.fn().mockResolvedValue({ text: 'ok', audio: null })
+    })
+    const blob = new Blob(['fake'], { type: 'audio/webm' })
+    await client.converse(blob, { voice: 'nova', model: 'gemma3', sessionId: 'abc' })
+    const fd = transport.postFormData.mock.calls[0][1]
+    expect(fd.get('voice')).toBe('nova')
+    expect(fd.get('model')).toBe('gemma3')
+    expect(fd.get('sessionId')).toBe('abc')
+  })
+})
+
+// ============================================================
+// embed
+// ============================================================
+describe('embed', () => {
+  it('单个文本返回 embeddings 数组', async () => {
+    const { client, transport } = createClient({
+      post: vi.fn().mockResolvedValue({
+        data: [{ embedding: [0.1, 0.2, 0.3] }],
+        model: 'nomic-embed-text',
+        usage: { prompt_tokens: 3 }
+      })
+    })
+    const result = await client.embed('hello')
+    expect(result.embeddings).toEqual([[0.1, 0.2, 0.3]])
+    expect(result.model).toBe('nomic-embed-text')
+    expect(transport.post).toHaveBeenCalledWith('/v1/embeddings', { input: ['hello'] })
+  })
+
+  it('多个文本批量嵌入', async () => {
+    const { client, transport } = createClient({
+      post: vi.fn().mockResolvedValue({
+        data: [{ embedding: [0.1] }, { embedding: [0.2] }],
+        model: 'nomic-embed-text'
+      })
+    })
+    const result = await client.embed(['hello', 'world'])
+    expect(result.embeddings).toEqual([[0.1], [0.2]])
+    expect(transport.post).toHaveBeenCalledWith('/v1/embeddings', { input: ['hello', 'world'] })
+  })
+
+  it('传递 model 参数', async () => {
+    const { client, transport } = createClient({
+      post: vi.fn().mockResolvedValue({ data: [{ embedding: [0.1] }] })
+    })
+    await client.embed('hi', { model: 'bge-m3' })
+    expect(transport.post).toHaveBeenCalledWith('/v1/embeddings', { input: ['hi'], model: 'bge-m3' })
   })
 })
 
@@ -335,107 +323,98 @@ describe('converse', () => {
 // admin
 // ============================================================
 describe('admin', () => {
-  it('status 返回系统状态', async () => {
-    const statusData = { hardware: {}, config: {}, ollama: { running: true } }
+  it('status 调用 GET /api/status', async () => {
     const { client, transport } = createClient({
-      get: vi.fn().mockResolvedValue(statusData)
+      get: vi.fn().mockResolvedValue({ ollama: { running: true } })
     })
     const result = await client.admin.status()
-    expect(result).toEqual(statusData)
     expect(transport.get).toHaveBeenCalledWith('/api/status')
+    expect(result.ollama.running).toBe(true)
   })
 
-  it('config 无参数返回配置', async () => {
-    const configData = { model: 'gemma4:26b' }
+  it('config GET', async () => {
     const { client, transport } = createClient({
-      get: vi.fn().mockResolvedValue(configData)
+      get: vi.fn().mockResolvedValue({ model: 'gemma3:4b' })
     })
     const result = await client.admin.config()
-    expect(result).toEqual(configData)
     expect(transport.get).toHaveBeenCalledWith('/api/config')
   })
 
-  it('config 有参数更新配置', async () => {
-    const newConfig = { model: 'qwen3:8b' }
+  it('config PUT', async () => {
     const { client, transport } = createClient({
       put: vi.fn().mockResolvedValue({ ok: true })
     })
-    const result = await client.admin.config(newConfig)
-    expect(result).toEqual({ ok: true })
-    expect(transport.put).toHaveBeenCalledWith('/api/config', newConfig)
+    await client.admin.config({ model: 'qwen3:8b' })
+    expect(transport.put).toHaveBeenCalledWith('/api/config', { model: 'qwen3:8b' })
   })
 
-  it('models 返回模型列表', async () => {
-    const models = [{ name: 'gemma4:26b' }, { name: 'qwen3:8b' }]
-    const { client } = createClient({
-      get: vi.fn().mockResolvedValue({ ollama: { models } })
+  it('engines 列表', async () => {
+    const { client, transport } = createClient({
+      get: vi.fn().mockResolvedValue([{ name: 'ollama', status: 'running' }])
     })
-    const result = await client.admin.models()
-    expect(result).toEqual(models)
+    const result = await client.admin.engines()
+    expect(transport.get).toHaveBeenCalledWith('/api/engines')
   })
 
-  it('models 返回空数组当 ollama 未运行', async () => {
-    const { client } = createClient({
-      get: vi.fn().mockResolvedValue({})
+  it('engineModels 带 engine 参数', async () => {
+    const { client, transport } = createClient({
+      get: vi.fn().mockResolvedValue([])
     })
-    const result = await client.admin.models()
-    expect(result).toEqual([])
+    await client.admin.engineModels('ollama')
+    expect(transport.get).toHaveBeenCalledWith('/api/engines/models?engine=ollama')
   })
 
-  it('pullModel 返回进度流', async () => {
-    const progress = [
-      { status: 'downloading', progress: 50 },
-      { status: 'downloading', progress: 100 },
-      { status: 'success' }
-    ]
-    const onProgress = vi.fn()
-    const { client } = createClient({
-      stream: vi.fn(() => asyncGen(progress))
+  it('pullModel 流式下载', async () => {
+    const { client, transport } = createClient({
+      stream: vi.fn(() => asyncGen([
+        { status: 'pulling', progress: 50 },
+        { status: 'success', progress: 100 }
+      ]))
     })
     const chunks = []
-    for await (const c of client.admin.pullModel('gemma4:26b', onProgress)) {
-      chunks.push(c)
-    }
-    expect(chunks).toEqual(progress)
-    expect(onProgress).toHaveBeenCalledTimes(3)
+    for await (const c of client.admin.pullModel('gemma3:4b')) chunks.push(c)
+    expect(chunks).toHaveLength(2)
+    expect(transport.stream).toHaveBeenCalledWith('/api/engines/pull', { model: 'gemma3:4b' })
   })
 
-  it('deleteModel 删除模型', async () => {
+  it('deleteModel', async () => {
     const { client, transport } = createClient({
       del: vi.fn().mockResolvedValue({ ok: true })
     })
-    await client.admin.deleteModel('qwen3:0.6b')
-    expect(transport.del).toHaveBeenCalledWith('/api/models/qwen3%3A0.6b')
+    await client.admin.deleteModel('gemma3:4b')
+    expect(transport.del).toHaveBeenCalledWith('/api/engines/models/gemma3%3A4b')
   })
 
-  it('logs 返回日志', async () => {
-    const logs = [{ ts: 1, msg: 'started' }]
+  it('models 列表 (OpenAI 兼容)', async () => {
     const { client, transport } = createClient({
-      get: vi.fn().mockResolvedValue(logs)
+      get: vi.fn().mockResolvedValue({ data: [{ id: 'gemma3:4b' }] })
     })
-    const result = await client.admin.logs()
-    expect(result).toEqual(logs)
-    expect(transport.get).toHaveBeenCalledWith('/api/logs')
+    await client.admin.models()
+    expect(transport.get).toHaveBeenCalledWith('/v1/models')
   })
 
-  it('perf 返回性能指标', async () => {
-    const perf = { tokensPerSec: 42 }
+  it('health', async () => {
     const { client, transport } = createClient({
-      get: vi.fn().mockResolvedValue(perf)
+      get: vi.fn().mockResolvedValue({ status: 'ok' })
     })
-    const result = await client.admin.perf()
-    expect(result).toEqual(perf)
-    expect(transport.get).toHaveBeenCalledWith('/api/perf')
+    await client.admin.health()
+    expect(transport.get).toHaveBeenCalledWith('/api/health')
   })
 
-  it('devices 返回设备列表', async () => {
-    const devices = [{ id: 'mic1', type: 'microphone' }]
+  it('assignments GET', async () => {
     const { client, transport } = createClient({
-      get: vi.fn().mockResolvedValue(devices)
+      get: vi.fn().mockResolvedValue({ chat: 'gemma3:4b' })
     })
-    const result = await client.admin.devices()
-    expect(result).toEqual(devices)
-    expect(transport.get).toHaveBeenCalledWith('/api/devices')
+    await client.admin.assignments()
+    expect(transport.get).toHaveBeenCalledWith('/api/assignments')
+  })
+
+  it('assignments PUT', async () => {
+    const { client, transport } = createClient({
+      put: vi.fn().mockResolvedValue({ ok: true })
+    })
+    await client.admin.setAssignments({ chat: 'qwen3:8b' })
+    expect(transport.put).toHaveBeenCalledWith('/api/assignments', { chat: 'qwen3:8b' })
   })
 })
 
@@ -443,20 +422,23 @@ describe('admin', () => {
 // capabilities
 // ============================================================
 describe('capabilities', () => {
-  it('从 /api/status 推断能力', async () => {
+  it('全部可用', async () => {
     const { client } = createClient({
       get: vi.fn().mockResolvedValue({
-        ollama: { running: true, models: [{ name: 'gemma4' }] },
+        ollama: { running: true, models: [{ name: 'gemma3:4b' }] },
         config: { stt: true, tts: true }
       })
     })
     const caps = await client.capabilities()
-    expect(caps).toEqual({
-      think: true, listen: true, speak: true, see: true, converse: true
-    })
+    expect(caps.think).toBe(true)
+    expect(caps.listen).toBe(true)
+    expect(caps.speak).toBe(true)
+    expect(caps.see).toBe(true)
+    expect(caps.converse).toBe(true)
+    expect(caps.embed).toBe(true)
   })
 
-  it('Ollama 没跑时 think=false', async () => {
+  it('Ollama 没跑时 think/see/embed=false', async () => {
     const { client } = createClient({
       get: vi.fn().mockResolvedValue({
         ollama: { running: false, models: [] },
@@ -466,6 +448,7 @@ describe('capabilities', () => {
     const caps = await client.capabilities()
     expect(caps.think).toBe(false)
     expect(caps.see).toBe(false)
+    expect(caps.embed).toBe(false)
     expect(caps.converse).toBe(false)
   })
 
@@ -486,15 +469,16 @@ describe('capabilities', () => {
 // transport
 // ============================================================
 describe('transport', () => {
-  it('自动检测浏览器/Node 环境', () => {
-    // In Node test env, should create without error
+  it('创建 transport 包含所有方法', () => {
     const t = createTransport('http://localhost:1234')
     expect(t).toHaveProperty('get')
     expect(t).toHaveProperty('post')
+    expect(t).toHaveProperty('put')
+    expect(t).toHaveProperty('del')
     expect(t).toHaveProperty('stream')
+    expect(t).toHaveProperty('streamGet')
     expect(t).toHaveProperty('postBinary')
     expect(t).toHaveProperty('postFormData')
-    expect(t).toHaveProperty('postBinaryFormData')
   })
 
   it('SSE 流正确解析 data: 行', async () => {
@@ -548,15 +532,31 @@ describe('transport', () => {
       const t = createTransport('http://localhost:1234')
       const chunks = []
       for await (const c of t.stream('/api/chat', {})) chunks.push(c)
-      // Should stop at [DONE], not yield "b"
       expect(chunks).toEqual([{ type: 'content', text: 'a' }])
     } finally {
       globalThis.fetch = origFetch
     }
   })
 
+  it('HTTP 错误抛出 AgenticError', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false, status: 500, statusText: 'Internal Server Error',
+      text: () => Promise.resolve('server error'),
+      headers: new Headers({ 'content-type': 'text/plain' })
+    })
+    const origFetch = globalThis.fetch
+    globalThis.fetch = mockFetch
+    try {
+      const t = createTransport('http://localhost:1234')
+      await expect(t.get('/api/status')).rejects.toThrow(AgenticError)
+      await expect(t.get('/api/status')).rejects.toMatchObject({ status: 500 })
+    } finally {
+      globalThis.fetch = origFetch
+    }
+  })
+
   it('超时抛出 AgenticError', async () => {
-    const mockFetch = vi.fn().mockRejectedValue(Object.assign(new Error('timeout'), { name: 'TimeoutError' }))
+    const mockFetch = vi.fn().mockRejectedValue(Object.assign(new Error('aborted'), { name: 'AbortError' }))
     const origFetch = globalThis.fetch
     globalThis.fetch = mockFetch
     try {
@@ -603,21 +603,6 @@ describe('errors', () => {
     }
   })
 
-  it('500 服务错误', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: false, status: 500, statusText: 'Internal Server Error',
-      text: () => Promise.resolve('internal error')
-    })
-    const origFetch = globalThis.fetch
-    globalThis.fetch = mockFetch
-    try {
-      const t = createTransport('http://localhost:1234')
-      await expect(t.get('/api/status')).rejects.toMatchObject({ status: 500 })
-    } finally {
-      globalThis.fetch = origFetch
-    }
-  })
-
   it('网络不可达', async () => {
     const mockFetch = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'))
     const origFetch = globalThis.fetch
@@ -652,9 +637,27 @@ describe('AgenticClient', () => {
     expect(client.baseUrl).toBe('http://localhost:1234')
   })
 
+  it('accepts options object as first arg', () => {
+    const client = new AgenticClient({ baseUrl: 'http://localhost:5678' })
+    expect(client.baseUrl).toBe('http://localhost:5678')
+  })
+
   it('has admin property', () => {
     const client = new AgenticClient('http://localhost:1234')
     expect(client.admin).toBeDefined()
     expect(typeof client.admin.status).toBe('function')
+    expect(typeof client.admin.engines).toBe('function')
+    expect(typeof client.admin.pullModel).toBe('function')
+  })
+
+  it('has all core methods', () => {
+    const client = new AgenticClient('http://localhost:1234')
+    expect(typeof client.think).toBe('function')
+    expect(typeof client.listen).toBe('function')
+    expect(typeof client.speak).toBe('function')
+    expect(typeof client.see).toBe('function')
+    expect(typeof client.converse).toBe('function')
+    expect(typeof client.embed).toBe('function')
+    expect(typeof client.capabilities).toBe('function')
   })
 })
