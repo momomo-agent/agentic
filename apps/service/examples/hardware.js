@@ -22,13 +22,13 @@ async function main() {
   console.log(`  CPU:     ${hw.cpu.model} (${hw.cpu.cores} cores)`);
 
   console.log('\n=== 推荐配置 ===\n');
-  const profile = status.profile;
-  if (profile.llm) {
-    console.log(`  LLM:     ${profile.llm.provider} / ${profile.llm.model}`);
-    console.log(`  STT:     ${profile.stt?.provider || 'N/A'} / ${profile.stt?.model || 'N/A'}`);
-    console.log(`  TTS:     ${profile.tts?.provider || 'N/A'} / ${profile.tts?.voice || 'N/A'}`);
+  const cfg = status.config;
+  if (cfg?.llm) {
+    console.log(`  LLM:     ${cfg.llm.provider} / ${cfg.llm.model}`);
+    console.log(`  STT:     ${cfg.stt?.provider || 'N/A'} / ${cfg.stt?.model || 'N/A'}`);
+    console.log(`  TTS:     ${cfg.tts?.provider || 'N/A'} / ${cfg.tts?.voice || 'N/A'}`);
   } else {
-    console.log('  (no profile loaded)');
+    console.log('  (no config loaded)');
   }
 
   console.log('\n=== Ollama 模型 ===\n');
