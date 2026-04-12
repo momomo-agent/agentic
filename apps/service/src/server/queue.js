@@ -42,6 +42,11 @@ export function enqueue(queue, fn) {
   });
 }
 
+export function resetQueue(queue) {
+  queue.active = 0;
+  queue.pending.length = 0;
+}
+
 export function getQueueStats(queue) {
   return {
     pending: queue.pending.length,

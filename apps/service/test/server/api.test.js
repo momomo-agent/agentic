@@ -18,6 +18,9 @@ vi.mock('../../src/detector/hardware.js', () => ({
   })
 }));
 
+vi.mock('../../src/runtime/stt.js', () => ({ init: vi.fn(), transcribe: vi.fn() }));
+vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() }));
+
 import { chat } from '../../src/server/brain.js';
 import { startServer } from '../../src/server/api.js';
 

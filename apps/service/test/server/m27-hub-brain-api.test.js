@@ -53,7 +53,8 @@ describe('DBB-010: POST /api/chat returns SSE stream', () => {
     const res = await fetch(`${baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'hello' })
+      body: JSON.stringify({ message: 'hello' }),
+      signal: AbortSignal.timeout(3000),
     });
     expect(res.headers.get('content-type')).toMatch(/text\/event-stream/);
     const text = await res.text();
@@ -64,7 +65,8 @@ describe('DBB-010: POST /api/chat returns SSE stream', () => {
     const res = await fetch(`${baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+      body: JSON.stringify({}),
+      signal: AbortSignal.timeout(3000),
     });
     expect(res.status).toBe(400);
   });

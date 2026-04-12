@@ -18,7 +18,7 @@ import { getConfig, setConfig, reloadConfig, CONFIG_PATH, addToPool, removeFromP
 import { getEngines, discoverModels, getEngine, modelsForCapability, resolveModel } from '../engine/registry.js';
 import { getAllHealth } from '../engine/health.js';
 import { embed } from '../runtime/embed.js';
-import { createQueue, enqueue, getQueueStats } from './queue.js';
+import { createQueue, enqueue, getQueueStats, resetQueue } from './queue.js';
 
 const localQueue = createQueue('local', { maxConcurrency: 1, maxQueueSize: 50 });
 const cloudQueue = createQueue('cloud', { maxConcurrency: 5, maxQueueSize: 100 });
@@ -905,6 +905,12 @@ function listenAsync(server, port) {
 }
 
 export async function startServer(port = 3000, { https: useHttps = false } = {}) {
+  // Reset module-level state (important for test isolation)
+  resetDrain();
+  inflight = 0;
+  resetQueue(localQueue);
+  resetQueue(cloudQueue);
+
   const app = createApp();
 
   if (useHttps) {
@@ -966,6 +972,8 @@ export async function startServer(port = 3000, { https: useHttps = false } = {})
 }
 
 export function stopServer(server) {
+  // Force-close idle keep-alive connections so server.close() doesn't hang
+  if (server.closeAllConnections) server.closeAllConnections();
   return new Promise((resolve, reject) =>
     server.close(err => err ? reject(err) : resolve())
   );
