@@ -1,10 +1,33 @@
 import { execFile } from 'node:child_process';
 import { writeFile, unlink, access } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-const WHISPER_BIN = process.env.WHISPER_BIN || '/opt/homebrew/bin/whisper-cli';
-const WHISPER_MODEL = process.env.WHISPER_MODEL || join(process.env.HOME, 'LOCAL/momo-agent/tools/whisper-models/ggml-small.bin');
+// Search common paths for whisper binary
+const WHISPER_BIN_CANDIDATES = [
+  process.env.WHISPER_BIN,
+  '/opt/homebrew/bin/whisper-cpp',
+  '/opt/homebrew/bin/whisper-cli',
+  '/usr/local/bin/whisper-cpp',
+  '/usr/local/bin/whisper',
+].filter(Boolean);
+
+const WHISPER_MODEL_CANDIDATES = [
+  process.env.WHISPER_MODEL,
+  '/opt/homebrew/share/whisper-cpp/models/ggml-small.bin',
+  join(process.env.HOME, 'LOCAL/momo-agent/tools/whisper-models/ggml-small.bin'),
+].filter(Boolean);
+
+function findFirst(paths) {
+  for (const p of paths) {
+    if (existsSync(p)) return p;
+  }
+  return paths[0]; // fallback to first candidate
+}
+
+const WHISPER_BIN = findFirst(WHISPER_BIN_CANDIDATES);
+const WHISPER_MODEL = findFirst(WHISPER_MODEL_CANDIDATES);
 
 export async function check() {
   await access(WHISPER_BIN);

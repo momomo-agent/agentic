@@ -490,6 +490,8 @@ function addRoutes(r) {
   r.put('/api/assignments', async (req, res) => {
     try {
       const result = await setAssignments(req.body);
+      // Re-init STT/TTS when assignments change (so new model takes effect without restart)
+      await Promise.all([stt.init(), tts.init()]).catch(e => console.warn('Runtime re-init warning:', e.message));
       res.json(result);
     } catch (e) {
       res.status(500).json({ error: e.message });

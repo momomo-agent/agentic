@@ -14,13 +14,30 @@ const WHISPER_MODELS = [
   { name: 'whisper:medium', description: 'OpenAI Whisper Medium — 高精度', size: '~1.5 GB', capabilities: ['stt'] },
 ];
 
-function whisperBinaryExists() {
-  try {
-    execSync('which whisper-cpp 2>/dev/null || which whisper 2>/dev/null', { stdio: 'pipe' });
-    return true;
-  } catch {
-    return false;
+// Well-known install paths — PATH may not include /opt/homebrew/bin in daemon/nohup mode
+const WHISPER_SEARCH_PATHS = [
+  '/opt/homebrew/bin/whisper-cpp',
+  '/opt/homebrew/bin/whisper-cli',
+  '/opt/homebrew/bin/whisper',
+  '/usr/local/bin/whisper-cpp',
+  '/usr/local/bin/whisper',
+];
+
+function findWhisperBinary() {
+  // 1. Check well-known paths first (works even when PATH is minimal)
+  for (const p of WHISPER_SEARCH_PATHS) {
+    if (existsSync(p)) return p;
   }
+  // 2. Fall back to which (works when PATH is correct)
+  try {
+    return execSync('which whisper-cpp 2>/dev/null || which whisper-cli 2>/dev/null || which whisper 2>/dev/null', { stdio: 'pipe' }).toString().trim();
+  } catch {
+    return null;
+  }
+}
+
+function whisperBinaryExists() {
+  return !!findWhisperBinary();
 }
 
 function sensevoiceAvailable() {
