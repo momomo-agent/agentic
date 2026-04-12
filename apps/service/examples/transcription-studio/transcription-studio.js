@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:1234'
+const ai = new AgenticClient('http://localhost:1234')
 
 const uploadArea = document.getElementById('uploadArea')
 const fileInput = document.getElementById('fileInput')
@@ -54,18 +54,13 @@ async function transcribeAll() {
     renderFileList()
 
     try {
-      const form = new FormData()
-      form.append('audio', file)
-      const res = await fetch(`${API_BASE}/api/transcribe`, { method: 'POST', body: form })
-      const data = await res.json()
-
-      results[i] = { status: 'done', text: data.text || '' }
+      const text = await ai.listen(file)
+      results[i] = { status: 'done', text: text || '' }
 
       const block = document.createElement('div')
       block.style.cssText = 'margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #333;'
-      block.innerHTML = `<div style="color: #888; font-size: 12px; margin-bottom: 8px">${file.name}</div><div>${data.text || '(无内容)'}</div>`
+      block.innerHTML = `<div style="color: #888; font-size: 12px; margin-bottom: 8px">${file.name}</div><div>${text || '(无内容)'}</div>`
       resultContent.appendChild(block)
-
     } catch (e) {
       results[i] = { status: 'error', text: '' }
     }

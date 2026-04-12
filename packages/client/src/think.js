@@ -7,6 +7,7 @@ export function think(transport, input, options = {}) {
     body.messages = input
   }
 
+  if (options.model) body.model = options.model
   if (options.history) body.history = options.history
   if (options.sessionId) body.sessionId = options.sessionId
   if (options.tools) {

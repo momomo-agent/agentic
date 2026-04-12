@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:1234'
+const ai = new AgenticClient('http://localhost:1234')
 
 const toolList = document.getElementById('toolList')
 const messages = document.getElementById('messages')
@@ -17,11 +17,8 @@ const tools = [
     description: '执行数学计算',
     enabled: true,
     mock: (expr) => {
-      try {
-        return `结果: ${eval(expr)}`
-      } catch {
-        return '计算错误'
-      }
+      try { return `结果: ${eval(expr)}` }
+      catch { return '计算错误' }
     }
   },
   {
@@ -61,7 +58,6 @@ function renderTools() {
 function addMessage(role, content, toolCall = null) {
   const msg = document.createElement('div')
   msg.className = `message ${role}`
-  
   if (role === 'tool' && toolCall) {
     msg.innerHTML = `
       <div class="tool-call">🔧 ${toolCall.name}</div>
@@ -70,7 +66,6 @@ function addMessage(role, content, toolCall = null) {
   } else {
     msg.textContent = content
   }
-  
   messages.appendChild(msg)
   messages.scrollTop = messages.scrollHeight
 }
@@ -78,69 +73,38 @@ function addMessage(role, content, toolCall = null) {
 async function sendMessage() {
   const text = input.value.trim()
   if (!text || isProcessing) return
-  
+
   input.value = ''
   addMessage('user', text)
-  
   conversationHistory.push({ role: 'user', content: text })
-  
+
   isProcessing = true
   sendBtn.disabled = true
-  
+
   try {
-    // 构造工具定义
-    const toolDefs = tools
-      .filter(t => t.enabled)
-      .map(t => ({
-        type: 'function',
-        function: {
-          name: t.name,
-          description: t.description,
-          parameters: {
-            type: 'object',
-            properties: {},
-            required: []
-          }
-        }
-      }))
-    
-    const response = await fetch(`${API_BASE}/v1/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'gemma4:e4b',
-        messages: conversationHistory,
-        tools: toolDefs,
-        stream: false
-      })
-    })
-    
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    
-    const data = await response.json()
-    const choice = data.choices[0]
-    const message = choice.message
-    
-    // 处理工具调用
-    if (message.tool_calls?.length) {
-      for (const tc of message.tool_calls) {
-        const tool = tools.find(t => t.name === tc.function.name)
+    const enabledTools = tools.filter(t => t.enabled).map(t => ({
+      name: t.name,
+      description: t.description,
+      parameters: { type: 'object', properties: {} }
+    }))
+
+    const result = await ai.think(conversationHistory, { tools: enabledTools })
+
+    if (result.toolCalls?.length) {
+      for (const tc of result.toolCalls) {
+        const tool = tools.find(t => t.name === tc.name)
         if (tool) {
-          const args = JSON.parse(tc.function.arguments || '{}')
-          const result = tool.mock(...Object.values(args))
-          addMessage('tool', result, { name: tool.name })
+          const mockResult = tool.mock(...Object.values(tc.args || {}))
+          addMessage('tool', mockResult, { name: tool.name })
         }
       }
-      
-      // 继续对话（简化版，实际应该递归调用）
-      addMessage('assistant', '已执行工具调用，请查看结果')
+      addMessage('assistant', result.answer || '已执行工具调用，请查看结果')
     } else {
-      addMessage('assistant', message.content || '(无回复)')
-      conversationHistory.push({ role: 'assistant', content: message.content })
+      addMessage('assistant', result.answer || '(无回复)')
     }
-    
+
+    conversationHistory.push({ role: 'assistant', content: result.answer || '' })
   } catch (e) {
-    console.error('Send failed:', e)
     addMessage('assistant', '错误: ' + e.message)
   } finally {
     isProcessing = false

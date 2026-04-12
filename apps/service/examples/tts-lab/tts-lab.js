@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:1234'
+const ai = new AgenticClient('http://localhost:1234')
 
 const textInput = document.getElementById('textInput')
 const voiceGrid = document.getElementById('voiceGrid')
@@ -17,7 +17,6 @@ const voices = [
 let selectedVoice = 'alloy'
 let audioBlobs = {}
 
-// 渲染声音卡片
 function renderVoices() {
   voiceGrid.innerHTML = ''
   voices.forEach(v => {
@@ -36,57 +35,38 @@ function renderVoices() {
   })
 }
 
-// 合成语音
 async function synthesize() {
   const text = textInput.value.trim()
-  if (!text) {
-    alert('请输入文本')
-    return
-  }
-  
+  if (!text) { alert('请输入文本'); return }
+
   synthesizeBtn.disabled = true
   synthesizeBtn.textContent = '合成中...'
   audioBlobs = {}
-  
-  // 为所有声音合成
+
   for (const voice of voices) {
     try {
-      const res = await fetch(`${API_BASE}/api/synthesize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice: voice.id })
-      })
-      
-      if (!res.ok) throw new Error('Synthesis failed')
-      
-      const blob = await res.blob()
+      const audioData = await ai.speak(text)
+      const blob = new Blob([audioData], { type: 'audio/wav' })
       audioBlobs[voice.id] = blob
-      
-      // 更新对应卡片的音频
+
       const cards = voiceGrid.querySelectorAll('.voice-card')
       const card = cards[voices.findIndex(v => v.id === voice.id)]
       const audio = card.querySelector('audio')
       audio.src = URL.createObjectURL(blob)
       audio.style.display = 'block'
-      
     } catch (e) {
       console.error(`Synthesis failed for ${voice.id}:`, e)
     }
   }
-  
+
   synthesizeBtn.disabled = false
   synthesizeBtn.textContent = '合成语音'
   downloadBtn.disabled = false
 }
 
-// 下载当前选中的音频
 function download() {
   const blob = audioBlobs[selectedVoice]
-  if (!blob) {
-    alert('请先合成语音')
-    return
-  }
-  
+  if (!blob) { alert('请先合成语音'); return }
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
   a.download = `tts-${selectedVoice}-${Date.now()}.wav`
@@ -95,5 +75,4 @@ function download() {
 
 synthesizeBtn.addEventListener('click', synthesize)
 downloadBtn.addEventListener('click', download)
-
 renderVoices()
