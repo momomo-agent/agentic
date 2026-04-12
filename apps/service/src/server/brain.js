@@ -137,11 +137,15 @@ async function* callEngine(resolved, messages, toolDefs) {
 
   const input = { messages };
   if (toolDefs?.length) {
-    input.tools = toolDefs.map(t => ({
-      name: t.name,
-      description: t.description || '',
-      parameters: t.parameters || {},
-    }));
+    input.tools = toolDefs.map(t => {
+      // Support both flat { name, description, parameters } and OpenAI { type: 'function', function: { ... } }
+      const fn = t.function || t;
+      return {
+        name: fn.name,
+        description: fn.description || '',
+        parameters: fn.parameters || {},
+      };
+    });
   }
 
   let gotFirstToken = false;
