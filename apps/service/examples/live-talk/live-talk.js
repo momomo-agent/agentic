@@ -48,13 +48,17 @@ async function initCamera() {
 function captureFrame() {
   try {
     if (!video.videoWidth || !video.videoHeight) return null
+    // HAVE_CURRENT_DATA = 2; first frame not yet decoded → skip
+    if (video.readyState < 2) return null
     const canvas = document.createElement('canvas')
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
     canvas.getContext('2d').drawImage(video, 0, 0)
     const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
     const parts = dataUrl.split(',')
-    return parts.length > 1 ? parts[1] : null
+    const b64 = parts.length > 1 ? parts[1] : null
+    // Guard against empty/corrupt canvas output (blank frame < 100 bytes)
+    return (b64 && b64.length > 100) ? b64 : null
   } catch (e) {
     return null
   }
