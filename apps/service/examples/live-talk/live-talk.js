@@ -11,11 +11,41 @@ const stopBtn = document.getElementById('stopBtn')
 const messages = document.getElementById('messages')
 const textInput = document.getElementById('textInput')
 const sendBtn = document.getElementById('sendBtn')
+const multiFrameBtn = document.getElementById('multiFrameBtn')
 
 let voice = null
 let isActive = false
 let isProcessing = false
 let conversationHistory = []
+
+// ── Multi-frame buffer ──
+let multiFrameEnabled = false
+const frameBuffer = []          // { b64, ts }
+const FRAME_INTERVAL = 1500     // capture every 1.5s
+const MAX_FRAMES = 4            // keep last 4 frames
+let frameTimer = null
+
+multiFrameBtn.addEventListener('click', () => {
+  multiFrameEnabled = !multiFrameEnabled
+  multiFrameBtn.classList.toggle('active', multiFrameEnabled)
+  if (multiFrameEnabled && isActive) startFrameCapture()
+  else stopFrameCapture()
+})
+
+function startFrameCapture() {
+  stopFrameCapture()
+  frameBuffer.length = 0
+  frameTimer = setInterval(() => {
+    const b64 = captureFrame()
+    if (!b64) return
+    frameBuffer.push({ b64, ts: Date.now() })
+    if (frameBuffer.length > MAX_FRAMES) frameBuffer.shift()
+  }, FRAME_INTERVAL)
+}
+
+function stopFrameCapture() {
+  if (frameTimer) { clearInterval(frameTimer); frameTimer = null }
+}
 
 function addMessage(role, content) {
   const msg = document.createElement('div')
@@ -48,7 +78,6 @@ async function initCamera() {
 function captureFrame() {
   try {
     if (!video.videoWidth || !video.videoHeight) return null
-    // HAVE_CURRENT_DATA = 2; first frame not yet decoded → skip
     if (video.readyState < 2) return null
     const canvas = document.createElement('canvas')
     canvas.width = video.videoWidth
@@ -57,17 +86,40 @@ function captureFrame() {
     const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
     const parts = dataUrl.split(',')
     const b64 = parts.length > 1 ? parts[1] : null
-    // Guard against empty/corrupt canvas output (blank frame < 100 bytes)
     return (b64 && b64.length > 100) ? b64 : null
   } catch (e) {
     return null
   }
 }
 
-async function sendToLLM(text, audioBlob = null, includeImage = true) {
+function buildImageContent() {
   const content = []
 
-  if (includeImage && video.videoWidth > 0) {
+  if (multiFrameEnabled && frameBuffer.length > 0) {
+    // Multi-frame: send buffered frames with timestamps
+    const now = Date.now()
+    for (const frame of frameBuffer) {
+      const secsAgo = ((now - frame.ts) / 1000).toFixed(1)
+      content.push({
+        type: 'text',
+        text: `[Frame from ${secsAgo}s ago]`
+      })
+      content.push({
+        type: 'image_url',
+        image_url: { url: `data:image/jpeg;base64,${frame.b64}` }
+      })
+    }
+    // Also capture current frame
+    const current = captureFrame()
+    if (current) {
+      content.push({ type: 'text', text: '[Current frame]' })
+      content.push({
+        type: 'image_url',
+        image_url: { url: `data:image/jpeg;base64,${current}` }
+      })
+    }
+  } else {
+    // Single frame: just current
     const imageData = captureFrame()
     if (imageData) {
       content.push({
@@ -77,19 +129,29 @@ async function sendToLLM(text, audioBlob = null, includeImage = true) {
     }
   }
 
+  return content
+}
+
+async function sendToLLM(text, audioBlob = null, includeImage = true) {
+  const content = []
+
+  if (includeImage && video.videoWidth > 0) {
+    content.push(...buildImageContent())
+  }
+
   content.push({ type: 'text', text: text || 'What do you see?' })
 
+  const systemPrompt = multiFrameEnabled
+    ? 'You are a friendly, conversational AI assistant. The user is talking to you through a microphone and showing you their camera. You receive multiple frames over time — pay attention to changes and movement between frames. Keep responses to 1-3 short sentences. Be natural and concise.'
+    : 'You are a friendly, conversational AI assistant. The user is talking to you through a microphone and showing you their camera. Keep responses to 1-3 short sentences. Be natural and concise.'
+
   const msgs = [
-    {
-      role: 'system',
-      content: 'You are a friendly, conversational AI assistant. The user is talking to you through a microphone and showing you their camera. Keep responses to 1-3 short sentences. Be natural and concise.'
-    },
+    { role: 'system', content: systemPrompt },
     ...conversationHistory,
     { role: 'user', content }
   ]
 
   try {
-    // Stream LLM via AgenticClient
     const textStream = {
       [Symbol.asyncIterator]: async function* () {
         for await (const chunk of ai.think(msgs, { stream: true })) {
@@ -101,7 +163,6 @@ async function sendToLLM(text, audioBlob = null, includeImage = true) {
     setStatus('speaking', '回复中...')
     let assistantText = ''
 
-    // Use AgenticVoice for streaming TTS playback
     const collected = []
     const tee = {
       [Symbol.asyncIterator]: async function* () {
@@ -149,7 +210,6 @@ async function start() {
     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' })
     audioChunks = []
 
-    // STT via AgenticClient
     setStatus('active', '识别中...')
     try {
       const text = await ai.listen(audioBlob)
@@ -167,7 +227,6 @@ async function start() {
     }
   }
 
-  // Simple VAD
   const audioContext = new AudioContext()
   const source = audioContext.createMediaStreamSource(stream)
   const analyser = audioContext.createAnalyser()
@@ -201,7 +260,6 @@ async function start() {
   }
   detectVoice()
 
-  // TTS via AgenticVoice (for streaming playback)
   voice = window.AgenticVoice.createVoice({
     tts: {
       provider: 'openai',
@@ -216,10 +274,15 @@ async function start() {
   stopBtn.disabled = false
   setStatus('listening', '聆听中...')
   addMessage('system', '对话已开始，可以说话了')
+
+  // Start frame capture if multi-frame is on
+  if (multiFrameEnabled) startFrameCapture()
 }
 
 function stop() {
   if (!isActive) return
+  stopFrameCapture()
+  frameBuffer.length = 0
   if (voice) { voice.stop(); voice.destroy(); voice = null }
   if (video.srcObject) { video.srcObject.getTracks().forEach(t => t.stop()); video.srcObject = null }
   isActive = false

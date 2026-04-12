@@ -133,6 +133,31 @@
     
     .btn-danger:hover { background: #dc2626; }
     
+    .btn-toggle {
+      background: #374151;
+      color: #9ca3af;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-toggle.active {
+      background: #7c3aed;
+      color: white;
+    }
+    
+    .btn-toggle .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    
+    .btn-toggle.active .dot {
+      animation: pulse 1.5s infinite;
+    }
+    
     .chat-panel {
       width: 400px;
       display: flex;
@@ -226,6 +251,9 @@
       <div class="controls">
         <button class="btn btn-primary" id="startBtn">开始对话</button>
         <button class="btn btn-danger" id="stopBtn" disabled>停止</button>
+        <button class="btn btn-toggle" id="multiFrameBtn" title="多帧上下文：发送最近几帧让 AI 理解动态变化">
+          <span class="dot"></span>多帧
+        </button>
       </div>
     </div>
     
