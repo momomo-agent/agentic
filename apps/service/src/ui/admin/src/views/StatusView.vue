@@ -174,7 +174,7 @@ function slotDisplay(slot) {
   if (!id) return ''
   const entry = pool.value.find(p => p.id === id)
   if (!entry) return id
-  return `${entry.provider} / ${entry.name}`
+  return `${entry.engineId || entry.provider || ""} / ${entry.name}`
 }
 
 const downloadPct = computed(() => {
