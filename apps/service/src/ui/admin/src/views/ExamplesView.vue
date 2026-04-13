@@ -1070,9 +1070,11 @@ async function toggleLiveVision() {
       await nextTick()
       if (lvVideoEl.value) {
         lvVideoEl.value.srcObject = lvStream
-        // Wait for first frame before starting capture loop
+        // Wait until video is actually playing (not just metadata loaded)
         await new Promise(resolve => {
-          lvVideoEl.value.addEventListener('loadeddata', resolve, { once: true })
+          if (lvVideoEl.value.readyState >= 2) return resolve()
+          lvVideoEl.value.addEventListener('playing', resolve, { once: true })
+          lvVideoEl.value.play().catch(() => {})
         })
       }
       lvRunning.value = true
@@ -1103,7 +1105,7 @@ async function captureAndDescribe() {
   const v = lvVideoEl.value
   const c = lvCanvasEl.value
   // Guard: skip if video not ready yet (avoids illegal base64)
-  if (!v.videoWidth || !v.videoHeight) return
+  if (!v.videoWidth || !v.videoHeight || v.readyState < 2) return
   // Downscale to max 640px wide for faster vision processing
   const maxW = 640
   const scale = v.videoWidth > maxW ? maxW / v.videoWidth : 1
@@ -1111,6 +1113,8 @@ async function captureAndDescribe() {
   c.height = Math.round(v.videoHeight * scale)
   c.getContext('2d').drawImage(v, 0, 0, c.width, c.height)
   const dataUrl = c.toDataURL('image/jpeg', 0.6)
+  // Skip if canvas produced a trivially small image (blank/corrupt frame)
+  if (dataUrl.length < 1000) return
 
   const now = new Date()
   const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`
