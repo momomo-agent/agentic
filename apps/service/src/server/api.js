@@ -577,7 +577,8 @@ function addRoutes(r) {
 
   r.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'audio required' });
-    if (!detectVoiceActivity(req.file.buffer)) return res.json({ text: '', skipped: true });
+    // Note: VAD removed — compressed formats (webm/opus) can't be parsed as PCM.
+    // Whisper handles silence gracefully (returns empty text).
     try {
       res.json({ text: await stt.transcribe(req.file.buffer) });
     } catch (e) {
@@ -610,7 +611,6 @@ function addRoutes(r) {
 
   r.post('/api/voice', upload.single('audio'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'audio required' });
-    if (!detectVoiceActivity(req.file.buffer)) return res.json({ text: '', skipped: true });
 
     const t0 = Date.now();
     try {
