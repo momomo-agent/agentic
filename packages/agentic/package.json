@@ -1,0 +1,29 @@
+{
+  "name": "agentic",
+  "version": "0.1.0",
+  "description": "给 AI 造身体 — 一次 import，所有能力",
+  "main": "agentic.js",
+  "files": ["agentic.js", "README.md"],
+  "keywords": ["ai", "agent", "llm", "toolkit", "memory", "voice", "sense"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/momomo-agent/agentic.git"
+  },
+  "peerDependencies": {
+    "agentic-core": "workspace:*",
+    "agentic-memory": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "agentic-act": { "optional": true },
+    "agentic-claw": { "optional": true },
+    "agentic-embed": { "optional": true },
+    "agentic-filesystem": { "optional": true },
+    "agentic-render": { "optional": true },
+    "agentic-sense": { "optional": true },
+    "agentic-shell": { "optional": true },
+    "agentic-spatial": { "optional": true },
+    "agentic-store": { "optional": true },
+    "agentic-voice": { "optional": true }
+  }
+}
