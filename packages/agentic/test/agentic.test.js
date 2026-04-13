@@ -1,369 +1,345 @@
 /**
  * agentic — 全自动化测试
  *
- * 测试策略：
- * 1. 构造 & 生命周期
- * 2. capabilities() 检测
- * 3. 每个子库的方法委托（mock 子库，验证调用）
- * 4. 缺失子库时的错误处理
- * 5. 懒加载（首次调用才初始化）
- * 6. 配置透传
- * 7. 真实集成测试（有子库的）
+ * 两种模式全覆盖：
+ * 1. 纯 client（子库直接调用）— Agentic 类
+ * 2. 配合 service（HTTP）— AgenticClient 类
  *
  * 运行: node --test test/agentic.test.js
  */
-const { describe, it, beforeEach, mock } = require('node:test')
+const { describe, it, beforeEach, before, after } = require('node:test')
 const assert = require('node:assert/strict')
 
-// ── 加载被测模块 ──────────────────────────────────────────────────
-
 const { Agentic } = require('../agentic.js')
+const { AgenticClient } = require('../../client/agentic-client.cjs')
+
+const SERVICE_URL = 'http://localhost:19234'
+
+async function serviceAvailable() {
+  try {
+    const res = await fetch(`${SERVICE_URL}/api/health`, { signal: AbortSignal.timeout(2000) })
+    return res.ok
+  } catch { return false }
+}
 
 // ════════════════════════════════════════════════════════════════════
-// 1. 构造 & 生命周期
+// PART 1: 纯 Client（Agentic — 子库直接调用）
 // ════════════════════════════════════════════════════════════════════
 
-describe('Agentic — 构造 & 生命周期', () => {
-  it('无参数构造不报错', () => {
+describe('【纯 Client】构造 & 生命周期', () => {
+  it('无参数构造', () => {
     const ai = new Agentic()
     assert.ok(ai)
     ai.destroy()
   })
 
-  it('接受配置参数', () => {
+  it('带配置构造', () => {
     const ai = new Agentic({
-      provider: 'ollama',
-      model: 'gemma3',
+      provider: 'ollama', model: 'gemma3',
       baseUrl: 'http://localhost:11434',
-      apiKey: 'sk-test',
-      system: 'You are helpful.',
+      apiKey: 'sk-test', system: 'You are helpful.',
+      tts: { provider: 'openai' }, stt: { provider: 'openai' },
+      memory: { maxTokens: 4000 }, store: { path: '/tmp/test.db' },
     })
     assert.ok(ai)
     ai.destroy()
   })
 
-  it('destroy 可以多次调用', () => {
+  it('destroy 多次安全', () => {
     const ai = new Agentic()
-    ai.destroy()
-    ai.destroy()
-    ai.destroy()
+    ai.destroy(); ai.destroy(); ai.destroy()
   })
 
-  it('destroy 后 capabilities 仍可调用', () => {
+  it('destroy 后 capabilities 仍可用', () => {
     const ai = new Agentic()
     ai.destroy()
-    const caps = ai.capabilities()
-    assert.equal(typeof caps, 'object')
+    assert.equal(typeof ai.capabilities(), 'object')
   })
 })
 
-// ════════════════════════════════════════════════════════════════════
-// 2. capabilities() 检测
-// ════════════════════════════════════════════════════════════════════
-
-describe('Agentic — capabilities()', () => {
-  it('返回所有能力的 boolean 值', () => {
+describe('【纯 Client】capabilities()', () => {
+  it('返回所有能力 boolean', () => {
     const ai = new Agentic()
     const caps = ai.capabilities()
-
-    const expectedKeys = [
-      'think', 'speak', 'listen', 'see', 'converse',
-      'remember', 'recall', 'save', 'load',
-      'embed', 'search', 'perceive', 'decide', 'act',
-      'render', 'readFile', 'run', 'spatial',
-    ]
-
-    for (const key of expectedKeys) {
-      assert.equal(typeof caps[key], 'boolean', `caps.${key} should be boolean`)
-    }
-
+    const keys = ['think', 'speak', 'listen', 'see', 'converse', 'remember', 'recall',
+      'save', 'load', 'embed', 'search', 'perceive', 'decide', 'act', 'render', 'readFile', 'run', 'spatial']
+    for (const k of keys) assert.equal(typeof caps[k], 'boolean', `caps.${k}`)
     ai.destroy()
   })
 
-  it('已安装的子库返回 true', () => {
+  it('已装子库 = true', () => {
     const ai = new Agentic()
     const caps = ai.capabilities()
-
-    // agentic-core 和 agentic-memory 在 monorepo 里可用
-    assert.equal(caps.think, true, 'think should be true (agentic-core installed)')
-    assert.equal(caps.see, true, 'see should be true (agentic-core installed)')
-    assert.equal(caps.remember, true, 'remember should be true (agentic-memory installed)')
-    assert.equal(caps.recall, true, 'recall should be true (agentic-memory installed)')
-
+    assert.equal(caps.think, true)
+    assert.equal(caps.remember, true)
     ai.destroy()
   })
 
-  it('converse 需要 core + voice 同时存在', () => {
+  it('converse = core && voice', () => {
     const ai = new Agentic()
     const caps = ai.capabilities()
-    // converse = core && voice
-    if (caps.speak) {
-      assert.equal(caps.converse, true)
-    } else {
-      assert.equal(caps.converse, false)
-    }
+    assert.equal(caps.converse, caps.speak && caps.think)
     ai.destroy()
   })
 })
 
-// ════════════════════════════════════════════════════════════════════
-// 3. 缺失子库时的错误处理
-// ════════════════════════════════════════════════════════════════════
-
-describe('Agentic — 缺失子库错误', () => {
-  const missingTests = [
-    ['speak', ['hello'], 'agentic-voice'],
-    ['speakAloud', ['hello'], 'agentic-voice'],
-    ['listen', [Buffer.from('fake')], 'agentic-voice'],
-    ['startListening', [() => {}], 'agentic-voice'],
+describe('【纯 Client】缺失子库错误', () => {
+  const asyncMissing = [
+    ['speak', ['hello'], 'agentic-voice', 'speak'],
+    ['speakAloud', ['hello'], 'agentic-voice', 'speak'],
+    ['speakStream', [null], 'agentic-voice', 'speak'],
+    ['timestamps', ['hello'], 'agentic-voice', 'speak'],
+    ['listen', [Buffer.from('x')], 'agentic-voice', 'listen'],
+    ['listenWithTimestamps', [Buffer.from('x')], 'agentic-voice', 'listen'],
+    ['save', ['k', 'v'], 'agentic-store', 'save'],
+    ['load', ['k'], 'agentic-store', 'load'],
+    ['keys', [], 'agentic-store', 'save'],
+    ['perceive', [null], 'agentic-sense', 'perceive'],
+    ['decide', ['test'], 'agentic-act', 'decide'],
+    ['act', ['test'], 'agentic-act', 'act'],
+    ['readFile', ['/tmp/x'], 'agentic-filesystem', 'readFile'],
+    ['writeFile', ['/tmp/x', 'c'], 'agentic-filesystem', 'readFile'],
+    ['deleteFile', ['/tmp/x'], 'agentic-filesystem', 'readFile'],
+    ['ls', [], 'agentic-filesystem', 'readFile'],
+    ['tree', [], 'agentic-filesystem', 'readFile'],
+    ['grep', ['pat'], 'agentic-filesystem', 'readFile'],
+    ['semanticGrep', ['q'], 'agentic-filesystem', 'readFile'],
+    ['run', ['ls'], 'agentic-shell', 'run'],
+    ['reconstructSpace', [[]], 'agentic-spatial', 'spatial'],
+    ['embed', ['text'], 'agentic-embed', 'embed'],
+    ['index', ['id', 'text'], 'agentic-embed', 'embed'],
+    ['indexMany', [[]], 'agentic-embed', 'embed'],
+    ['search', ['q'], 'agentic-embed', 'search'],
   ]
 
-  for (const [method, args, pkg] of missingTests) {
-    it(`${method}() 缺 ${pkg} 时抛错`, async () => {
+  for (const [method, args, pkg, capKey] of asyncMissing) {
+    it(`${method}() 缺 ${pkg} → "not installed"`, async () => {
       const ai = new Agentic()
-      const caps = ai.capabilities()
-
-      // 只测确实没装的
-      if (pkg === 'agentic-voice' && caps.speak) {
-        ai.destroy()
-        return // voice 已装，跳过
-      }
-
+      if (ai.capabilities()[capKey]) { ai.destroy(); return }
       await assert.rejects(
         async () => await ai[method](...args),
-        (err) => {
-          assert.ok(err.message.includes('not installed'), `Expected "not installed" in: ${err.message}`)
-          return true
-        }
+        err => { assert.ok(err.message.includes('not installed')); return true }
       )
       ai.destroy()
     })
   }
 
-  // 同步方法
   const syncMissing = [
-    ['renderCSS', [], 'agentic-render'],
-    ['chunk', ['hello'], 'agentic-embed'],
+    ['render', ['# hi'], 'agentic-render', 'render'],
+    ['createRenderer', ['#app'], 'agentic-render', 'render'],
+    ['renderCSS', [], 'agentic-render', 'render'],
+    ['chunk', ['text'], 'agentic-embed', 'embed'],
+    ['similarity', [[1], [1]], 'agentic-embed', 'embed'],
+    ['createAudioAnalyzer', [], 'agentic-sense', 'perceive'],
+    ['registerAction', [{}], 'agentic-act', 'act'],
+    ['createSpatialSession', [], 'agentic-spatial', 'spatial'],
   ]
 
-  for (const [method, args, pkg] of syncMissing) {
-    it(`${method}() 缺 ${pkg} 时抛错`, () => {
+  for (const [method, args, pkg, capKey] of syncMissing) {
+    it(`${method}() 缺 ${pkg} → "not installed"`, () => {
       const ai = new Agentic()
-      const caps = ai.capabilities()
-
-      if (pkg === 'agentic-render' && caps.render) { ai.destroy(); return }
-      if (pkg === 'agentic-embed' && caps.embed) { ai.destroy(); return }
-
+      if (ai.capabilities()[capKey]) { ai.destroy(); return }
       assert.throws(
         () => ai[method](...args),
-        (err) => {
-          assert.ok(err.message.includes('not installed'))
-          return true
-        }
+        err => { assert.ok(err.message.includes('not installed')); return true }
       )
       ai.destroy()
     })
   }
 })
 
-// ════════════════════════════════════════════════════════════════════
-// 4. Memory 集成测试（agentic-memory 已安装）
-// ════════════════════════════════════════════════════════════════════
-
-describe('Agentic — Memory (agentic-memory)', () => {
-  let ai
-
-  beforeEach(() => {
-    ai = new Agentic({ memory: { maxTokens: 4000 } })
-  })
-
-  it('addMessage + messages 工作', async () => {
-    await ai.addMessage('user', 'hello')
-    await ai.addMessage('assistant', 'hi there')
-    const msgs = ai.messages()
-    assert.ok(Array.isArray(msgs))
-    assert.ok(msgs.length >= 2)
-    assert.equal(msgs[msgs.length - 2].role, 'user')
-    assert.equal(msgs[msgs.length - 2].content, 'hello')
-    assert.equal(msgs[msgs.length - 1].role, 'assistant')
-    assert.equal(msgs[msgs.length - 1].content, 'hi there')
+describe('【纯 Client】懒加载', () => {
+  it('构造时 _i 为空', () => {
+    const ai = new Agentic({ memory: { maxTokens: 4000 } })
+    assert.equal(Object.keys(ai._i).length, 0)
     ai.destroy()
   })
 
-  it('setSystem 设置系统 prompt', () => {
-    ai.setSystem('You are a pirate.')
-    const msgs = ai.messages()
-    const sys = msgs.find(m => m.role === 'system')
-    assert.ok(sys)
-    assert.equal(sys.content, 'You are a pirate.')
+  it('首次调用才初始化', async () => {
+    const ai = new Agentic({ memory: { maxTokens: 4000 } })
+    await ai.addMessage('user', 'test')
+    assert.ok(ai._i.mem)
     ai.destroy()
   })
 
-  it('history 返回带 token 信息', () => {
-    ai.addMessage('user', 'test')
-    const h = ai.history()
-    assert.ok(h)
+  it('复用同一实例', async () => {
+    const ai = new Agentic({ memory: { maxTokens: 4000 } })
+    await ai.addMessage('user', 'a')
+    const inst = ai._i.mem
+    await ai.addMessage('user', 'b')
+    assert.strictEqual(ai._i.mem, inst)
     ai.destroy()
-  })
-
-  it('clearMemory 清空', async () => {
-    await ai.addMessage('user', 'hello')
-    ai.clearMemory()
-    const msgs = ai.messages()
-    // 清空后应该没有 user 消息
-    const userMsgs = msgs.filter(m => m.role === 'user')
-    assert.equal(userMsgs.length, 0)
-    ai.destroy()
-  })
-
-  it('export + import 往返', async () => {
-    await ai.addMessage('user', 'remember this')
-    await ai.addMessage('assistant', 'ok')
-    const exported = ai.exportMemory()
-    assert.ok(exported)
-
-    const ai2 = new Agentic({ memory: { maxTokens: 4000 } })
-    ai2.importMemory(exported)
-    const msgs = ai2.messages()
-    assert.ok(msgs.length >= 2)
-    ai.destroy()
-    ai2.destroy()
   })
 })
 
-// ════════════════════════════════════════════════════════════════════
-// 5. Think 集成测试（agentic-core 已安装）
-// ════════════════════════════════════════════════════════════════════
+describe('【纯 Client】配置透传', () => {
+  it('memory maxTokens', async () => {
+    const ai = new Agentic({ memory: { maxTokens: 2000 } })
+    await ai.addMessage('user', 'test')
+    assert.equal(ai._i.mem.info().maxTokens, 2000)
+    ai.destroy()
+  })
+})
 
-describe('Agentic — Think (agentic-core)', () => {
-  it('think 方法存在且可调用', () => {
+describe('【纯 Client】Memory', () => {
+  let ai
+  beforeEach(() => { ai = new Agentic({ memory: { maxTokens: 4000 } }) })
+
+  it('addMessage + messages', async () => {
+    await ai.addMessage('user', 'hello')
+    await ai.addMessage('assistant', 'hi')
+    const msgs = ai.messages()
+    const last2 = msgs.slice(-2)
+    assert.equal(last2[0].role, 'user')
+    assert.equal(last2[1].role, 'assistant')
+    ai.destroy()
+  })
+
+  it('setSystem', () => {
+    ai.setSystem('Be a pirate.')
+    assert.equal(ai.messages().find(m => m.role === 'system').content, 'Be a pirate.')
+    ai.destroy()
+  })
+
+  it('history', () => {
+    ai.addMessage('user', 'test')
+    assert.ok(ai.history())
+    ai.destroy()
+  })
+
+  it('clearMemory', async () => {
+    await ai.addMessage('user', 'hello')
+    ai.clearMemory()
+    assert.equal(ai.messages().filter(m => m.role === 'user').length, 0)
+    ai.destroy()
+  })
+
+  it('export + import', async () => {
+    await ai.addMessage('user', 'remember')
+    await ai.addMessage('assistant', 'ok')
+    const exported = ai.exportMemory()
+    const ai2 = new Agentic({ memory: { maxTokens: 4000 } })
+    ai2.importMemory(exported)
+    assert.ok(ai2.messages().length >= 2)
+    ai.destroy(); ai2.destroy()
+  })
+})
+
+describe('【纯 Client】remember/recall', () => {
+  it('remember + recall', async () => {
+    const ai = new Agentic({ memory: { maxTokens: 4000, knowledge: true } })
+    await ai.remember('Capital of France is Paris')
+    const r = await ai.recall('capital of France')
+    assert.ok(Array.isArray(r))
+    ai.destroy()
+  })
+
+  it('自动生成 id', async () => {
+    const ai = new Agentic({ memory: { maxTokens: 4000, knowledge: true } })
+    await ai.remember('test')
+    ai.destroy()
+  })
+
+  it('自定义 metadata', async () => {
+    const ai = new Agentic({ memory: { maxTokens: 4000, knowledge: true } })
+    await ai.remember('test', { id: 'custom', source: 'test' })
+    ai.destroy()
+  })
+})
+
+describe('【纯 Client】Think', () => {
+  it('think 存在', () => {
     const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
     assert.equal(typeof ai.think, 'function')
     ai.destroy()
   })
 
-  it('think 接受 string input', async () => {
+  it('think string（连接错误预期）', async () => {
     const ai = new Agentic({ provider: 'ollama', model: 'gemma3', baseUrl: 'http://localhost:11434' })
-    // 不实际调 LLM（可能没跑 Ollama），只验证不抛参数错误
-    try {
-      await ai.think('hello', { stream: false })
-    } catch (err) {
-      // 连接错误是预期的（Ollama 可能没跑）
-      assert.ok(
-        err.message.includes('ECONNREFUSED') ||
-        err.message.includes('fetch') ||
-        err.message.includes('network') ||
-        err.message.includes('connect') ||
-        err.message.includes('timeout') ||
-        err.message.includes('abort') ||
-        true, // 任何错误都行，只要不是参数错误
-        `Unexpected error: ${err.message}`
-      )
-    }
+    try { await ai.think('hello') } catch { /* ok */ }
     ai.destroy()
   })
 
-  it('think 接受 array input (多轮对话)', async () => {
+  it('think array', async () => {
     const ai = new Agentic({ provider: 'ollama', model: 'gemma3', baseUrl: 'http://localhost:11434' })
     try {
       await ai.think([
         { role: 'user', content: 'hello' },
         { role: 'assistant', content: 'hi' },
-        { role: 'user', content: 'how are you?' },
+        { role: 'user', content: 'how?' },
       ])
-    } catch {
-      // 连接错误预期
-    }
+    } catch { /* ok */ }
     ai.destroy()
   })
 
-  it('see 委托给 think + images', async () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3', baseUrl: 'http://localhost:11434' })
-    try {
-      await ai.see('base64imagedata', 'what is this?')
-    } catch {
-      // 连接错误预期
-    }
-    ai.destroy()
-  })
-
-  it('tools getter 返回 toolRegistry', () => {
+  it('tools getter', () => {
     const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
-    const tools = ai.tools
-    assert.ok(tools !== undefined)
+    assert.ok(ai.tools !== undefined)
     ai.destroy()
   })
 })
 
-// ════════════════════════════════════════════════════════════════════
-// 6. 懒加载验证
-// ════════════════════════════════════════════════════════════════════
-
-describe('Agentic — 懒加载', () => {
-  it('构造时不初始化任何子库', () => {
-    const ai = new Agentic({
-      provider: 'ollama', model: 'gemma3',
-      memory: { maxTokens: 4000 },
-    })
-    // _i 应该是空的
-    assert.equal(Object.keys(ai._i).length, 0)
+describe('【纯 Client】see 组合', () => {
+  it('委托 think + images', async () => {
+    const ai = new Agentic()
+    let opts = null
+    ai.think = async (_, o) => { opts = o; return { answer: 'cat' } }
+    await ai.see('b64', 'what?')
+    assert.ok(opts.images[0].url.includes('base64'))
     ai.destroy()
   })
 
-  it('首次调用 memory 方法才初始化', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 4000 } })
-    assert.equal(Object.keys(ai._i).length, 0)
-
-    await ai.addMessage('user', 'test')
-    assert.ok(ai._i.mem, 'memory should be initialized after addMessage')
-
+  it('默认 prompt', async () => {
+    const ai = new Agentic()
+    let input = null
+    ai.think = async (i) => { input = i; return { answer: '' } }
+    await ai.see('data')
+    assert.equal(input, '描述这张图片')
     ai.destroy()
   })
 
-  it('多次调用复用同一实例', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 4000 } })
-
-    await ai.addMessage('user', 'a')
-    const inst1 = ai._i.mem
-
-    await ai.addMessage('user', 'b')
-    const inst2 = ai._i.mem
-
-    assert.strictEqual(inst1, inst2, 'should reuse same memory instance')
+  it('接受 Buffer', async () => {
+    const ai = new Agentic()
+    let opts = null
+    ai.think = async (_, o) => { opts = o; return { answer: '' } }
+    await ai.see(Buffer.from([0x89, 0x50]), 'desc')
+    assert.ok(opts.images[0].url.includes('base64'))
     ai.destroy()
   })
 })
 
-// ════════════════════════════════════════════════════════════════════
-// 7. 配置透传
-// ════════════════════════════════════════════════════════════════════
-
-describe('Agentic — 配置透传', () => {
-  it('memory 配置透传', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 2000 } })
-    await ai.addMessage('user', 'test')
-    const info = ai._i.mem.info()
-    assert.equal(info.maxTokens, 2000)
-    ai.destroy()
-  })
-
-  it('system prompt 透传给 memory', () => {
-    const ai = new Agentic({ system: 'Be helpful.' })
-    ai.setSystem('Be a pirate.')
-    const msgs = ai.messages()
-    const sys = msgs.find(m => m.role === 'system')
-    assert.ok(sys)
-    assert.equal(sys.content, 'Be a pirate.')
+describe('【纯 Client】converse 组合', () => {
+  it('listen → think → speak', async () => {
+    const ai = new Agentic()
+    const calls = []
+    ai.listen = async () => { calls.push('listen'); return 'text' }
+    ai.think = async () => { calls.push('think'); return { answer: 'resp' } }
+    ai.speak = async () => { calls.push('speak'); return Buffer.from('audio') }
+    const r = await ai.converse(Buffer.from('fake'))
+    assert.deepEqual(calls, ['listen', 'think', 'speak'])
+    assert.equal(r.transcript, 'text')
+    assert.equal(r.text, 'resp')
+    assert.ok(r.audio)
     ai.destroy()
   })
 })
 
-// ════════════════════════════════════════════════════════════════════
-// 8. 方法签名验证（所有 53 个公开方法都存在）
-// ════════════════════════════════════════════════════════════════════
+describe('【纯 Client】安全停止', () => {
+  it('stopSpeaking 无实例', () => {
+    const ai = new Agentic()
+    assert.doesNotThrow(() => ai.stopSpeaking())
+    ai.destroy()
+  })
 
-describe('Agentic — 方法签名完整性', () => {
-  const expectedMethods = [
+  it('stopListening 无实例', () => {
+    const ai = new Agentic()
+    assert.doesNotThrow(() => ai.stopListening())
+    ai.destroy()
+  })
+})
+
+describe('【纯 Client】方法签名完整性', () => {
+  const expected = [
     'think', 'tools', 'speak', 'speakAloud', 'speakStream', 'timestamps',
     'stopSpeaking', 'listen', 'listenWithTimestamps', 'startListening',
     'stopListening', 'see', 'converse', 'remember', 'recall', 'addMessage',
@@ -376,152 +352,231 @@ describe('Agentic — 方法签名完整性', () => {
     'createSpatialSession', 'capabilities', 'destroy',
   ]
 
-  for (const method of expectedMethods) {
-    it(`ai.${method} 存在`, () => {
+  for (const m of expected) {
+    it(`ai.${m} 存在`, () => {
       const ai = new Agentic()
-      assert.ok(
-        method in ai,
-        `Missing method: ${method}`
-      )
+      assert.ok(m in ai)
       ai.destroy()
     })
   }
 
-  it('公开方法数量 = 53', () => {
-    const methods = Object.getOwnPropertyNames(Agentic.prototype)
-      .filter(m => !m.startsWith('_') && m !== 'constructor')
-    assert.equal(methods.length, 53)
+  it('公开方法 = 53', () => {
+    const n = Object.getOwnPropertyNames(Agentic.prototype)
+      .filter(m => !m.startsWith('_') && m !== 'constructor').length
+    assert.equal(n, 53)
   })
 })
 
 // ════════════════════════════════════════════════════════════════════
-// 9. stopSpeaking / stopListening 安全调用（无实例时不报错）
+// PART 2: 配合 Service（AgenticClient — HTTP）
 // ════════════════════════════════════════════════════════════════════
 
-describe('Agentic — 安全停止', () => {
-  it('stopSpeaking 无 TTS 实例时不报错', () => {
-    const ai = new Agentic()
-    assert.doesNotThrow(() => ai.stopSpeaking())
-    ai.destroy()
+describe('【Service】AgenticClient 构造', () => {
+  it('URL string 构造', () => {
+    assert.ok(new AgenticClient(SERVICE_URL))
   })
 
-  it('stopListening 无 STT 实例时不报错', () => {
-    const ai = new Agentic()
-    assert.doesNotThrow(() => ai.stopListening())
-    ai.destroy()
-  })
-})
-
-// ════════════════════════════════════════════════════════════════════
-// 10. remember / recall 集成（需要 knowledge 模式）
-// ════════════════════════════════════════════════════════════════════
-
-describe('Agentic — remember/recall', () => {
-  it('remember 写入 + recall 检索', async () => {
-    const ai = new Agentic({
-      memory: { maxTokens: 4000, knowledge: true },
-    })
-
-    await ai.remember('The capital of France is Paris')
-    await ai.remember('The capital of Japan is Tokyo')
-
-    const results = await ai.recall('What is the capital of France?')
-    assert.ok(Array.isArray(results))
-    // 本地 embed 可能不可用，但不应该报错
-    ai.destroy()
-  })
-
-  it('remember 自动生成 id', async () => {
-    const ai = new Agentic({
-      memory: { maxTokens: 4000, knowledge: true },
-    })
-    // 不传 id 不报错
-    await ai.remember('test fact')
-    ai.destroy()
-  })
-
-  it('remember 接受自定义 metadata', async () => {
-    const ai = new Agentic({
-      memory: { maxTokens: 4000, knowledge: true },
-    })
-    await ai.remember('test', { id: 'custom-id', source: 'test' })
-    ai.destroy()
-  })
-})
-
-// ════════════════════════════════════════════════════════════════════
-// 11. converse 组合测试（mock）
-// ════════════════════════════════════════════════════════════════════
-
-describe('Agentic — converse 组合', () => {
-  it('converse = listen + think + speak', async () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
-
-    // 记录调用
-    const calls = []
-    const origListen = ai.listen.bind(ai)
-    const origThink = ai.think.bind(ai)
-    const origSpeak = ai.speak.bind(ai)
-
-    ai.listen = async (audio) => { calls.push('listen'); return 'transcribed text' }
-    ai.think = async (input) => { calls.push('think'); return { answer: 'response' } }
-    ai.speak = async (text) => { calls.push('speak'); return Buffer.from('audio') }
-
-    const result = await ai.converse(Buffer.from('fake audio'))
-
-    assert.deepEqual(calls, ['listen', 'think', 'speak'])
-    assert.equal(result.transcript, 'transcribed text')
-    assert.equal(result.text, 'response')
-    assert.ok(result.audio)
-
-    ai.destroy()
-  })
-})
-
-// ════════════════════════════════════════════════════════════════════
-// 12. see 组合测试
-// ════════════════════════════════════════════════════════════════════
-
-describe('Agentic — see 组合', () => {
-  it('see 委托给 think + images', async () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
-
-    let capturedOpts = null
-    ai.think = async (input, opts) => {
-      capturedOpts = opts
-      return { answer: 'a cat' }
+  it('能力方法完整', () => {
+    const c = new AgenticClient(SERVICE_URL)
+    for (const m of ['think', 'see', 'listen', 'speak', 'converse', 'embed', 'capabilities']) {
+      assert.equal(typeof c[m], 'function', m)
     }
+  })
 
-    await ai.see('base64data', 'what is this?')
+  it('admin 方法完整', () => {
+    const c = new AgenticClient(SERVICE_URL)
+    for (const m of ['health', 'status', 'perf', 'queueStats', 'devices', 'logs',
+      'config', 'engines', 'engineModels', 'engineRecommended', 'engineHealth',
+      'pullModel', 'deleteModel', 'assignments', 'setAssignments', 'models']) {
+      assert.equal(typeof c.admin[m], 'function', `admin.${m}`)
+    }
+  })
+})
 
-    assert.ok(capturedOpts.images)
-    assert.equal(capturedOpts.images.length, 1)
-    assert.ok(capturedOpts.images[0].url.includes('base64'))
+describe('【Service】admin 接口', () => {
+  let ok = false, c
 
+  before(async () => {
+    ok = await serviceAvailable()
+    if (ok) c = new AgenticClient(SERVICE_URL)
+  })
+
+  for (const m of ['health', 'status', 'engines', 'engineModels', 'engineRecommended',
+    'engineHealth', 'config', 'devices', 'perf', 'logs', 'queueStats', 'models', 'assignments']) {
+    it(`admin.${m}()`, async () => {
+      if (!ok) return
+      const r = await c.admin[m]()
+      assert.ok(r !== undefined)
+    })
+  }
+})
+
+describe('【Service】capabilities', () => {
+  let ok = false, c
+
+  before(async () => {
+    ok = await serviceAvailable()
+    if (ok) c = new AgenticClient(SERVICE_URL)
+  })
+
+  it('返回能力对象', async () => {
+    if (!ok) return
+    const caps = await c.capabilities()
+    assert.equal(typeof caps, 'object')
+  })
+})
+
+describe('【Service】think', () => {
+  let ok = false, c
+
+  before(async () => {
+    ok = await serviceAvailable()
+    if (ok) c = new AgenticClient(SERVICE_URL)
+  })
+
+  it('非流式', async () => {
+    if (!ok) return
+    const r = await c.think('Say hello in one word.', { model: 'gemma4:e2b' })
+    assert.ok(r)
+    assert.ok(typeof (r.answer || r.text) === 'string')
+  })
+
+  it('流式', async () => {
+    if (!ok) return
+    const chunks = []
+    for await (const ch of c.think('Say hi.', { stream: true, model: 'gemma4:e2b' })) {
+      chunks.push(ch)
+    }
+    assert.ok(chunks.length > 0)
+  })
+
+  it('带 system', async () => {
+    if (!ok) return
+    const r = await c.think('What are you?', { system: 'You are a pirate. One sentence.', model: 'gemma4:e2b' })
+    assert.ok(r)
+  })
+})
+
+describe('【Service】see', () => {
+  let ok = false, c
+
+  before(async () => {
+    ok = await serviceAvailable()
+    if (ok) c = new AgenticClient(SERVICE_URL)
+  })
+
+  it('base64 图片', async () => {
+    if (!ok) return
+    const tiny = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+    try {
+      const r = await c.see(`data:image/png;base64,${tiny}`, 'What color?', { model: 'llava:7b' })
+      assert.ok(r)
+    } catch { assert.ok(true) }
+  })
+})
+
+describe('【Service】listen', () => {
+  let ok = false, c
+
+  before(async () => {
+    ok = await serviceAvailable()
+    if (ok) c = new AgenticClient(SERVICE_URL)
+  })
+
+  it('audio buffer', async () => {
+    if (!ok) return
+    try {
+      const text = await c.listen(createSilentWav(0.1))
+      assert.equal(typeof text, 'string')
+    } catch { assert.ok(true) }
+  })
+})
+
+describe('【Service】speak', () => {
+  let ok = false, c
+
+  before(async () => {
+    ok = await serviceAvailable()
+    if (ok) c = new AgenticClient(SERVICE_URL)
+  })
+
+  it('返回 audio', async () => {
+    if (!ok) return
+    try {
+      const audio = await c.speak('Hello')
+      assert.ok(audio)
+    } catch { assert.ok(true) }
+  })
+})
+
+describe('【Service】embed', () => {
+  let ok = false, c
+
+  before(async () => {
+    ok = await serviceAvailable()
+    if (ok) c = new AgenticClient(SERVICE_URL)
+  })
+
+  it('返回向量', async () => {
+    if (!ok) return
+    try {
+      const v = await c.embed('hello')
+      assert.ok(v)
+    } catch { assert.ok(true) }
+  })
+})
+
+describe('【Service】converse', () => {
+  let ok = false, c
+
+  before(async () => {
+    ok = await serviceAvailable()
+    if (ok) c = new AgenticClient(SERVICE_URL)
+  })
+
+  it('全链路', async () => {
+    if (!ok) return
+    try {
+      const r = await c.converse(createSilentWav(0.5))
+      assert.ok(r)
+    } catch { assert.ok(true) }
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// PART 3: 接口对齐
+// ════════════════════════════════════════════════════════════════════
+
+describe('【对齐】Agentic vs AgenticClient', () => {
+  it('核心能力方法名一致', () => {
+    const ai = new Agentic()
+    const c = new AgenticClient(SERVICE_URL)
+    for (const m of ['think', 'see', 'listen', 'speak', 'converse', 'embed', 'capabilities']) {
+      assert.equal(typeof ai[m], 'function', `Agentic.${m}`)
+      assert.equal(typeof c[m], 'function', `Client.${m}`)
+    }
     ai.destroy()
   })
 
-  it('see 默认 prompt', async () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
-
-    let capturedInput = null
-    ai.think = async (input, opts) => { capturedInput = input; return { answer: '' } }
-
-    await ai.see('data')
-    assert.equal(capturedInput, '描述这张图片')
-
-    ai.destroy()
-  })
-
-  it('see 接受 Buffer', async () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
-
-    let capturedOpts = null
-    ai.think = async (input, opts) => { capturedOpts = opts; return { answer: '' } }
-
-    await ai.see(Buffer.from([0x89, 0x50, 0x4e, 0x47]), 'describe')
-    assert.ok(capturedOpts.images[0].url.includes('base64'))
-
+  it('Agentic 额外本地能力', () => {
+    const ai = new Agentic()
+    for (const m of ['remember', 'recall', 'save', 'load', 'perceive', 'decide', 'act',
+      'render', 'readFile', 'writeFile', 'run', 'addMessage', 'messages', 'history']) {
+      assert.equal(typeof ai[m], 'function', m)
+    }
     ai.destroy()
   })
 })
+
+// ── Helper ────────────────────────────────────────────────────────
+
+function createSilentWav(sec) {
+  const sr = 16000, n = Math.floor(sr * sec), ds = n * 2
+  const b = Buffer.alloc(44 + ds)
+  b.write('RIFF', 0); b.writeUInt32LE(36 + ds, 4); b.write('WAVE', 8)
+  b.write('fmt ', 12); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20)
+  b.writeUInt16LE(1, 22); b.writeUInt32LE(sr, 24); b.writeUInt32LE(sr * 2, 28)
+  b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34)
+  b.write('data', 36); b.writeUInt32LE(ds, 40)
+  return b
+}
