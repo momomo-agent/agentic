@@ -11,6 +11,7 @@ let _cloudMode = false;
 let _errorCount = 0;
 let _probeTimer = null;
 const FIRST_TOKEN_TIMEOUT_MS = 5000;
+const FIRST_TOKEN_TIMEOUT_VISION_MS = 30000;
 const MAX_ERRORS = 3;
 const PROBE_INTERVAL_MS = 60000;
 
@@ -90,10 +91,28 @@ async function resolveModel(slot = 'chat') {
   return null;
 }
 
+// Check if messages contain multimodal content (images)
+function hasVisionContent(messages) {
+  for (const msg of messages) {
+    if (Array.isArray(msg.content)) {
+      if (msg.content.some(b => b.type === 'image_url')) return true;
+    }
+  }
+  return false;
+}
+
 async function* chatWithTools(messages, toolDefs) {
-  const resolved = _cloudMode
-    ? await resolveModel('chatFallback')
-    : await resolveModel('chat');
+  // If messages contain images, prefer vision model
+  const needsVision = hasVisionContent(messages);
+  let resolved;
+
+  if (_cloudMode) {
+    resolved = await resolveModel('chatFallback');
+  } else if (needsVision) {
+    resolved = await resolveModel('vision') || await resolveModel('chat');
+  } else {
+    resolved = await resolveModel('chat');
+  }
 
   if (!resolved) {
     // Try cloud fallback if no chat model
@@ -150,9 +169,10 @@ async function* callEngine(resolved, messages, toolDefs) {
 
   let gotFirstToken = false;
   const ac = new AbortController();
+  const timeoutMs = hasVisionContent(messages) ? FIRST_TOKEN_TIMEOUT_VISION_MS : FIRST_TOKEN_TIMEOUT_MS;
   const firstTokenTimer = setTimeout(() => {
     if (!gotFirstToken) ac.abort();
-  }, FIRST_TOKEN_TIMEOUT_MS);
+  }, timeoutMs);
 
   try {
     for await (const chunk of engine.run(modelName, input)) {

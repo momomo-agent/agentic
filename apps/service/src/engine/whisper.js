@@ -42,7 +42,7 @@ function whisperBinaryExists() {
 
 function sensevoiceAvailable() {
   try {
-    const res = execSync('curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:18906/health 2>/dev/null', { stdio: 'pipe', timeout: 2000 });
+    const res = execSync('curl -s --noproxy "*" -o /dev/null -w "%{http_code}" http://127.0.0.1:18906/health 2>/dev/null', { stdio: 'pipe', timeout: 2000 });
     return res.toString().trim() === '200';
   } catch {
     return false;

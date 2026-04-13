@@ -149,9 +149,32 @@ export default {
     }
 
     // Chat mode (streaming)
+    // Convert OpenAI-style multimodal content to Ollama format
+    const ollamaMessages = (input.messages || []).map(msg => {
+      if (typeof msg.content === 'string') return msg;
+      if (!Array.isArray(msg.content)) return msg;
+      // Extract text and images from content blocks
+      let text = '';
+      const images = [];
+      for (const block of msg.content) {
+        if (block.type === 'text') text += block.text;
+        else if (block.type === 'image_url') {
+          const url = typeof block.image_url === 'string' ? block.image_url : block.image_url?.url;
+          if (url?.startsWith('data:')) {
+            // Extract base64 from data URI
+            const b64 = url.split(',')[1];
+            if (b64) images.push(b64);
+          }
+        }
+      }
+      const out = { role: msg.role, content: text };
+      if (images.length) out.images = images;
+      return out;
+    });
+
     const body = {
       model: modelName,
-      messages: input.messages,
+      messages: ollamaMessages,
       stream: true,
     };
     if (input.tools?.length) {
@@ -162,7 +185,8 @@ export default {
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const hasImages = ollamaMessages.some(m => m.images?.length);
+    const timeout = setTimeout(() => controller.abort(), hasImages ? 30000 : 5000);
 
     const res = await fetch(`${host}/api/chat`, {
       method: 'POST',

@@ -28,9 +28,13 @@ export default {
       models.push({ id: 'macos-say', name: 'macos-say', description: 'macOS Say — 系统内置', capabilities: ['tts'], installed: true });
     }
 
-    // TODO: detect kokoro/piper availability
+    // Local TTS engines
     models.push({ id: 'kokoro', name: 'kokoro', description: 'Kokoro — 高质量多语言 TTS', capabilities: ['tts'], installed: false });
     models.push({ id: 'piper', name: 'piper', description: 'Piper — 轻量离线 TTS', capabilities: ['tts'], installed: false });
+
+    // Cloud TTS engines
+    models.push({ id: 'elevenlabs', name: 'elevenlabs', description: 'ElevenLabs — 云端高质量 TTS', capabilities: ['tts'], installed: true, cloud: true });
+    models.push({ id: 'openai', name: 'openai', description: 'OpenAI TTS — 云端语音合成', capabilities: ['tts'], installed: true, cloud: true });
 
     return models;
   },

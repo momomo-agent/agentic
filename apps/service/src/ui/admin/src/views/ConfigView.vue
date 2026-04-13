@@ -191,13 +191,19 @@ function assignedModel(key: string) {
 function sourceType(key: string): string {
   const m = assignedModel(key)
   if (!m) return ''
-  return m.engineId?.startsWith('cloud:') ? 'cloud' : 'local'
+  if (m.cloud || m.engineId?.startsWith('cloud:')) return 'cloud'
+  // Known cloud-only model prefixes
+  const id = (m.id || '').toLowerCase()
+  if (id.includes('elevenlabs') || id.includes('openai-') || id.includes('deepgram')) return 'cloud'
+  return 'local'
 }
 
 function sourceLabel(key: string): string {
   const m = assignedModel(key)
   if (!m) return ''
-  if (m.engineId?.startsWith('cloud:')) return '☁️ 云端'
+  if (m.cloud || m.engineId?.startsWith('cloud:')) return '☁️ 云端'
+  const id = (m.id || '').toLowerCase()
+  if (id.includes('elevenlabs') || id.includes('openai-') || id.includes('deepgram')) return '☁️ 云端'
   return '💻 本地'
 }
 

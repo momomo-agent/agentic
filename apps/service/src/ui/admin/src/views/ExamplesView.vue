@@ -433,6 +433,76 @@
         <div v-if="vpError" class="result-text" style="color:#ef4444;">{{ vpError }}</div>
       </div>
 
+      <!-- Wake Word 语音唤醒 -->
+      <div v-if="activeExample === 'wake-word'" class="wake-word-panel">
+        <div class="ww-config">
+          <label>唤醒词：</label>
+          <input v-model="wwKeyword" placeholder="输入唤醒词，如：你好" class="ww-keyword-input" />
+          <button @click="toggleWakeWord" :class="{ recording: wwRecording }" class="btn-primary">
+            {{ wwRecording ? '⏹ 停止' : '🎤 开始监听' }}
+          </button>
+        </div>
+        <div class="ww-status" v-if="wwRecording">
+          <span class="ww-pulse"></span> 正在监听...
+        </div>
+        <div class="ww-transcript">
+          <div v-for="(seg, i) in wwSegments" :key="i" class="ww-segment" :class="{ triggered: seg.triggered }">
+            <span class="ww-time">{{ seg.time }}</span>
+            <span class="ww-text" v-html="seg.html"></span>
+            <span v-if="seg.triggered" class="ww-badge">🔔 唤醒</span>
+          </div>
+          <div v-if="!wwSegments.length" class="ww-empty">等待语音输入...</div>
+        </div>
+        <div class="ww-stats" v-if="wwSegments.length">
+          <span>识别 {{ wwSegments.length }} 段</span>
+          <span>唤醒 {{ wwSegments.filter(s => s.triggered).length }} 次</span>
+        </div>
+      </div>
+
+      <!-- Omni Chat 多模态实时对话 -->
+      <div v-if="activeExample === 'omni-chat'" class="omni-panel">
+        <div class="omni-main">
+          <div class="omni-media">
+            <div class="omni-camera">
+              <video ref="omniVideoEl" autoplay playsinline class="camera-video"></video>
+              <canvas ref="omniCanvasEl" style="display:none"></canvas>
+              <div class="omni-camera-controls">
+                <button @click="toggleOmniCamera" :class="{ active: omniCameraOn }">
+                  {{ omniCameraOn ? '📷 关闭' : '📷 开启' }}
+                </button>
+                <button v-if="omniCameraOn" @click="toggleOmniWatch" :class="{ active: omniAutoWatch }">
+                  {{ omniAutoWatch ? '👁️ 监视中' : '👁️ 自动监视' }}
+                </button>
+              </div>
+            </div>
+            <div class="omni-controls-row">
+              <button @click="toggleOmniAutoSpeak" :class="{ active: omniAutoSpeak }">
+                {{ omniAutoSpeak ? '🔊 朗读' : '🔇 静音' }}
+              </button>
+              <button @click="toggleOmniMic" :class="{ recording: omniListening, active: omniListening }">
+                {{ omniListening ? '🎤 聆听中...' : '🎤 开始对话' }}
+              </button>
+            </div>
+            <div v-if="omniSpeaking" class="omni-status">🗣️ AI 正在说话...</div>
+            <div v-else-if="omniLoading" class="omni-status">🤔 思考中...</div>
+            <div v-else-if="omniListening" class="omni-status listening-pulse">👂 说点什么...</div>
+          </div>
+          <div class="omni-chat">
+            <div class="chat-messages" ref="omniChatEl">
+              <div v-for="(msg, i) in omniHistory" :key="i" class="chat-msg" :class="msg.role">
+                <img v-if="msg.image" :src="msg.image" class="mm-msg-img" />
+                <div class="msg-bubble" v-if="msg.content">{{ msg.content }}</div>
+                <span v-if="msg.source" class="omni-source">{{ msg.source }}</span>
+              </div>
+            </div>
+            <div class="omni-input-row">
+              <input v-model="omniInput" @keydown.enter="sendOmniText" placeholder="输入消息..." :disabled="omniLoading" />
+              <button @click="sendOmniText" :disabled="omniLoading || !omniInput.trim()">发送</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- API Compat 兼容测试 -->
       <div v-if="activeExample === 'api-compat'" class="compat-panel">
         <div class="compat-tabs">
@@ -588,9 +658,11 @@ const examples = ref([
   { id: 'subtitle', icon: '📺', title: '实时字幕', desc: '麦克风实时生成字幕，大字显示', tested: false, cat: 'voice' },
   { id: 'voice-note', icon: '🎙️', title: '语音笔记', desc: '说话→AI 整理成结构化笔记', tested: false, cat: 'voice' },
   { id: 'voice-pipeline', icon: '⚡', title: '语音管道', desc: '一次调用：录音→理解→语音回复', tested: false, cat: 'voice' },
+  { id: 'wake-word', icon: '🔔', title: '语音唤醒', desc: '实时识别语音，关键词高亮唤醒', tested: false, cat: 'voice' },
   // 🌐 应用
   { id: 'translate', icon: '🌐', title: '翻译助手', desc: '说话或输入文字，AI 翻译并朗读', tested: false, cat: 'app' },
   { id: 'storyteller', icon: '📖', title: '故事讲述', desc: '输入主题，AI 写故事并朗读', tested: false, cat: 'app' },
+  { id: 'omni-chat', icon: '🌀', title: '多模态实时对话', desc: '摄像头+麦克风+文字，全感官 AI 对话', tested: false, cat: 'app' },
   // 🔧 开发
   { id: 'api-compat', icon: '🔌', title: 'API 兼容', desc: '测试 OpenAI / Anthropic 兼容接口', tested: false, cat: 'dev' },
   { id: 'perf', icon: '📈', title: '性能监控', desc: '实时查看 API 延迟和吞吐', tested: false, cat: 'dev' },
@@ -1688,6 +1760,329 @@ async function runAnnotate() {
   annLoading.value = false
 }
 
+// ── Wake Word 语音唤醒 ──
+const wwKeyword = ref('你好')
+const wwRecording = ref(false)
+const wwSegments = ref([])
+let wwVAD = null
+
+function toggleWakeWord() {
+  if (wwRecording.value) stopWakeWord()
+  else startWakeWord()
+}
+
+async function startWakeWord() {
+  if (!wwKeyword.value.trim()) return
+  try {
+    const VAD_VER = '0.0.29'
+    const ORT_VER = '1.22.0'
+    if (!window.vad) {
+      const loadScript = (src) => new Promise((resolve, reject) => {
+        const s = document.createElement('script')
+        s.src = src; s.onload = resolve; s.onerror = reject
+        document.head.appendChild(s)
+      })
+      await loadScript(`https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VER}/dist/ort.wasm.min.js`)
+      await loadScript(`https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@${VAD_VER}/dist/bundle.min.js`)
+    }
+    wwRecording.value = true
+    wwVAD = await window.vad.MicVAD.new({
+      onnxWASMBasePath: `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VER}/dist/`,
+      baseAssetPath: `https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@${VAD_VER}/dist/`,
+      positiveSpeechThreshold: 0.5,
+      negativeSpeechThreshold: 0.25,
+      redemptionFrames: 10,
+      minSpeechFrames: 5,
+      onSpeechEnd: async (audio) => {
+        const wavBlob = float32ToWavBlob(audio, 16000)
+        try {
+          const text = await ai.listen(wavBlob)
+          if (!text) return
+          const keyword = wwKeyword.value.trim().toLowerCase()
+          const lower = text.toLowerCase()
+          const triggered = lower.includes(keyword)
+          // Highlight keyword in text
+          let html = text
+          if (triggered) {
+            const re = new RegExp(`(${wwKeyword.value.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+            html = text.replace(re, '<mark class="ww-highlight">$1</mark>')
+          }
+          const now = new Date()
+          wwSegments.value.push({
+            time: `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`,
+            text, html, triggered
+          })
+          if (triggered) {
+            markTested('wake-word')
+            // Play a short beep for wake
+            try {
+              const ctx = new AudioContext()
+              const osc = ctx.createOscillator()
+              const gain = ctx.createGain()
+              osc.connect(gain); gain.connect(ctx.destination)
+              osc.frequency.value = 880; gain.gain.value = 0.3
+              osc.start(); osc.stop(ctx.currentTime + 0.15)
+            } catch {}
+          }
+        } catch {}
+      }
+    })
+    wwVAD.start()
+  } catch (e) {
+    wwRecording.value = false
+    wwSegments.value.push({ time: '--:--:--', text: `初始化失败: ${e.message}`, html: `初始化失败: ${e.message}`, triggered: false })
+  }
+}
+
+function stopWakeWord() {
+  wwRecording.value = false
+  if (wwVAD) { wwVAD.pause(); wwVAD.destroy(); wwVAD = null }
+}
+
+// ── Omni Chat 多模态实时对话 ──
+const omniVideoEl = ref(null)
+const omniCanvasEl = ref(null)
+const omniChatEl = ref(null)
+const omniCameraOn = ref(false)
+const omniListening = ref(false)
+const omniInput = ref('')
+const omniLoading = ref(false)
+const omniHistory = ref([])
+const omniAutoSpeak = ref(true)
+const omniAutoWatch = ref(false)
+const omniSpeaking = ref(false)
+let omniStream = null
+let omniVAD = null
+let omniFrameTimer = null
+let omniWatchTimer = null
+let omniLastFrameData = null
+
+function toggleOmniAutoSpeak() {
+  omniAutoSpeak.value = !omniAutoSpeak.value
+}
+
+let omniSpeakingAudio = null
+async function omniSpeak(text) {
+  if (!omniAutoSpeak.value || !text.trim()) return
+  try {
+    if (omniSpeakingAudio) { omniSpeakingAudio.pause(); omniSpeakingAudio = null }
+    // Pause VAD while speaking to avoid echo
+    if (omniVAD) omniVAD.pause()
+    omniSpeaking.value = true
+    const audioBuffer = await ai.speak(text)
+    const blob = new Blob([audioBuffer], { type: 'audio/wav' })
+    const url = URL.createObjectURL(blob)
+    omniSpeakingAudio = new Audio(url)
+    omniSpeakingAudio.onended = () => {
+      omniSpeaking.value = false
+      if (omniVAD && omniListening.value) omniVAD.start()
+    }
+    omniSpeakingAudio.onerror = () => {
+      omniSpeaking.value = false
+      if (omniVAD && omniListening.value) omniVAD.start()
+    }
+    omniSpeakingAudio.play().catch(() => {
+      omniSpeaking.value = false
+      if (omniVAD && omniListening.value) omniVAD.start()
+    })
+  } catch {
+    omniSpeaking.value = false
+    if (omniVAD && omniListening.value) omniVAD.start()
+  }
+}
+
+async function toggleOmniCamera() {
+  if (omniCameraOn.value) {
+    omniCameraOn.value = false
+    if (omniStream) { omniStream.getTracks().forEach(t => t.stop()); omniStream = null }
+    if (omniFrameTimer) { clearInterval(omniFrameTimer); omniFrameTimer = null }
+    stopOmniWatch()
+  } else {
+    try {
+      omniStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: 640, height: 480 } })
+      omniVideoEl.value.srcObject = omniStream
+      omniCameraOn.value = true
+    } catch (e) {
+      omniHistory.value.push({ role: 'system', content: `摄像头打开失败: ${e.message}` })
+    }
+  }
+}
+
+function captureOmniFrame() {
+  if (!omniCameraOn.value || !omniVideoEl.value) return null
+  const video = omniVideoEl.value
+  const canvas = omniCanvasEl.value
+  canvas.width = video.videoWidth || 640
+  canvas.height = video.videoHeight || 480
+  canvas.getContext('2d').drawImage(video, 0, 0)
+  return canvas.toDataURL('image/jpeg', 0.7)
+}
+
+// ── Auto-watch: continuous frame capture + change detection ──
+function getFramePixels() {
+  if (!omniCameraOn.value || !omniVideoEl.value) return null
+  const video = omniVideoEl.value
+  const canvas = omniCanvasEl.value
+  canvas.width = 160; canvas.height = 120 // small for comparison
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(video, 0, 0, 160, 120)
+  return ctx.getImageData(0, 0, 160, 120).data
+}
+
+function framesDiffer(a, b) {
+  if (!a || !b || a.length !== b.length) return true
+  let diff = 0
+  // Sample every 16th pixel (R channel) for speed
+  for (let i = 0; i < a.length; i += 64) {
+    diff += Math.abs(a[i] - b[i])
+  }
+  const avgDiff = diff / (a.length / 64)
+  return avgDiff > 12 // threshold: noticeable change
+}
+
+function toggleOmniWatch() {
+  if (omniAutoWatch.value) {
+    stopOmniWatch()
+  } else {
+    startOmniWatch()
+  }
+}
+
+function startOmniWatch() {
+  if (!omniCameraOn.value) {
+    omniHistory.value.push({ role: 'system', content: '请先开启摄像头' })
+    return
+  }
+  omniAutoWatch.value = true
+  omniLastFrameData = getFramePixels()
+  omniWatchTimer = setInterval(async () => {
+    if (omniLoading.value || omniSpeaking.value) return // skip while AI is thinking/speaking
+    const current = getFramePixels()
+    if (framesDiffer(omniLastFrameData, current)) {
+      omniLastFrameData = current
+      const frame = captureOmniFrame()
+      if (frame) {
+        omniHistory.value.push({ role: 'user', content: '(画面变化)', source: '👁️ 自动', image: frame })
+        await nextTick()
+        scrollOmniChat()
+        await sendOmniToAI('简短描述你看到的画面变化，用一两句话', frame)
+      }
+    }
+  }, 3000) // check every 3 seconds
+}
+
+function stopOmniWatch() {
+  omniAutoWatch.value = false
+  if (omniWatchTimer) { clearInterval(omniWatchTimer); omniWatchTimer = null }
+  omniLastFrameData = null
+}
+
+async function toggleOmniMic() {
+  if (omniListening.value) {
+    omniListening.value = false
+    if (omniVAD) { omniVAD.pause(); omniVAD.destroy(); omniVAD = null }
+  } else {
+    try {
+      const VAD_VER = '0.0.29'
+      const ORT_VER = '1.22.0'
+      if (!window.vad) {
+        const loadScript = (src) => new Promise((resolve, reject) => {
+          const s = document.createElement('script')
+          s.src = src; s.onload = resolve; s.onerror = reject
+          document.head.appendChild(s)
+        })
+        await loadScript(`https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VER}/dist/ort.wasm.min.js`)
+        await loadScript(`https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@${VAD_VER}/dist/bundle.min.js`)
+      }
+      omniListening.value = true
+      omniVAD = await window.vad.MicVAD.new({
+        onnxWASMBasePath: `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VER}/dist/`,
+        baseAssetPath: `https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@${VAD_VER}/dist/`,
+        positiveSpeechThreshold: 0.5,
+        negativeSpeechThreshold: 0.25,
+        redemptionFrames: 10,
+        minSpeechFrames: 5,
+        onSpeechEnd: async (audio) => {
+          const wavBlob = float32ToWavBlob(audio, 16000)
+          try {
+            const text = await ai.listen(wavBlob)
+            if (text) {
+              // Capture frame if camera is on
+              const frame = captureOmniFrame()
+              omniHistory.value.push({ role: 'user', content: text, source: '🎤 语音', image: frame || undefined })
+              await nextTick()
+              scrollOmniChat()
+              await sendOmniToAI(text, frame)
+            }
+          } catch {}
+        }
+      })
+      omniVAD.start()
+    } catch (e) {
+      omniListening.value = false
+      omniHistory.value.push({ role: 'system', content: `麦克风初始化失败: ${e.message}` })
+    }
+  }
+}
+
+async function sendOmniText() {
+  if (!omniInput.value.trim() || omniLoading.value) return
+  const text = omniInput.value.trim()
+  omniInput.value = ''
+  const frame = captureOmniFrame()
+  omniHistory.value.push({ role: 'user', content: text, source: '⌨️ 文字', image: frame || undefined })
+  await nextTick()
+  scrollOmniChat()
+  await sendOmniToAI(text, frame)
+}
+
+async function sendOmniToAI(text, imageDataUrl) {
+  omniLoading.value = true
+  let reply = ''
+  try {
+    const messages = []
+    // Build context from recent history (last 6 messages)
+    const recent = omniHistory.value.slice(-6)
+    for (const msg of recent) {
+      if (msg.role === 'system') continue
+      const content = []
+      if (msg.image) content.push({ type: 'image_url', image_url: { url: msg.image } })
+      if (msg.content) content.push({ type: 'text', text: msg.content })
+      messages.push({ role: msg.role, content: content.length === 1 && content[0].type === 'text' ? msg.content : content })
+    }
+    // If current message has image but wasn't in recent, add it
+    if (imageDataUrl && !recent.some(m => m.image === imageDataUrl)) {
+      const lastMsg = messages[messages.length - 1]
+      if (lastMsg && lastMsg.role === 'user') {
+        if (typeof lastMsg.content === 'string') {
+          lastMsg.content = [{ type: 'image_url', image_url: { url: imageDataUrl } }, { type: 'text', text: lastMsg.content }]
+        }
+      }
+    }
+    omniHistory.value.push({ role: 'assistant', content: '' })
+    const idx = omniHistory.value.length - 1
+    for await (const chunk of ai.think(messages, { stream: true, multimodal: true })) {
+      if (chunk.type === 'text_delta') {
+        reply += chunk.text || ''
+        omniHistory.value[idx].content = reply
+      }
+    }
+    markTested('omni-chat')
+    // Auto-speak the reply
+    if (reply) omniSpeak(reply)
+  } catch (e) {
+    reply = `错误: ${e.message}`
+    omniHistory.value.push({ role: 'system', content: reply })
+  }
+  omniLoading.value = false
+  await nextTick()
+  scrollOmniChat()
+}
+
+function scrollOmniChat() {
+  if (omniChatEl.value) omniChatEl.value.scrollTop = omniChatEl.value.scrollHeight
+}
+
 // ── API Compat ──
 const compatTab = ref('openai')
 const compatOpenaiBody = ref(JSON.stringify({ model: 'default', messages: [{ role: 'user', content: 'Hello' }], stream: false }, null, 2))
@@ -2273,4 +2668,46 @@ onUnmounted(() => {
   background: var(--surface-2, #1e293b); border-radius: 10px; padding: 16px;
   overflow-y: auto;
 }
+
+/* Wake Word */
+.wake-word-panel { display: flex; flex-direction: column; gap: 16px; }
+.ww-config { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ww-config label { font-size: 14px; color: var(--text-secondary, #94a3b8); }
+.ww-keyword-input { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border, #334155); background: var(--surface-2, #1e293b); color: var(--text, #e2e8f0); font-size: 14px; width: 120px; }
+.ww-status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #10b981; }
+.ww-pulse { width: 8px; height: 8px; border-radius: 50%; background: #10b981; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+.ww-transcript { display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto; }
+.ww-segment { display: flex; align-items: baseline; gap: 10px; padding: 8px 12px; border-radius: 8px; background: var(--surface-2, #1e293b); transition: all 0.3s; }
+.ww-segment.triggered { background: rgba(239, 68, 68, 0.12); border-left: 3px solid #ef4444; }
+.ww-time { font-size: 12px; color: var(--text-secondary, #64748b); font-family: monospace; flex-shrink: 0; }
+.ww-text { font-size: 14px; color: var(--text, #e2e8f0); }
+.ww-text :deep(.ww-highlight) { background: rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 1px 4px; border-radius: 3px; font-weight: 600; }
+.ww-badge { font-size: 11px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
+.ww-empty { color: var(--text-secondary, #64748b); font-size: 14px; text-align: center; padding: 40px 0; }
+.ww-stats { display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary, #94a3b8); }
+
+/* Omni Chat */
+.omni-panel { display: flex; flex-direction: column; height: 100%; }
+.omni-main { display: grid; grid-template-columns: 300px 1fr; gap: 16px; height: 100%; min-height: 400px; }
+.omni-media { display: flex; flex-direction: column; gap: 12px; }
+.omni-camera { position: relative; border-radius: 10px; overflow: hidden; background: #0f172a; aspect-ratio: 4/3; }
+.omni-camera .camera-video { width: 100%; height: 100%; object-fit: cover; }
+.omni-camera-controls { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+.omni-camera-controls button { font-size: 12px; padding: 4px 12px; border-radius: 16px; border: none; background: rgba(0,0,0,0.6); color: #fff; cursor: pointer; }
+.omni-camera-controls button.active { background: rgba(16,185,129,0.8); }
+.omni-controls-row { display: flex; gap: 8px; }
+.omni-controls-row button { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border, #334155); background: var(--surface-2, #1e293b); color: var(--text, #e2e8f0); cursor: pointer; font-size: 13px; transition: all 0.2s; }
+.omni-controls-row button.active { background: rgba(16,185,129,0.15); border-color: #10b981; color: #10b981; }
+.omni-controls-row button.recording { background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444; animation: pulse-border 1.5s infinite; }
+@keyframes pulse-border { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+.omni-status { text-align: center; font-size: 13px; color: var(--text-secondary, #64748b); padding: 4px 0; }
+.omni-status.listening-pulse { color: #10b981; animation: fade-pulse 2s infinite; }
+@keyframes fade-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+.omni-voice-indicator { display: flex; align-items: center; gap: 8px; }
+.omni-chat { display: flex; flex-direction: column; min-height: 0; }
+.omni-chat .chat-messages { flex: 1; overflow-y: auto; }
+.omni-input-row { display: flex; gap: 8px; margin-top: 8px; }
+.omni-input-row input { flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border, #334155); background: var(--surface-2, #1e293b); color: var(--text, #e2e8f0); font-size: 14px; }
+.omni-source { font-size: 11px; color: var(--text-secondary, #64748b); margin-left: 4px; }
 </style>
