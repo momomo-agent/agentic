@@ -82,13 +82,63 @@
       </div>
     </div>
 
+    <!-- 云端服务 -->
+    <div class="card">
+      <div class="card-title">云端服务</div>
+      <p class="card-desc">配置云端 API 提供商，添加后其模型会出现在能力分配中。</p>
+
+      <div v-for="(p, id) in providers" :key="id" class="provider-row">
+        <div class="provider-header">
+          <span class="provider-name">{{ id }}</span>
+          <button class="btn-text danger" @click="removeProvider(id)">移除</button>
+        </div>
+        <div class="config-form">
+          <div class="field">
+            <label>API Key</label>
+            <input
+              :type="p.showKey ? 'text' : 'password'"
+              v-model="p.apiKey"
+              placeholder="输入 API Key"
+            />
+            <button class="btn-text" @click="p.showKey = !p.showKey">{{ p.showKey ? '隐藏' : '显示' }}</button>
+          </div>
+          <div class="field" v-if="p.showBaseUrl || p.baseUrl">
+            <label>Base URL（可选）</label>
+            <input v-model="p.baseUrl" placeholder="默认" />
+          </div>
+          <div v-if="!p.showBaseUrl && !p.baseUrl" class="btn-text" @click="p.showBaseUrl = true" style="font-size:12px;cursor:pointer;">+ 自定义 Base URL</div>
+        </div>
+      </div>
+
+      <div v-if="!showAddProvider" style="padding-top: 8px;">
+        <button class="btn-outline" @click="showAddProvider = true">+ 添加云端服务</button>
+      </div>
+      <div v-else class="add-provider-form">
+        <select v-model="newProviderId" class="slot-select">
+          <option value="">选择服务商</option>
+          <option v-for="opt in availableProviders" :key="opt.id" :value="opt.id">{{ opt.label }}</option>
+        </select>
+        <div class="actions">
+          <button @click="addProvider" :disabled="!newProviderId">添加</button>
+          <button class="btn-text" @click="showAddProvider = false">取消</button>
+        </div>
+      </div>
+
+      <div class="actions" style="padding-top: 12px;">
+        <button @click="saveProviders" :disabled="savingProviders">
+          {{ savingProviders ? '保存中...' : '保存' }}
+        </button>
+        <span v-if="providersSaved" class="saved-msg">✓ 已保存</span>
+      </div>
+    </div>
+
     <!-- 状态 -->
     <div v-if="error" class="error-banner">{{ error }}</div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 
 const slots = [
   { key: 'chat', cap: 'chat', icon: '🧠', name: '对话', desc: '主要对话模型' },
@@ -106,6 +156,21 @@ const ollamaHost = ref('http://localhost:11434')
 const savingHost = ref(false)
 const hostSaved = ref(false)
 const error = ref('')
+
+// 云端服务
+const KNOWN_PROVIDERS = [
+  { id: 'openai', label: 'OpenAI' },
+  { id: 'anthropic', label: 'Anthropic' },
+  { id: 'google', label: 'Google' },
+  { id: 'elevenlabs', label: 'ElevenLabs' },
+]
+const providers = reactive<Record<string, { apiKey: string; baseUrl: string; showKey: boolean; showBaseUrl: boolean }>>({})
+const showAddProvider = ref(false)
+const newProviderId = ref('')
+const savingProviders = ref(false)
+const providersSaved = ref(false)
+
+const availableProviders = computed(() => KNOWN_PROVIDERS.filter(p => !(p.id in providers)))
 
 function modelsForCap(cap: string) {
   return allModels.value.filter(m => m.capabilities?.includes(cap) && m.installed)
@@ -149,6 +214,13 @@ async function fetchData() {
 
     Object.assign(assignments, assign)
     ollamaHost.value = cfg.ollama?.host || cfg.ollamaHost || 'http://localhost:11434'
+
+    // Load existing providers
+    const cfgProviders = cfg.providers || {}
+    for (const key of Object.keys(providers)) delete providers[key]
+    for (const [id, p] of Object.entries(cfgProviders) as [string, any][]) {
+      providers[id] = { apiKey: p.apiKey || '', baseUrl: p.baseUrl || '', showKey: false, showBaseUrl: false }
+    }
   } catch (e: any) {
     error.value = e.message
   }
@@ -185,6 +257,45 @@ async function saveOllamaHost() {
     error.value = e.message
   } finally {
     savingHost.value = false
+  }
+}
+
+function addProvider() {
+  if (!newProviderId.value || newProviderId.value in providers) return
+  providers[newProviderId.value] = { apiKey: '', baseUrl: '', showKey: false, showBaseUrl: false }
+  newProviderId.value = ''
+  showAddProvider.value = false
+}
+
+function removeProvider(id: string) {
+  delete providers[id]
+}
+
+async function saveProviders() {
+  savingProviders.value = true
+  try {
+    const res = await fetch('/api/config')
+    const cfg = await res.json()
+    cfg.providers = {}
+    for (const [id, p] of Object.entries(providers)) {
+      if (p.apiKey) {
+        cfg.providers[id] = { apiKey: p.apiKey }
+        if (p.baseUrl) cfg.providers[id].baseUrl = p.baseUrl
+      }
+    }
+    await fetch('/api/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cfg),
+    })
+    providersSaved.value = true
+    setTimeout(() => (providersSaved.value = false), 2000)
+    // Reload models since new providers may register new engines
+    await fetchData()
+  } catch (e: any) {
+    error.value = e.message
+  } finally {
+    savingProviders.value = false
   }
 }
 
@@ -247,4 +358,21 @@ onMounted(fetchData)
 }
 .slot-hint { font-size: 11px; color: var(--text-dim); opacity: 0.7; }
 .slot-hint.warn { color: var(--error, #ef4444); opacity: 1; }
+
+.provider-row {
+  padding: 16px; margin-bottom: 12px; border-radius: 8px;
+  background: var(--surface-2, #f8f9fa); border: 1px solid var(--border);
+}
+.provider-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+}
+.provider-name { font-size: 15px; font-weight: 600; text-transform: capitalize; }
+.btn-text { background: none; border: none; color: var(--primary, #0075de); cursor: pointer; font-size: 13px; padding: 2px 4px; }
+.btn-text.danger { color: var(--error, #ef4444); }
+.btn-outline {
+  padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  background: transparent; border: 1px dashed var(--border); color: var(--text-dim); cursor: pointer;
+}
+.btn-outline:hover { border-color: var(--primary, #0075de); color: var(--primary, #0075de); }
+.add-provider-form { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
 </style>
