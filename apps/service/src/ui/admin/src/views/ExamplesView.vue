@@ -179,9 +179,12 @@
           <div class="lv-video-area">
             <video ref="lvVideoEl" autoplay playsinline class="camera-video"></video>
             <canvas ref="lvCanvasEl" style="display:none"></canvas>
-            <button class="btn-voice" :class="{ active: lvRunning }" @click="toggleLiveVision">
-              {{ lvRunning ? '⏹ 停止' : '▶ 开始' }}
-            </button>
+            <div class="lv-controls">
+              <button class="btn-voice" :class="{ active: lvRunning }" @click="toggleLiveVision">
+                {{ lvRunning ? '⏹ 停止' : '▶ 开始' }}
+              </button>
+              <label class="compat-toggle lv-toggle"><input type="checkbox" v-model="lvMultiFrame" /> 多帧上下文</label>
+            </div>
           </div>
           <div class="lv-log" ref="lvLogEl">
             <div class="result-label">AI 描述</div>
@@ -1045,8 +1048,10 @@ const lvCanvasEl = ref(null)
 const lvLogEl = ref(null)
 const lvRunning = ref(false)
 const lvEntries = ref([])
+const lvMultiFrame = ref(false)
 let lvStream = null
 let lvInterval = null
+let lvHistory = []
 
 async function toggleLiveVision() {
   if (lvRunning.value) {
@@ -1068,6 +1073,7 @@ function stopLiveVision() {
   lvRunning.value = false
   if (lvInterval) { clearTimeout(lvInterval); lvInterval = null }
   if (lvStream) { lvStream.getTracks().forEach(t => t.stop()); lvStream = null }
+  lvHistory = []
 }
 
 async function lvLoop() {
@@ -1082,6 +1088,8 @@ async function captureAndDescribe() {
   if (!lvVideoEl.value || !lvCanvasEl.value) return
   const v = lvVideoEl.value
   const c = lvCanvasEl.value
+  // Guard: skip if video not ready yet (avoids illegal base64)
+  if (!v.videoWidth || !v.videoHeight) return
   // Downscale to max 640px wide for faster vision processing
   const maxW = 640
   const scale = v.videoWidth > maxW ? maxW / v.videoWidth : 1
@@ -1098,10 +1106,14 @@ async function captureAndDescribe() {
   if (lvLogEl.value) lvLogEl.value.scrollTop = lvLogEl.value.scrollHeight
 
   try {
+    const body = { image: dataUrl, prompt: '简洁描述你在这张图片中看到的内容，用一两句话概括。', fast: true }
+    if (lvMultiFrame.value && lvHistory.length) {
+      body.history = lvHistory.slice(-6)
+    }
     const res = await fetch('/api/vision', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: dataUrl, prompt: '简洁描述你在这张图片中看到的内容，用一两句话概括。', fast: true })
+      body: JSON.stringify(body)
     })
     const reader = res.body.getReader()
     const decoder = new TextDecoder()
@@ -1119,6 +1131,12 @@ async function captureAndDescribe() {
       }
     }
     markTested('live-vision')
+    // Track history for multi-frame context
+    if (lvMultiFrame.value && entry.text && !entry.text.startsWith('错误')) {
+      lvHistory.push({ role: 'user', content: '描述这张图片' })
+      lvHistory.push({ role: 'assistant', content: entry.text })
+      if (lvHistory.length > 12) lvHistory = lvHistory.slice(-12)
+    }
   } catch (e) {
     entry.text = `错误: ${e.message}`
   }
@@ -2304,6 +2322,8 @@ onUnmounted(() => {
 .live-vision-panel { display: flex; flex-direction: column; gap: 16px; }
 .lv-main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .lv-video-area { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.lv-controls { display: flex; align-items: center; gap: 16px; }
+.lv-toggle { font-size: 13px; color: var(--text-dim); }
 .lv-video-area .camera-video { width: 100%; border-radius: 10px; background: #000; min-height: 240px; }
 .lv-log {
   background: var(--surface-2, #1e293b); border-radius: 10px; padding: 16px;
