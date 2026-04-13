@@ -651,6 +651,10 @@ function addRoutes(r) {
 
     // Strip data URI prefix if present (handles image/jpeg, image/png, image/webp, etc.)
     const base64 = image.replace(/^data:[^;]+;base64,/, '');
+    // Validate base64 — Ollama rejects invalid data with "illegal base64 data at input byte N"
+    if (!base64 || base64.length < 100 || /^data:/.test(base64)) {
+      return res.status(400).json({ error: 'Invalid image data — base64 too short or malformed' });
+    }
     console.log(`[vision] model=${fast ? 'gemma4:e4b(fast)' : 'auto'} prompt="${prompt.slice(0,50)}" image=${Math.round(base64.length/1024)}KB`);
 
     res.setHeader('Content-Type', 'text/event-stream');
