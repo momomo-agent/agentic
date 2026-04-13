@@ -34,12 +34,26 @@ export async function check() {
   await access(WHISPER_MODEL);
 }
 
+/**
+ * Convert non-wav audio to 16kHz mono wav using ffmpeg.
+ * whisper-cli only supports wav/mp3/ogg/flac — webm/opus from MediaRecorder must be converted.
+ */
+function convertToWav(inputPath, outputPath) {
+  return new Promise((resolve, reject) => {
+    execFile('ffmpeg', ['-y', '-i', inputPath, '-ar', '16000', '-ac', '1', '-f', 'wav', outputPath],
+      { timeout: 15000 }, (err) => err ? reject(err) : resolve());
+  });
+}
+
 export async function transcribe(buffer) {
-  const tmp = join(tmpdir(), `whisper-${Date.now()}.wav`);
+  const ts = Date.now();
+  const tmpIn = join(tmpdir(), `whisper-in-${ts}.webm`);
+  const tmpWav = join(tmpdir(), `whisper-${ts}.wav`);
   try {
-    await writeFile(tmp, buffer);
+    await writeFile(tmpIn, buffer);
+    await convertToWav(tmpIn, tmpWav);
     const text = await new Promise((resolve, reject) => {
-      execFile(WHISPER_BIN, ['-m', WHISPER_MODEL, '-f', tmp, '--no-timestamps', '-l', 'auto'], 
+      execFile(WHISPER_BIN, ['-m', WHISPER_MODEL, '-f', tmpWav, '--no-timestamps', '-l', 'auto'],
         { timeout: 30000 }, (err, stdout) => {
           if (err) return reject(err);
           resolve(stdout.trim());
@@ -47,6 +61,7 @@ export async function transcribe(buffer) {
     });
     return text;
   } finally {
-    unlink(tmp).catch(() => {});
+    unlink(tmpIn).catch(() => {});
+    unlink(tmpWav).catch(() => {});
   }
 }

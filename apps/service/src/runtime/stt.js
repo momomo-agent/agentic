@@ -6,9 +6,10 @@ import { record } from './latency-log.js';
 // Legacy adapter map — used as final fallback when no engine is available
 // adapters/voice/openai-whisper is the default cloud fallback
 const ADAPTERS = {
-  sensevoice: () => import('./adapters/voice/sensevoice.js'),
-  whisper:    () => import('./adapters/voice/whisper.js'),
-  default:    () => import('./adapters/voice/openai-whisper.js'),
+  sensevoice:  () => import('./adapters/voice/sensevoice.js'),
+  whisper:     () => import('./adapters/voice/whisper.js'),
+  elevenlabs:  () => import('./adapters/voice/elevenlabs-stt.js'),
+  default:     () => import('./adapters/voice/openai-whisper.js'),
 };
 
 let _resolved = null;  // { engine, modelName } from registry

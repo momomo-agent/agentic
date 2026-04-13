@@ -44,6 +44,11 @@ export function createCloudEngine(provider, config) {
       { name: 'gemini-2.5-flash', capabilities: ['chat', 'vision'] },
       { name: 'gemini-2.5-pro', capabilities: ['chat', 'vision'] },
     ],
+    elevenlabs: [
+      { name: 'scribe_v2', capabilities: ['stt'] },
+      { name: 'eleven_flash_v2_5', capabilities: ['tts'] },
+      { name: 'eleven_multilingual_v2', capabilities: ['tts'] },
+    ],
   };
 
   const knownModels = modelList || DEFAULT_MODELS[provider] || [];
@@ -100,10 +105,28 @@ export function createCloudEngine(provider, config) {
 
     async *_runInner(modelName, input) {
       if (!apiKey) throw new Error(`No API key for ${provider}`);
-      const base = baseUrl || (provider === 'anthropic' ? 'https://api.anthropic.com' : 'https://api.openai.com');
+      const base = baseUrl || (provider === 'anthropic' ? 'https://api.anthropic.com' : provider === 'elevenlabs' ? 'https://api.elevenlabs.io' : 'https://api.openai.com');
 
-      // STT (e.g. whisper-1)
+      // STT (e.g. whisper-1, scribe_v2)
       if (input.audioBuffer) {
+        if (provider === 'elevenlabs') {
+          const form = new FormData();
+          form.append('file', new Blob([input.audioBuffer], { type: 'audio/wav' }), 'audio.wav');
+          form.append('model_id', modelName);
+          const res = await fetch(`${base}/v1/speech-to-text`, {
+            method: 'POST',
+            headers: { 'xi-api-key': apiKey },
+            body: form,
+          });
+          if (!res.ok) {
+            const err = new Error(`ElevenLabs STT error: ${res.status}`);
+            err.httpStatus = res.status;
+            throw err;
+          }
+          const data = await res.json();
+          yield { type: 'transcription', text: data.text || '' };
+          return;
+        }
         const form = new FormData();
         form.append('file', new Blob([input.audioBuffer], { type: 'audio/wav' }), 'audio.wav');
         form.append('model', modelName);
@@ -124,8 +147,28 @@ export function createCloudEngine(provider, config) {
         return;
       }
 
-      // TTS (e.g. tts-1)
+      // TTS (e.g. tts-1, eleven_flash_v2_5)
       if (input.ttsText !== undefined) {
+        if (provider === 'elevenlabs') {
+          const voiceId = input.voice || 'JBFqnCBsd6RMkjVDRZzb'; // default: George
+          const res = await fetch(`${base}/v1/text-to-speech/${voiceId}/stream`, {
+            method: 'POST',
+            headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              text: input.ttsText,
+              model_id: modelName,
+              voice_settings: { stability: 0.5, similarity_boost: 0.75, speed: 1.0 },
+            }),
+          });
+          if (!res.ok) {
+            const err = new Error(`ElevenLabs TTS error: ${res.status}`);
+            err.httpStatus = res.status;
+            throw err;
+          }
+          const buf = Buffer.from(await res.arrayBuffer());
+          yield { type: 'audio', data: buf };
+          return;
+        }
         const res = await fetch(`${base}/v1/audio/speech`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },

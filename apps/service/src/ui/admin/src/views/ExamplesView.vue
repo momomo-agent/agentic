@@ -549,6 +549,9 @@
 
 <script setup>
 import { ref, nextTick, onUnmounted, computed } from 'vue'
+import { AgenticClient } from 'agentic-client'
+
+const ai = new AgenticClient(location.origin)
 
 const categories = [
   { id: 'all', label: '全部', icon: '📋' },
@@ -629,24 +632,11 @@ async function sendChat() {
   chatHistory.value.push(assistantMsg)
 
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, history: chatHistory.value.slice(0, -1) })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          assistantMsg.content += data.content || data.text || ''
-          await nextTick()
-          scrollChat()
-        } catch {}
+    for await (const chunk of ai.think(msg, { stream: true, history: chatHistory.value.slice(0, -1) })) {
+      if (chunk.type === 'text_delta') {
+        assistantMsg.content += chunk.text || ''
+        await nextTick()
+        scrollChat()
       }
     }
     markTested('chat')
@@ -724,24 +714,9 @@ async function analyzeImage() {
   visionResult.value = ''
 
   try {
-    const res = await fetch('/api/vision', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: visionImage.value, prompt: visionPrompt.value || undefined })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          if (data.error) { visionResult.value = `错误: ${data.error}`; break }
-          visionResult.value += data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.see(visionImage.value, visionPrompt.value || undefined, { stream: true })) {
+      if (chunk.type === 'text_delta') visionResult.value += chunk.text || ''
+      if (chunk.type === 'error') { visionResult.value = `错误: ${chunk.error}`; break }
     }
     markTested('vision')
   } catch (e) {
@@ -781,13 +756,10 @@ async function startVoice() {
         return
       }
       const blob = new Blob(chunks, { type: 'audio/webm' })
-      const fd = new FormData()
-      fd.append('audio', blob, 'recording.webm')
       try {
-        const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
-        const data = await res.json()
-        if (data.text) {
-          voiceText.value += (voiceText.value ? '\n' : '') + data.text
+        const text = await ai.listen(blob)
+        if (text) {
+          voiceText.value += (voiceText.value ? '\n' : '') + text
           markTested('voice')
         }
       } catch (e) {
@@ -844,23 +816,8 @@ async function runStructured() {
 
   const prompt = formatPrompts[structuredFormat.value] + structuredInput.value
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: prompt })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          structuredResult.value += data.content || data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.think(prompt, { stream: true })) {
+      if (chunk.type === 'text_delta') structuredResult.value += chunk.text || ''
     }
     markTested('structured')
   } catch (e) {
@@ -889,17 +846,9 @@ async function runTts() {
   ttsError.value = ''
   const t0 = Date.now()
   try {
-    const res = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: ttsInput.value })
-    })
+    const audioBuffer = await ai.speak(ttsInput.value)
     ttsLatency.value = Date.now() - t0
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
-      throw new Error(err.error || `TTS 失败: ${res.status}`)
-    }
-    const blob = await res.blob()
+    const blob = new Blob([audioBuffer], { type: 'audio/wav' })
     if (ttsAudioUrl.value) URL.revokeObjectURL(ttsAudioUrl.value)
     ttsAudioUrl.value = URL.createObjectURL(blob)
     markTested('tts')
@@ -1124,29 +1073,10 @@ async function captureAndDescribe() {
   if (lvLogEl.value) lvLogEl.value.scrollTop = lvLogEl.value.scrollHeight
 
   try {
-    const body = { image: dataUrl, prompt: '简洁描述你在这张图片中看到的内容，用一两句话概括。', fast: true }
-    if (lvMultiFrame.value && lvHistory.length) {
-      body.history = lvHistory.slice(-6)
-    }
-    const res = await fetch('/api/vision', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
     entry.text = ''
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          if (data.error) { entry.text = `错误: ${data.error}`; break }
-          entry.text += data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.see(dataUrl, '简洁描述你在这张图片中看到的内容，用一两句话概括。', { stream: true })) {
+      if (chunk.type === 'text_delta') entry.text += chunk.text || ''
+      if (chunk.type === 'error') { entry.text = `错误: ${chunk.error}`; break }
     }
     markTested('live-vision')
     // Track history for multi-frame context
@@ -1180,34 +1110,15 @@ async function runTranslate() {
   translateAudioUrl.value = null
 
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: `翻译成${translateLang.value}：${text}` })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          translateResult.value += data.content || data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.think(`翻译成${translateLang.value}：${text}`, { stream: true })) {
+      if (chunk.type === 'text_delta') translateResult.value += chunk.text || ''
     }
     markTested('translate')
     // auto TTS the result
     if (translateResult.value) {
       try {
-        const ttsRes = await fetch('/api/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: translateResult.value })
-        })
-        const blob = await ttsRes.blob()
+        const audioBuffer = await ai.speak(translateResult.value)
+        const blob = new Blob([audioBuffer], { type: 'audio/wav' })
         if (translateAudioUrl.value) URL.revokeObjectURL(translateAudioUrl.value)
         translateAudioUrl.value = URL.createObjectURL(blob)
       } catch {}
@@ -1236,11 +1147,8 @@ async function translateFromMic() {
     stream.getTracks().forEach(t => t.stop())
 
     const blob = new Blob(chunks, { type: 'audio/webm' })
-    const fd = new FormData()
-    fd.append('audio', blob, 'recording.webm')
-    const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
-    const data = await res.json()
-    translateInput.value = data.text || data.transcription || ''
+    const text = await ai.listen(blob)
+    translateInput.value = text || ''
   } catch (e) {
     console.error('Mic error:', e)
   }
@@ -1260,23 +1168,8 @@ async function runDocQa() {
 
   const prompt = `基于以下文档回答问题：\n\n文档：${docqaDoc.value}\n\n问题：${docqaQuestion.value}`
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: prompt })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          docqaResult.value += data.content || data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.think(prompt, { stream: true })) {
+      if (chunk.type === 'text_delta') docqaResult.value += chunk.text || ''
     }
     markTested('doc-qa')
   } catch (e) {
@@ -1315,11 +1208,7 @@ async function startDictation() {
       chunks = []
       if (blob.size < 100) return
       try {
-        const fd = new FormData()
-        fd.append('audio', blob, 'chunk.webm')
-        const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
-        const data = await res.json()
-        const text = data.text || data.transcription || ''
+        const text = await ai.listen(blob)
         if (text) { dictText.value += text; markTested('dictation') }
       } catch {}
       // restart if still recording
@@ -1399,25 +1288,10 @@ async function sendVcChat() {
   if (vcChatEl.value) vcChatEl.value.scrollTop = vcChatEl.value.scrollHeight
 
   try {
-    const res = await fetch('/api/vision', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: vcImage.value, prompt })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
     const last = vcHistory.value[vcHistory.value.length - 1]
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          if (data.error) { last.content = `错误: ${data.error}`; break }
-          last.content += data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.see(vcImage.value, prompt, { stream: true })) {
+      if (chunk.type === 'text_delta') last.content += chunk.text || ''
+      if (chunk.type === 'error') { last.content = `错误: ${chunk.error}`; break }
       await nextTick()
       if (vcChatEl.value) vcChatEl.value.scrollTop = vcChatEl.value.scrollHeight
     }
@@ -1487,32 +1361,13 @@ async function runVisionVoice() {
 
   try {
     // Step 1: get description
-    const res = await fetch('/api/vision', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: vvImage.value, prompt: '详细描述这张图片' })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          vvDescription.value += data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.see(vvImage.value, '详细描述这张图片', { stream: true })) {
+      if (chunk.type === 'text_delta') vvDescription.value += chunk.text || ''
     }
     // Step 2: TTS
     if (vvDescription.value) {
-      const ttsRes = await fetch('/api/tts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: vvDescription.value })
-      })
-      const blob = await ttsRes.blob()
+      const audioBuffer = await ai.speak(vvDescription.value)
+      const blob = new Blob([audioBuffer], { type: 'audio/wav' })
       if (vvAudioUrl.value) URL.revokeObjectURL(vvAudioUrl.value)
       vvAudioUrl.value = URL.createObjectURL(blob)
     }
@@ -1552,31 +1407,12 @@ async function toggleVoiceNote() {
         // Step 1: transcribe
         vnStatus.value = '转写中...'
         try {
-          const fd = new FormData()
-          fd.append('audio', blob, 'note.webm')
-          const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
-          const data = await res.json()
-          vnTranscript.value = data.text || data.transcription || ''
+          vnTranscript.value = await ai.listen(blob)
           if (!vnTranscript.value) { vnStatus.value = '未识别到语音'; return }
           // Step 2: organize with AI
           vnStatus.value = 'AI 整理中...'
-          const chatRes = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: '把以下语音内容整理成结构化笔记，包含要点、待办事项、关键决策：\n\n' + vnTranscript.value })
-          })
-          const reader = chatRes.body.getReader()
-          const decoder = new TextDecoder()
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
-            for (const line of decoder.decode(value).split('\n')) {
-              if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-              try {
-                const d = JSON.parse(line.slice(6))
-                vnNote.value += d.content || d.text || ''
-              } catch {}
-            }
+          for await (const chunk of ai.think('把以下语音内容整理成结构化笔记，包含要点、待办事项、关键决策：\n\n' + vnTranscript.value, { stream: true })) {
+            if (chunk.type === 'text_delta') vnNote.value += chunk.text || ''
           }
           vnStatus.value = ''
           markTested('voice-note')
@@ -1592,69 +1428,90 @@ async function toggleVoiceNote() {
   }
 }
 
-// ── Subtitle 实时字幕 ──
+// ── Subtitle 实时字幕 (Silero VAD) ──
 const subRecording = ref(false)
 const subCurrent = ref('')
 const subHistory = ref([])
 const subtitleSize = ref('medium')
 const subHistoryEl = ref(null)
-let subRecorder = null
-let subStream = null
+let subVAD = null
 
 function toggleSubtitle() {
   if (subRecording.value) stopSubtitle()
   else startSubtitle()
 }
 
+function float32ToWavBlob(float32, sampleRate) {
+  const numSamples = float32.length
+  const buffer = new ArrayBuffer(44 + numSamples * 2)
+  const view = new DataView(buffer)
+  const writeStr = (off, str) => { for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i)) }
+  writeStr(0, 'RIFF')
+  view.setUint32(4, 36 + numSamples * 2, true)
+  writeStr(8, 'WAVE')
+  writeStr(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  writeStr(36, 'data')
+  view.setUint32(40, numSamples * 2, true)
+  for (let i = 0; i < numSamples; i++) {
+    const s = Math.max(-1, Math.min(1, float32[i]))
+    view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true)
+  }
+  return new Blob([buffer], { type: 'audio/wav' })
+}
+
 async function startSubtitle() {
   try {
-    subStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    subRecorder = new MediaRecorder(subStream, { mimeType: 'audio/webm;codecs=opus' })
-    subRecording.value = true
-
-    let chunks = []
-    subRecorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data) }
-    subRecorder.onstop = async () => {
-      const blob = new Blob(chunks, { type: 'audio/webm' })
-      chunks = []
-      if (blob.size < 100) { if (subRecording.value) restartSubRecorder(); return }
-      try {
-        const fd = new FormData()
-        fd.append('audio', blob, 'sub.webm')
-        const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
-        const data = await res.json()
-        const text = data.text || data.transcription || ''
-        if (text) {
-          if (subCurrent.value) subHistory.value.push(subCurrent.value)
-          subCurrent.value = text
-          markTested('subtitle')
-          await nextTick()
-          if (subHistoryEl.value) subHistoryEl.value.scrollTop = subHistoryEl.value.scrollHeight
-        }
-      } catch {}
-      if (subRecording.value) restartSubRecorder()
+    // Dynamically load onnxruntime-web + vad-web from CDN
+    const VAD_VER = '0.0.29'
+    const ORT_VER = '1.22.0'
+    if (!window.vad) {
+      const loadScript = (src) => new Promise((resolve, reject) => {
+        const s = document.createElement('script')
+        s.src = src; s.onload = resolve; s.onerror = reject
+        document.head.appendChild(s)
+      })
+      await loadScript(`https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VER}/dist/ort.wasm.min.js`)
+      await loadScript(`https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@${VAD_VER}/dist/bundle.min.js`)
     }
-    subRecorder.start(100)
-    setTimeout(() => { if (subRecorder && subRecorder.state === 'recording') subRecorder.stop() }, 2000)
+    subRecording.value = true
+    subVAD = await window.vad.MicVAD.new({
+      onnxWASMBasePath: `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VER}/dist/`,
+      baseAssetPath: `https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@${VAD_VER}/dist/`,
+      positiveSpeechThreshold: 0.5,
+      negativeSpeechThreshold: 0.25,
+      redemptionFrames: 10,
+      minSpeechFrames: 5,
+      onSpeechEnd: async (audio) => {
+        const wavBlob = float32ToWavBlob(audio, 16000)
+        try {
+          const text = await ai.listen(wavBlob)
+          if (text) {
+            if (subCurrent.value) subHistory.value.push(subCurrent.value)
+            subCurrent.value = text
+            markTested('subtitle')
+            await nextTick()
+            if (subHistoryEl.value) subHistoryEl.value.scrollTop = subHistoryEl.value.scrollHeight
+          }
+        } catch {}
+      }
+    })
+    subVAD.start()
   } catch (e) {
-    subCurrent.value = `麦克风错误: ${e.message}`
+    subCurrent.value = `VAD 初始化失败: ${e.message}`
     subRecording.value = false
   }
 }
 
-function restartSubRecorder() {
-  if (!subRecorder || !subStream) return
-  try {
-    subRecorder.start(100)
-    setTimeout(() => { if (subRecorder && subRecorder.state === 'recording') subRecorder.stop() }, 2000)
-  } catch {}
-}
-
 function stopSubtitle() {
   subRecording.value = false
-  if (subRecorder && subRecorder.state === 'recording') subRecorder.stop()
-  if (subStream) { subStream.getTracks().forEach(t => t.stop()); subStream = null }
-  subRecorder = null
+  if (subVAD) { subVAD.destroy(); subVAD = null }
 }
 
 // ── Storyteller 故事讲述 ──
@@ -1673,23 +1530,8 @@ async function runStory() {
   storyAudioUrl.value = null
 
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: `请根据以下主题写一个有趣的短故事（300-500字）：${storyTopic.value}` })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          storyText.value += data.content || data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.think(`请根据以下主题写一个有趣的短故事（300-500字）：${storyTopic.value}`, { stream: true })) {
+      if (chunk.type === 'text_delta') storyText.value += chunk.text || ''
     }
     storyDone.value = true
     markTested('storyteller')
@@ -1703,12 +1545,8 @@ async function playStory() {
   if (!storyText.value || storyTtsLoading.value) return
   storyTtsLoading.value = true
   try {
-    const res = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: storyText.value })
-    })
-    const blob = await res.blob()
+    const audioBuffer = await ai.speak(storyText.value)
+    const blob = new Blob([audioBuffer], { type: 'audio/wav' })
     if (storyAudioUrl.value) URL.revokeObjectURL(storyAudioUrl.value)
     storyAudioUrl.value = URL.createObjectURL(blob)
   } catch {}
@@ -1737,24 +1575,9 @@ async function sendMmText() {
   await scrollMm()
 
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, history: mmHistory.value.slice(0, -1).map(m => ({ role: m.role, content: m.content })) })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
     const last = mmHistory.value[mmHistory.value.length - 1]
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          last.content += data.content || data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.think(msg, { stream: true, history: mmHistory.value.slice(0, -1).map(m => ({ role: m.role, content: m.content })) })) {
+      if (chunk.type === 'text_delta') last.content += chunk.text || ''
       await scrollMm()
     }
     markTested('multimodal')
@@ -1776,28 +1599,9 @@ async function sendMmImage(e) {
     await scrollMm()
 
     try {
-      const res = await fetch('/api/vision', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          image: base64,
-          prompt: '描述这张图片',
-          history: mmHistory.value.slice(0, -2).filter(m => !m.image).map(m => ({ role: m.role, content: m.content }))
-        })
-      })
-      const r = res.body.getReader()
-      const decoder = new TextDecoder()
       const last = mmHistory.value[mmHistory.value.length - 1]
-      while (true) {
-        const { done, value } = await r.read()
-        if (done) break
-        for (const line of decoder.decode(value).split('\n')) {
-          if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-          try {
-            const data = JSON.parse(line.slice(6))
-            last.content += data.text || ''
-          } catch {}
-        }
+      for await (const chunk of ai.see(base64, '描述这张图片', { stream: true })) {
+        if (chunk.type === 'text_delta') last.content += chunk.text || ''
         await scrollMm()
       }
       markTested('multimodal')
@@ -1827,11 +1631,7 @@ async function sendMmVoice() {
     mmRecording.value = false
 
     const blob = new Blob(chunks, { type: 'audio/webm' })
-    const fd = new FormData()
-    fd.append('audio', blob, 'voice.webm')
-    const res = await fetch('/api/transcribe', { method: 'POST', body: fd })
-    const data = await res.json()
-    const text = data.text || data.transcription || ''
+    const text = await ai.listen(blob)
     if (text) {
       mmInput.value = text
       await sendMmText()
@@ -1843,12 +1643,8 @@ async function sendMmVoice() {
 
 async function mmTtsPlay(text) {
   try {
-    const res = await fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
-    })
-    const blob = await res.blob()
+    const audioBuffer = await ai.speak(text)
+    const blob = new Blob([audioBuffer], { type: 'audio/wav' })
     const url = URL.createObjectURL(blob)
     new Audio(url).play().catch(() => {})
   } catch {}
@@ -1881,24 +1677,9 @@ async function runAnnotate() {
   annResult.value = ''
 
   try {
-    const res = await fetch('/api/vision', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: annImage.value, prompt: '详细描述图片中每个区域的内容，用编号列出' })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const data = JSON.parse(line.slice(6))
-          if (data.error) { annResult.value = `错误: ${data.error}`; break }
-          annResult.value += data.text || ''
-        } catch {}
-      }
+    for await (const chunk of ai.see(annImage.value, '详细描述图片中每个区域的内容，用编号列出', { stream: true })) {
+      if (chunk.type === 'text_delta') annResult.value += chunk.text || ''
+      if (chunk.type === 'error') { annResult.value = `错误: ${chunk.error}`; break }
     }
     markTested('annotate')
   } catch (e) {
@@ -1969,13 +1750,12 @@ async function toggleVp() {
     vpMediaRecorder.onstop = async () => {
       vpStream?.getTracks().forEach(t => t.stop())
       const blob = new Blob(chunks, { type: 'audio/webm' })
-      const form = new FormData()
-      form.append('audio', blob, 'recording.webm')
       const t0 = Date.now()
       try {
-        const res = await fetch('/api/voice', { method: 'POST', body: form })
+        const result = await ai.converse(blob)
         vpLatency.value = Date.now() - t0
-        const audioBlob = await res.blob()
+        // result.audio is an ArrayBuffer (raw audio/wav)
+        const audioBlob = new Blob([result.audio], { type: 'audio/wav' })
         vpAudioUrl.value = URL.createObjectURL(audioBlob)
       } catch (e) {
         vpError.value = e.message
@@ -2008,35 +1788,11 @@ async function sendFc() {
   fcLoading.value = true
   try {
     const tools = fcTools.value.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.parameters } }))
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: msg, tools })
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
     let text = ''
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      for (const line of decoder.decode(value).split('\n')) {
-        if (!line.startsWith('data: ') || line.includes('[DONE]')) continue
-        try {
-          const d = JSON.parse(line.slice(6))
-          // Backend uses { type: 'content', text: '...' } and { type: 'tool_use', name, input }
-          if (d.type === 'content' && (d.text || d.content)) text += d.text || d.content
-          if (d.type === 'tool_use') {
-            fcToolCalls.value.push({ name: d.name, args: d.input || '' })
-          }
-          // Also support OpenAI format for cloud models
-          const delta = d.choices?.[0]?.delta
-          if (delta?.content) text += delta.content
-          if (delta?.tool_calls) {
-            for (const tc of delta.tool_calls) {
-              if (tc.function?.name) fcToolCalls.value.push({ name: tc.function.name, args: tc.function.arguments || '' })
-            }
-          }
-        } catch {}
+    for await (const chunk of ai.think(msg, { stream: true, tools })) {
+      if (chunk.type === 'text_delta') text += chunk.text || ''
+      if (chunk.type === 'tool_use') {
+        fcToolCalls.value.push({ name: chunk.name, args: chunk.input || '' })
       }
     }
     fcResult.value = text || (fcToolCalls.value.length ? '(AI 调用了工具)' : '(无响应)')
@@ -2059,8 +1815,7 @@ async function fetchPerf() {
   perfLoading.value = true
   perfError.value = ''
   try {
-    const res = await fetch('/api/perf')
-    perfData.value = await res.json()
+    perfData.value = await ai.admin.perf()
     const maxVal = Math.max(...Object.values(perfData.value).map(m => m.avg_ms || 0), 100)
     perfMaxMs.value = maxVal
   } catch (e) {
@@ -2087,8 +1842,7 @@ async function fetchDevices() {
   devicesLoading.value = true
   devicesError.value = ''
   try {
-    const res = await fetch('/api/devices')
-    devicesList.value = await res.json()
+    devicesList.value = await ai.admin.devices()
   } catch (e) {
     devicesError.value = e.message
   }
@@ -2106,8 +1860,7 @@ async function fetchLogs() {
   logsLoading.value = true
   logsError.value = ''
   try {
-    const res = await fetch('/api/logs')
-    logsList.value = await res.json()
+    logsList.value = await ai.admin.logs()
   } catch (e) {
     logsError.value = e.message
   }

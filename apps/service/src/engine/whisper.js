@@ -9,9 +9,9 @@ import { existsSync } from 'fs';
 import { execSync } from 'child_process';
 
 const WHISPER_MODELS = [
-  { name: 'whisper:base', description: 'OpenAI Whisper Base — 快速', size: '~150 MB', capabilities: ['stt'] },
-  { name: 'whisper:small', description: 'OpenAI Whisper Small — 均衡', size: '~500 MB', capabilities: ['stt'] },
-  { name: 'whisper:medium', description: 'OpenAI Whisper Medium — 高精度', size: '~1.5 GB', capabilities: ['stt'] },
+  { name: 'whisper:base', description: 'OpenAI Whisper Base — 快速', size: 150_000_000, capabilities: ['stt'] },
+  { name: 'whisper:small', description: 'OpenAI Whisper Small — 均衡', size: 500_000_000, capabilities: ['stt'] },
+  { name: 'whisper:medium', description: 'OpenAI Whisper Medium — 高精度', size: 1_500_000_000, capabilities: ['stt'] },
 ];
 
 // Well-known install paths — PATH may not include /opt/homebrew/bin in daemon/nohup mode
@@ -63,18 +63,24 @@ export default {
 
   async models() {
     const s = await this.status();
-    if (!s.available) return [];
+    const models = [];
 
-    if (s.backend === 'sensevoice') {
-      return [{ id: 'sensevoice', name: 'sensevoice', description: 'SenseVoice — 超快语音识别 (MPS)', capabilities: ['stt'], installed: true }];
+    if (s.available) {
+      if (s.backend === 'sensevoice') {
+        models.push({ id: 'sensevoice', name: 'sensevoice', description: 'SenseVoice — 超快语音识别 (MPS)', capabilities: ['stt'], installed: true });
+      } else {
+        models.push(...WHISPER_MODELS.map(m => ({
+          ...m,
+          id: m.name,
+          installed: true,
+        })));
+      }
     }
 
-    // whisper-cpp: list available model files
-    return WHISPER_MODELS.map(m => ({
-      ...m,
-      id: m.name,
-      installed: true, // simplified — actual check would look for model files
-    }));
+    // Cloud STT — always show
+    models.push({ id: 'elevenlabs-stt', name: 'elevenlabs-stt', description: 'ElevenLabs Scribe — 云端语音识别', capabilities: ['stt'], installed: true, cloud: true });
+
+    return models;
   },
 
   recommended() {
@@ -88,6 +94,11 @@ export default {
    * @returns {Promise<string>} transcribed text
    */
   async run(modelName, input) {
+    if (modelName === 'elevenlabs-stt') {
+      const { transcribe } = await import('../runtime/adapters/voice/elevenlabs-stt.js');
+      return transcribe(input.audioBuffer);
+    }
+
     const s = await this.status();
     if (!s.available) throw new Error('No STT backend available');
 
