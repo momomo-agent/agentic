@@ -43,8 +43,16 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "agentic-act": "workspace:*",
+    "agentic-claw": "workspace:*",
+    "agentic-core": "workspace:*",
     "agentic-embed": "workspace:*",
+    "agentic-filesystem": "workspace:*",
+    "agentic-memory": "workspace:*",
+    "agentic-render": "workspace:*",
     "agentic-sense": "workspace:*",
+    "agentic-shell": "workspace:*",
+    "agentic-spatial": "workspace:*",
     "agentic-store": "workspace:*",
     "agentic-voice": "workspace:*",
     "chalk": "^5.6.2",

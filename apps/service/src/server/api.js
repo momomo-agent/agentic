@@ -19,6 +19,7 @@ import { getEngines, discoverModels, getEngine, modelsForCapability, resolveMode
 import { getAllHealth } from '../engine/health.js';
 import { embed } from '../runtime/embed.js';
 import { createQueue, enqueue, getQueueStats, resetQueue } from './queue.js';
+import { addExtendedRoutes } from './api-extended.js';
 
 const localQueue = createQueue('local', { maxConcurrency: 1, maxQueueSize: 50 });
 const cloudQueue = createQueue('cloud', { maxConcurrency: 5, maxQueueSize: 100 });
@@ -965,6 +966,8 @@ export function createApp() {
     next();
   });
   addRoutes(app);
+  // Extended routes register synchronously; lazy-load sub-libraries on first request
+  addExtendedRoutes(app);
   app.use(errorHandler);
   return app;
 }
