@@ -1,10 +1,15 @@
 /**
- * agentic — 一次 import，所有能力
+ * agentic — 给 AI 造身体
+ *
+ * 同一套接口，两种后端：
+ * - Agentic — 本地直接调子库
+ * - AgenticClient — 远程连 service
  *
  * Usage:
- *   import { ask, createMemory, createStore, createTTS } from 'agentic'
- *
- * 每个子库独立可用，agentic 只是统一入口。
+ *   const ai = new Agentic({ model: 'gemma3', apiKey: 'sk-...' })
+ *   const answer = await ai.think('hello')
+ *   const audio = await ai.speak('hello world')
+ *   const text = await ai.listen(audioBlob)
  */
 ;(function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory()
@@ -14,273 +19,264 @@
   'use strict'
 
   // ── Lazy loader ──────────────────────────────────────────────────
-  // Each sub-library is loaded on first access. Missing libs return null.
 
   const _cache = {}
-  function load(name, globalKey) {
+  function load(name) {
     if (_cache[name] !== undefined) return _cache[name]
-    let mod = null
-    if (globalKey && typeof globalThis !== 'undefined' && globalThis[globalKey]) {
-      mod = globalThis[globalKey]
+    try {
+      if (typeof require === 'function') _cache[name] = require(name)
+      else _cache[name] = null
+    } catch { _cache[name] = null }
+    return _cache[name]
+  }
+
+  // ── Agentic ──────────────────────────────────────────────────────
+
+  class Agentic {
+    /**
+     * @param {object} opts
+     * @param {string} opts.apiKey - LLM API key
+     * @param {string} [opts.model] - 默认模型
+     * @param {string} [opts.baseUrl] - LLM API base URL
+     * @param {string} [opts.provider] - 'ollama' | 'openai' | 'anthropic' | 'gemini'
+     * @param {string} [opts.system] - 系统 prompt
+     * @param {object} [opts.tts] - TTS 配置 { provider, apiKey, voice, model }
+     * @param {object} [opts.stt] - STT 配置 { provider, apiKey, model }
+     * @param {object} [opts.memory] - Memory 配置 { maxTokens }
+     * @param {object} [opts.store] - Store 配置 { backend, path }
+     */
+    constructor(opts = {}) {
+      this._opts = opts
+      this._tts = null
+      this._stt = null
+      this._memory = null
+      this._store = null
+      this._sense = null
+      this._act = null
+      this._fs = null
+      this._shell = null
     }
-    if (!mod && typeof require === 'function') {
-      try { mod = require(name) } catch {}
+
+    // ── Core capabilities (能力接口) ─────────────────────────────
+
+    /**
+     * 思考 — LLM 调用
+     * @param {string|Array} input - 消息或对话历史
+     * @param {object} [opts] - { stream, schema, tools, history, system }
+     * @returns {Promise<{answer, toolCalls?, data?}>|AsyncGenerator}
+     */
+    async think(input, opts = {}) {
+      const core = load('agentic-core')
+      if (!core) throw new Error('agentic-core not available')
+
+      const config = {
+        provider: this._opts.provider,
+        baseUrl: this._opts.baseUrl,
+        apiKey: this._opts.apiKey,
+        model: opts.model || this._opts.model,
+        system: opts.system || this._opts.system,
+        stream: opts.stream || false,
+      }
+
+      if (typeof input === 'string') {
+        config.history = opts.history || []
+      } else {
+        config.history = input
+        input = input[input.length - 1]?.content || ''
+      }
+
+      if (opts.tools) config.tools = opts.tools
+      if (opts.schema) config.schema = opts.schema
+      if (opts.images) config.images = opts.images
+
+      const ask = core.agenticAsk || core
+      const result = await ask(input, config, opts.onEvent)
+      return result
     }
-    _cache[name] = mod
-    return mod
-  }
 
-  // ── Core (大脑) ──────────────────────────────────────────────────
+    /**
+     * 听 — 语音转文字
+     * @param {Blob|Buffer|ArrayBuffer} audio
+     * @param {object} [opts] - { language }
+     * @returns {Promise<string>}
+     */
+    async listen(audio, opts = {}) {
+      const voice = load('agentic-voice')
+      if (!voice) throw new Error('agentic-voice not available')
 
-  function _core() { return load('agentic-core', 'AgenticAgent') }
+      if (!this._stt) {
+        const sttOpts = this._opts.stt || {}
+        this._stt = voice.createSTT({
+          provider: sttOpts.provider || 'openai',
+          baseUrl: sttOpts.baseUrl || this._opts.baseUrl,
+          apiKey: sttOpts.apiKey || this._opts.apiKey,
+          model: sttOpts.model,
+        })
+      }
 
-  /** LLM 调用 */
-  function ask(prompt, config, emit) {
-    const c = _core()
-    if (!c) throw new Error('agentic-core not available')
-    const fn = c.agenticAsk || c
-    return fn(prompt, config, emit)
-  }
+      return this._stt.transcribe(audio, opts)
+    }
 
-  /** 工具注册表 */
-  function toolRegistry() {
-    const c = _core()
-    return c?.toolRegistry || null
-  }
+    /**
+     * 说 — 文字转语音
+     * @param {string} text
+     * @param {object} [opts] - { voice, model }
+     * @returns {Promise<ArrayBuffer|Buffer>}
+     */
+    async speak(text, opts = {}) {
+      const voice = load('agentic-voice')
+      if (!voice) throw new Error('agentic-voice not available')
 
-  // ── Memory (记忆) ────────────────────────────────────────────────
+      if (!this._tts) {
+        const ttsOpts = this._opts.tts || {}
+        this._tts = voice.createTTS({
+          provider: ttsOpts.provider || 'openai',
+          baseUrl: ttsOpts.baseUrl || this._opts.baseUrl,
+          apiKey: ttsOpts.apiKey || this._opts.apiKey,
+          voice: ttsOpts.voice,
+          model: ttsOpts.model,
+        })
+      }
 
-  function _memory() { return load('agentic-memory', 'AgenticMemory') }
+      return this._tts.fetchAudio(text, opts)
+    }
 
-  function createMemory(opts) {
-    const m = _memory()
-    if (!m) throw new Error('agentic-memory not available')
-    return m.createMemory(opts)
-  }
+    /**
+     * 看 — 图片理解
+     * @param {Blob|Buffer|string} image - 图片数据或 base64
+     * @param {string} [prompt] - 提问
+     * @param {object} [opts] - { stream }
+     * @returns {Promise<string>|AsyncGenerator}
+     */
+    async see(image, prompt = '描述这张图片', opts = {}) {
+      // Vision = think with images
+      const base64 = typeof image === 'string' ? image : _toBase64(image)
+      return this.think(prompt, {
+        ...opts,
+        images: [{ url: `data:image/jpeg;base64,${base64}` }],
+      })
+    }
 
-  function createManager(opts) {
-    const m = _memory()
-    if (!m) throw new Error('agentic-memory not available')
-    return m.createManager(opts)
-  }
+    /**
+     * 对话 — 听→想→说，全链路
+     * @param {Blob|Buffer|ArrayBuffer} audio
+     * @param {object} [opts]
+     * @returns {Promise<{text, audio, transcript}>}
+     */
+    async converse(audio, opts = {}) {
+      const transcript = await this.listen(audio)
+      const result = await this.think(transcript, opts)
+      const answer = typeof result === 'string' ? result : result.answer || result.text || ''
+      const audioOut = await this.speak(answer)
+      return { text: answer, audio: audioOut, transcript }
+    }
 
-  function createKnowledgeStore(opts) {
-    const m = _memory()
-    if (!m) throw new Error('agentic-memory not available')
-    return m.createKnowledgeStore(opts)
-  }
+    // ── Sub-library access (子库直接访问) ────────────────────────
 
-  // ── Store (骨骼) ─────────────────────────────────────────────────
+    /** 记忆 */
+    get memory() {
+      if (this._memory) return this._memory
+      const m = load('agentic-memory')
+      if (!m) return null
+      this._memory = m.createMemory(this._opts.memory || {})
+      return this._memory
+    }
 
-  function _store() { return load('agentic-store', 'AgenticStore') }
+    /** 持久化存储 */
+    get store() {
+      if (this._store) return this._store
+      const s = load('agentic-store')
+      if (!s) return null
+      this._store = s.createStore(this._opts.store || {})
+      return this._store
+    }
 
-  function createStore(opts) {
-    const s = _store()
-    if (!s) throw new Error('agentic-store not available')
-    return s.createStore(opts)
-  }
+    /** 感知 */
+    get sense() {
+      if (this._sense) return this._sense
+      const s = load('agentic-sense')
+      if (!s) return null
+      this._sense = new s.AgenticSense(this._opts.sense || {})
+      return this._sense
+    }
 
-  // ── Voice (声音) ─────────────────────────────────────────────────
+    /** 决策 */
+    get act() {
+      if (this._act) return this._act
+      const a = load('agentic-act')
+      if (!a) return null
+      this._act = new a.AgenticAct(this._opts.act || {})
+      return this._act
+    }
 
-  function _voice() { return load('agentic-voice', 'AgenticVoice') }
+    /** 文件系统 */
+    get fs() {
+      if (this._fs) return this._fs
+      const f = load('agentic-filesystem')
+      if (!f) return null
+      this._fs = new f.AgenticFileSystem(this._opts.fs)
+      return this._fs
+    }
 
-  function createVoice(opts) {
-    const v = _voice()
-    if (!v) throw new Error('agentic-voice not available')
-    return v.createVoice(opts)
-  }
+    /** 命令执行 */
+    get shell() {
+      if (this._shell) return this._shell
+      const s = load('agentic-shell')
+      if (!s) return null
+      this._shell = new s.AgenticShell(this._opts.shell || {})
+      return this._shell
+    }
 
-  function createTTS(opts) {
-    const v = _voice()
-    if (!v) throw new Error('agentic-voice not available')
-    return v.createTTS(opts)
-  }
+    // ── Discovery ────────────────────────────────────────────────
 
-  function createSTT(opts) {
-    const v = _voice()
-    if (!v) throw new Error('agentic-voice not available')
-    return v.createSTT(opts)
-  }
+    /** 检测可用能力 */
+    capabilities() {
+      return {
+        think: !!load('agentic-core'),
+        listen: !!load('agentic-voice'),
+        speak: !!load('agentic-voice'),
+        see: !!load('agentic-core'),
+        converse: !!load('agentic-core') && !!load('agentic-voice'),
+        memory: !!load('agentic-memory'),
+        store: !!load('agentic-store'),
+        sense: !!load('agentic-sense'),
+        act: !!load('agentic-act'),
+        filesystem: !!load('agentic-filesystem'),
+        shell: !!load('agentic-shell'),
+        spatial: !!load('agentic-spatial'),
+        render: !!load('agentic-render'),
+        embed: !!load('agentic-embed'),
+      }
+    }
 
-  // ── Sense (眼睛) ─────────────────────────────────────────────────
-
-  function _sense() { return load('agentic-sense', 'AgenticSense') }
-
-  function createSense(opts) {
-    const s = _sense()
-    if (!s) throw new Error('agentic-sense not available')
-    return new s.AgenticSense(opts)
-  }
-
-  function createAudio(opts) {
-    const s = _sense()
-    if (!s) throw new Error('agentic-sense not available')
-    return new s.AgenticAudio(opts)
-  }
-
-  // ── Act (意志) ───────────────────────────────────────────────────
-
-  function _act() { return load('agentic-act', 'AgenticAct') }
-
-  function createAct(opts) {
-    const a = _act()
-    if (!a) throw new Error('agentic-act not available')
-    return new a.AgenticAct(opts)
-  }
-
-  // ── Render (表达) ────────────────────────────────────────────────
-
-  function _render() { return load('agentic-render', 'AgenticRender') }
-
-  function render(markdown, opts) {
-    const r = _render()
-    if (!r) throw new Error('agentic-render not available')
-    return r.render(markdown, opts)
-  }
-
-  function renderCSS(theme) {
-    const r = _render()
-    if (!r) throw new Error('agentic-render not available')
-    return r.getCSS(theme)
-  }
-
-  // ── Embed (嵌入) ─────────────────────────────────────────────────
-
-  function _embed() { return load('agentic-embed', 'AgenticEmbed') }
-
-  function createIndex(opts) {
-    const e = _embed()
-    if (!e) throw new Error('agentic-embed not available')
-    return e.create(opts)
-  }
-
-  function chunkText(text, opts) {
-    const e = _embed()
-    if (!e) throw new Error('agentic-embed not available')
-    return e.chunkText(text, opts)
-  }
-
-  function localEmbed(text) {
-    const e = _embed() || _memory()
-    if (!e) throw new Error('agentic-embed or agentic-memory not available')
-    return e.localEmbed(text)
-  }
-
-  // ── Filesystem (文件系统) ────────────────────────────────────────
-
-  function _fs() { return load('agentic-filesystem') }
-
-  function createFileSystem(backend) {
-    const f = _fs()
-    if (!f) throw new Error('agentic-filesystem not available')
-    return new f.AgenticFileSystem(backend)
-  }
-
-  // ── Shell (命令执行) ─────────────────────────────────────────────
-
-  function _shell() { return load('agentic-shell') }
-
-  function createShell(opts) {
-    const s = _shell()
-    if (!s) throw new Error('agentic-shell not available')
-    return new s.AgenticShell(opts)
-  }
-
-  // ── Spatial (空间推理) ───────────────────────────────────────────
-
-  function _spatial() { return load('agentic-spatial') }
-
-  function reconstructSpace(opts) {
-    const s = _spatial()
-    if (!s) throw new Error('agentic-spatial not available')
-    return s.reconstructSpace(opts)
-  }
-
-  function createSpatialSession(opts) {
-    const s = _spatial()
-    if (!s) throw new Error('agentic-spatial not available')
-    return new s.SpatialSession(opts)
-  }
-
-  // ── Agent (完整运行时) ───────────────────────────────────────────
-
-  function _claw() { return load('agentic-claw') }
-
-  function createAgent(opts) {
-    const c = _claw()
-    if (!c) throw new Error('agentic-claw not available')
-    return c.createClaw(opts)
-  }
-
-  // ── Capabilities ─────────────────────────────────────────────────
-
-  function capabilities() {
-    return {
-      core: !!_core(),
-      memory: !!_memory(),
-      store: !!_store(),
-      voice: !!_voice(),
-      sense: !!_sense(),
-      act: !!_act(),
-      render: !!_render(),
-      embed: !!_embed(),
-      filesystem: !!_fs(),
-      shell: !!_shell(),
-      spatial: !!_spatial(),
-      agent: !!_claw(),
+    /** 销毁，释放资源 */
+    destroy() {
+      if (this._stt?.stopListening) this._stt.stopListening()
+      this._tts = null
+      this._stt = null
+      this._memory = null
+      this._store = null
+      this._sense = null
+      this._act = null
+      this._fs = null
+      this._shell = null
     }
   }
 
-  // ── Public API ───────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────
 
-  return {
-    // Core
-    ask,
-    toolRegistry,
-
-    // Memory
-    createMemory,
-    createManager,
-    createKnowledgeStore,
-
-    // Store
-    createStore,
-
-    // Voice
-    createVoice,
-    createTTS,
-    createSTT,
-
-    // Sense
-    createSense,
-    createAudio,
-
-    // Act
-    createAct,
-
-    // Render
-    render,
-    renderCSS,
-
-    // Embed
-    createIndex,
-    chunkText,
-    localEmbed,
-
-    // Filesystem
-    createFileSystem,
-
-    // Shell
-    createShell,
-
-    // Spatial
-    reconstructSpace,
-    createSpatialSession,
-
-    // Agent (full runtime)
-    createAgent,
-
-    // Discovery
-    capabilities,
+  function _toBase64(input) {
+    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(input)) {
+      return input.toString('base64')
+    }
+    if (input instanceof ArrayBuffer) {
+      const bytes = new Uint8Array(input)
+      let binary = ''
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+      return typeof btoa === 'function' ? btoa(binary) : Buffer.from(binary, 'binary').toString('base64')
+    }
+    return String(input)
   }
+
+  return { Agentic }
 })

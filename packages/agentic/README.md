@@ -2,53 +2,50 @@
 
 > 给 AI 造身体 — 一次 import，所有能力
 
+同一套接口，两种后端：
+- `Agentic` — 本地直接调子库
+- `AgenticClient` — 远程连 service
+
 ```js
-import { ask, createMemory, createStore, createTTS } from 'agentic'
+import { Agentic } from 'agentic'
+
+const ai = new Agentic({
+  provider: 'ollama',
+  model: 'gemma3',
+  tts: { provider: 'openai', apiKey: 'sk-...' },
+  stt: { provider: 'openai', apiKey: 'sk-...' },
+})
 
 // 思考
-const answer = await ask('hello', { provider: 'ollama', model: 'gemma3' })
+const result = await ai.think('hello')
 
-// 记忆
-const mem = createMemory({ maxTokens: 4000 })
-await mem.user('remember this')
+// 听
+const text = await ai.listen(audioBlob)
 
-// 存储
-const store = createStore({ backend: 'sqlite' })
-await store.kvSet('key', 'value')
+// 说
+const audio = await ai.speak('hello world')
 
-// 语音
-const tts = createTTS({ provider: 'openai', apiKey: 'sk-...' })
-await tts.speak('hello world')
+// 看
+const desc = await ai.see(imageBlob, '这是什么？')
 
-// 完整 agent
-const agent = createAgent({ apiKey: 'sk-...', knowledge: true })
-await agent.chat('hello')
+// 全链路语音对话
+const { text, audio, transcript } = await ai.converse(audioBlob)
+
+// 子库直接访问
+ai.memory.learn('something')
+ai.store.kvSet('key', 'value')
+ai.sense.detect(frame)
+
+// 能力检测
+ai.capabilities()
+// { think: true, listen: true, speak: true, see: true, converse: true, memory: false, ... }
 ```
 
-## 子库
+## 对比
 
-每个子库独立可用，也可以通过 `agentic` 统一导入：
-
-| 子库 | 能力 | 独立用 |
-|------|------|--------|
-| agentic-core | LLM 调用 | `ask()` |
-| agentic-memory | 短期+长期记忆 | `createMemory()` |
-| agentic-store | SQLite 持久化 | `createStore()` |
-| agentic-voice | TTS + STT | `createTTS()` / `createSTT()` |
-| agentic-sense | MediaPipe 感知 | `createSense()` |
-| agentic-act | 意图→决策→执行 | `createAct()` |
-| agentic-render | Markdown 渲染 | `render()` |
-| agentic-embed | 向量化 | `createIndex()` |
-| agentic-filesystem | 虚拟文件系统 | `createFileSystem()` |
-| agentic-shell | 命令执行 | `createShell()` |
-| agentic-spatial | 空间推理 | `reconstructSpace()` |
-
-## 能力检测
-
-```js
-import { capabilities } from 'agentic'
-console.log(capabilities())
-// { core: true, memory: true, store: true, voice: false, ... }
-```
-
-只有安装了的子库才可用，缺失的返回 `null`。
+| | Agentic | AgenticClient |
+|---|---------|---------------|
+| 后端 | 本地子库 | 远程 service |
+| 接口 | think/listen/speak/see/converse | 同左 |
+| 依赖 | 子库（按需装） | 零依赖 |
+| 场景 | Node/Electron | 浏览器/跨网络 |
