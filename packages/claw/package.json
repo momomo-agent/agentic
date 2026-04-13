@@ -24,6 +24,17 @@
     "agentic-core": "workspace:*",
     "agentic-memory": "workspace:*"
   },
+  "peerDependenciesMeta": {
+    "agentic-act": { "optional": true },
+    "agentic-embed": { "optional": true },
+    "agentic-filesystem": { "optional": true },
+    "agentic-render": { "optional": true },
+    "agentic-sense": { "optional": true },
+    "agentic-shell": { "optional": true },
+    "agentic-spatial": { "optional": true },
+    "agentic-store": { "optional": true },
+    "agentic-voice": { "optional": true }
+  },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.9",
     "vitest": "^2.1.9"

@@ -142,10 +142,12 @@ src/
         piper.js               # Piper TTS（自动下载二进制）
         kokoro.js              # Kokoro TTS（本地 HTTP → localhost:8880）
         sensevoice.js          # SenseVoice STT（HTTP API 适配器）
+        elevenlabs-stt.js      # ElevenLabs STT（云端语音转文字）
         whisper.js             # Whisper.cpp STT（本地二进制适配器）
 
   server/
     api.js                     # Express 路由 — REST + OpenAI 兼容 + 管理 + 语音
+    api-extended.js            # 扩展路由 — 通过 agentic-claw 暴露所有子库能力（agent CRUD + store/fs/shell/act/render/sense/spatial/embed/voice）
     brain.js                   # LLM 推理 + 工具注册/调用
     hub.js                     # WebSocket 设备管理 + 会话共享
     middleware.js              # API 认证 (Bearer token) + 错误处理中间件

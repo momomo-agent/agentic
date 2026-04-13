@@ -53,6 +53,24 @@
     return { core, memory }
   }
 
+  // ── Optional sub-library loader ──────────────────────────────────
+  // Tries require() first (Node), then globalThis (browser).
+  // Returns null if not available — never throws.
+
+  const _optCache = {}
+  function optionalLoad(name, globalKey) {
+    if (_optCache[name] !== undefined) return _optCache[name]
+    let mod = null
+    if (globalKey && typeof globalThis !== 'undefined' && globalThis[globalKey]) {
+      mod = globalThis[globalKey]
+    }
+    if (!mod && typeof require === 'function') {
+      try { mod = require(name) } catch {}
+    }
+    _optCache[name] = mod
+    return mod
+  }
+
   // ── Event emitter ────────────────────────────────────────────────
 
   function createEventEmitter() {
@@ -300,6 +318,9 @@
     // Default session
     const defaultSession = _getSession('default')
 
+    // ── Sub-library instances (lazy-initialized) ──────────────────
+    let _store, _fs, _shell, _act, _render, _sense, _spatial, _embed, _voice
+
     const claw = {
       /** Chat — send a message, get a response. Options: { tools, searchApiKey } */
       async chat(input, optsOrEmit, maybeEmit) {
@@ -406,6 +427,133 @@
         return _sharedKnowledge ? _sharedKnowledge.knowledgeInfo() : null
       },
 
+      // ── Sub-library accessors (lazy-loaded) ────────────────────
+
+      /** KV store — get/set/delete/keys/has/clear */
+      get store() {
+        if (_store) return _store
+        const mod = optionalLoad('agentic-store', 'AgenticStore')
+        if (!mod) return null
+        _store = mod.createStore({ backend: 'sqlite' })
+        _store.init()
+        return _store
+      },
+
+      /** File system — read/write/ls/tree/grep/delete */
+      get fs() {
+        if (_fs) return _fs
+        const mod = optionalLoad('agentic-filesystem', 'AgenticFileSystem')
+        if (!mod) return null
+        const Backend = mod.NodeFsBackend || mod.MemoryStorage
+        _fs = new mod.AgenticFileSystem(Backend ? new Backend() : undefined)
+        return _fs
+      },
+
+      /** Shell — exec/jobs */
+      get shell() {
+        if (_shell) return _shell
+        const mod = optionalLoad('agentic-shell', 'AgenticShell')
+        if (!mod) return null
+        _shell = new mod.AgenticShell()
+        return _shell
+      },
+
+      /** Act — AI decision + action */
+      get act() {
+        if (_act) return _act
+        const mod = optionalLoad('agentic-act', 'AgenticAct')
+        if (!mod) return null
+        _act = {
+          decide: (input, opts = {}) => new mod.AgenticAct({ apiKey, model, baseUrl, ...opts }).decide(input),
+          run: (input, opts = {}) => new mod.AgenticAct({ apiKey, model, baseUrl, ...opts }).run(input),
+        }
+        return _act
+      },
+
+      /** Render — markdown to HTML */
+      get render() {
+        if (_render) return _render
+        const mod = optionalLoad('agentic-render', 'AgenticRender')
+        if (!mod) return null
+        _render = {
+          html: (markdown, opts = {}) => mod.render(markdown, opts),
+          css: (theme) => mod.getCSS(theme === 'dark' ? mod.THEME_DARK : mod.THEME_LIGHT),
+          THEME_DARK: mod.THEME_DARK,
+          THEME_LIGHT: mod.THEME_LIGHT,
+        }
+        return _render
+      },
+
+      /** Sense — audio VAD, frame extraction */
+      get sense() {
+        if (_sense) return _sense
+        const mod = optionalLoad('agentic-sense', 'AgenticSense')
+        if (!mod) return null
+        _sense = {
+          Audio: mod.AgenticAudio,
+          extractFrame: mod.extractFrame,
+          Sense: mod.AgenticSense,
+        }
+        return _sense
+      },
+
+      /** Spatial — 3D spatial reasoning */
+      get spatial() {
+        if (_spatial) return _spatial
+        const mod = optionalLoad('agentic-spatial', 'AgenticSpatial')
+        if (!mod) return null
+        _spatial = {
+          reconstruct: (opts) => mod.reconstructSpace({ apiKey, model, baseUrl, ...opts }),
+          Session: mod.SpatialSession,
+          createSession: (opts = {}) => new mod.SpatialSession({ apiKey, model, baseUrl, ...opts }),
+        }
+        return _spatial
+      },
+
+      /** Embed — vector index + search */
+      get embed() {
+        if (_embed) return _embed
+        const mod = optionalLoad('agentic-embed', 'AgenticEmbed')
+        if (!mod) return null
+        _embed = {
+          create: (opts) => mod.create(opts),
+          chunkText: mod.chunkText,
+          localEmbed: mod.localEmbed,
+          cosineSimilarity: mod.cosineSimilarity,
+        }
+        return _embed
+      },
+
+      /** Voice — TTS + STT */
+      get voice() {
+        if (_voice) return _voice
+        const mod = optionalLoad('agentic-voice', 'AgenticVoice')
+        if (!mod) return null
+        _voice = {
+          createTTS: (opts = {}) => mod.createTTS({ apiKey, baseUrl, ...opts }),
+          createSTT: (opts = {}) => mod.createSTT(opts),
+          createVoice: (opts = {}) => mod.createVoice({ apiKey, baseUrl, ...opts }),
+        }
+        return _voice
+      },
+
+      /** List available sub-libraries */
+      capabilities() {
+        return {
+          core: true,
+          memory: true,
+          store: !!optionalLoad('agentic-store'),
+          filesystem: !!optionalLoad('agentic-filesystem'),
+          shell: !!optionalLoad('agentic-shell'),
+          act: !!optionalLoad('agentic-act'),
+          render: !!optionalLoad('agentic-render'),
+          sense: !!optionalLoad('agentic-sense'),
+          spatial: !!optionalLoad('agentic-spatial'),
+          embed: !!optionalLoad('agentic-embed'),
+          voice: !!optionalLoad('agentic-voice'),
+        }
+      },
+
       /** Destroy — cleanup intervals and storage */
       destroy() {
         if (_heartbeatInterval) clearInterval(_heartbeatInterval)
@@ -414,6 +562,8 @@
         for (const [, mem] of sessions) mem.destroy()
         sessions.clear()
         if (_sharedKnowledge) _sharedKnowledge.destroy()
+        if (_store && _store.close) _store.close()
+        _store = _fs = _shell = _act = _render = _sense = _spatial = _embed = _voice = null
       },
     }
 
