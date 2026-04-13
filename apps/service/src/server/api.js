@@ -300,7 +300,7 @@ function addRoutes(r) {
 
   // ─── Anthropic-compatible API ──────────────────────────────
   r.post('/v1/messages', async (req, res) => {
-    const { model, messages = [], system, stream = false, max_tokens = 4096 } = req.body;
+    const { model, messages = [], system, stream = false, max_tokens = 4096, tools: anthropicTools } = req.body;
     if (!messages.length) return res.status(400).json({ type: 'error', error: { type: 'invalid_request_error', message: 'messages is required' } });
 
     // Convert Anthropic format to OpenAI-style messages for internal chat()
@@ -310,10 +310,52 @@ function addRoutes(r) {
       chatMessages.push({ role: 'system', content: sysText });
     }
     for (const msg of messages) {
-      const content = typeof msg.content === 'string'
-        ? msg.content
-        : msg.content.filter(b => b.type === 'text').map(b => b.text).join('');
-      chatMessages.push({ role: msg.role, content });
+      if (typeof msg.content === 'string') {
+        chatMessages.push({ role: msg.role, content: msg.content });
+      } else if (Array.isArray(msg.content)) {
+        const textParts = msg.content.filter(b => b.type === 'text').map(b => b.text);
+        const toolUses = msg.content.filter(b => b.type === 'tool_use');
+        const toolResults = msg.content.filter(b => b.type === 'tool_result');
+        const images = msg.content.filter(b => b.type === 'image');
+
+        if (toolResults.length) {
+          for (const tr of toolResults) {
+            const rc = typeof tr.content === 'string' ? tr.content
+              : Array.isArray(tr.content) ? tr.content.filter(b => b.type === 'text').map(b => b.text).join('') : '';
+            chatMessages.push({ role: 'tool', tool_call_id: tr.tool_use_id, content: rc });
+          }
+        } else if (toolUses.length && msg.role === 'assistant') {
+          const content = textParts.join('') || null;
+          const tool_calls = toolUses.map(tu => ({
+            id: tu.id, type: 'function',
+            function: { name: tu.name, arguments: JSON.stringify(tu.input || {}) }
+          }));
+          chatMessages.push({ role: 'assistant', content, tool_calls });
+        } else if (images.length) {
+          const oaiContent = [];
+          if (textParts.length) oaiContent.push({ type: 'text', text: textParts.join('') });
+          for (const img of images) {
+            const src = img.source;
+            if (src?.type === 'base64') {
+              oaiContent.push({ type: 'image_url', image_url: { url: `data:${src.media_type};base64,${src.data}` } });
+            } else if (src?.type === 'url') {
+              oaiContent.push({ type: 'image_url', image_url: { url: src.url } });
+            }
+          }
+          chatMessages.push({ role: msg.role, content: oaiContent });
+        } else {
+          chatMessages.push({ role: msg.role, content: textParts.join('') });
+        }
+      }
+    }
+
+    // Convert Anthropic tools to OpenAI format
+    let chatTools;
+    if (anthropicTools?.length) {
+      chatTools = anthropicTools.map(t => ({
+        type: 'function',
+        function: { name: t.name, description: t.description || '', parameters: t.input_schema || {} }
+      }));
     }
 
     const msgId = `msg_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -324,31 +366,48 @@ function addRoutes(r) {
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
       try {
-        // message_start
         res.write(`event: message_start\ndata: ${JSON.stringify({
           type: 'message_start',
           message: { id: msgId, type: 'message', role: 'assistant', content: [], model: modelName, stop_reason: null, stop_sequence: null, usage: { input_tokens: 0, output_tokens: 0 } }
         })}\n\n`);
 
-        // content_block_start
-        res.write(`event: content_block_start\ndata: ${JSON.stringify({ type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } })}\n\n`);
-
+        let blockIndex = 0;
+        let hasTextBlock = false;
+        let hasToolUse = false;
         let outputTokens = 0;
-        for await (const chunk of chat(chatMessages)) {
+
+        for await (const chunk of chat(chatMessages, { tools: chatTools })) {
           if (chunk.type === 'content') {
             const text = chunk.content ?? chunk.text ?? '';
-            outputTokens += Math.ceil(text.length / 4); // rough estimate
-            res.write(`event: content_block_delta\ndata: ${JSON.stringify({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } })}\n\n`);
+            if (!text) continue;
+            if (!hasTextBlock) {
+              res.write(`event: content_block_start\ndata: ${JSON.stringify({ type: 'content_block_start', index: blockIndex, content_block: { type: 'text', text: '' } })}\n\n`);
+              hasTextBlock = true;
+            }
+            outputTokens += Math.ceil(text.length / 4);
+            res.write(`event: content_block_delta\ndata: ${JSON.stringify({ type: 'content_block_delta', index: blockIndex, delta: { type: 'text_delta', text } })}\n\n`);
+          }
+          if (chunk.type === 'tool_use') {
+            hasToolUse = true;
+            if (hasTextBlock) {
+              res.write(`event: content_block_stop\ndata: ${JSON.stringify({ type: 'content_block_stop', index: blockIndex })}\n\n`);
+              blockIndex++;
+              hasTextBlock = false;
+            }
+            const toolId = chunk.id || `toolu_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+            res.write(`event: content_block_start\ndata: ${JSON.stringify({ type: 'content_block_start', index: blockIndex, content_block: { type: 'tool_use', id: toolId, name: chunk.name, input: {} } })}\n\n`);
+            res.write(`event: content_block_delta\ndata: ${JSON.stringify({ type: 'content_block_delta', index: blockIndex, delta: { type: 'input_json_delta', partial_json: JSON.stringify(chunk.input || {}) } })}\n\n`);
+            res.write(`event: content_block_stop\ndata: ${JSON.stringify({ type: 'content_block_stop', index: blockIndex })}\n\n`);
+            blockIndex++;
           }
         }
 
-        // content_block_stop
-        res.write(`event: content_block_stop\ndata: ${JSON.stringify({ type: 'content_block_stop', index: 0 })}\n\n`);
+        if (hasTextBlock) {
+          res.write(`event: content_block_stop\ndata: ${JSON.stringify({ type: 'content_block_stop', index: blockIndex })}\n\n`);
+        }
 
-        // message_delta
-        res.write(`event: message_delta\ndata: ${JSON.stringify({ type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: outputTokens } })}\n\n`);
-
-        // message_stop
+        const stopReason = hasToolUse ? 'tool_use' : 'end_turn';
+        res.write(`event: message_delta\ndata: ${JSON.stringify({ type: 'message_delta', delta: { stop_reason: stopReason, stop_sequence: null }, usage: { output_tokens: outputTokens } })}\n\n`);
         res.write(`event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n\n`);
       } catch (error) {
         res.write(`event: error\ndata: ${JSON.stringify({ type: 'error', error: { type: 'server_error', message: error.message } })}\n\n`);
@@ -356,20 +415,35 @@ function addRoutes(r) {
       res.end();
     } else {
       try {
-        const chunks = [];
-        for await (const chunk of chat(chatMessages)) {
-          if (chunk.type === 'content') chunks.push(chunk.content ?? chunk.text ?? '');
+        const contentBlocks = [];
+        let textChunks = [];
+        for await (const chunk of chat(chatMessages, { tools: chatTools })) {
+          if (chunk.type === 'content') {
+            textChunks.push(chunk.content ?? chunk.text ?? '');
+          }
+          if (chunk.type === 'tool_use') {
+            if (textChunks.length) {
+              contentBlocks.push({ type: 'text', text: textChunks.join('') });
+              textChunks = [];
+            }
+            const toolId = chunk.id || `toolu_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+            contentBlocks.push({ type: 'tool_use', id: toolId, name: chunk.name, input: chunk.input || {} });
+          }
         }
-        const text = chunks.join('');
+        if (textChunks.length) {
+          contentBlocks.push({ type: 'text', text: textChunks.join('') });
+        }
+
+        const hasToolUse = contentBlocks.some(b => b.type === 'tool_use');
         res.json({
           id: msgId,
           type: 'message',
           role: 'assistant',
-          content: [{ type: 'text', text }],
+          content: contentBlocks,
           model: modelName,
-          stop_reason: 'end_turn',
+          stop_reason: hasToolUse ? 'tool_use' : 'end_turn',
           stop_sequence: null,
-          usage: { input_tokens: 0, output_tokens: Math.ceil(text.length / 4) },
+          usage: { input_tokens: 0, output_tokens: Math.ceil(contentBlocks.filter(b => b.type === 'text').map(b => b.text).join('').length / 4) },
         });
       } catch (error) {
         res.status(500).json({ type: 'error', error: { type: 'server_error', message: error.message } });
@@ -860,6 +934,9 @@ function addRoutes(r) {
   });
 
   r.get('/api/logs', (req, res) => res.json(logBuffer.slice(-50)));
+
+  // ─── Extended API routes (using dynamic imports to avoid linter stripping) ──
+  import('./api-extended.js').then(mod => mod.addExtendedRoutes(r, apiError)).catch(() => {});
 
   const adminDist = new URL('../../dist/admin', import.meta.url).pathname;
   r.use('/admin', express.static(adminDist, { etag: false, maxAge: 0 }));
