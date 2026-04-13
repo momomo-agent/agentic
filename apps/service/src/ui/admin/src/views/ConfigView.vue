@@ -13,7 +13,9 @@
             <div class="slot-label">
               <span class="slot-icon">{{ slot.icon }}</span>
               <div>
-                <div class="slot-name">{{ slot.name }}</div>
+                <div class="slot-name">{{ slot.name }}
+                  <span v-if="assignments[slot.key]" class="source-badge" :class="sourceType(slot.key)">{{ sourceLabel(slot.key) }}</span>
+                </div>
                 <div class="slot-desc">{{ slot.desc }}</div>
               </div>
             </div>
@@ -115,6 +117,25 @@ function engineLabel(id: string) {
   return ENGINE_LABELS[id] || id || ''
 }
 
+function assignedModel(key: string) {
+  const id = assignments[key]
+  if (!id) return null
+  return allModels.value.find(m => m.id === id)
+}
+
+function sourceType(key: string): string {
+  const m = assignedModel(key)
+  if (!m) return ''
+  return m.engineId?.startsWith('cloud:') ? 'cloud' : 'local'
+}
+
+function sourceLabel(key: string): string {
+  const m = assignedModel(key)
+  if (!m) return ''
+  if (m.engineId?.startsWith('cloud:')) return '☁️ 云端'
+  return '💻 本地'
+}
+
 async function fetchData() {
   try {
     const [modRes, assignRes, cfgRes] = await Promise.all([
@@ -191,8 +212,14 @@ onMounted(fetchData)
 .slot-label { display: flex; align-items: center; gap: 12px; }
 .slot-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .slot-icon { font-size: 20px; }
-.slot-name { font-size: 14px; font-weight: 600; }
+.slot-name { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
 .slot-desc { font-size: 12px; color: var(--text-dim); }
+.source-badge {
+  font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px;
+  display: inline-flex; align-items: center; gap: 2px;
+}
+.source-badge.local { background: rgba(16,185,129,0.12); color: #10b981; }
+.source-badge.cloud { background: rgba(59,130,246,0.12); color: #3b82f6; }
 .slot-select {
   min-width: 240px; padding: 8px 12px; border-radius: 6px;
   border: 1px solid var(--border); background: var(--surface-2);
