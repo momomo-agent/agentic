@@ -1060,7 +1060,13 @@ async function toggleLiveVision() {
     try {
       lvStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       await nextTick()
-      if (lvVideoEl.value) lvVideoEl.value.srcObject = lvStream
+      if (lvVideoEl.value) {
+        lvVideoEl.value.srcObject = lvStream
+        // Wait for first frame before starting capture loop
+        await new Promise(resolve => {
+          lvVideoEl.value.addEventListener('loadeddata', resolve, { once: true })
+        })
+      }
       lvRunning.value = true
       lvLoop()
     } catch (e) {
