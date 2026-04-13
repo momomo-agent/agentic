@@ -765,7 +765,7 @@ function toggleVoice() {
 async function startVoice() {
   try {
     voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    voiceMediaRecorder = new MediaRecorder(voiceStream)
+    voiceMediaRecorder = new MediaRecorder(voiceStream, { mimeType: 'audio/webm;codecs=opus' })
     voiceChunks = []
     voiceText.value = ''
 
@@ -774,8 +774,13 @@ async function startVoice() {
     }
 
     voiceMediaRecorder.onstop = async () => {
-      if (!voiceChunks.length) return
-      const blob = new Blob(voiceChunks, { type: 'audio/webm' })
+      const chunks = voiceChunks.slice()
+      voiceChunks = []
+      if (!chunks.length) {
+        if (voiceRecording.value) restartVoiceRecorder()
+        return
+      }
+      const blob = new Blob(chunks, { type: 'audio/webm' })
       const fd = new FormData()
       fd.append('audio', blob, 'recording.webm')
       try {
@@ -788,25 +793,28 @@ async function startVoice() {
       } catch (e) {
         voiceText.value += `\n⚠️ 转写失败: ${e.message}`
       }
-      // If still recording, start next segment
-      if (voiceRecording.value && voiceMediaRecorder) {
-        voiceChunks = []
-        voiceMediaRecorder.start()
-        setTimeout(() => {
-          if (voiceRecording.value && voiceMediaRecorder?.state === 'recording') voiceMediaRecorder.stop()
-        }, 3000)
-      }
+      if (voiceRecording.value) restartVoiceRecorder()
     }
 
-    voiceMediaRecorder.start()
+    voiceMediaRecorder.start(100) // timeslice ensures ondataavailable fires during recording
     voiceRecording.value = true
-    // Stop first segment after 3s to send for transcription
     setTimeout(() => {
       if (voiceRecording.value && voiceMediaRecorder?.state === 'recording') voiceMediaRecorder.stop()
     }, 3000)
   } catch (e) {
     voiceText.value = `⚠️ 无法访问麦克风: ${e.message}`
   }
+}
+
+function restartVoiceRecorder() {
+  if (!voiceMediaRecorder || !voiceStream) return
+  try {
+    voiceChunks = []
+    voiceMediaRecorder.start(100)
+    setTimeout(() => {
+      if (voiceRecording.value && voiceMediaRecorder?.state === 'recording') voiceMediaRecorder.stop()
+    }, 3000)
+  } catch {}
 }
 
 function stopVoice() {
@@ -1313,11 +1321,11 @@ async function startDictation() {
       // restart if still recording
       if (dictRecording.value && dictRecorder && dictStream) {
         chunks = []
-        dictRecorder.start()
+        dictRecorder.start(100)
         setTimeout(() => { if (dictRecorder && dictRecorder.state === 'recording') dictRecorder.stop() }, 3000)
       }
     }
-    dictRecorder.start()
+    dictRecorder.start(100)
     setTimeout(() => { if (dictRecorder && dictRecorder.state === 'recording') dictRecorder.stop() }, 3000)
   } catch (e) {
     dictText.value = `麦克风错误: ${e.message}`
@@ -1622,7 +1630,7 @@ async function startSubtitle() {
       } catch {}
       if (subRecording.value) restartSubRecorder()
     }
-    subRecorder.start()
+    subRecorder.start(100)
     setTimeout(() => { if (subRecorder && subRecorder.state === 'recording') subRecorder.stop() }, 2000)
   } catch (e) {
     subCurrent.value = `麦克风错误: ${e.message}`
@@ -1633,7 +1641,7 @@ async function startSubtitle() {
 function restartSubRecorder() {
   if (!subRecorder || !subStream) return
   try {
-    subRecorder.start()
+    subRecorder.start(100)
     setTimeout(() => { if (subRecorder && subRecorder.state === 'recording') subRecorder.stop() }, 2000)
   } catch {}
 }
