@@ -379,11 +379,11 @@ async function _callWithFailover(opts) {
         baseUrl: p.baseUrl || baseUrl,
         apiKey: p.apiKey || apiKey,
         proxyUrl: p.proxyUrl || proxyUrl,
-        stream, emit: function noop(){}, system, signal
+        stream, emit: function noop(){}, system, signal,
+        onToolReady: opts.onToolReady,
       })
     } catch (err) {
       lastErr = err
-      // If more providers remain, try next regardless of error type
       if (i < providerList.length - 1) continue
       throw err
     }
@@ -447,6 +447,14 @@ async function* _agenticAskGen(prompt, config) {
   console.log('[agenticAsk] Tools available:', tools, 'Stream:', stream)
   console.log('[agenticAsk] Provider:', provider)
 
+  // Eager execution hint: when tools are available, nudge the model to call tools
+  // before generating text so eager execution can start tools in parallel with streaming
+  let eagerSystem = system || ''
+  if (toolDefs.length > 0) {
+    const hint = '\n\nWhen you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
+    eagerSystem = eagerSystem ? eagerSystem + hint : hint.trim()
+  }
+
   while (round < MAX_ROUNDS) {
     round++
 
@@ -462,8 +470,23 @@ async function* _agenticAskGen(prompt, config) {
     const isStreamRound = stream && (provider === 'anthropic' || !toolDefs.length || round > 1)
     let response
 
+    // Eager tool execution: start tools as soon as LLM finishes each tool_use block
+    const eagerResults = new Map() // toolCallId → Promise<result>
+    const onToolReady = isStreamRound ? (toolCall) => {
+      // Start executing immediately, don't wait for LLM to finish
+      const promise = (async () => {
+        try {
+          const result = await executeTool(toolCall.name, toolCall.input, { searchApiKey, customTools })
+          return { call: toolCall, result, error: null }
+        } catch (err) {
+          return { call: toolCall, result: null, error: err.message || String(err) }
+        }
+      })()
+      eagerResults.set(toolCall.id, promise)
+    } : null
+
     try {
-      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: isStreamRound, system, provider, signal, providers })
+      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: isStreamRound, system: eagerSystem, provider, signal, providers, onToolReady })
     } catch (err) {
       const cls = classifyError(err)
       yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
@@ -520,12 +543,44 @@ async function* _agenticAskGen(prompt, config) {
         yield { type: 'tool_use', id: call.id, name: call.name, input: call.input }
       }
 
-      // Execute all tool calls in PARALLEL
       const t0 = Date.now()
-      console.log(`[Round ${round}] Executing ${validCalls.length} tools in PARALLEL...`)
+
+      // Collect yielded events from streaming tools
+      const streamEvents = []
+
+      // Eager execution: tools already started during LLM streaming?
+      const hasEager = eagerResults.size > 0
+      if (hasEager) {
+        console.log(`[Round ${round}] ${eagerResults.size}/${validCalls.length} tools started eagerly during LLM stream`)
+      }
+
       const results = await Promise.all(validCalls.map(async (call) => {
         try {
-          const result = await executeTool(call.name, call.input, { searchApiKey, customTools })
+          // Use eager result if available, otherwise execute now
+          let result
+          if (eagerResults.has(call.id)) {
+            const eager = await eagerResults.get(call.id)
+            recordToolCallOutcome(state, call.name, call.input, eager.result, eager.error)
+            return eager
+          }
+
+          result = await executeTool(call.name, call.input, { searchApiKey, customTools })
+
+          // Streaming tool: async generator → collect progress, return final
+          if (result && typeof result[Symbol.asyncIterator] === 'function') {
+            let finalResult = null
+            for await (const delta of result) {
+              if (delta._final) {
+                finalResult = delta.result ?? delta
+              } else {
+                streamEvents.push({ type: 'tool_progress', id: call.id, name: call.name, delta })
+              }
+            }
+            const out = finalResult ?? { streamed: true }
+            recordToolCallOutcome(state, call.name, call.input, out, null)
+            return { call, result: out, error: null }
+          }
+
           recordToolCallOutcome(state, call.name, call.input, result, null)
           return { call, result, error: null }
         } catch (toolErr) {
@@ -534,7 +589,12 @@ async function* _agenticAskGen(prompt, config) {
           return { call, result: null, error: errMsg }
         }
       }))
-      console.log(`[Round ${round}] All ${validCalls.length} tools done in ${Date.now() - t0}ms (parallel)`)
+      console.log(`[Round ${round}] All ${validCalls.length} tools done in ${Date.now() - t0}ms${hasEager ? ' (eager+parallel)' : ' (parallel)'}`)
+
+      // Yield streaming tool progress events
+      for (const evt of streamEvents) {
+        yield evt
+      }
 
       // Push results in original order + yield events
       for (const { call, result, error } of results) {
@@ -574,7 +634,7 @@ async function* _agenticAskGen(prompt, config) {
 
 // ── LLM Chat Functions ──
 
-async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal }) {
+async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
   
@@ -618,14 +678,14 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
 
   if (stream && !proxyUrl) {
     // Stream mode — direct SSE
-    return await streamAnthropic(url, headers, body, emit, signal)
+    return await streamAnthropic(url, headers, body, emit, signal, onToolReady)
   }
 
   if (stream && proxyUrl) {
     // Stream via transparent proxy (Vercel Edge / similar)
     // Send stream:true request through proxy with custom headers
     const proxyHeaders = { ...headers, 'x-base-url': baseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }
-    return await streamAnthropic(proxyUrl, proxyHeaders, body, emit, signal)
+    return await streamAnthropic(proxyUrl, proxyHeaders, body, emit, signal, onToolReady)
   }
 
   const response = await callLLM(url, apiKey, body, proxyUrl, true, signal)
@@ -641,7 +701,7 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
   }
 }
 
-async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal }) {
+async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
   const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
@@ -651,12 +711,12 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   const headers = { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` }
 
   if (stream && !proxyUrl) {
-    return await streamOpenAI(url, headers, body, emit, signal)
+    return await streamOpenAI(url, headers, body, emit, signal, onToolReady)
   }
 
   if (stream && proxyUrl) {
     const proxyHeaders = { ...headers, 'x-base-url': baseUrl || 'https://api.openai.com', 'x-provider': 'openai', 'x-api-key': apiKey }
-    return await streamOpenAI(proxyUrl, proxyHeaders, body, emit, signal)
+    return await streamOpenAI(proxyUrl, proxyHeaders, body, emit, signal, onToolReady)
   }
 
   const response = await callLLM(url, apiKey, body, proxyUrl, false, signal)
@@ -684,7 +744,7 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
 
 // ── Streaming Functions ──
 
-async function streamAnthropic(url, headers, body, emit, signal) {
+async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
   const res = await fetch(url, fetchOpts)
@@ -735,7 +795,9 @@ async function streamAnthropic(url, headers, body, emit, signal) {
           if (currentTool) {
             let input = {}
             try { input = JSON.parse(currentToolInput || '{}') } catch {}
-            toolCalls.push({ ...currentTool, input })
+            const toolCall = { ...currentTool, input }
+            toolCalls.push(toolCall)
+            if (onToolReady) onToolReady(toolCall)
             currentTool = null
             currentToolInput = ''
           }
@@ -749,7 +811,7 @@ async function streamAnthropic(url, headers, body, emit, signal) {
   return { content, tool_calls: toolCalls, stop_reason: stopReason }
 }
 
-async function streamOpenAI(url, headers, body, emit, signal) {
+async function streamOpenAI(url, headers, body, emit, signal, onToolReady) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
   const res = await fetch(url, fetchOpts)
@@ -808,6 +870,11 @@ async function streamOpenAI(url, headers, body, emit, signal) {
     try { input = JSON.parse(t.arguments || '{}') } catch {}
     return { id: t.id, name: t.name, input }
   })
+
+  // OpenAI doesn't have per-tool completion signals, fire all at once
+  if (onToolReady) {
+    for (const tc of tcList) onToolReady(tc)
+  }
 
   return { content, tool_calls: tcList, stop_reason: finishReason }
 }
@@ -971,14 +1038,23 @@ async function executeTool(name, input, config) {
   // Check registry first
   const registered = toolRegistry.get(name)
   if (registered && registered.execute) {
-    return await registered.execute(input)
+    const result = registered.execute(input)
+    // Streaming tool: returns async generator
+    if (result && typeof result[Symbol.asyncIterator] === 'function') {
+      return result // caller handles iteration
+    }
+    return await result
   }
   
   // Check custom tools
   if (config.customTools) {
     const custom = config.customTools.find(t => t.name === name)
     if (custom && custom.execute) {
-      return await custom.execute(input)
+      const result = custom.execute(input)
+      if (result && typeof result[Symbol.asyncIterator] === 'function') {
+        return result
+      }
+      return await result
     }
   }
   
@@ -1133,7 +1209,8 @@ const toolRegistry = {
       name,
       description: tool.description,
       parameters: tool.parameters || { type: 'object', properties: {} },
-      execute: tool.execute
+      execute: tool.execute,
+      streaming: !!tool.streaming,
     })
   },
   
