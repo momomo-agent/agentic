@@ -12,6 +12,7 @@ const WARNING_THRESHOLD = 10
 const CRITICAL_THRESHOLD = 20
 const GLOBAL_CIRCUIT_BREAKER_THRESHOLD = 30
 const TOOL_CALL_HISTORY_SIZE = 30
+const EAGER_HINT = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
 
 // ── Hash helpers (browser-safe) ──
 
@@ -447,14 +448,28 @@ async function* _streamCallWithFailover(opts) {
         }
         body = { model: pModel || 'claude-sonnet-4', max_tokens: 4096, messages: anthropicMessages, stream: true }
         if (system) body.system = system
-        if (tools?.length) body.tools = tools
+        if (tools?.length) {
+          body.tools = tools
+          const hint = EAGER_HINT
+          const hintBlock = { type: 'text', text: hint }
+          if (body.system) {
+            const userBlock = typeof body.system === 'string' ? { type: 'text', text: body.system } : body.system
+            body.system = Array.isArray(userBlock) ? [hintBlock, ...userBlock] : [hintBlock, userBlock]
+          } else {
+            body.system = [hintBlock]
+          }
+        }
         if (pProxyUrl) { headers = { ...headers, 'x-base-url': pBaseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }; url = pProxyUrl }
       } else {
         url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
         headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
         const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
         body = { model: pModel || 'gpt-4', messages: oaiMessages, stream: true }
-        if (tools?.length) { body.tools = tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })); body.tool_choice = 'auto' }
+        if (tools?.length) {
+          body.tools = tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })); body.tool_choice = 'auto'
+          const hint = EAGER_HINT
+          body.messages.unshift({ role: 'system', content: hint })
+        }
         if (pProxyUrl) { headers['x-base-url'] = pBaseUrl || 'https://api.openai.com'; headers['x-provider'] = 'openai'; url = pProxyUrl }
       }
 
@@ -810,7 +825,7 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
   if (tools?.length) {
     body.tools = tools
     // Eager execution hint as separate system block — doesn't pollute user's system prompt
-    const hint = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
+    const hint = EAGER_HINT
     const hintBlock = { type: 'text', text: hint }
     if (body.system) {
       // Convert to array format: [hint, user_system]
@@ -860,7 +875,7 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   if (tools?.length) {
     body.tools = tools.map(t => ({ type: 'function', function: t }))
     // Eager execution hint as separate system message before user's system prompt
-    const hint = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
+    const hint = EAGER_HINT
     body.messages.unshift({ role: 'system', content: hint })
   }
   
