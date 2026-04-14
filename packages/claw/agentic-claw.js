@@ -565,6 +565,25 @@
       on(event, fn) { events.on(event, fn); return this },
       off(event, fn) { events.off(event, fn); return this },
 
+      /** Warmup: pre-heat connection + prompt cache */
+      async warmup() {
+        const warmupFn = core?.warmup || (typeof warmup === 'function' ? warmup : null)
+        if (!warmupFn) {
+          console.warn('[claw] warmup not available in agentic-core')
+          return { ok: false, reason: 'not_available' }
+        }
+        return warmupFn({
+          provider,
+          apiKey,
+          baseUrl,
+          model,
+          system: systemPrompt,
+          tools: allTools,
+          proxyUrl,
+          providers,
+        })
+      },
+
       /** List active sessions */
       sessions() { return [...sessions.keys()] },
 
