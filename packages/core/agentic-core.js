@@ -367,12 +367,6 @@ async function _callWithFailover(opts) {
   const { messages, tools, model, baseUrl, apiKey, proxyUrl, stream, system, provider, signal, providers } = opts
   const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
 
-  // Eager execution hint: inject once here so all providers (anthropic, openai, custom) get it
-  let effectiveSystem = system
-  if (tools?.length) {
-    effectiveSystem = system ? EAGER_HINT + '\n\n' + system : EAGER_HINT
-  }
-
   let lastErr
   for (let i = 0; i < providerList.length; i++) {
     const p = providerList[i]
@@ -386,7 +380,7 @@ async function _callWithFailover(opts) {
         baseUrl: p.baseUrl || baseUrl,
         apiKey: p.apiKey || apiKey,
         proxyUrl: p.proxyUrl || proxyUrl,
-        stream, emit: function noop(){}, system: effectiveSystem, signal,
+        stream, emit: function noop(){}, system, signal,
         onToolReady: opts.onToolReady,
       })
     } catch (err) {
@@ -407,12 +401,6 @@ async function* _streamCallWithFailover(opts) {
   const { messages, tools, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers } = opts
   const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
 
-  // Eager execution hint: inject once here so all providers get it
-  let effectiveSystem = system
-  if (tools?.length) {
-    effectiveSystem = system ? EAGER_HINT + '\n\n' + system : EAGER_HINT
-  }
-
   let lastErr
   for (let i = 0; i < providerList.length; i++) {
     const p = providerList[i]
@@ -426,7 +414,7 @@ async function* _streamCallWithFailover(opts) {
     const custom = _customProviders.get(prov)
     if (custom) {
       try {
-        const response = await custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system: effectiveSystem, signal })
+        const response = await custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system, signal })
         if (response.content) yield { type: 'text_delta', text: response.content }
         yield { type: 'response', content: response.content, tool_calls: response.tool_calls || [], stop_reason: response.stop_reason }
         return
@@ -459,13 +447,13 @@ async function* _streamCallWithFailover(opts) {
           }
         }
         body = { model: pModel || 'claude-sonnet-4', max_tokens: 4096, messages: anthropicMessages, stream: true }
-        if (effectiveSystem) body.system = effectiveSystem
+        if (system) body.system = system
         if (tools?.length) body.tools = tools
         if (pProxyUrl) { headers = { ...headers, 'x-base-url': pBaseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }; url = pProxyUrl }
       } else {
         url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
         headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
-        const oaiMessages = effectiveSystem ? [{ role: 'system', content: effectiveSystem }, ...messages] : messages
+        const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
         body = { model: pModel || 'gpt-4', messages: oaiMessages, stream: true }
         if (tools?.length) {
           body.tools = tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })); body.tool_choice = 'auto'
@@ -577,6 +565,11 @@ async function* _agenticAskGen(prompt, config) {
   console.log('[agenticAsk] Tools available:', tools, 'Stream:', stream)
   console.log('[agenticAsk] Provider:', provider)
 
+  // Eager execution hint at core level: prepend to system when tools are available
+  const effectiveSystem = toolDefs.length > 0
+    ? (system ? EAGER_HINT + '\n\n' + system : EAGER_HINT)
+    : system
+
   while (round < MAX_ROUNDS) {
     round++
 
@@ -598,7 +591,7 @@ async function* _agenticAskGen(prompt, config) {
     if (isStreamRound) {
       // True streaming path — yield text_delta tokens as they arrive
       try {
-        const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers })
+        const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers })
         for await (const evt of streamGen) {
           if (evt.type === 'text_delta') {
             yield evt // Forward token-level events to consumer
@@ -626,7 +619,7 @@ async function* _agenticAskGen(prompt, config) {
     } else {
       // Non-streaming path — await complete response
       try {
-        response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers })
+        response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers })
       } catch (err) {
         const cls = classifyError(err)
         yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
