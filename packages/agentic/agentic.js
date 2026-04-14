@@ -189,11 +189,10 @@
       this._serviceUrl = opts.serviceUrl ? opts.serviceUrl.replace(/\/+$/, '') : null
       this._ws = this._serviceUrl ? createWsConnection(this._serviceUrl) : null
 
-      // Per-capability config with top-level fallback
-      // Each capability can have its own { provider, apiKey, baseUrl, model, ...extra }
+      // Per-capability config — only capabilities that may need their own provider
+      // Top-level provider/apiKey/baseUrl/model serves as default for everything
       this._cfg = {}
-      const caps = ['llm', 'tts', 'stt', 'embed', 'memory', 'store', 'act', 'sense', 'fs', 'shell', 'spatial', 'render']
-      for (const cap of caps) {
+      for (const cap of ['llm', 'tts', 'stt', 'embed']) {
         this._cfg[cap] = opts[cap] || {}
       }
     }
@@ -376,7 +375,7 @@
     // ════════════════════════════════════════════════════════════════
 
     _mem() {
-      return this._get('mem', () => this._need('agentic-memory').createMemory({ knowledge: true, ...this._cfgAll('memory') }))
+      return this._get('mem', () => this._need('agentic-memory').createMemory({ knowledge: true, ...this._opts.memory }))
     }
 
     async remember(text, meta = {}) {
@@ -395,7 +394,7 @@
     async _store() {
       if (!this._i.store) {
         const mod = this._need('agentic-store')
-        const s = await mod.createStore({ backend: 'sqlite', ...this._cfgAll('store') })
+        const s = await mod.createStore({ backend: 'sqlite', ...this._opts.store })
         this._i.store = s
       }
       return this._i.store
@@ -419,7 +418,7 @@
     async _embedIndex() {
       return this._get('embedIndex', async () => {
         const mod = this._embedLib()
-        return mod.create({ ...this._cfgAll('embed') })
+        return mod.create({ ...this._opts.embed })
       })
     }
 
@@ -449,7 +448,10 @@
     // ════════════════════════════════════════════════════════════════
 
     _act() {
-      return this._get('act', () => new (this._need('agentic-act').AgenticAct)(this._cfgAll('act')))
+      const o = this._opts
+      return this._get('act', () => new (this._need('agentic-act').AgenticAct)({
+        apiKey: o.apiKey, model: o.model, baseUrl: o.baseUrl, provider: o.provider,
+      }))
     }
 
     async decide(input) { return this._act().decide(input) }
@@ -471,10 +473,10 @@
     _fs() {
       return this._get('fs', () => {
         const mod = this._need('agentic-filesystem')
-        const c = this._cfgAll('fs')
-        const Backend = c.backend === 'memory' ? mod.MemoryStorage
+        const o = this._opts.fs || {}
+        const Backend = o.backend === 'memory' ? mod.MemoryStorage
           : (mod.NodeFsBackend || mod.MemoryStorage)
-        return new mod.AgenticFileSystem(Backend ? new Backend(c) : undefined)
+        return new mod.AgenticFileSystem(Backend ? new Backend(o) : undefined)
       })
     }
 
@@ -501,15 +503,19 @@
     // ════════════════════════════════════════════════════════════════
 
     async reconstructSpace(images, opts = {}) {
-      const c = this._cfgAll('spatial')
+      const o = this._opts
       return this._need('agentic-spatial').reconstructSpace({
-        images, ...c, ...opts,
+        images, apiKey: o.apiKey, model: o.model,
+        baseUrl: o.baseUrl, provider: o.provider, ...opts,
       })
     }
 
     createSpatialSession(opts = {}) {
-      const c = this._cfgAll('spatial')
-      return new (this._need('agentic-spatial').SpatialSession)({ ...c, ...opts })
+      const o = this._opts
+      return new (this._need('agentic-spatial').SpatialSession)({
+        apiKey: o.apiKey, model: o.model,
+        baseUrl: o.baseUrl, provider: o.provider, ...opts,
+      })
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -518,13 +524,11 @@
 
     createClaw(opts = {}) {
       const clawMod = this._need('agentic-claw')
-      const c = this._cfgAll('llm')
+      const o = this._opts
       return clawMod.createClaw({
-        apiKey: c.apiKey,
-        provider: c.provider,
-        baseUrl: c.baseUrl,
-        model: c.model,
-        systemPrompt: this._opts.system,
+        apiKey: o.apiKey, provider: o.provider,
+        baseUrl: o.baseUrl, model: o.model,
+        systemPrompt: o.system,
         ...opts,
       })
     }
@@ -581,8 +585,7 @@
     /** Reconfigure this instance (merges into existing config) */
     configure(opts = {}) {
       Object.assign(this._opts, opts)
-      const caps = ['llm', 'tts', 'stt', 'embed', 'memory', 'store', 'act', 'sense', 'fs', 'shell', 'spatial', 'render']
-      for (const cap of caps) {
+      for (const cap of ['llm', 'tts', 'stt', 'embed']) {
         if (opts[cap]) this._cfg[cap] = { ...this._cfg[cap], ...opts[cap] }
       }
       if (opts.serviceUrl) {
