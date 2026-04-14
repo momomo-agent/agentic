@@ -579,30 +579,48 @@ async function* _agenticAskGen(prompt, config) {
 
     // Eager tool execution: start tools as soon as LLM finishes each tool_use block
     const eagerResults = new Map() // toolCallId → Promise<result>
-    const onToolReady = isStreamRound ? (toolCall) => {
-      // Start executing immediately, don't wait for LLM to finish
-      const promise = (async () => {
-        try {
-          const result = await executeTool(toolCall.name, toolCall.input, { searchApiKey, customTools })
-          return { call: toolCall, result, error: null }
-        } catch (err) {
-          return { call: toolCall, result: null, error: err.message || String(err) }
+
+    if (isStreamRound) {
+      // True streaming path — yield text_delta tokens as they arrive
+      try {
+        const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers })
+        for await (const evt of streamGen) {
+          if (evt.type === 'text_delta') {
+            yield evt // Forward token-level events to consumer
+          } else if (evt.type === 'tool_ready') {
+            // Start eager tool execution
+            const toolCall = evt.toolCall
+            const promise = (async () => {
+              try {
+                const result = await executeTool(toolCall.name, toolCall.input, { searchApiKey, customTools })
+                return { call: toolCall, result, error: null }
+              } catch (err) {
+                return { call: toolCall, result: null, error: err.message || String(err) }
+              }
+            })()
+            eagerResults.set(toolCall.id, promise)
+          } else if (evt.type === 'response') {
+            response = evt
+          }
         }
-      })()
-      eagerResults.set(toolCall.id, promise)
-    } : null
-
-    try {
-      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: isStreamRound, system, provider, signal, providers, onToolReady })
-    } catch (err) {
-      const cls = classifyError(err)
-      yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
-      return
-    }
-
-    // Yield text content as text_delta
-    if (response.content) {
-      yield { type: 'text_delta', text: response.content }
+      } catch (err) {
+        const cls = classifyError(err)
+        yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
+        return
+      }
+    } else {
+      // Non-streaming path — await complete response
+      try {
+        response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers })
+      } catch (err) {
+        const cls = classifyError(err)
+        yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
+        return
+      }
+      // Yield text content as text_delta (single chunk for non-streaming)
+      if (response.content) {
+        yield { type: 'text_delta', text: response.content }
+      }
     }
 
     console.log(`[Round ${round}] LLM Response:`)
@@ -724,9 +742,19 @@ async function* _agenticAskGen(prompt, config) {
     console.log('[agenticAsk] Generating final answer (no tools)...')
     yield { type: 'status', message: 'Generating final answer...' }
     try {
-      const chatFn = provider === 'anthropic' ? anthropicChat : openaiChat
-      const finalResponse = await chatFn({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream, emit: function noop(){}, system, signal })
-      finalAnswer = finalResponse.content || '(no response)'
+      if (stream) {
+        // Stream the final answer too
+        let content = ''
+        for await (const evt of _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers })) {
+          if (evt.type === 'text_delta') { content += evt.text; yield evt }
+          else if (evt.type === 'response') { /* done */ }
+        }
+        finalAnswer = content || '(no response)'
+      } else {
+        const chatFn = provider === 'anthropic' ? anthropicChat : openaiChat
+        const finalResponse = await chatFn({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit: function noop(){}, system, signal })
+        finalAnswer = finalResponse.content || '(no response)'
+      }
     } catch (err) {
       const cls = classifyError(err)
       yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
@@ -781,9 +809,20 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
   if (system) body.system = system
   if (tools?.length) {
     body.tools = tools
-    // Eager execution hint: nudge model to call tools before text for parallel execution
+    // Eager execution hint as separate system block — doesn't pollute user's system prompt
     const hint = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
-    body.system = body.system ? body.system + '\n\n' + hint : hint
+    const hintBlock = { type: 'text', text: hint }
+    if (body.system) {
+      // Convert to array format: [hint, user_system]
+      const userBlock = typeof body.system === 'string'
+        ? { type: 'text', text: body.system }
+        : body.system
+      body.system = Array.isArray(userBlock)
+        ? [hintBlock, ...userBlock]
+        : [hintBlock, userBlock]
+    } else {
+      body.system = [hintBlock]
+    }
   }
   
   const headers = { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
@@ -820,13 +859,9 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   const body = { model, messages: oaiMessages, stream }
   if (tools?.length) {
     body.tools = tools.map(t => ({ type: 'function', function: t }))
-    // Eager execution hint: nudge model to call tools before text for parallel execution
+    // Eager execution hint as separate system message before user's system prompt
     const hint = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
-    if (body.messages[0]?.role === 'system') {
-      body.messages[0].content += '\n\n' + hint
-    } else {
-      body.messages.unshift({ role: 'system', content: hint })
-    }
+    body.messages.unshift({ role: 'system', content: hint })
   }
   
   const headers = { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` }
