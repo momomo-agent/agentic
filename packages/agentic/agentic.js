@@ -1,16 +1,15 @@
 /**
  * agentic — 给 AI 造身体
  *
- * 两种模式，同一套 API：
- *   1. 本地模式 — require 子库，进程内调用
- *   2. 远程模式 — 连 agentic-service，走 HTTP
+ * 子库的胶水层。think 永远走 agentic-core（core 自己处理 provider 路由）。
+ * voice 子库没装时，speak/listen/converse 可以 fallback 到 agentic-service HTTP。
  *
  * Usage:
- *   // 本地（直连 provider）
- *   const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
+ *   // 直连云端 provider
+ *   const ai = new Agentic({ provider: 'anthropic', apiKey: 'sk-...' })
  *
- *   // 远程（连 agentic-service）
- *   const ai = new Agentic({ serviceUrl: 'http://localhost:1234' })
+ *   // 连本地 agentic-service（service 暴露 OpenAI-compatible API）
+ *   const ai = new Agentic({ provider: 'openai', baseUrl: 'http://localhost:1234' })
  *
  *   // 同样的 API
  *   await ai.think('hello')
@@ -34,7 +33,7 @@
     return _cache[name]
   }
 
-  // ── HTTP helpers for remote mode ─────────────────────────────────
+  // ── HTTP helpers (for voice fallback + admin) ────────────────────
 
   async function _fetch(base, path, opts = {}) {
     const url = `${base.replace(/\/+$/, '')}${path}`
@@ -51,47 +50,15 @@
     return res.json()
   }
 
-  async function _post(base, path, body) {
-    return _json(base, path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-  }
-
-  async function* _stream(base, path, body) {
-    const res = await _fetch(base, path, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    const reader = res.body.getReader()
-    const decoder = new TextDecoder()
-    let buffer = ''
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue
-        const data = line.slice(6).trim()
-        if (data === '[DONE]') { yield { type: 'done' }; return }
-        try { yield JSON.parse(data) } catch {}
-      }
-    }
-  }
-
   // ── Agentic class ────────────────────────────────────────────────
 
   class Agentic {
     /**
      * @param {object} opts
-     * @param {string} [opts.serviceUrl] — remote mode: connect to agentic-service
-     * @param {string} [opts.apiKey]     — local mode: API key for provider
+     * @param {string} [opts.serviceUrl] — agentic-service URL for voice fallback + admin
+     * @param {string} [opts.apiKey]     — API key for provider
      * @param {string} [opts.model]
-     * @param {string} [opts.baseUrl]    — local mode: provider base URL
+     * @param {string} [opts.baseUrl]    — provider base URL (point to service for OpenAI-compatible)
      * @param {string} [opts.provider]
      * @param {string} [opts.system]
      * @param {object} [opts.tts]
@@ -108,7 +75,7 @@
     constructor(opts = {}) {
       this._opts = opts
       this._i = {} // lazy instances
-      this._remote = opts.serviceUrl ? opts.serviceUrl.replace(/\/+$/, '') : null
+      this._serviceUrl = opts.serviceUrl ? opts.serviceUrl.replace(/\/+$/, '') : null
     }
 
     _get(key, init) {
@@ -123,12 +90,13 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // THINK — agentic-core or /api/chat
+    // THINK — always through agentic-core
+    //
+    // core handles provider routing (anthropic/openai/ollama).
+    // To use agentic-service: provider='openai', baseUrl='http://localhost:1234'
     // ════════════════════════════════════════════════════════════════
 
     async think(input, opts = {}) {
-      if (this._remote) return this._remoteThink(input, opts)
-
       const core = this._need('agentic-core')
       const ask = core.agenticAsk || core
 
@@ -153,38 +121,12 @@
       return typeof result === 'string' ? result : result?.answer || result
     }
 
-    async _remoteThink(input, opts = {}) {
-      const body = {
-        messages: [{ role: 'user', content: input }],
-        model: opts.model || this._opts.model,
-        stream: !!opts.stream || !!opts.emit,
-      }
-      if (opts.system) body.messages.unshift({ role: 'system', content: opts.system })
-
-      if (body.stream && opts.emit) {
-        let full = ''
-        for await (const chunk of _stream(this._remote, '/api/chat', body)) {
-          if (chunk.type === 'done') break
-          const delta = chunk.choices?.[0]?.delta
-          if (delta?.content) {
-            full += delta.content
-            opts.emit({ type: 'text', text: delta.content })
-          }
-        }
-        return full
-      }
-
-      const res = await _post(this._remote, '/api/chat', body)
-      return res.choices?.[0]?.message?.content || res.content?.[0]?.text || res
-    }
-
     get tools() {
-      if (this._remote) return null
       return this._need('agentic-core').toolRegistry
     }
 
     // ════════════════════════════════════════════════════════════════
-    // SPEAK — agentic-voice TTS or /api/synthesize
+    // SPEAK — agentic-voice TTS, fallback to service /api/synthesize
     // ════════════════════════════════════════════════════════════════
 
     _tts() {
@@ -200,28 +142,32 @@
       })
     }
 
+    _hasVoice() { return !!load('agentic-voice') }
+
     async speak(text, opts) {
-      if (this._remote) {
-        const res = await _fetch(this._remote, '/api/synthesize', {
+      if (this._hasVoice()) return this._tts().fetchAudio(text, opts)
+      if (this._serviceUrl) {
+        const res = await _fetch(this._serviceUrl, '/api/synthesize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text, ...opts }),
         })
         return res.arrayBuffer()
       }
-      return this._tts().fetchAudio(text, opts)
+      this._need('agentic-voice') // throws helpful error
     }
 
     async speakAloud(text, opts) {
-      if (this._remote) return this.speak(text, opts) // remote can't play locally
-      return this._tts().speak(text, opts)
+      if (this._hasVoice()) return this._tts().speak(text, opts)
+      // remote can't play locally — return audio buffer instead
+      return this.speak(text, opts)
     }
     async speakStream(stream, opts) { return this._tts().speakStream(stream, opts) }
     async timestamps(text, opts) { return this._tts().timestamps(text, opts) }
     stopSpeaking() { if (this._i.tts) this._i.tts.stop() }
 
     // ════════════════════════════════════════════════════════════════
-    // LISTEN — agentic-voice STT or /api/transcribe
+    // LISTEN — agentic-voice STT, fallback to service /api/transcribe
     // ════════════════════════════════════════════════════════════════
 
     _stt() {
@@ -238,15 +184,16 @@
     }
 
     async listen(audio, opts) {
-      if (this._remote) {
+      if (this._hasVoice()) return this._stt().transcribe(audio, opts)
+      if (this._serviceUrl) {
         const formData = new FormData()
         formData.append('audio', new Blob([audio]), 'audio.wav')
         if (opts?.language) formData.append('language', opts.language)
-        const res = await _fetch(this._remote, '/api/transcribe', { method: 'POST', body: formData })
+        const res = await _fetch(this._serviceUrl, '/api/transcribe', { method: 'POST', body: formData })
         const data = await res.json()
         return data.text || data
       }
-      return this._stt().transcribe(audio, opts)
+      this._need('agentic-voice') // throws helpful error
     }
 
     async listenWithTimestamps(audio, opts) { return this._stt().transcribeWithTimestamps(audio, opts) }
@@ -263,22 +210,27 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // CONVERSE — listen → think → speak or /api/voice
+    // CONVERSE — listen → think → speak, fallback to service /api/voice
     // ════════════════════════════════════════════════════════════════
 
     async converse(audio, opts = {}) {
-      if (this._remote) {
+      // If we have voice locally, do the full pipeline
+      if (this._hasVoice()) {
+        const transcript = await this.listen(audio)
+        const result = await this.think(transcript, opts)
+        const answer = typeof result === 'string' ? result : result.answer || ''
+        const audioOut = await this.speak(answer)
+        return { text: answer, audio: audioOut, transcript }
+      }
+      // Fallback: service does STT→LLM→TTS in one call
+      if (this._serviceUrl) {
         const formData = new FormData()
         formData.append('audio', new Blob([audio]), 'audio.wav')
-        const res = await _fetch(this._remote, '/api/voice', { method: 'POST', body: formData })
+        const res = await _fetch(this._serviceUrl, '/api/voice', { method: 'POST', body: formData })
         const data = await res.json()
         return { text: data.text || '', audio: data.audio ? _fromBase64(data.audio) : null, transcript: data.transcript || '' }
       }
-      const transcript = await this.listen(audio)
-      const result = await this.think(transcript, opts)
-      const answer = typeof result === 'string' ? result : result.answer || ''
-      const audioOut = await this.speak(answer)
-      return { text: answer, audio: audioOut, transcript }
+      this._need('agentic-voice') // throws helpful error
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -321,7 +273,7 @@
     async exec(sql, params) { const s = await this._store(); return s.exec(sql, params) }
 
     // ════════════════════════════════════════════════════════════════
-    // EMBED — agentic-embed or /api/embed (remote)
+    // EMBED — agentic-embed
     // ════════════════════════════════════════════════════════════════
 
     _embedLib() { return this._need('agentic-embed') }
@@ -333,14 +285,7 @@
       })
     }
 
-    async embed(text) {
-      if (this._remote) {
-        const res = await _post(this._remote, '/api/embed', { input: text })
-        return res.embedding || res.data?.[0]?.embedding || res
-      }
-      return this._embedLib().localEmbed(Array.isArray(text) ? text : [text])[0]
-    }
-
+    async embed(text) { return this._embedLib().localEmbed(Array.isArray(text) ? text : [text])[0] }
     async index(id, text, meta) { const idx = await this._embedIndex(); return idx.add(id, text, meta) }
     async indexMany(docs) { const idx = await this._embedIndex(); return idx.addMany(docs) }
     async search(query, opts) { const idx = await this._embedIndex(); return idx.search(query, opts) }
@@ -443,12 +388,12 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // ADMIN — agentic-service management (remote only)
+    // ADMIN — agentic-service management (requires serviceUrl)
     // ════════════════════════════════════════════════════════════════
 
     get admin() {
-      if (!this._remote) return null
-      const base = this._remote
+      if (!this._serviceUrl) return null
+      const base = this._serviceUrl
       return this._get('admin', () => ({
         health: () => _json(base, '/health'),
         status: () => _json(base, '/api/status'),
@@ -459,11 +404,6 @@
         devices: () => _json(base, '/api/devices'),
         logs: () => _json(base, '/api/logs'),
         models: () => _json(base, '/v1/models'),
-        async *pullModel(model, opts = {}) {
-          for await (const chunk of _stream(base, '/api/models/pull', { model, ...opts })) {
-            yield chunk
-          }
-        },
         deleteModel: (name) => _json(base, `/api/models/${encodeURIComponent(name)}`, { method: 'DELETE' }),
       }))
     }
@@ -472,16 +412,14 @@
     // DISCOVERY + LIFECYCLE
     // ════════════════════════════════════════════════════════════════
 
-    async capabilities() {
-      if (this._remote) {
-        try { return await _json(this._remote, '/api/status').then(s => s.capabilities || s) } catch { return {} }
-      }
+    capabilities() {
       const has = name => !!load(name)
       return {
         think: has('agentic-core'),
-        speak: has('agentic-voice'), listen: has('agentic-voice'),
+        speak: has('agentic-voice') || !!this._serviceUrl,
+        listen: has('agentic-voice') || !!this._serviceUrl,
         see: has('agentic-core'),
-        converse: has('agentic-core') && has('agentic-voice'),
+        converse: (has('agentic-core') && has('agentic-voice')) || !!this._serviceUrl,
         remember: has('agentic-memory'), recall: has('agentic-memory'),
         save: has('agentic-store'), load: has('agentic-store'),
         embed: has('agentic-embed'), search: has('agentic-embed'),
@@ -492,11 +430,12 @@
         run: has('agentic-shell'),
         spatial: has('agentic-spatial'),
         claw: has('agentic-claw'),
+        admin: !!this._serviceUrl,
       }
     }
 
-    /** True if connected to a remote agentic-service */
-    get isRemote() { return !!this._remote }
+    /** URL of connected agentic-service, or null */
+    get serviceUrl() { return this._serviceUrl }
 
     destroy() {
       for (const inst of Object.values(this._i)) {

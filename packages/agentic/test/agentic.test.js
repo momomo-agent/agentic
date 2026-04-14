@@ -654,96 +654,95 @@ describe('生命周期', () => {
 })
 
 // ════════════════════════════════════════════════════════════════════
-// 11. 远程模式 — serviceUrl
+// 11. serviceUrl — voice fallback + admin
 // ════════════════════════════════════════════════════════════════════
 
-describe('远程模式', () => {
-  it('isRemote 标识', () => {
+describe('serviceUrl', () => {
+  it('admin 只在有 serviceUrl 时可用', () => {
     const local = new Agentic({ apiKey: 'test' })
-    assert.equal(local.isRemote, false)
     assert.equal(local.admin, null)
+    assert.equal(local.serviceUrl, null)
 
-    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    assert.equal(remote.isRemote, true)
-    assert.ok(remote.admin)
-    assert.equal(typeof remote.admin.health, 'function')
-    assert.equal(typeof remote.admin.status, 'function')
-    assert.equal(typeof remote.admin.config, 'function')
-    assert.equal(typeof remote.admin.devices, 'function')
+    const withService = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    assert.equal(withService.serviceUrl, 'http://localhost:9999')
+    assert.ok(withService.admin)
+    assert.equal(typeof withService.admin.health, 'function')
+    assert.equal(typeof withService.admin.status, 'function')
+    assert.equal(typeof withService.admin.config, 'function')
+    assert.equal(typeof withService.admin.devices, 'function')
+    assert.equal(typeof withService.admin.models, 'function')
   })
 
-  it('远程 think 走 HTTP（连接失败 = 正确路径）', async () => {
-    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    try {
-      await remote.think('hi')
-      assert.fail('should have thrown')
-    } catch (e) {
-      // 连接被拒 = 走了 HTTP 路径
-      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
-    }
-  })
-
-  it('远程 speak 走 HTTP', async () => {
-    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    try {
-      await remote.speak('hello')
-      assert.fail('should have thrown')
-    } catch (e) {
-      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
-    }
-  })
-
-  it('远程 listen 走 HTTP', async () => {
-    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    try {
-      await remote.listen(Buffer.from('fake audio'))
-      assert.fail('should have thrown')
-    } catch (e) {
-      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
-    }
-  })
-
-  it('远程 converse 走 HTTP', async () => {
-    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    try {
-      await remote.converse(Buffer.from('fake audio'))
-      assert.fail('should have thrown')
-    } catch (e) {
-      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
-    }
-  })
-
-  it('远程 embed 走 HTTP', async () => {
-    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    try {
-      await remote.embed('hello')
-      assert.fail('should have thrown')
-    } catch (e) {
-      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
-    }
-  })
-
-  it('远程 capabilities 走 HTTP（连接失败返回空对象）', async () => {
-    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    const caps = await remote.capabilities()
-    assert.deepEqual(caps, {})
-  })
-
-  it('远程 admin 方法', async () => {
-    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    try {
-      await remote.admin.health()
-      assert.fail('should have thrown')
-    } catch (e) {
-      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
-    }
-  })
-
-  it('本地模式不走 HTTP', async () => {
-    const local = new Agentic({ provider: 'ollama', model: 'qwen3:0.6b', baseUrl: 'http://localhost:11434', apiKey: 'ollama' })
-    // think 走本地 require，不走 HTTP
-    const result = await local.think('say ok')
+  it('think 永远走 core（不走 serviceUrl）', async () => {
+    // think 走 agentic-core，即使有 serviceUrl
+    const ai = new Agentic({ provider: 'ollama', model: 'qwen3:0.6b', baseUrl: 'http://localhost:11434', apiKey: 'ollama', serviceUrl: 'http://localhost:9999' })
+    const result = await ai.think('say ok')
     assert.equal(typeof result, 'string')
-    local.destroy()
+    ai.destroy()
+  })
+
+  it('speak fallback 到 serviceUrl（voice 子库已装时走本地）', async () => {
+    // voice 子库已装，走本地（会因为没有 TTS provider 而报错，但不是 HTTP 错误）
+    const ai = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await ai.speak('hello')
+    } catch (e) {
+      // 本地 voice 子库报错（不是 HTTP 连接错误）
+      assert.ok(!e.message.includes('9999'), 'should use local voice, not HTTP')
+    }
+  })
+
+  it('listen fallback 到 serviceUrl（voice 子库已装时走本地）', async () => {
+    const ai = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await ai.listen(Buffer.from('fake'))
+    } catch (e) {
+      assert.ok(!e.message.includes('9999'), 'should use local voice, not HTTP')
+    }
+  })
+
+  it('converse fallback 到 serviceUrl（voice 子库已装时走本地）', async () => {
+    const ai = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await ai.converse(Buffer.from('fake'))
+    } catch (e) {
+      assert.ok(!e.message.includes('9999'), 'should use local voice, not HTTP')
+    }
+  })
+
+  it('capabilities 反映 serviceUrl 的 voice fallback', () => {
+    const local = new Agentic()
+    const caps = local.capabilities()
+    // speak/listen 取决于 voice 子库是否装了
+    const hasVoice = !!caps.speak
+
+    const withService = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    const caps2 = withService.capabilities()
+    // 有 serviceUrl 时 speak/listen/converse 一定 true
+    assert.equal(caps2.speak, true)
+    assert.equal(caps2.listen, true)
+    assert.equal(caps2.admin, true)
+  })
+
+  it('admin 方法走 HTTP', async () => {
+    const ai = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await ai.admin.health()
+      assert.fail('should have thrown')
+    } catch (e) {
+      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
+    }
+  })
+
+  it('连 agentic-service 做 think 用 provider+baseUrl', async () => {
+    // 正确方式：provider='openai', baseUrl 指向 service
+    const ai = new Agentic({ provider: 'openai', baseUrl: 'http://localhost:9999', apiKey: 'dummy' })
+    try {
+      await ai.think('hi')
+      assert.fail('should have thrown')
+    } catch (e) {
+      // 连接被拒 = core 走了 OpenAI provider 到 localhost:9999
+      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
+    }
   })
 })
