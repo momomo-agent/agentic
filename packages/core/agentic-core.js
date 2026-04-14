@@ -1009,5 +1009,152 @@ const toolRegistry = {
   }
 }
 
-  return { agenticAsk, toolRegistry }
+// ── Audio: TTS (synthesize) ─────────────────────────────────────
+
+async function synthesize(text, config = {}) {
+  const {
+    provider = 'openai',
+    baseUrl = 'https://api.openai.com',
+    apiKey,
+    proxyUrl,
+    model = 'tts-1',
+    voice = 'alloy',
+    format = 'mp3',
+  } = config
+
+  if (!apiKey) throw new Error('API key required for TTS')
+  if (!text?.trim()) return null
+
+  // ElevenLabs
+  if (provider === 'elevenlabs') {
+    const voiceId = voice
+    const modelId = model || 'eleven_turbo_v2_5'
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`
+    const res = await _audioFetch(url, {
+      method: 'POST',
+      headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, model_id: modelId, voice_settings: { stability: 0.5, similarity_boost: 0.75 } }),
+    })
+    return res.arrayBuffer()
+  }
+
+  // OpenAI-compatible (default) — works with agentic-service too
+  const base = (baseUrl || '').replace(/\/+$/, '').replace(/\/v1$/, '')
+  const url = `${base}/v1/audio/speech`
+  const targetUrl = proxyUrl || url
+  const headers = { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }
+  if (proxyUrl) headers['X-Target-URL'] = url
+
+  const res = await _audioFetch(targetUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ model, voice, input: text, response_format: format }),
+  })
+  return res.arrayBuffer()
+}
+
+// ── Audio: STT (transcribe) ─────────────────────────────────────
+
+async function transcribe(audio, config = {}) {
+  const {
+    provider = 'openai',
+    baseUrl = 'https://api.openai.com',
+    apiKey,
+    proxyUrl,
+    model = 'whisper-1',
+    language = 'zh',
+    timestamps = false,
+  } = config
+
+  if (!apiKey) throw new Error('API key required for STT')
+
+  // ElevenLabs
+  if (provider === 'elevenlabs') {
+    const modelId = model || 'scribe_v2'
+    const url = 'https://api.elevenlabs.io/v1/speech-to-text'
+    const form = _buildAudioForm(audio, 'audio.wav', 'audio/wav')
+    form.append('model_id', modelId)
+    const res = await _audioFetch(url, {
+      method: 'POST',
+      headers: { 'xi-api-key': apiKey },
+      body: form,
+    })
+    const data = await res.json()
+    return timestamps ? data : (data.text?.trim() || '')
+  }
+
+  // OpenAI-compatible (default)
+  const base = (baseUrl || '').replace(/\/+$/, '').replace(/\/v1$/, '')
+  const url = `${base}/v1/audio/transcriptions`
+  const targetUrl = proxyUrl || url
+  const form = _buildAudioForm(audio, 'audio.wav', 'audio/wav')
+  form.append('model', model)
+  if (language) form.append('language', language.split('-')[0])
+  if (timestamps) {
+    form.append('response_format', 'verbose_json')
+    form.append('timestamp_granularities[]', 'word')
+  }
+
+  const headers = { 'Authorization': `Bearer ${apiKey}` }
+  if (proxyUrl) headers['X-Target-URL'] = url
+
+  const res = await _audioFetch(targetUrl, { method: 'POST', headers, body: form })
+  const data = await res.json()
+  return timestamps ? data : (data.text?.trim() || '')
+}
+
+// ── Audio helpers ───────────────────────────────────────────────
+
+function _buildAudioForm(audio, filename, mimeType) {
+  // Node.js Buffer → Blob
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(audio)) {
+    const blob = new Blob([audio], { type: mimeType })
+    const form = new FormData()
+    form.append('file', blob, filename)
+    return form
+  }
+  // ArrayBuffer → Blob
+  if (audio instanceof ArrayBuffer || (audio?.buffer instanceof ArrayBuffer)) {
+    const blob = new Blob([audio], { type: mimeType })
+    const form = new FormData()
+    form.append('file', blob, filename)
+    return form
+  }
+  // Already a Blob/File
+  if (audio instanceof Blob) {
+    const form = new FormData()
+    form.append('file', audio, filename)
+    return form
+  }
+  // File path (string, Node.js only)
+  if (typeof audio === 'string' && typeof require === 'function') {
+    const fs = require('fs')
+    const buf = fs.readFileSync(audio)
+    const blob = new Blob([buf], { type: mimeType })
+    const form = new FormData()
+    form.append('file', blob, filename)
+    return form
+  }
+  throw new Error('Unsupported audio input type')
+}
+
+async function _audioFetch(url, opts, retries = 3) {
+  let lastErr
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, opts)
+      if (!res.ok) {
+        const text = await res.text().catch(() => '')
+        throw new Error(`Audio API ${res.status}: ${text.slice(0, 300)}`)
+      }
+      return res
+    } catch (err) {
+      lastErr = err
+      if (i < retries - 1) await new Promise(r => setTimeout(r, 500 * (i + 1)))
+    }
+  }
+  throw lastErr
+}
+
+  return { agenticAsk, toolRegistry, synthesize, transcribe }
 })

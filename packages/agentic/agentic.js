@@ -126,8 +126,12 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // SPEAK — agentic-voice TTS, fallback to service /api/synthesize
+    // SPEAK — agentic-voice TTS, delegates to core for network
     // ════════════════════════════════════════════════════════════════
+
+    _core() {
+      return load('agentic-core')
+    }
 
     _tts() {
       return this._get('tts', () => {
@@ -138,6 +142,7 @@
           baseUrl: o.baseUrl || this._opts.baseUrl,
           apiKey: o.apiKey || this._opts.apiKey,
           voice: o.voice, model: o.model,
+          core: this._core(),  // pass core for network delegation
         })
       })
     }
@@ -145,29 +150,16 @@
     _hasVoice() { return !!load('agentic-voice') }
 
     async speak(text, opts) {
-      if (this._hasVoice()) return this._tts().fetchAudio(text, opts)
-      if (this._serviceUrl) {
-        const res = await _fetch(this._serviceUrl, '/api/synthesize', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, ...opts }),
-        })
-        return res.arrayBuffer()
-      }
-      this._need('agentic-voice') // throws helpful error
+      return this._tts().fetchAudio(text, opts)
     }
 
-    async speakAloud(text, opts) {
-      if (this._hasVoice()) return this._tts().speak(text, opts)
-      // remote can't play locally — return audio buffer instead
-      return this.speak(text, opts)
-    }
+    async speakAloud(text, opts) { return this._tts().speak(text, opts) }
     async speakStream(stream, opts) { return this._tts().speakStream(stream, opts) }
     async timestamps(text, opts) { return this._tts().timestamps(text, opts) }
     stopSpeaking() { if (this._i.tts) this._i.tts.stop() }
 
     // ════════════════════════════════════════════════════════════════
-    // LISTEN — agentic-voice STT, fallback to service /api/transcribe
+    // LISTEN — agentic-voice STT, delegates to core for network
     // ════════════════════════════════════════════════════════════════
 
     _stt() {
@@ -179,21 +171,13 @@
           baseUrl: o.baseUrl || this._opts.baseUrl,
           apiKey: o.apiKey || this._opts.apiKey,
           model: o.model,
+          core: this._core(),  // pass core for network delegation
         })
       })
     }
 
     async listen(audio, opts) {
-      if (this._hasVoice()) return this._stt().transcribe(audio, opts)
-      if (this._serviceUrl) {
-        const formData = new FormData()
-        formData.append('audio', new Blob([audio]), 'audio.wav')
-        if (opts?.language) formData.append('language', opts.language)
-        const res = await _fetch(this._serviceUrl, '/api/transcribe', { method: 'POST', body: formData })
-        const data = await res.json()
-        return data.text || data
-      }
-      this._need('agentic-voice') // throws helpful error
+      return this._stt().transcribe(audio, opts)
     }
 
     async listenWithTimestamps(audio, opts) { return this._stt().transcribeWithTimestamps(audio, opts) }
@@ -210,27 +194,15 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // CONVERSE — listen → think → speak, fallback to service /api/voice
+    // CONVERSE — listen → think → speak
     // ════════════════════════════════════════════════════════════════
 
     async converse(audio, opts = {}) {
-      // If we have voice locally, do the full pipeline
-      if (this._hasVoice()) {
-        const transcript = await this.listen(audio)
-        const result = await this.think(transcript, opts)
-        const answer = typeof result === 'string' ? result : result.answer || ''
-        const audioOut = await this.speak(answer)
-        return { text: answer, audio: audioOut, transcript }
-      }
-      // Fallback: service does STT→LLM→TTS in one call
-      if (this._serviceUrl) {
-        const formData = new FormData()
-        formData.append('audio', new Blob([audio]), 'audio.wav')
-        const res = await _fetch(this._serviceUrl, '/api/voice', { method: 'POST', body: formData })
-        const data = await res.json()
-        return { text: data.text || '', audio: data.audio ? _fromBase64(data.audio) : null, transcript: data.transcript || '' }
-      }
-      this._need('agentic-voice') // throws helpful error
+      const transcript = await this.listen(audio)
+      const result = await this.think(transcript, opts)
+      const answer = typeof result === 'string' ? result : result.answer || ''
+      const audioOut = await this.speak(answer)
+      return { text: answer, audio: audioOut, transcript }
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -416,10 +388,10 @@
       const has = name => !!load(name)
       return {
         think: has('agentic-core'),
-        speak: has('agentic-voice') || !!this._serviceUrl,
-        listen: has('agentic-voice') || !!this._serviceUrl,
+        speak: has('agentic-voice'),
+        listen: has('agentic-voice'),
         see: has('agentic-core'),
-        converse: (has('agentic-core') && has('agentic-voice')) || !!this._serviceUrl,
+        converse: has('agentic-core') && has('agentic-voice'),
         remember: has('agentic-memory'), recall: has('agentic-memory'),
         save: has('agentic-store'), load: has('agentic-store'),
         embed: has('agentic-embed'), search: has('agentic-embed'),
@@ -455,14 +427,6 @@
       return typeof btoa === 'function' ? btoa(s) : Buffer.from(s, 'binary').toString('base64')
     }
     return String(input)
-  }
-
-  function _fromBase64(str) {
-    if (typeof Buffer !== 'undefined') return Buffer.from(str, 'base64')
-    const binary = atob(str)
-    const bytes = new Uint8Array(binary.length)
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-    return bytes.buffer
   }
 
   return { Agentic }

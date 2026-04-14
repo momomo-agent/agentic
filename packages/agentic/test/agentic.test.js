@@ -654,10 +654,10 @@ describe('生命周期', () => {
 })
 
 // ════════════════════════════════════════════════════════════════════
-// 11. serviceUrl — voice fallback + admin
+// 11. serviceUrl — admin only; voice delegates to core for network
 // ════════════════════════════════════════════════════════════════════
 
-describe('serviceUrl', () => {
+describe('serviceUrl + core delegation', () => {
   it('admin 只在有 serviceUrl 时可用', () => {
     const local = new Agentic({ apiKey: 'test' })
     assert.equal(local.admin, null)
@@ -673,55 +673,45 @@ describe('serviceUrl', () => {
     assert.equal(typeof withService.admin.models, 'function')
   })
 
-  it('think 永远走 core（不走 serviceUrl）', async () => {
-    // think 走 agentic-core，即使有 serviceUrl
-    const ai = new Agentic({ provider: 'ollama', model: 'qwen3:0.6b', baseUrl: 'http://localhost:11434', apiKey: 'ollama', serviceUrl: 'http://localhost:9999' })
+  it('think 永远走 core', async () => {
+    const ai = new Agentic({ provider: 'ollama', model: 'qwen3:0.6b', baseUrl: 'http://localhost:11434', apiKey: 'ollama' })
     const result = await ai.think('say ok')
     assert.equal(typeof result, 'string')
     ai.destroy()
   })
 
-  it('speak fallback 到 serviceUrl（voice 子库已装时走本地）', async () => {
-    // voice 子库已装，走本地（会因为没有 TTS provider 而报错，但不是 HTTP 错误）
-    const ai = new Agentic({ serviceUrl: 'http://localhost:9999' })
+  it('speak 走 voice（voice 委托 core 做网络请求）', async () => {
+    // voice 子库已装，走本地 voice → core.synthesize
+    const ai = new Agentic({ apiKey: 'test-key' })
     try {
       await ai.speak('hello')
     } catch (e) {
-      // 本地 voice 子库报错（不是 HTTP 连接错误）
-      assert.ok(!e.message.includes('9999'), 'should use local voice, not HTTP')
+      // 会报 API 错误（key 无效），但证明走了 core 的网络路径
+      assert.ok(e.message.includes('API') || e.message.includes('fetch') || e.message.includes('Audio') || e.message.includes('ECONNREFUSED') || e.message.includes('TTS'))
     }
   })
 
-  it('listen fallback 到 serviceUrl（voice 子库已装时走本地）', async () => {
-    const ai = new Agentic({ serviceUrl: 'http://localhost:9999' })
+  it('listen 走 voice（voice 委托 core 做网络请求）', async () => {
+    const ai = new Agentic({ apiKey: 'test-key' })
     try {
       await ai.listen(Buffer.from('fake'))
     } catch (e) {
-      assert.ok(!e.message.includes('9999'), 'should use local voice, not HTTP')
+      assert.ok(e.message.includes('API') || e.message.includes('fetch') || e.message.includes('Audio') || e.message.includes('ECONNREFUSED') || e.message.includes('STT'))
     }
   })
 
-  it('converse fallback 到 serviceUrl（voice 子库已装时走本地）', async () => {
-    const ai = new Agentic({ serviceUrl: 'http://localhost:9999' })
-    try {
-      await ai.converse(Buffer.from('fake'))
-    } catch (e) {
-      assert.ok(!e.message.includes('9999'), 'should use local voice, not HTTP')
-    }
-  })
-
-  it('capabilities 反映 serviceUrl 的 voice fallback', () => {
+  it('capabilities 不依赖 serviceUrl', () => {
     const local = new Agentic()
     const caps = local.capabilities()
-    // speak/listen 取决于 voice 子库是否装了
-    const hasVoice = !!caps.speak
+    // speak/listen 只取决于 voice 子库是否装了
+    assert.equal(caps.admin, false)
 
     const withService = new Agentic({ serviceUrl: 'http://localhost:9999' })
     const caps2 = withService.capabilities()
-    // 有 serviceUrl 时 speak/listen/converse 一定 true
-    assert.equal(caps2.speak, true)
-    assert.equal(caps2.listen, true)
     assert.equal(caps2.admin, true)
+    // voice 能力不受 serviceUrl 影响
+    assert.equal(caps.speak, caps2.speak)
+    assert.equal(caps.listen, caps2.listen)
   })
 
   it('admin 方法走 HTTP', async () => {
@@ -735,14 +725,18 @@ describe('serviceUrl', () => {
   })
 
   it('连 agentic-service 做 think 用 provider+baseUrl', async () => {
-    // 正确方式：provider='openai', baseUrl 指向 service
     const ai = new Agentic({ provider: 'openai', baseUrl: 'http://localhost:9999', apiKey: 'dummy' })
     try {
       await ai.think('hi')
       assert.fail('should have thrown')
     } catch (e) {
-      // 连接被拒 = core 走了 OpenAI provider 到 localhost:9999
       assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
     }
+  })
+
+  it('core 导出 synthesize 和 transcribe', () => {
+    const core = require('agentic-core')
+    assert.equal(typeof core.synthesize, 'function')
+    assert.equal(typeof core.transcribe, 'function')
   })
 })

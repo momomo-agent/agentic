@@ -118,6 +118,7 @@
       voice = 'alloy',
       format = 'mp3',
       proxyUrl = null,
+      core = null,  // optional: agentic-core module for network requests
     } = config
 
     let audioCtx = null
@@ -157,6 +158,20 @@
       if (!text?.trim()) return null
       if (!apiKey && !opts.apiKey) return null
 
+      // Delegate to core if available — core handles provider routing, auth, proxy, retry
+      if (core?.synthesize) {
+        return core.synthesize(text, {
+          provider: opts.provider || provider,
+          baseUrl: opts.baseUrl || baseUrl,
+          apiKey: opts.apiKey || apiKey,
+          proxyUrl: opts.proxyUrl || proxyUrl,
+          model: opts.model || model,
+          voice: opts.voice || voice,
+          format: opts.format || format,
+        })
+      }
+
+      // Standalone mode — voice does its own HTTP (legacy, no core dependency)
       const currentProvider = opts.provider || provider
 
       // ElevenLabs
@@ -501,6 +516,7 @@
       model = 'whisper-1',
       proxyUrl = null,
       minHoldMs = 300,
+      core = null,  // optional: agentic-core module for network requests
     } = config
 
     let mediaRecorder = null
@@ -631,6 +647,21 @@
       const currentProvider = opts.provider || provider
       const key = opts.apiKey || apiKey
       if (!key) throw new Error('STT apiKey required')
+
+      // Delegate to core if available — core handles provider routing, auth, proxy, retry
+      if (core?.transcribe) {
+        return core.transcribe(input, {
+          provider: currentProvider,
+          baseUrl: opts.baseUrl || baseUrl,
+          apiKey: key,
+          proxyUrl: opts.proxyUrl || proxyUrl,
+          model: opts.model || model,
+          language: opts.language || language,
+          timestamps: opts.timestamps || false,
+        })
+      }
+
+      // Standalone mode — voice does its own HTTP (legacy, no core dependency)
 
       // ElevenLabs
       if (currentProvider === 'elevenlabs') {
