@@ -61,6 +61,15 @@ const panels = {
   'perf': defineAsyncComponent(() => import('./examples/PerfPanel.vue')),
   'devices': defineAsyncComponent(() => import('./examples/DevicesPanel.vue')),
   'logs': defineAsyncComponent(() => import('./examples/LogsPanel.vue')),
+  'memory': defineAsyncComponent(() => import('./examples/MemoryPanel.vue')),
+  'render': defineAsyncComponent(() => import('./examples/RenderPanel.vue')),
+  'store': defineAsyncComponent(() => import('./examples/StorePanel.vue')),
+  'filesystem': defineAsyncComponent(() => import('./examples/FilesystemPanel.vue')),
+  'act': defineAsyncComponent(() => import('./examples/ActPanel.vue')),
+  'embed': defineAsyncComponent(() => import('./examples/EmbedPanel.vue')),
+  'sense': defineAsyncComponent(() => import('./examples/SensePanel.vue')),
+  'spatial': defineAsyncComponent(() => import('./examples/SpatialPanel.vue')),
+  'claw': defineAsyncComponent(() => import('./examples/ClawPanel.vue')),
 }
 
 const categories = [
@@ -68,6 +77,7 @@ const categories = [
   { id: 'chat', label: '对话', icon: '🗣️' },
   { id: 'vision', label: '视觉', icon: '👁️' },
   { id: 'voice', label: '语音', icon: '🎤' },
+  { id: 'lib', label: '子库', icon: '📦' },
   { id: 'app', label: '应用', icon: '🌐' },
   { id: 'dev', label: '开发', icon: '🔧' },
 ]
@@ -104,6 +114,16 @@ const examples = ref([
   { id: 'perf', icon: '📈', title: '性能监控', desc: '实时查看 API 延迟和吞吐', tested: false, cat: 'dev' },
   { id: 'devices', icon: '📱', title: '设备管理', desc: '查看连接的 IoT/边缘设备', tested: false, cat: 'dev' },
   { id: 'logs', icon: '📋', title: '系统日志', desc: '查看最近的 API 调用日志', tested: false, cat: 'dev' },
+  // 📦 子库
+  { id: 'memory', icon: '🧠', title: 'Memory', desc: '对话上下文 + 知识检索 (agentic-memory)', tested: false, cat: 'lib' },
+  { id: 'render', icon: '📝', title: 'Render', desc: '流式 Markdown 渲染 (agentic-render)', tested: false, cat: 'lib' },
+  { id: 'store', icon: '💾', title: 'Store', desc: 'SQLite 持久化 Key-Value (agentic-store)', tested: false, cat: 'lib' },
+  { id: 'filesystem', icon: '📁', title: 'Filesystem', desc: '虚拟文件系统 POSIX 命令 (agentic-filesystem)', tested: false, cat: 'lib' },
+  { id: 'embed', icon: '📐', title: 'Embed', desc: '向量嵌入 + 语义相似度 (agentic-embed)', tested: false, cat: 'lib' },
+  { id: 'sense', icon: '👁️', title: 'Sense', desc: '人脸/手势/姿态/物体检测 (agentic-sense)', tested: false, cat: 'lib' },
+  { id: 'act', icon: '⚡', title: 'Act', desc: '意图→行动决策引擎 (agentic-act)', tested: false, cat: 'lib' },
+  { id: 'spatial', icon: '🏗️', title: 'Spatial', desc: '多图空间重建 (agentic-spatial)', tested: false, cat: 'lib' },
+  { id: 'claw', icon: '🤖', title: 'Claw', desc: 'Agent 运行时 core+memory (agentic-claw)', tested: false, cat: 'lib' },
 ])
 
 const filteredExamples = computed(() => {
