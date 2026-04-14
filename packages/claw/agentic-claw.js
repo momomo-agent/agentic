@@ -15,17 +15,15 @@
  * Skills:
  *   const claw = createClaw({
  *     apiKey: 'sk-...',
- *     skills: [weatherSkill, searchSkill],  // skill objects
- *     skillConfig: { tavilyKey: '...' },    // shared config for skills
+ *     skills: [weatherSkill, searchSkill],
+ *     skillConfig: { tavilyKey: '...' },
  *   })
- *   // Skills auto-expand to tools. Skill format:
- *   // { name: 'weather', tools: [{ name, description, parameters, execute }] }
- *   // Tools with requiresConfig(cfg) are auto-filtered.
  *
- * Browser:
- *   <script src="agentic-core/agentic-agent.js"></script>
- *   <script src="agentic-memory/memory.js"></script>
- *   <script src="agentic-claw/claw.js"></script>
+ * Via Agentic:
+ *   const { Agentic } = require('agentic')
+ *   const ai = new Agentic({ apiKey: 'sk-...' })
+ *   const claw = ai.createClaw({ skills: [...] })
+ *   await claw.chat('Hello')
  */
 ;(function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory()
@@ -33,25 +31,6 @@
   else root.AgenticClaw = factory()
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict'
-
-  // ── Resolve dependencies ─────────────────────────────────────────
-  // In browser: globals (AgenticAgent, AgenticMemory)
-  // In Node: require peer dependencies
-
-  function resolveDeps() {
-    let core, memory
-    if (typeof globalThis !== 'undefined') {
-      core = globalThis.AgenticAgent || globalThis.agenticAsk
-      memory = globalThis.AgenticMemory
-    }
-    if (!core && typeof require === 'function') {
-      try { core = require('agentic-core') } catch {}
-    }
-    if (!memory && typeof require === 'function') {
-      try { memory = require('agentic-memory') } catch {}
-    }
-    return { core, memory }
-  }
 
   // ── Optional sub-library loader ──────────────────────────────────
   // Tries require() first (Node), then globalThis (browser).
@@ -69,6 +48,23 @@
     }
     _optCache[name] = mod
     return mod
+  }
+
+  // ── Resolve dependencies ─────────────────────────────────────────
+
+  function resolveDeps() {
+    let core, memory
+    if (typeof globalThis !== 'undefined') {
+      core = globalThis.AgenticAgent || globalThis.agenticAsk
+      memory = globalThis.AgenticMemory
+    }
+    if (!core && typeof require === 'function') {
+      try { core = require('agentic-core') } catch {}
+    }
+    if (!memory && typeof require === 'function') {
+      try { memory = require('agentic-memory') } catch {}
+    }
+    return { core, memory }
   }
 
   // ── Event emitter ────────────────────────────────────────────────
@@ -92,38 +88,8 @@
             try { fn(...args) } catch (e) { console.error(`[claw] event error:`, e) }
           }
         }
-      }
+      },
     }
-  }
-
-  // ── Skill system ──────────────────────────────────────────────────
-
-  /**
-   * Expand skills into tools array.
-   * Skill format: { name: string, tools: [{ name, description, parameters, execute, requiresConfig? }] }
-   * Tools with requiresConfig(cfg) that returns false are filtered out.
-   */
-  function expandSkills(skills, skillConfig = {}) {
-    const expanded = []
-    const seen = new Set()
-
-    for (const skill of skills) {
-      if (!skill || !Array.isArray(skill.tools)) continue
-      for (const tool of skill.tools) {
-        // Skip tools whose required config is missing
-        if (typeof tool.requiresConfig === 'function' && !tool.requiresConfig(skillConfig)) continue
-        // Dedupe by tool name (first registration wins)
-        if (seen.has(tool.name)) continue
-        seen.add(tool.name)
-        expanded.push({
-          name: tool.name,
-          description: tool.description,
-          parameters: tool.parameters,
-          execute: (input) => tool.execute(input, skillConfig),
-        })
-      }
-    }
-    return expanded
   }
 
   // ── Built-in skills ──────────────────────────────────────────────
@@ -153,6 +119,26 @@
     },
   }
 
+  function expandSkills(skills, skillConfig = {}) {
+    const expanded = []
+    const seen = new Set()
+    for (const skill of skills) {
+      if (!skill || !Array.isArray(skill.tools)) continue
+      for (const tool of skill.tools) {
+        if (typeof tool.requiresConfig === 'function' && !tool.requiresConfig(skillConfig)) continue
+        if (seen.has(tool.name)) continue
+        seen.add(tool.name)
+        expanded.push({
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+          execute: (input) => tool.execute(input, skillConfig),
+        })
+      }
+    }
+    return expanded
+  }
+
   // ── createClaw ───────────────────────────────────────────────────
 
   function createClaw(options = {}) {
@@ -177,7 +163,7 @@
 
     if (!apiKey) throw new Error('apiKey is required')
 
-    // Resolve skills: strings → builtins, objects → as-is
+    // Resolve skills
     const resolvedSkills = skills.map(s => {
       if (typeof s === 'string') {
         if (builtinSkills[s]) return builtinSkills[s]
@@ -187,14 +173,12 @@
       return s
     }).filter(Boolean)
 
-    // Expand skills into tools, merge with explicit tools
     const skillTools = expandSkills(resolvedSkills, skillConfig)
     const allTools = [...tools, ...skillTools]
 
     const { core, memory } = resolveDeps()
     if (!memory) throw new Error('agentic-memory not found. Install or include via <script>')
 
-    // The agenticAsk function — could be global or from core module
     const askFn = typeof agenticAsk === 'function' ? agenticAsk
       : core?.agenticAsk || core
     if (!askFn || typeof askFn !== 'function') {
@@ -206,7 +190,7 @@
     let _heartbeatInterval = null
     let _schedules = []
 
-    // Shared knowledge store (across all sessions)
+    // Shared knowledge
     const sharedKnowledgeOpts = knowledge ? {
       knowledge: true,
       embedProvider,
@@ -214,11 +198,10 @@
       embedBaseUrl,
     } : {}
 
-    // Shared knowledge memory instance (for learn/recall/forget)
     let _sharedKnowledge = null
     if (knowledge) {
       _sharedKnowledge = memory.createMemory({
-        maxTokens: 1000, // minimal — we only use knowledge features
+        maxTokens: 1000,
         ...sharedKnowledgeOpts,
         storage: persist ? (persist + ':knowledge') : null,
       })
@@ -241,7 +224,6 @@
     }
 
     async function _chat(sessionMem, input, emitOrOpts, maybeEmit) {
-      // Support: _chat(mem, input, emit) or _chat(mem, input, opts, emit)
       let chatOpts = {}
       let emit
       if (typeof emitOrOpts === 'function') {
@@ -252,8 +234,6 @@
       }
 
       events.emit('message', { role: 'user', content: input })
-
-      // Store user message
       await sessionMem.user(input)
 
       // Recall relevant knowledge
@@ -270,11 +250,9 @@
         }
       }
 
-      // Build system prompt with knowledge
       let sys = systemPrompt || ''
       if (knowledgeContext) sys += knowledgeContext
 
-      // Call LLM via agentic-core
       const emitFn = (event, data) => {
         if (emit) emit(event, data)
         if (event === 'token') events.emit('token', data)
@@ -297,10 +275,7 @@
         }, emitFn)
 
         const answer = result.answer || result.content || ''
-
-        // Store assistant response
         await sessionMem.assistant(answer)
-
         events.emit('message', { role: 'assistant', content: answer })
 
         return {
@@ -315,14 +290,13 @@
       }
     }
 
-    // Default session
     const defaultSession = _getSession('default')
 
     // ── Sub-library instances (lazy-initialized) ──────────────────
     let _store, _fs, _shell, _act, _render, _sense, _spatial, _embed, _voice
 
     const claw = {
-      /** Chat — send a message, get a response. Options: { tools, searchApiKey } */
+      /** Chat — send a message, get a response */
       async chat(input, optsOrEmit, maybeEmit) {
         return _chat(defaultSession, input, optsOrEmit, maybeEmit)
       },
@@ -365,9 +339,8 @@
           return this
         }
         resolvedSkills.push(s)
-        // Re-expand and merge
         const fresh = expandSkills(resolvedSkills, skillConfig)
-        allTools.length = tools.length // keep explicit tools
+        allTools.length = tools.length
         allTools.push(...fresh)
         return this
       },
@@ -388,8 +361,6 @@
 
       /** Schedule a task */
       schedule(pattern, fn) {
-        // Simple interval-based scheduling
-        // pattern: number (ms) or string like '5m', '1h', '30s'
         let ms
         if (typeof pattern === 'number') {
           ms = pattern
@@ -402,7 +373,6 @@
           }
         }
         if (!ms) throw new Error('Invalid schedule pattern. Use number (ms) or "5m", "1h", etc.')
-
         const id = setInterval(() => {
           try { fn() } catch (e) { events.emit('error', e) }
         }, ms)
@@ -415,9 +385,7 @@
       off(event, fn) { events.off(event, fn); return this },
 
       /** List active sessions */
-      sessions() {
-        return [...sessions.keys()]
-      },
+      sessions() { return [...sessions.keys()] },
 
       /** Get default memory instance */
       get memory() { return defaultSession },
@@ -510,7 +478,7 @@
         return _spatial
       },
 
-      /** Embed — vector index + search */
+      /** Embed — vector embeddings + search */
       get embed() {
         if (_embed) return _embed
         const mod = optionalLoad('agentic-embed', 'AgenticEmbed')

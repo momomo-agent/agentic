@@ -1,582 +1,749 @@
 /**
- * agentic — 全自动化测试
+ * agentic — 真实集成测试（零 mock）
  *
- * 两种模式全覆盖：
- * 1. 纯 client（子库直接调用）— Agentic 类
- * 2. 配合 service（HTTP）— AgenticClient 类
+ * 所有测试真实调用子库。需要 Ollama 在 localhost:11434。
  *
- * 运行: node --test test/agentic.test.js
+ * 运行: cd packages/agentic && node --test test/agentic.test.js
  */
-const { describe, it, beforeEach, before, after } = require('node:test')
+const { describe, it, before, after, beforeEach } = require('node:test')
 const assert = require('node:assert/strict')
+const fs = require('fs')
 
 const { Agentic } = require('../agentic.js')
-const { AgenticClient } = require('../../client/agentic-client.cjs')
 
-const SERVICE_URL = 'http://localhost:19234'
+const OLLAMA = {
+  provider: 'ollama',
+  model: 'qwen3:0.6b',
+  baseUrl: 'http://localhost:11434',
+  apiKey: 'ollama',
+}
 
-async function serviceAvailable() {
-  try {
-    const res = await fetch(`${SERVICE_URL}/api/health`, { signal: AbortSignal.timeout(2000) })
-    return res.ok
-  } catch { return false }
+const DB = '/tmp/agentic-real-test.db'
+function cleanDB() {
+  for (const f of [DB, DB + '-wal', DB + '-shm']) {
+    try { fs.unlinkSync(f) } catch {}
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════
-// PART 1: 纯 Client（Agentic — 子库直接调用）
+// 1. THINK — agentic-core (真实 Ollama LLM)
 // ════════════════════════════════════════════════════════════════════
 
-describe('【纯 Client】构造 & 生命周期', () => {
-  it('无参数构造', () => {
-    const ai = new Agentic()
-    assert.ok(ai)
+describe('think — 真实 LLM', () => {
+  it('基本问答返回字符串', async () => {
+    const ai = new Agentic({ ...OLLAMA, tools: [] })
+    const r = await ai.think('Reply with exactly one word: PONG')
+    assert.equal(typeof r, 'string')
+    assert.ok(r.length > 0)
     ai.destroy()
   })
 
-  it('带配置构造', () => {
-    const ai = new Agentic({
-      provider: 'ollama', model: 'gemma3',
-      baseUrl: 'http://localhost:11434',
-      apiKey: 'sk-test', system: 'You are helpful.',
-      tts: { provider: 'openai' }, stt: { provider: 'openai' },
-      memory: { maxTokens: 4000 }, store: { path: '/tmp/test.db' },
+  it('带 system prompt', async () => {
+    const ai = new Agentic({ ...OLLAMA, system: 'Always reply in exactly 3 words.', tools: [] })
+    const r = await ai.think('Hello')
+    assert.equal(typeof r, 'string')
+    assert.ok(r.length > 0)
+    ai.destroy()
+  })
+
+  it('onEvent 回调触发', async () => {
+    const events = []
+    const ai = new Agentic({ ...OLLAMA, tools: [] })
+    await ai.think('Say hi', { onEvent: (type, data) => events.push(type) })
+    assert.ok(events.length > 0, 'should emit events')
+    assert.ok(events.includes('status'), 'should have status event')
+    ai.destroy()
+  })
+
+  it('history 多轮对话', async () => {
+    const ai = new Agentic({ ...OLLAMA, tools: [] })
+    const r = await ai.think('What is my name?', {
+      history: [
+        { role: 'user', content: 'My name is TestBot' },
+        { role: 'assistant', content: 'Nice to meet you, TestBot!' },
+      ]
     })
-    assert.ok(ai)
+    assert.equal(typeof r, 'string')
     ai.destroy()
   })
 
-  it('destroy 多次安全', () => {
-    const ai = new Agentic()
-    ai.destroy(); ai.destroy(); ai.destroy()
-  })
-
-  it('destroy 后 capabilities 仍可用', () => {
-    const ai = new Agentic()
-    ai.destroy()
-    assert.equal(typeof ai.capabilities(), 'object')
-  })
-})
-
-describe('【纯 Client】capabilities()', () => {
-  it('返回所有能力 boolean', () => {
-    const ai = new Agentic()
-    const caps = ai.capabilities()
-    const keys = ['think', 'speak', 'listen', 'see', 'converse', 'remember', 'recall',
-      'save', 'load', 'embed', 'search', 'perceive', 'decide', 'act', 'render', 'readFile', 'run', 'spatial']
-    for (const k of keys) assert.equal(typeof caps[k], 'boolean', `caps.${k}`)
-    ai.destroy()
-  })
-
-  it('已装子库 = true', () => {
-    const ai = new Agentic()
-    const caps = ai.capabilities()
-    assert.equal(caps.think, true)
-    assert.equal(caps.remember, true)
-    ai.destroy()
-  })
-
-  it('converse = core && voice', () => {
-    const ai = new Agentic()
-    const caps = ai.capabilities()
-    assert.equal(caps.converse, caps.speak && caps.think)
+  it('raw 模式返回完整对象', async () => {
+    const ai = new Agentic({ ...OLLAMA, tools: [] })
+    const r = await ai.think('Say hi', { raw: true })
+    assert.equal(typeof r, 'object')
+    assert.ok('answer' in r, 'should have answer field')
+    assert.ok('rounds' in r, 'should have rounds field')
     ai.destroy()
   })
 })
 
-describe('【纯 Client】缺失子库错误', () => {
-  const asyncMissing = [
-    ['speak', ['hello'], 'agentic-voice', 'speak'],
-    ['speakAloud', ['hello'], 'agentic-voice', 'speak'],
-    ['speakStream', [null], 'agentic-voice', 'speak'],
-    ['timestamps', ['hello'], 'agentic-voice', 'speak'],
-    ['listen', [Buffer.from('x')], 'agentic-voice', 'listen'],
-    ['listenWithTimestamps', [Buffer.from('x')], 'agentic-voice', 'listen'],
-    ['save', ['k', 'v'], 'agentic-store', 'save'],
-    ['load', ['k'], 'agentic-store', 'load'],
-    ['keys', [], 'agentic-store', 'save'],
-    ['perceive', [null], 'agentic-sense', 'perceive'],
-    ['decide', ['test'], 'agentic-act', 'decide'],
-    ['act', ['test'], 'agentic-act', 'act'],
-    ['readFile', ['/tmp/x'], 'agentic-filesystem', 'readFile'],
-    ['writeFile', ['/tmp/x', 'c'], 'agentic-filesystem', 'readFile'],
-    ['deleteFile', ['/tmp/x'], 'agentic-filesystem', 'readFile'],
-    ['ls', [], 'agentic-filesystem', 'readFile'],
-    ['tree', [], 'agentic-filesystem', 'readFile'],
-    ['grep', ['pat'], 'agentic-filesystem', 'readFile'],
-    ['semanticGrep', ['q'], 'agentic-filesystem', 'readFile'],
-    ['run', ['ls'], 'agentic-shell', 'run'],
-    ['reconstructSpace', [[]], 'agentic-spatial', 'spatial'],
-    ['embed', ['text'], 'agentic-embed', 'embed'],
-    ['index', ['id', 'text'], 'agentic-embed', 'embed'],
-    ['indexMany', [[]], 'agentic-embed', 'embed'],
-    ['search', ['q'], 'agentic-embed', 'search'],
-  ]
+// ════════════════════════════════════════════════════════════════════
+// 2. STORE — agentic-store (真实 SQLite)
+// ════════════════════════════════════════════════════════════════════
 
-  for (const [method, args, pkg, capKey] of asyncMissing) {
-    it(`${method}() 缺 ${pkg} → "not installed"`, async () => {
-      const ai = new Agentic()
-      if (ai.capabilities()[capKey]) { ai.destroy(); return }
-      await assert.rejects(
-        async () => await ai[method](...args),
-        err => { assert.ok(err.message.includes('not installed')); return true }
-      )
-      ai.destroy()
-    })
-  }
+describe('store — 真实 SQLite', () => {
+  beforeEach(cleanDB)
 
-  const syncMissing = [
-    ['render', ['# hi'], 'agentic-render', 'render'],
-    ['createRenderer', ['#app'], 'agentic-render', 'render'],
-    ['renderCSS', [], 'agentic-render', 'render'],
-    ['chunk', ['text'], 'agentic-embed', 'embed'],
-    ['similarity', [[1], [1]], 'agentic-embed', 'embed'],
-    ['createAudioAnalyzer', [], 'agentic-sense', 'perceive'],
-    ['registerAction', [{}], 'agentic-act', 'act'],
-    ['createSpatialSession', [], 'agentic-spatial', 'spatial'],
-  ]
+  it('save / load 基本类型', async () => {
+    const ai = new Agentic({ store: { path: DB } })
+    await ai.save('str', 'hello')
+    await ai.save('num', 42)
+    await ai.save('obj', { a: 1, b: [2, 3] })
+    await ai.save('bool', true)
 
-  for (const [method, args, pkg, capKey] of syncMissing) {
-    it(`${method}() 缺 ${pkg} → "not installed"`, () => {
-      const ai = new Agentic()
-      if (ai.capabilities()[capKey]) { ai.destroy(); return }
-      assert.throws(
-        () => ai[method](...args),
-        err => { assert.ok(err.message.includes('not installed')); return true }
-      )
-      ai.destroy()
-    })
-  }
-})
-
-describe('【纯 Client】懒加载', () => {
-  it('构造时 _i 为空', () => {
-    const ai = new Agentic({ memory: { maxTokens: 4000 } })
-    assert.equal(Object.keys(ai._i).length, 0)
+    assert.equal(await ai.load('str'), 'hello')
+    assert.equal(await ai.load('num'), 42)
+    assert.deepEqual(await ai.load('obj'), { a: 1, b: [2, 3] })
+    assert.equal(await ai.load('bool'), true)
     ai.destroy()
   })
 
-  it('首次调用才初始化', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 4000 } })
-    await ai.addMessage('user', 'test')
-    assert.ok(ai._i.mem)
+  it('has / keys / deleteKey', async () => {
+    const ai = new Agentic({ store: { path: DB } })
+    await ai.save('x', 1)
+    await ai.save('y', 2)
+
+    assert.equal(await ai.has('x'), true)
+    assert.equal(await ai.has('z'), false)
+
+    const keys = await ai.keys()
+    assert.ok(keys.includes('x'))
+    assert.ok(keys.includes('y'))
+
+    await ai.deleteKey('x')
+    assert.equal(await ai.has('x'), false)
     ai.destroy()
   })
 
-  it('复用同一实例', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 4000 } })
-    await ai.addMessage('user', 'a')
-    const inst = ai._i.mem
-    await ai.addMessage('user', 'b')
-    assert.strictEqual(ai._i.mem, inst)
+  it('覆盖写入', async () => {
+    const ai = new Agentic({ store: { path: DB } })
+    await ai.save('k', 'v1')
+    assert.equal(await ai.load('k'), 'v1')
+    await ai.save('k', 'v2')
+    assert.equal(await ai.load('k'), 'v2')
+    ai.destroy()
+  })
+
+  it('raw SQL — exec + sql + query', async () => {
+    const db = '/tmp/agentic-sql-test.db'
+    for (const f of [db, db+'-wal', db+'-shm']) { try { fs.unlinkSync(f) } catch {} }
+    const ai = new Agentic({ store: { path: db } })
+    await ai.exec('CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY, name TEXT, score REAL)')
+    await ai.sql('INSERT INTO items (name, score) VALUES (?, ?)', ['alpha', 9.5])
+    await ai.sql('INSERT INTO items (name, score) VALUES (?, ?)', ['beta', 7.2])
+    await ai.sql('INSERT INTO items (name, score) VALUES (?, ?)', ['gamma', 8.8])
+
+    const rows = await ai.query('SELECT name, score FROM items ORDER BY score DESC')
+    assert.equal(rows.length, 3)
+    assert.equal(rows[0].name, 'alpha')
+    assert.equal(rows[2].name, 'beta')
+    ai.destroy()
+  })
+
+  it('大量数据', async () => {
+    const db = '/tmp/agentic-bulk-test.db'
+    for (const f of [db, db+'-wal', db+'-shm']) { try { fs.unlinkSync(f) } catch {} }
+    const ai = new Agentic({ store: { path: db } })
+    for (let i = 0; i < 100; i++) {
+      await ai.save(`item_${i}`, { index: i, data: `value_${i}` })
+    }
+    const keys = await ai.keys()
+    assert.equal(keys.length, 100)
+    assert.deepEqual(await ai.load('item_50'), { index: 50, data: 'value_50' })
     ai.destroy()
   })
 })
 
-describe('【纯 Client】配置透传', () => {
-  it('memory maxTokens', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 2000 } })
-    await ai.addMessage('user', 'test')
-    assert.equal(ai._i.mem.info().maxTokens, 2000)
+// ════════════════════════════════════════════════════════════════════
+// 3. FILESYSTEM — agentic-filesystem (真实内存 FS)
+// ════════════════════════════════════════════════════════════════════
+
+describe('filesystem — 真实内存 FS', () => {
+  it('write / read / ls', async () => {
+    const ai = new Agentic()
+    await ai.writeFile('/hello.txt', 'hello world')
+    await ai.writeFile('/docs/readme.md', '# Title\nContent here')
+
+    assert.equal(await ai.readFile('/hello.txt'), 'hello world')
+    assert.equal(await ai.readFile('/docs/readme.md'), '# Title\nContent here')
+
+    const root = await ai.ls('/')
+    assert.ok(root.some(e => e.includes('hello.txt')))
+    assert.ok(root.some(e => e.includes('docs')))
+    ai.destroy()
+  })
+
+  it('tree', async () => {
+    const ai = new Agentic()
+    await ai.writeFile('/a/b/c.txt', 'deep')
+    await ai.writeFile('/a/d.txt', 'shallow')
+
+    const tree = await ai.tree('/')
+    assert.ok(tree, 'tree should return something')
+    ai.destroy()
+  })
+
+  it('grep', async () => {
+    const ai = new Agentic()
+    await ai.writeFile('/file1.txt', 'hello world')
+    await ai.writeFile('/file2.txt', 'goodbye world')
+    await ai.writeFile('/file3.txt', 'nothing here')
+
+    const results = await ai.grep('world')
+    assert.ok(results.length >= 2, `expected >=2 matches, got ${results.length}`)
+    ai.destroy()
+  })
+
+  it('deleteFile', async () => {
+    const ai = new Agentic()
+    await ai.writeFile('/temp.txt', 'temporary')
+    assert.equal(await ai.readFile('/temp.txt'), 'temporary')
+
+    await ai.deleteFile('/temp.txt')
+    const ls = await ai.ls('/')
+    assert.ok(!ls.some(e => e.includes('temp.txt')), 'file should be deleted')
+    ai.destroy()
+  })
+
+  it('覆盖写入', async () => {
+    const ai = new Agentic()
+    await ai.writeFile('/f.txt', 'v1')
+    assert.equal(await ai.readFile('/f.txt'), 'v1')
+    await ai.writeFile('/f.txt', 'v2')
+    assert.equal(await ai.readFile('/f.txt'), 'v2')
     ai.destroy()
   })
 })
 
-describe('【纯 Client】Memory', () => {
-  let ai
-  beforeEach(() => { ai = new Agentic({ memory: { maxTokens: 4000 } }) })
+// ════════════════════════════════════════════════════════════════════
+// 4. EMBED — agentic-embed (真实向量)
+// ════════════════════════════════════════════════════════════════════
 
-  it('addMessage + messages', async () => {
-    await ai.addMessage('user', 'hello')
-    await ai.addMessage('assistant', 'hi')
+describe('embed — 真实向量', () => {
+  it('embed 生成向量', async () => {
+    const ai = new Agentic({ embed: { provider: 'local' } })
+    const vec = await ai.embed('hello world')
+    assert.ok(Array.isArray(vec), 'should return array')
+    assert.ok(vec.length > 0, 'vector should have dimensions')
+    assert.ok(typeof vec[0] === 'number', 'elements should be numbers')
+    ai.destroy()
+  })
+
+  it('index + search 语义检索', async () => {
+    const ai = new Agentic({ embed: { provider: 'local' } })
+    await ai.index('paris', 'The capital of France is Paris')
+    await ai.index('tokyo', 'The capital of Japan is Tokyo')
+    await ai.index('python', 'Python is a programming language')
+    await ai.index('rust', 'Rust is a systems programming language')
+
+    const results = await ai.search('France capital city')
+    assert.ok(results.length > 0)
+    assert.equal(results[0].id, 'paris')
+    ai.destroy()
+  })
+
+  it('similarity 计算', async () => {
+    const ai = new Agentic({ embed: { provider: 'local' } })
+    // 用更长的文本让 TF-IDF 有区分度
+    const a = await ai.embed('The cat sat on the mat and purred softly')
+    const b = await ai.embed('The kitten sat on the rug and purred gently')
+    const c = await ai.embed('Database management systems use SQL queries for data retrieval')
+
+    const sim_ab = ai.similarity(a, b)
+    const sim_ac = ai.similarity(a, c)
+    assert.ok(typeof sim_ab === 'number')
+    assert.ok(typeof sim_ac === 'number')
+    // 相似文本的相似度应该更高
+    assert.ok(sim_ab > sim_ac, `cat-kitten (${sim_ab.toFixed(3)}) should be > cat-database (${sim_ac.toFixed(3)})`)
+    ai.destroy()
+  })
+
+  it('chunk 文本分块', () => {
+    const ai = new Agentic({ embed: { provider: 'local' } })
+    // 用有句号的文本让 chunkText 能按句子分割
+    const sentences = Array.from({ length: 20 }, (_, i) => `This is sentence number ${i} with some extra words to make it longer.`)
+    const text = sentences.join(' ')
+    const chunks = ai.chunk(text, { maxChunkSize: 200 })
+    assert.ok(chunks.length > 1, `should split into multiple chunks, got ${chunks.length}`)
+    assert.ok(chunks.every(c => c.length > 0), 'all chunks should be non-empty')
+    ai.destroy()
+  })
+
+  it('indexMany 批量索引', async () => {
+    const ai = new Agentic({ embed: { provider: 'local' } })
+    await ai.indexMany([
+      { id: 'd1', text: 'Machine learning is a subset of AI' },
+      { id: 'd2', text: 'Deep learning uses neural networks' },
+      { id: 'd3', text: 'Cooking pasta requires boiling water' },
+    ])
+    const results = await ai.search('artificial intelligence')
+    assert.ok(results.length > 0)
+    assert.ok(['d1', 'd2'].includes(results[0].id), `top result should be AI-related, got ${results[0].id}`)
+    ai.destroy()
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// 5. MEMORY — agentic-memory (真实 remember/recall)
+// ════════════════════════════════════════════════════════════════════
+
+describe('memory — 真实 remember/recall', () => {
+  it('remember + recall', async () => {
+    const ai = new Agentic()
+    await ai.remember('The meeting is at 3pm on Tuesday')
+    await ai.remember('Buy milk and eggs from the store')
+    await ai.remember('The project deadline is next Friday')
+
+    const results = await ai.recall('When is the meeting?')
+    assert.ok(results.length > 0, 'should recall something')
+    // recall 返回 [{id, chunk, score, ...}]
+    const texts = results.map(r => r.chunk || r.text || '')
+    assert.ok(texts.some(t => t.includes('meeting')), 'should find meeting-related memory')
+  })
+
+  it('addMessage + messages + history', () => {
+    const ai = new Agentic()
+    ai.addMessage('user', 'Hello')
+    ai.addMessage('assistant', 'Hi there!')
+    ai.addMessage('user', 'How are you?')
+
     const msgs = ai.messages()
-    const last2 = msgs.slice(-2)
-    assert.equal(last2[0].role, 'user')
-    assert.equal(last2[1].role, 'assistant')
+    assert.equal(msgs.length, 3)
+    assert.equal(msgs[0].role, 'user')
+    assert.equal(msgs[0].content, 'Hello')
+
+    const hist = ai.history()
+    assert.ok(hist.length > 0)
     ai.destroy()
   })
 
   it('setSystem', () => {
-    ai.setSystem('Be a pirate.')
-    assert.equal(ai.messages().find(m => m.role === 'system').content, 'Be a pirate.')
+    const ai = new Agentic()
+    ai.setSystem('You are a helpful assistant')
+    const msgs = ai.messages()
+    assert.ok(msgs.some(m => m.role === 'system'), 'should have system message')
     ai.destroy()
   })
 
-  it('history', () => {
+  it('clearMemory', () => {
+    const ai = new Agentic()
     ai.addMessage('user', 'test')
-    assert.ok(ai.history())
-    ai.destroy()
-  })
-
-  it('clearMemory', async () => {
-    await ai.addMessage('user', 'hello')
+    assert.ok(ai.messages().length > 0)
     ai.clearMemory()
-    assert.equal(ai.messages().filter(m => m.role === 'user').length, 0)
+    assert.equal(ai.messages().length, 0)
     ai.destroy()
   })
 
-  it('export + import', async () => {
-    await ai.addMessage('user', 'remember')
-    await ai.addMessage('assistant', 'ok')
+  it('exportMemory / importMemory', () => {
+    const ai = new Agentic()
+    ai.addMessage('user', 'remember this')
+    ai.addMessage('assistant', 'noted')
     const exported = ai.exportMemory()
-    const ai2 = new Agentic({ memory: { maxTokens: 4000 } })
+    assert.ok(exported, 'should export something')
+
+    const ai2 = new Agentic()
     ai2.importMemory(exported)
-    assert.ok(ai2.messages().length >= 2)
-    ai.destroy(); ai2.destroy()
+    assert.equal(ai2.messages().length, 2)
+    ai.destroy()
+    ai2.destroy()
   })
 })
 
-describe('【纯 Client】remember/recall', () => {
-  it('remember + recall', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 4000, knowledge: true } })
-    await ai.remember('Capital of France is Paris')
-    const r = await ai.recall('capital of France')
-    assert.ok(Array.isArray(r))
-    ai.destroy()
-  })
+// ════════════════════════════════════════════════════════════════════
+// 6. ACT — agentic-act (真实 action 注册 + LLM 决策)
+// ════════════════════════════════════════════════════════════════════
 
-  it('自动生成 id', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 4000, knowledge: true } })
-    await ai.remember('test')
-    ai.destroy()
-  })
-
-  it('自定义 metadata', async () => {
-    const ai = new Agentic({ memory: { maxTokens: 4000, knowledge: true } })
-    await ai.remember('test', { id: 'custom', source: 'test' })
-    ai.destroy()
-  })
-})
-
-describe('【纯 Client】Think', () => {
-  it('think 存在', () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
-    assert.equal(typeof ai.think, 'function')
-    ai.destroy()
-  })
-
-  it('think string（连接错误预期）', async () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3', baseUrl: 'http://localhost:11434' })
-    try { await ai.think('hello') } catch { /* ok */ }
-    ai.destroy()
-  })
-
-  it('think array', async () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3', baseUrl: 'http://localhost:11434' })
-    try {
-      await ai.think([
-        { role: 'user', content: 'hello' },
-        { role: 'assistant', content: 'hi' },
-        { role: 'user', content: 'how?' },
-      ])
-    } catch { /* ok */ }
-    ai.destroy()
-  })
-
-  it('tools getter', () => {
-    const ai = new Agentic({ provider: 'ollama', model: 'gemma3' })
-    assert.ok(ai.tools !== undefined)
-    ai.destroy()
-  })
-})
-
-describe('【纯 Client】see 组合', () => {
-  it('委托 think + images', async () => {
-    const ai = new Agentic()
-    let opts = null
-    ai.think = async (_, o) => { opts = o; return { answer: 'cat' } }
-    await ai.see('b64', 'what?')
-    assert.ok(opts.images[0].url.includes('base64'))
-    ai.destroy()
-  })
-
-  it('默认 prompt', async () => {
-    const ai = new Agentic()
-    let input = null
-    ai.think = async (i) => { input = i; return { answer: '' } }
-    await ai.see('data')
-    assert.equal(input, '描述这张图片')
-    ai.destroy()
-  })
-
-  it('接受 Buffer', async () => {
-    const ai = new Agentic()
-    let opts = null
-    ai.think = async (_, o) => { opts = o; return { answer: '' } }
-    await ai.see(Buffer.from([0x89, 0x50]), 'desc')
-    assert.ok(opts.images[0].url.includes('base64'))
-    ai.destroy()
-  })
-})
-
-describe('【纯 Client】converse 组合', () => {
-  it('listen → think → speak', async () => {
-    const ai = new Agentic()
-    const calls = []
-    ai.listen = async () => { calls.push('listen'); return 'text' }
-    ai.think = async () => { calls.push('think'); return { answer: 'resp' } }
-    ai.speak = async () => { calls.push('speak'); return Buffer.from('audio') }
-    const r = await ai.converse(Buffer.from('fake'))
-    assert.deepEqual(calls, ['listen', 'think', 'speak'])
-    assert.equal(r.transcript, 'text')
-    assert.equal(r.text, 'resp')
-    assert.ok(r.audio)
-    ai.destroy()
-  })
-})
-
-describe('【纯 Client】安全停止', () => {
-  it('stopSpeaking 无实例', () => {
-    const ai = new Agentic()
-    assert.doesNotThrow(() => ai.stopSpeaking())
-    ai.destroy()
-  })
-
-  it('stopListening 无实例', () => {
-    const ai = new Agentic()
-    assert.doesNotThrow(() => ai.stopListening())
-    ai.destroy()
-  })
-})
-
-describe('【纯 Client】方法签名完整性', () => {
-  const expected = [
-    'think', 'tools', 'speak', 'speakAloud', 'speakStream', 'timestamps',
-    'stopSpeaking', 'listen', 'listenWithTimestamps', 'startListening',
-    'stopListening', 'see', 'converse', 'remember', 'recall', 'addMessage',
-    'messages', 'history', 'setSystem', 'clearMemory', 'exportMemory',
-    'importMemory', 'save', 'load', 'keys', 'query', 'exec', 'embed',
-    'index', 'indexMany', 'search', 'chunk', 'similarity', 'perceive',
-    'createAudioAnalyzer', 'registerAction', 'decide', 'act', 'render',
-    'createRenderer', 'renderCSS', 'readFile', 'writeFile', 'deleteFile',
-    'ls', 'tree', 'grep', 'semanticGrep', 'run', 'reconstructSpace',
-    'createSpatialSession', 'capabilities', 'destroy',
-  ]
-
-  for (const m of expected) {
-    it(`ai.${m} 存在`, () => {
-      const ai = new Agentic()
-      assert.ok(m in ai)
-      ai.destroy()
+describe('act — 真实 action 注册 + LLM 决策', () => {
+  it('registerAction 注册', () => {
+    const ai = new Agentic(OLLAMA)
+    ai.registerAction({
+      id: 'get_weather',
+      name: 'Get Weather',
+      description: 'Get weather for a city',
+      schema: { city: { type: 'string' } },
+      handler: async (p) => ({ temp: 22, city: p.city }),
     })
-  }
-
-  it('公开方法 = 53', () => {
-    const n = Object.getOwnPropertyNames(Agentic.prototype)
-      .filter(m => !m.startsWith('_') && m !== 'constructor').length
-    assert.equal(n, 53)
-  })
-})
-
-// ════════════════════════════════════════════════════════════════════
-// PART 2: 配合 Service（AgenticClient — HTTP）
-// ════════════════════════════════════════════════════════════════════
-
-describe('【Service】AgenticClient 构造', () => {
-  it('URL string 构造', () => {
-    assert.ok(new AgenticClient(SERVICE_URL))
+    const caps = ai.capabilities()
+    assert.equal(caps.act, true)
+    ai.destroy()
   })
 
-  it('能力方法完整', () => {
-    const c = new AgenticClient(SERVICE_URL)
-    for (const m of ['think', 'see', 'listen', 'speak', 'converse', 'embed', 'capabilities']) {
-      assert.equal(typeof c[m], 'function', m)
-    }
-  })
-
-  it('admin 方法完整', () => {
-    const c = new AgenticClient(SERVICE_URL)
-    for (const m of ['health', 'status', 'perf', 'queueStats', 'devices', 'logs',
-      'config', 'engines', 'engineModels', 'engineRecommended', 'engineHealth',
-      'pullModel', 'deleteModel', 'assignments', 'setAssignments', 'models']) {
-      assert.equal(typeof c.admin[m], 'function', `admin.${m}`)
-    }
-  })
-})
-
-describe('【Service】admin 接口', () => {
-  let ok = false, c
-
-  before(async () => {
-    ok = await serviceAvailable()
-    if (ok) c = new AgenticClient(SERVICE_URL)
-  })
-
-  for (const m of ['health', 'status', 'engines', 'engineModels', 'engineRecommended',
-    'engineHealth', 'config', 'devices', 'perf', 'logs', 'queueStats', 'models', 'assignments']) {
-    it(`admin.${m}()`, async () => {
-      if (!ok) return
-      const r = await c.admin[m]()
-      assert.ok(r !== undefined)
+  it('decide — LLM 选择 action', async () => {
+    const ai = new Agentic(OLLAMA)
+    ai.registerAction({
+      id: 'turn_on_light',
+      name: 'Turn On Light',
+      description: 'Turn on the room light',
+      schema: { room: { type: 'string' } },
+      handler: async (p) => `light on in ${p.room}`,
     })
-  }
-})
+    ai.registerAction({
+      id: 'play_music',
+      name: 'Play Music',
+      description: 'Play a song',
+      schema: { song: { type: 'string' } },
+      handler: async (p) => `playing ${p.song}`,
+    })
 
-describe('【Service】capabilities', () => {
-  let ok = false, c
-
-  before(async () => {
-    ok = await serviceAvailable()
-    if (ok) c = new AgenticClient(SERVICE_URL)
-  })
-
-  it('返回能力对象', async () => {
-    if (!ok) return
-    const caps = await c.capabilities()
-    assert.equal(typeof caps, 'object')
-  })
-})
-
-describe('【Service】think', () => {
-  let ok = false, c
-
-  before(async () => {
-    ok = await serviceAvailable()
-    if (ok) c = new AgenticClient(SERVICE_URL)
-  })
-
-  it('非流式', async () => {
-    if (!ok) return
-    const r = await c.think('Say hello in one word.', { model: 'gemma4:e2b' })
-    assert.ok(r)
-    assert.ok(typeof (r.answer || r.text) === 'string')
-  })
-
-  it('流式', async () => {
-    if (!ok) return
-    const chunks = []
-    for await (const ch of c.think('Say hi.', { stream: true, model: 'gemma4:e2b' })) {
-      chunks.push(ch)
-    }
-    assert.ok(chunks.length > 0)
-  })
-
-  it('带 system', async () => {
-    if (!ok) return
-    const r = await c.think('What are you?', { system: 'You are a pirate. One sentence.', model: 'gemma4:e2b' })
-    assert.ok(r)
-  })
-})
-
-describe('【Service】see', () => {
-  let ok = false, c
-
-  before(async () => {
-    ok = await serviceAvailable()
-    if (ok) c = new AgenticClient(SERVICE_URL)
-  })
-
-  it('base64 图片', async () => {
-    if (!ok) return
-    const tiny = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
-    try {
-      const r = await c.see(`data:image/png;base64,${tiny}`, 'What color?', { model: 'llava:7b' })
-      assert.ok(r)
-    } catch { assert.ok(true) }
-  })
-})
-
-describe('【Service】listen', () => {
-  let ok = false, c
-
-  before(async () => {
-    ok = await serviceAvailable()
-    if (ok) c = new AgenticClient(SERVICE_URL)
-  })
-
-  it('audio buffer', async () => {
-    if (!ok) return
-    try {
-      const text = await c.listen(createSilentWav(0.1))
-      assert.equal(typeof text, 'string')
-    } catch { assert.ok(true) }
-  })
-})
-
-describe('【Service】speak', () => {
-  let ok = false, c
-
-  before(async () => {
-    ok = await serviceAvailable()
-    if (ok) c = new AgenticClient(SERVICE_URL)
-  })
-
-  it('返回 audio', async () => {
-    if (!ok) return
-    try {
-      const audio = await c.speak('Hello')
-      assert.ok(audio)
-    } catch { assert.ok(true) }
-  })
-})
-
-describe('【Service】embed', () => {
-  let ok = false, c
-
-  before(async () => {
-    ok = await serviceAvailable()
-    if (ok) c = new AgenticClient(SERVICE_URL)
-  })
-
-  it('返回向量', async () => {
-    if (!ok) return
-    try {
-      const v = await c.embed('hello')
-      assert.ok(v)
-    } catch { assert.ok(true) }
-  })
-})
-
-describe('【Service】converse', () => {
-  let ok = false, c
-
-  before(async () => {
-    ok = await serviceAvailable()
-    if (ok) c = new AgenticClient(SERVICE_URL)
-  })
-
-  it('全链路', async () => {
-    if (!ok) return
-    try {
-      const r = await c.converse(createSilentWav(0.5))
-      assert.ok(r)
-    } catch { assert.ok(true) }
-  })
-})
-
-// ════════════════════════════════════════════════════════════════════
-// PART 3: 接口对齐
-// ════════════════════════════════════════════════════════════════════
-
-describe('【对齐】Agentic vs AgenticClient', () => {
-  it('核心能力方法名一致', () => {
-    const ai = new Agentic()
-    const c = new AgenticClient(SERVICE_URL)
-    for (const m of ['think', 'see', 'listen', 'speak', 'converse', 'embed', 'capabilities']) {
-      assert.equal(typeof ai[m], 'function', `Agentic.${m}`)
-      assert.equal(typeof c[m], 'function', `Client.${m}`)
-    }
+    const decision = await ai.decide({ text: 'Turn on the bedroom light' })
+    assert.ok(decision, 'should return a decision')
+    assert.equal(typeof decision, 'object')
+    assert.ok('action' in decision, 'decision should have action field')
     ai.destroy()
   })
 
-  it('Agentic 额外本地能力', () => {
-    const ai = new Agentic()
-    for (const m of ['remember', 'recall', 'save', 'load', 'perceive', 'decide', 'act',
-      'render', 'readFile', 'writeFile', 'run', 'addMessage', 'messages', 'history']) {
-      assert.equal(typeof ai[m], 'function', m)
-    }
+  it('act — 决策 + 执行', async () => {
+    const ai = new Agentic(OLLAMA)
+    ai.registerAction({
+      id: 'greet',
+      name: 'Greet',
+      description: 'Greet someone by name. Always use this action.',
+      schema: { name: { type: 'string' } },
+      handler: async (p) => `Hello ${p.name || 'friend'}!`,
+    })
+
+    const result = await ai.act({ text: 'Please greet Alice' })
+    assert.ok(result, 'should return result')
+    assert.equal(typeof result, 'object')
+    assert.ok('action' in result)
     ai.destroy()
   })
 })
 
-// ── Helper ────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// 7. RENDER — agentic-render (真实 markdown → HTML)
+// ════════════════════════════════════════════════════════════════════
 
-function createSilentWav(sec) {
-  const sr = 16000, n = Math.floor(sr * sec), ds = n * 2
-  const b = Buffer.alloc(44 + ds)
-  b.write('RIFF', 0); b.writeUInt32LE(36 + ds, 4); b.write('WAVE', 8)
-  b.write('fmt ', 12); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20)
-  b.writeUInt16LE(1, 22); b.writeUInt32LE(sr, 24); b.writeUInt32LE(sr * 2, 28)
-  b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34)
-  b.write('data', 36); b.writeUInt32LE(ds, 40)
-  return b
-}
+describe('render — 真实 markdown→HTML', () => {
+  it('基本 markdown', () => {
+    const ai = new Agentic()
+    const html = ai.render('# Title\n\n**bold** and *italic*')
+    assert.ok(html.includes('Title'))
+    assert.ok(html.includes('<strong'), 'should have strong tag')
+    assert.ok(html.includes('<em'), 'should have em tag')
+    ai.destroy()
+  })
+
+  it('代码块', () => {
+    const ai = new Agentic()
+    const html = ai.render('```js\nconsole.log("hi")\n```')
+    assert.ok(html.includes('console'))
+    assert.ok(html.includes('<code') || html.includes('<pre'))
+    ai.destroy()
+  })
+
+  it('列表', () => {
+    const ai = new Agentic()
+    const html = ai.render('- item 1\n- item 2\n- item 3')
+    assert.ok(html.includes('item 1'))
+    ai.destroy()
+  })
+
+  it('链接', () => {
+    const ai = new Agentic()
+    const html = ai.render('[Google](https://google.com)')
+    assert.ok(html.includes('google.com'))
+    ai.destroy()
+  })
+
+  it('renderCSS 返回样式', () => {
+    const ai = new Agentic()
+    const css = ai.renderCSS('dark')
+    assert.equal(typeof css, 'string')
+    assert.ok(css.length > 0)
+    assert.ok(css.includes('--ar-'))
+    ai.destroy()
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// 8. SHELL — agentic-shell (真实命令执行)
+// ════════════════════════════════════════════════════════════════════
+
+describe('shell — 真实命令执行', () => {
+  it('run 基本命令', async () => {
+    const ai = new Agentic()
+    const result = await ai.run('echo hello')
+    assert.ok(result)
+    // shell 返回 { output, exitCode }
+    const output = typeof result === 'string' ? result : (result.output || result.stdout || '')
+    assert.ok(output.includes('hello'), `should contain hello, got: ${JSON.stringify(result).slice(0, 200)}`)
+    ai.destroy()
+  })
+
+  it('run 带管道', async () => {
+    const ai = new Agentic()
+    const result = await ai.run('echo "hello world" | wc -w')
+    assert.ok(result)
+    const output = typeof result === 'string' ? result : (result.output || '')
+    assert.ok(output.trim().length > 0, 'should have output')
+    ai.destroy()
+  })
+
+  it('run 失败命令返回错误', async () => {
+    const ai = new Agentic()
+    const result = await ai.run('ls /nonexistent_path_12345 2>&1')
+    assert.ok(result)
+    ai.destroy()
+  })
+
+  it('run 获取环境变量', async () => {
+    const ai = new Agentic()
+    const result = await ai.run('pwd')
+    const output = typeof result === 'string' ? result : (result.output || '')
+    assert.ok(output.trim().length > 0, 'should have output')
+    ai.destroy()
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// 9. CAPABILITIES — 全子库检测
+// ════════════════════════════════════════════════════════════════════
+
+describe('capabilities — 全子库检测', () => {
+  it('所有已安装子库返回 true', () => {
+    const ai = new Agentic()
+    const caps = ai.capabilities()
+
+    assert.equal(caps.think, true, 'core')
+    assert.equal(caps.speak, true, 'voice')
+    assert.equal(caps.listen, true, 'voice')
+    assert.equal(caps.remember, true, 'memory')
+    assert.equal(caps.recall, true, 'memory')
+    assert.equal(caps.save, true, 'store')
+    assert.equal(caps.load, true, 'store')
+    assert.equal(caps.embed, true, 'embed')
+    assert.equal(caps.search, true, 'embed')
+    assert.equal(caps.perceive, true, 'sense')
+    assert.equal(caps.decide, true, 'act')
+    assert.equal(caps.act, true, 'act')
+    assert.equal(caps.render, true, 'render')
+    assert.equal(caps.readFile, true, 'filesystem')
+    assert.equal(caps.run, true, 'shell')
+    assert.equal(caps.converse, true, 'core + voice')
+    ai.destroy()
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// 10. 组合工作流 — 多子库协同
+// ════════════════════════════════════════════════════════════════════
+
+describe('组合工作流', () => {
+  beforeEach(cleanDB)
+
+  it('think + store + filesystem', async () => {
+    const ai = new Agentic({ ...OLLAMA, store: { path: DB }, tools: [] })
+
+    // LLM 生成回答
+    const answer = await ai.think('What is 2+2? Reply with just the number.')
+    assert.ok(answer)
+    assert.equal(typeof answer, 'string')
+
+    // 存到 SQLite
+    await ai.save('math_answer', answer)
+    assert.equal(await ai.load('math_answer'), answer)
+
+    // 写到文件系统
+    await ai.writeFile('/results/math.txt', `Answer: ${answer}`)
+    const content = await ai.readFile('/results/math.txt')
+    assert.ok(content.includes('Answer:'))
+    ai.destroy()
+  })
+
+  it('embed + store 知识库', async () => {
+    const ai = new Agentic({ embed: { provider: 'local' }, store: { path: DB } })
+
+    await ai.index('doc1', 'React is a JavaScript library for building user interfaces')
+    await ai.index('doc2', 'Vue is a progressive JavaScript framework')
+    await ai.index('doc3', 'Rust is a systems programming language focused on safety')
+
+    const results = await ai.search('JavaScript UI framework')
+    assert.ok(results.length > 0)
+    assert.ok(['doc1', 'doc2'].includes(results[0].id))
+
+    await ai.save('last_search', { query: 'JavaScript UI', topResult: results[0].id })
+    const saved = await ai.load('last_search')
+    assert.equal(saved.topResult, results[0].id)
+    ai.destroy()
+  })
+
+  it('filesystem + shell', async () => {
+    const ai = new Agentic()
+
+    await ai.writeFile('/script.sh', '#!/bin/bash\necho "hello from script"')
+    const content = await ai.readFile('/script.sh')
+    assert.ok(content.includes('hello from script'))
+
+    const result = await ai.run('echo "filesystem + shell works"')
+    const output = typeof result === 'string' ? result : (result.output || '')
+    assert.ok(output.includes('filesystem + shell works'))
+    ai.destroy()
+  })
+
+  it('render + filesystem', async () => {
+    const ai = new Agentic()
+
+    await ai.writeFile('/doc.md', '# Hello\n\nThis is **bold**.')
+    const md = await ai.readFile('/doc.md')
+    assert.equal(typeof md, 'string')
+
+    const html = ai.render(md)
+    assert.ok(html.includes('Hello'))
+    assert.ok(html.includes('<strong'), 'should have strong tag')
+
+    await ai.writeFile('/doc.html', html)
+    const saved = await ai.readFile('/doc.html')
+    assert.ok(saved.includes('Hello'))
+    ai.destroy()
+  })
+
+  it('memory + embed 联合检索', async () => {
+    const ai = new Agentic({ embed: { provider: 'local' } })
+
+    // remember 走 memory 子库
+    await ai.remember('kenefe prefers dark mode')
+    await ai.remember('The server runs on port 8080')
+
+    // index 走 embed 子库
+    await ai.index('arch', 'The system uses microservices architecture')
+    await ai.index('db', 'PostgreSQL is the primary database')
+
+    // 两个子库独立工作
+    const memResults = await ai.recall('What does kenefe prefer?')
+    assert.ok(memResults.length > 0)
+
+    const embedResults = await ai.search('database')
+    assert.ok(embedResults.length > 0)
+    assert.equal(embedResults[0].id, 'db')
+    ai.destroy()
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// 11. 生命周期
+// ════════════════════════════════════════════════════════════════════
+
+describe('生命周期', () => {
+  it('destroy 释放所有资源', async () => {
+    cleanDB()
+    const ai = new Agentic({ ...OLLAMA, store: { path: DB } })
+    await ai.save('k', 'v')
+    ai.addMessage('user', 'test')
+    ai.destroy()
+    assert.deepEqual(ai._i, {})
+  })
+
+  it('destroy 多次安全', () => {
+    const ai = new Agentic()
+    ai.destroy()
+    ai.destroy()
+    ai.destroy()
+  })
+
+  it('destroy 后重新使用', async () => {
+    const ai = new Agentic()
+    await ai.writeFile('/test.txt', 'before')
+    ai.destroy()
+    // destroy 后重新调用会创建新实例（新的内存 FS）
+    await ai.writeFile('/test2.txt', 'after')
+    const content = await ai.readFile('/test2.txt')
+    assert.equal(content, 'after')
+    ai.destroy()
+  })
+})
+
+// ════════════════════════════════════════════════════════════════════
+// 11. 远程模式 — serviceUrl
+// ════════════════════════════════════════════════════════════════════
+
+describe('远程模式', () => {
+  it('isRemote 标识', () => {
+    const local = new Agentic({ apiKey: 'test' })
+    assert.equal(local.isRemote, false)
+    assert.equal(local.admin, null)
+
+    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    assert.equal(remote.isRemote, true)
+    assert.ok(remote.admin)
+    assert.equal(typeof remote.admin.health, 'function')
+    assert.equal(typeof remote.admin.status, 'function')
+    assert.equal(typeof remote.admin.config, 'function')
+    assert.equal(typeof remote.admin.devices, 'function')
+  })
+
+  it('远程 think 走 HTTP（连接失败 = 正确路径）', async () => {
+    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await remote.think('hi')
+      assert.fail('should have thrown')
+    } catch (e) {
+      // 连接被拒 = 走了 HTTP 路径
+      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
+    }
+  })
+
+  it('远程 speak 走 HTTP', async () => {
+    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await remote.speak('hello')
+      assert.fail('should have thrown')
+    } catch (e) {
+      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
+    }
+  })
+
+  it('远程 listen 走 HTTP', async () => {
+    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await remote.listen(Buffer.from('fake audio'))
+      assert.fail('should have thrown')
+    } catch (e) {
+      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
+    }
+  })
+
+  it('远程 converse 走 HTTP', async () => {
+    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await remote.converse(Buffer.from('fake audio'))
+      assert.fail('should have thrown')
+    } catch (e) {
+      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
+    }
+  })
+
+  it('远程 embed 走 HTTP', async () => {
+    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await remote.embed('hello')
+      assert.fail('should have thrown')
+    } catch (e) {
+      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
+    }
+  })
+
+  it('远程 capabilities 走 HTTP（连接失败返回空对象）', async () => {
+    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    const caps = await remote.capabilities()
+    assert.deepEqual(caps, {})
+  })
+
+  it('远程 admin 方法', async () => {
+    const remote = new Agentic({ serviceUrl: 'http://localhost:9999' })
+    try {
+      await remote.admin.health()
+      assert.fail('should have thrown')
+    } catch (e) {
+      assert.ok(e.message.includes('fetch') || e.message.includes('ECONNREFUSED') || e.message.includes('9999'))
+    }
+  })
+
+  it('本地模式不走 HTTP', async () => {
+    const local = new Agentic({ provider: 'ollama', model: 'qwen3:0.6b', baseUrl: 'http://localhost:11434', apiKey: 'ollama' })
+    // think 走本地 require，不走 HTTP
+    const result = await local.think('say ok')
+    assert.equal(typeof result, 'string')
+    local.destroy()
+  })
+})
