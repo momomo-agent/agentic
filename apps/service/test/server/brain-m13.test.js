@@ -34,7 +34,7 @@ describe('brain.js M13 DBB-003: tool_use yields text field', () => {
       }
     };
 
-    const { chat } = await import('../../src/server/brain.js');
+    const { chat } = await import('../../src/server/core-bridge.js');
     const chunks = [];
     for await (const c of chat([{ role: 'user', content: 'hi' }], { tools: [{ name: 'myTool' }] })) {
       chunks.push(c);

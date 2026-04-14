@@ -5,13 +5,13 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import http from 'http';
-import { chat } from './brain.js';
+import { chat } from './core-bridge.js';
 import { getMetrics, startMark, endMark } from '../runtime/profiler.js';
 import { detectVoiceActivity } from '../runtime/vad.js';
 import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
 import { errorHandler, authMiddleware } from './middleware.js';
-import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, setSessionData, broadcastSession, closeAllConnections } from './hub.js';
+import { getDevices, initWebSocket, startWakeWordDetection, broadcastWakeword, closeAllConnections } from './hub.js';
 import { registerShutdown } from './shutdown.js';
 import { stopHealthCheck } from '../engine/health.js';
 import { getConfig, setConfig, reloadConfig, CONFIG_PATH, addToPool, removeFromPool, getAssignments, setAssignments } from '../config.js';
@@ -454,7 +454,7 @@ function addRoutes(r) {
   // ─── End Anthropic-compatible API ──────────────────────────
 
   r.post('/api/chat', async (req, res) => {
-    const { message, messages: rawMessages, history = [], tools, sessionId } = req.body;
+    const { message, messages: rawMessages, history = [], tools } = req.body;
     console.log(`[chat] request: ${message || (rawMessages?.length ? `${rawMessages.length} messages` : 'empty')}`);
     // Support both { message: string } and { messages: [...] } formats
     let chatMessages;
@@ -478,11 +478,6 @@ function addRoutes(r) {
             if (chunk.type === 'content') assistantChunks.push(chunk.content ?? chunk.text);
           }
           res.write('data: [DONE]\n\n');
-          if (sessionId) {
-            const updatedHistory = [...chatMessages, { role: 'assistant', content: assistantChunks.join('') }];
-            setSessionData(sessionId, 'history', updatedHistory);
-            broadcastSession(sessionId);
-          }
         } catch (error) {
           console.log(`[chat] error: ${error.message}`);
           res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);

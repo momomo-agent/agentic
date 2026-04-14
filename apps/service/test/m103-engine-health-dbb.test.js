@@ -171,7 +171,7 @@ describe('DBB-015: GET /api/engines/health endpoint', () => {
   let server, baseUrl;
 
   // Need fresh mocks for the server tests
-  vi.mock('../src/server/brain.js', () => ({ chat: vi.fn() }));
+  vi.mock('../src/server/core-bridge.js', () => ({ chat: vi.fn() }));
   vi.mock('../src/detector/hardware.js', () => ({
     detect: vi.fn().mockResolvedValue({ platform: 'darwin', arch: 'arm64', gpu: {}, memory: 16, cpu: {} }),
   }));
@@ -181,7 +181,7 @@ describe('DBB-015: GET /api/engines/health endpoint', () => {
   beforeEach(async () => {
     vi.useRealTimers();
     vi.resetAllMocks();
-    const { chat } = await import('../src/server/brain.js');
+    const { chat } = await import('../src/server/core-bridge.js');
     chat.mockImplementation(async function* () {});
     const { createApp } = await import('../src/server/api.js');
     await new Promise((resolve, reject) => {

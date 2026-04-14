@@ -59,7 +59,7 @@ async function collect(gen) {
   return out;
 }
 
-import { chat } from '../../src/server/brain.js';
+import { chat } from '../../src/server/core-bridge.js';
 
 describe('brain.js', () => {
   beforeEach(() => { _mockEngine = null; });

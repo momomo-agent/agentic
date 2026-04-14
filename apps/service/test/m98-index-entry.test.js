@@ -49,10 +49,10 @@ describe('DBB-001/002: src/index.js entry point', () => {
     expect(indexSrc.includes('detector/ollama.js')).toBeTruthy();
   });
 
-  it('exports chat (from brain.js or llm.js)', () => {
+  it('exports chat (from core-bridge.js)', () => {
     expect(indexSrc.includes('chat')).toBeTruthy();
     expect(
-      indexSrc.includes('server/brain.js') || indexSrc.includes('runtime/llm.js')
+      indexSrc.includes('server/core-bridge.js') || indexSrc.includes('server/brain.js') || indexSrc.includes('runtime/llm.js')
     ).toBeTruthy();
   });
 

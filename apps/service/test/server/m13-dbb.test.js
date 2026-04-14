@@ -85,7 +85,7 @@ describe('brain.js M13 tool_use text field', () => {
       modelsForCapability: vi.fn(async () => []),
       getEngine: vi.fn(() => mockEngine),
     }));
-    const { chat } = await import('../../src/server/brain.js');
+    const { chat } = await import('../../src/server/core-bridge.js');
     const chunks = [];
     for await (const c of chat([{ role: 'user', content: 'hi' }], { tools: [{ name: 'fn' }] })) chunks.push(c);
     const toolChunk = chunks.find(c => c.type === 'tool_use');

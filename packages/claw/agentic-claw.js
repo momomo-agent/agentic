@@ -159,9 +159,10 @@
       persist = null,
       maxTokens = 8000,
       stream = true,
+      providers = null,
     } = options
 
-    if (!apiKey) throw new Error('apiKey is required')
+    if (!apiKey && (!providers || !providers.length)) throw new Error('apiKey is required')
 
     // Resolve skills
     const resolvedSkills = skills.map(s => {
@@ -223,7 +224,98 @@
       return mem
     }
 
-    async function _chat(sessionMem, input, emitOrOpts, maybeEmit) {
+    // ── Persistence helpers ────────────────────────────────────────
+    let _store = null
+    function _getStore() {
+      if (_store !== undefined && _store !== null) return _store
+      if (!persist) { _store = null; return null }
+      const storeMod = optionalLoad('agentic-store', 'AgenticStore')
+      if (storeMod && storeMod.createStore) {
+        _store = storeMod.createStore(persist)
+      } else {
+        _store = null
+      }
+      return _store
+    }
+
+    async function _persistHistory(sessionId, messages) {
+      const store = _getStore()
+      if (!store) return
+      try { await store.kvSet('history:' + sessionId, JSON.stringify(messages)) } catch {}
+    }
+
+    async function _loadHistory(sessionId) {
+      const store = _getStore()
+      if (!store) return null
+      try {
+        const raw = await store.kvGet('history:' + sessionId)
+        return raw ? JSON.parse(raw) : null
+      } catch { return null }
+    }
+
+    // ── Token estimation ───────────────────────────────────────────
+    function _estimateTokens(messages) {
+      let chars = 0
+      for (const m of messages) {
+        chars += (typeof m.content === 'string' ? m.content.length : JSON.stringify(m.content).length) + 10
+      }
+      return Math.ceil(chars / 4) // ~4 chars per token
+    }
+
+    async function _compactIfNeeded(sessionMem) {
+      const msgs = sessionMem.messages()
+      const est = _estimateTokens(msgs)
+      if (est <= maxTokens || msgs.length <= 4) return
+      // Keep last 4 messages, summarize the rest
+      const keepCount = 4
+      const older = msgs.slice(0, msgs.length - keepCount)
+      const recent = msgs.slice(msgs.length - keepCount)
+      const summaryText = older.map(m => `${m.role}: ${typeof m.content === 'string' ? m.content.slice(0, 200) : '[complex]'}`).join('\n')
+      const summary = { role: 'system', content: `[Conversation summary]\n${summaryText.slice(0, maxTokens)}` }
+      sessionMem.clear()
+      await sessionMem.user(summary.content)
+      // Re-add recent messages
+      for (const m of recent) {
+        if (m.role === 'user') await sessionMem.user(m.content)
+        else if (m.role === 'assistant') await sessionMem.assistant(m.content)
+      }
+    }
+
+    // ── Build askFn config ─────────────────────────────────────────
+    function _buildAskConfig(sessionMem, chatOpts) {
+      let sys = systemPrompt || ''
+      return {
+        provider,
+        apiKey,
+        baseUrl: baseUrl || undefined,
+        model: model || undefined,
+        proxyUrl: proxyUrl || undefined,
+        history: sessionMem.history(),
+        system: sys || undefined,
+        tools: chatOpts.tools || allTools,
+        stream,
+        ...(providers ? { providers } : {}),
+        ...(chatOpts.signal ? { signal: chatOpts.signal } : {}),
+        ...(chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {}),
+      }
+    }
+
+    // ── Knowledge context ──────────────────────────────────────────
+    async function _appendKnowledge(input, config) {
+      if (!_sharedKnowledge) return
+      try {
+        const results = await _sharedKnowledge.recall(input, { topK: 3 })
+        if (results.length > 0) {
+          const ctx = '\n\nRelevant knowledge:\n' + results.map(r => `- ${r.chunk}`).join('\n')
+          config.system = (config.system || '') + ctx
+        }
+      } catch (e) {
+        events.emit('error', e)
+      }
+    }
+
+    // ── Chat (dual mode) ──────────────────────────────────────────
+    function _chat(sessionMem, input, emitOrOpts, maybeEmit) {
       let chatOpts = {}
       let emit
       if (typeof emitOrOpts === 'function') {
@@ -233,25 +325,45 @@
         emit = maybeEmit
       }
 
+      // If emit callback provided → legacy Promise mode (returns Promise)
+      if (emit) {
+        return _chatLegacy(sessionMem, input, chatOpts, emit)
+      }
+      // Otherwise → return thenable async generator
+      // This allows both: for await (const e of claw.chat(...)) AND await claw.chat(...)
+      return _chatThenableGen(sessionMem, input, chatOpts)
+    }
+
+    // Wraps the async generator so it's also thenable (backward compat with await)
+    function _chatThenableGen(sessionMem, input, chatOpts) {
+      const gen = _chatGenerator(sessionMem, input, chatOpts)
+      const wrapper = {
+        [Symbol.asyncIterator]() { return gen },
+        then(resolve, reject) {
+          // Consume the generator, return final result
+          return (async () => {
+            let lastDone = null
+            for await (const event of gen) {
+              if (event.type === 'done') lastDone = event
+            }
+            if (lastDone) {
+              return { answer: lastDone.answer, rounds: lastDone.rounds, messages: sessionMem.messages() }
+            }
+            return { answer: '', rounds: 0, messages: sessionMem.messages() }
+          })().then(resolve, reject)
+        },
+      }
+      return wrapper
+    }
+
+    // Legacy emit mode (backward compat)
+    async function _chatLegacy(sessionMem, input, chatOpts, emit) {
       events.emit('message', { role: 'user', content: input })
       await sessionMem.user(input)
+      await _compactIfNeeded(sessionMem)
 
-      // Recall relevant knowledge
-      let knowledgeContext = ''
-      if (_sharedKnowledge) {
-        try {
-          const results = await _sharedKnowledge.recall(input, { topK: 3 })
-          if (results.length > 0) {
-            knowledgeContext = '\n\nRelevant knowledge:\n' +
-              results.map(r => `- ${r.chunk}`).join('\n')
-          }
-        } catch (e) {
-          events.emit('error', e)
-        }
-      }
-
-      let sys = systemPrompt || ''
-      if (knowledgeContext) sys += knowledgeContext
+      const config = _buildAskConfig(sessionMem, chatOpts)
+      await _appendKnowledge(input, config)
 
       const emitFn = (event, data) => {
         if (emit) emit(event, data)
@@ -261,23 +373,11 @@
       }
 
       try {
-        const result = await askFn(input, {
-          provider,
-          apiKey,
-          baseUrl: baseUrl || undefined,
-          model: model || undefined,
-          proxyUrl: proxyUrl || undefined,
-          history: sessionMem.history(),
-          system: sys || undefined,
-          tools: chatOpts.tools || allTools,
-          stream,
-          ...chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {},
-        }, emitFn)
-
+        const result = await askFn(input, config, emitFn)
         const answer = result.answer || result.content || ''
         await sessionMem.assistant(answer)
         events.emit('message', { role: 'assistant', content: answer })
-
+        await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
         return {
           answer,
           rounds: result.rounds || 1,
@@ -290,22 +390,103 @@
       }
     }
 
+    // Generator mode — yields ChatEvent
+    async function* _chatGenerator(sessionMem, input, chatOpts) {
+      events.emit('message', { role: 'user', content: input })
+      await sessionMem.user(input)
+      await _compactIfNeeded(sessionMem)
+
+      const config = _buildAskConfig(sessionMem, chatOpts)
+      await _appendKnowledge(input, config)
+
+      try {
+        const result = askFn(input, config) // no emit → generator (or legacy Promise)
+
+        // Handle legacy askFn that returns a Promise instead of AsyncGenerator
+        if (result && typeof result.then === 'function' && !result[Symbol.asyncIterator]) {
+          const resolved = await result
+          const answer = resolved.answer || resolved.content || ''
+          if (answer) events.emit('token', { text: answer })
+          await sessionMem.assistant(answer)
+          events.emit('message', { role: 'assistant', content: answer })
+          await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+          yield { type: 'text_delta', text: answer }
+          yield { type: 'done', answer, rounds: resolved.rounds || 1, messages: sessionMem.messages() }
+          return
+        }
+
+        for await (const event of result) {
+          // Forward events to claw event emitter
+          if (event.type === 'text_delta') events.emit('token', { text: event.text })
+          else if (event.type === 'status') events.emit('status', event)
+          else if (event.type === 'tool_use') events.emit('tool_call', event)
+
+          yield event
+
+          if (event.type === 'done') {
+            const answer = event.answer || ''
+            await sessionMem.assistant(answer)
+            events.emit('message', { role: 'assistant', content: answer })
+            await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+          }
+        }
+      } catch (error) {
+        events.emit('error', error)
+        throw error
+      }
+    }
+
+    // ── Retry ─────────────────────────────────────────────────────
+    async function* _retry(sessionMem, chatOpts = {}) {
+      const msgs = sessionMem.messages()
+      if (msgs.length === 0) {
+        yield { type: 'error', error: 'No messages to retry', category: 'usage', retryable: false }
+        return
+      }
+      // Find last user message, remove everything after it (the assistant reply)
+      let lastUserIdx = -1
+      for (let i = msgs.length - 1; i >= 0; i--) {
+        if (msgs[i].role === 'user') { lastUserIdx = i; break }
+      }
+      if (lastUserIdx === -1) {
+        yield { type: 'error', error: 'No user message to retry', category: 'usage', retryable: false }
+        return
+      }
+      const lastUserMsg = msgs[lastUserIdx].content
+      // Remove assistant messages after last user message
+      // We rebuild memory: clear and re-add up to (and excluding) the last user msg
+      const keep = msgs.slice(0, lastUserIdx)
+      sessionMem.clear()
+      for (const m of keep) {
+        if (m.role === 'user') await sessionMem.user(m.content)
+        else if (m.role === 'assistant') await sessionMem.assistant(m.content)
+      }
+      // Re-send the last user message through the generator path
+      yield* _chatGenerator(sessionMem, lastUserMsg, chatOpts)
+    }
+
     const defaultSession = _getSession('default')
 
     // ── Sub-library instances (lazy-initialized) ──────────────────
-    let _store, _fs, _shell, _act, _render, _sense, _spatial, _embed, _voice
+    let _storeSub, _fs, _shell, _act, _render, _sense, _spatial, _embed, _voice
 
     const claw = {
-      /** Chat — send a message, get a response */
-      async chat(input, optsOrEmit, maybeEmit) {
+      /** Chat — send a message, get a response (or async generator if no emit) */
+      chat(input, optsOrEmit, maybeEmit) {
         return _chat(defaultSession, input, optsOrEmit, maybeEmit)
+      },
+
+      /** Retry last assistant turn on default session */
+      retry(opts) {
+        return _retry(defaultSession, opts)
       },
 
       /** Create/get a named session */
       session(id) {
         const mem = _getSession(id)
         return {
-          async chat(input, optsOrEmit, maybeEmit) { return _chat(mem, input, optsOrEmit, maybeEmit) },
+          chat(input, optsOrEmit, maybeEmit) { return _chat(mem, input, optsOrEmit, maybeEmit) },
+          retry(opts) { return _retry(mem, opts) },
           memory: mem,
           id,
         }
@@ -399,12 +580,12 @@
 
       /** KV store — get/set/delete/keys/has/clear */
       get store() {
-        if (_store) return _store
+        if (_storeSub) return _storeSub
         const mod = optionalLoad('agentic-store', 'AgenticStore')
         if (!mod) return null
-        _store = mod.createStore({ backend: 'sqlite' })
-        _store.init()
-        return _store
+        _storeSub = mod.createStore({ backend: 'sqlite' })
+        _storeSub.init()
+        return _storeSub
       },
 
       /** File system — read/write/ls/tree/grep/delete */
@@ -530,8 +711,8 @@
         for (const [, mem] of sessions) mem.destroy()
         sessions.clear()
         if (_sharedKnowledge) _sharedKnowledge.destroy()
-        if (_store && _store.close) _store.close()
-        _store = _fs = _shell = _act = _render = _sense = _spatial = _embed = _voice = null
+        if (_storeSub && _storeSub.close) _storeSub.close()
+        _storeSub = _fs = _shell = _act = _render = _sense = _spatial = _embed = _voice = null
       },
     }
 

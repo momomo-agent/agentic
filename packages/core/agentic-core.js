@@ -326,7 +326,9 @@ function agenticAsk(prompt, config, emit) {
       let messages = []
       for await (const event of _agenticAskGen(prompt, config)) {
         // Map new event types to legacy emit calls
-        if (event.type === 'tool_use') {
+        if (event.type === 'text_delta') {
+          emit('token', { text: event.text })
+        } else if (event.type === 'tool_use') {
           emit('tool', { name: event.name, input: event.input })
         } else if (event.type === 'warning') {
           emit('warning', { level: event.level, message: event.message })
@@ -346,6 +348,18 @@ function agenticAsk(prompt, config, emit) {
   return _agenticAskGen(prompt, config)
 }
 
+// ── Custom provider registry ──
+
+const _customProviders = new Map()
+
+function registerProvider(name, chatFn) {
+  _customProviders.set(name, chatFn)
+}
+
+function unregisterProvider(name) {
+  _customProviders.delete(name)
+}
+
 // ── Provider failover ──
 
 async function _callWithFailover(opts) {
@@ -356,7 +370,8 @@ async function _callWithFailover(opts) {
   for (let i = 0; i < providerList.length; i++) {
     const p = providerList[i]
     const prov = p.provider || provider
-    const chatFn = prov === 'anthropic' ? anthropicChat : openaiChat
+    const custom = _customProviders.get(prov)
+    const chatFn = custom || (prov === 'anthropic' ? anthropicChat : openaiChat)
     try {
       return await chatFn({
         messages, tools,
@@ -476,16 +491,15 @@ async function* _agenticAskGen(prompt, config) {
     console.log(`[Round ${round}] Executing ${response.tool_calls.length} tool calls...`)
     messages.push({ role: 'assistant', content: response.content, tool_calls: response.tool_calls })
 
+    // Pre-check: abort signal + loop detection
+    if (signal && signal.aborted) {
+      yield { type: 'error', error: 'aborted', category: 'network', retryable: false }
+      return
+    }
+
+    const validCalls = []
     for (const call of response.tool_calls) {
-      console.log(`[Round ${round}] Tool: ${call.name}, Input:`, call.input)
-
-      if (signal && signal.aborted) {
-        yield { type: 'error', error: 'aborted', category: 'network', retryable: false }
-        return
-      }
-
       recordToolCall(state, call.name, call.input)
-
       const loopDetection = detectToolCallLoop(state, call.name, call.input)
       if (loopDetection.stuck) {
         console.log(`[Round ${round}] Loop detected: ${loopDetection.detector} (${loopDetection.level})`)
@@ -495,22 +509,42 @@ async function* _agenticAskGen(prompt, config) {
           break
         }
         messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify({ error: `LOOP_DETECTED: ${loopDetection.message}` }) })
-        continue
+      } else {
+        validCalls.push(call)
+      }
+    }
+
+    if (!finalAnswer && validCalls.length) {
+      // Emit all tool_use events upfront
+      for (const call of validCalls) {
+        yield { type: 'tool_use', id: call.id, name: call.name, input: call.input }
       }
 
-      yield { type: 'tool_use', id: call.id, name: call.name, input: call.input }
+      // Execute all tool calls in PARALLEL
+      const t0 = Date.now()
+      console.log(`[Round ${round}] Executing ${validCalls.length} tools in PARALLEL...`)
+      const results = await Promise.all(validCalls.map(async (call) => {
+        try {
+          const result = await executeTool(call.name, call.input, { searchApiKey, customTools })
+          recordToolCallOutcome(state, call.name, call.input, result, null)
+          return { call, result, error: null }
+        } catch (toolErr) {
+          const errMsg = toolErr instanceof Error ? toolErr.message : String(toolErr)
+          recordToolCallOutcome(state, call.name, call.input, null, errMsg)
+          return { call, result: null, error: errMsg }
+        }
+      }))
+      console.log(`[Round ${round}] All ${validCalls.length} tools done in ${Date.now() - t0}ms (parallel)`)
 
-      try {
-        const result = await executeTool(call.name, call.input, { searchApiKey, customTools })
-        console.log(`[Round ${round}] Tool result:`, result)
-        recordToolCallOutcome(state, call.name, call.input, result, null)
-        messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(result) })
-        yield { type: 'tool_result', id: call.id, name: call.name, output: result }
-      } catch (toolErr) {
-        const errMsg = toolErr instanceof Error ? toolErr.message : String(toolErr)
-        recordToolCallOutcome(state, call.name, call.input, null, errMsg)
-        messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify({ error: errMsg }) })
-        yield { type: 'tool_error', id: call.id, name: call.name, error: errMsg }
+      // Push results in original order + yield events
+      for (const { call, result, error } of results) {
+        if (error) {
+          messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify({ error }) })
+          yield { type: 'tool_error', id: call.id, name: call.name, error }
+        } else {
+          messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(result) })
+          yield { type: 'tool_result', id: call.id, name: call.name, output: result }
+        }
       }
     }
 
@@ -1269,5 +1303,5 @@ async function _audioFetch(url, opts, retries = 3) {
   throw lastErr
 }
 
-  return { agenticAsk, classifyError, toolRegistry, synthesize, transcribe }
+  return { agenticAsk, classifyError, toolRegistry, synthesize, transcribe, registerProvider, unregisterProvider }
 })

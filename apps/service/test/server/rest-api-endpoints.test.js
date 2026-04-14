@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('../../src/server/brain.js', () => ({ chat: vi.fn() }));
+vi.mock('../../src/server/core-bridge.js', () => ({ chat: vi.fn() }));
 vi.mock('../../src/server/hub.js', () => ({
   getDevices: vi.fn().mockReturnValue([]),
   initWebSocket: vi.fn(),
@@ -36,7 +36,7 @@ vi.mock('multer', () => {
 });
 
 import { createApp } from '../../src/server/api.js';
-import { chat } from '../../src/server/brain.js';
+import { chat } from '../../src/server/core-bridge.js';
 import { transcribe } from '../../src/runtime/stt.js';
 import { synthesize } from '../../src/runtime/tts.js';
 import { getDevices } from '../../src/server/hub.js';

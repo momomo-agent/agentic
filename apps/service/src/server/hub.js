@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws';
 import { randomUUID } from 'node:crypto';
 // import * as sense from '../runtime/sense.js'; // Not needed for basic demos
-import { chat as brainChat } from './brain.js';
+import { chat as brainChat } from './core-bridge.js';
 import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
 import { detectVoiceActivity } from '../runtime/vad.js';
@@ -10,7 +10,6 @@ const SENTENCE_END_RE = /[.!?]+\s+/;
 
 const registry = new Map(); // id → { ws, name, capabilities, lastPong }
 const pendingCaptures = new Map(); // requestId → { resolve, reject, timer }
-const sessions = new Map(); // sessionId → { data: {}, deviceIds: Set }
 
 function isSilent(buffer) {
   if (!buffer || buffer.byteLength === 0) return true;
@@ -24,66 +23,6 @@ export async function init() {
   // const emitter = await sense.startHeadless();
   // emitter.on('wakeword', async () => { ... });
   // emitter.on('audio', (chunk) => { ... });
-}
-
-export function joinSession(sessionId, deviceId) {
-  if (!sessions.has(sessionId)) {
-    sessions.set(sessionId, {
-      id: sessionId,
-      deviceIds: new Set(),
-      history: [],
-      brainState: { context: [], systemPrompt: 'You are a helpful AI assistant.', temperature: 0.7 },
-      createdAt: Date.now(),
-      lastActivity: Date.now(),
-      data: {}
-    });
-  }
-  const session = sessions.get(sessionId);
-  session.deviceIds.add(deviceId);
-  session.lastActivity = Date.now();
-  return { sessionId, history: session.history, brainState: session.brainState, deviceCount: session.deviceIds.size };
-}
-
-export function setSessionData(sessionId, key, value) {
-  if (!sessions.has(sessionId)) sessions.set(sessionId, { id: sessionId, deviceIds: new Set(), history: [], brainState: { context: [], systemPrompt: 'You are a helpful AI assistant.', temperature: 0.7 }, createdAt: Date.now(), lastActivity: Date.now(), data: {} });
-  sessions.get(sessionId).data[key] = value;
-}
-
-export function getSessionData(sessionId, key) {
-  return sessions.get(sessionId)?.data[key] ?? null;
-}
-
-export function getSession(sessionId) {
-  return sessions.get(sessionId) ?? null;
-}
-
-export function broadcastSession(sessionId, message) {
-  const session = sessions.get(sessionId);
-  if (!session) return;
-
-  if (message) {
-    const msg = { ...message, timestamp: Date.now(), sessionId };
-    session.history.push(msg);
-    session.lastActivity = Date.now();
-    if (message.role === 'user' || message.role === 'assistant') {
-      session.brainState.context.push(message.content);
-      if (session.brainState.context.length > 20) session.brainState.context = session.brainState.context.slice(-20);
-    }
-    const payload = JSON.stringify({ type: 'session-message', sessionId, message: msg, deviceCount: session.deviceIds.size });
-    for (const deviceId of session.deviceIds) {
-      const device = registry.get(deviceId);
-      if (device) try { device.ws.send(payload); } catch { unregisterDevice(deviceId); }
-    }
-  } else {
-    // Broadcast full session data to session devices only
-    const history = (session.data.history || session.history || []).slice(-20);
-    const data = { ...session.data, history };
-    const msg = JSON.stringify({ type: 'session', sessionId, data });
-    for (const deviceId of session.deviceIds) {
-      const device = registry.get(deviceId);
-      if (device) try { device.ws.send(msg); } catch { unregisterDevice(deviceId); }
-    }
-  }
 }
 
 // Device management: id → { id, meta, registeredAt, lastSeen, status }
@@ -125,22 +64,7 @@ export function getDevices() {
   return Array.from(devices.values()).map(d => ({ ...d }))
 }
 
-export function leaveSession(deviceId) {
-  for (const [sessionId, session] of sessions) {
-    if (session.deviceIds.has(deviceId)) {
-      session.deviceIds.delete(deviceId);
-      if (session.deviceIds.size === 0) {
-        setTimeout(() => {
-          if (sessions.get(sessionId)?.deviceIds.size === 0) sessions.delete(sessionId);
-        }, 5 * 60 * 1000);
-      }
-      break;
-    }
-  }
-}
-
 export function unregisterDevice(id) {
-  leaveSession(id);
   registry.delete(id);
   devices.delete(id);
   for (const [reqId, pending] of pendingCaptures) {
@@ -176,6 +100,25 @@ export function broadcastWakeword(deviceId) {
   }
 }
 
+async function handleChat(ws, msg) {
+  const { messages, history = [], text, options = {} } = msg;
+  const chatMessages = messages || [...history, { role: 'user', content: text }];
+
+  ws.send(JSON.stringify({ type: 'chat_start' }));
+
+  const chunks = [];
+  for await (const chunk of brainChat(chatMessages, options)) {
+    if (chunk.type === 'text_delta') {
+      chunks.push(chunk.text);
+      ws.send(JSON.stringify({ type: 'chat_delta', text: chunk.text }));
+    } else if (chunk.type === 'error') {
+      ws.send(JSON.stringify({ type: 'chat_error', error: chunk.error }));
+    }
+  }
+
+  ws.send(JSON.stringify({ type: 'chat_end', text: chunks.join('') }));
+}
+
 async function handleVoiceStream(ws, msg) {
   const { audio, history = [] } = msg;
   
@@ -200,8 +143,8 @@ async function handleVoiceStream(ws, msg) {
   ws.send(JSON.stringify({ type: 'voice_stream_start' }));
 
   for await (const chunk of brainChat(messages)) {
-    if (chunk.type === 'content') {
-      const text = chunk.content ?? chunk.text ?? '';
+    if (chunk.type === 'text_delta' || chunk.type === 'content') {
+      const text = chunk.text ?? chunk.content ?? '';
       buffer += text;
 
       // Check for sentence boundaries
@@ -272,9 +215,6 @@ export function initWebSocket(httpServer) {
         if (d) d.lastPong = Date.now();
       } else if (msg.type === 'wakeword') {
         broadcastWakeword(deviceId);
-      } else if (msg.type === 'join-session') {
-        const state = joinSession(msg.sessionId, deviceId);
-        ws.send(JSON.stringify({ type: 'session-joined', ...state }));
       } else if (msg.type === 'capture_result') {
         const pending = pendingCaptures.get(msg.requestId);
         if (pending) {
@@ -282,6 +222,11 @@ export function initWebSocket(httpServer) {
           pending.resolve(msg.data);
           pendingCaptures.delete(msg.requestId);
         }
+      } else if (msg.type === 'chat') {
+        handleChat(ws, msg).catch(err => {
+          console.error('[chat error]', err.message);
+          try { ws.send(JSON.stringify({ type: 'error', error: err.message })); } catch {}
+        });
       } else if (msg.type === 'voice_stream') {
         handleVoiceStream(ws, msg).catch(err => {
           console.error('[voice_stream error]', err.message);

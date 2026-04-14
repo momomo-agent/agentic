@@ -9,7 +9,7 @@ describe('DBB fixes', () => {
   it('brain.js normalizeMessages converts tool role to Anthropic format', async () => {
     // Test via chat() with a pre-normalized message — verify no crash and format
     // normalizeMessages is internal; verify indirectly via module load
-    const brain = await import('../../src/server/brain.js');
+    const brain = await import('../../src/server/core-bridge.js');
     assert.equal(typeof brain.chat, 'function');
   });
 

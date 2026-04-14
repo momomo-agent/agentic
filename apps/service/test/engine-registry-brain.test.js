@@ -4,13 +4,13 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const brainPath = join(__dirname, '..', 'src', 'server', 'brain.js');
-const brainSource = fs.readFileSync(brainPath, 'utf8');
-const importLines = brainSource.split('\n').filter(l => /^\s*import\s/.test(l));
+const providersPath = join(__dirname, '..', 'src', 'server', 'providers.js');
+const providersSource = fs.readFileSync(providersPath, 'utf8');
+const importLines = providersSource.split('\n').filter(l => /^\s*import\s/.test(l));
 
-// Static import checks
+// Static import checks (providers.js replaced brain.js)
 
-describe('brain.js does NOT import getModelPool from config.js', () => {
+describe('providers.js does NOT import getModelPool from config.js', () => {
   it('does not destructure getModelPool', () => {
     const configImport = importLines.find(l => l.includes('config.js'));
     expect(configImport).toBeTruthy();
@@ -18,11 +18,11 @@ describe('brain.js does NOT import getModelPool from config.js', () => {
   });
 
   it('does not reference getModelPool anywhere', () => {
-    expect(brainSource.includes('getModelPool')).toBe(false);
+    expect(providersSource.includes('getModelPool')).toBe(false);
   });
 });
 
-describe('brain.js DOES import resolveModel from engine/registry.js', () => {
+describe('providers.js DOES import resolveModel from engine/registry.js', () => {
   it('imports resolveModel as registryResolve', () => {
     const registryImport = importLines.find(l => l.includes('engine/registry'));
     expect(registryImport).toBeTruthy();
@@ -30,7 +30,7 @@ describe('brain.js DOES import resolveModel from engine/registry.js', () => {
   });
 });
 
-describe('brain.js DOES import modelsForCapability from engine/registry.js', () => {
+describe('providers.js DOES import modelsForCapability from engine/registry.js', () => {
   it('imports modelsForCapability', () => {
     const registryImport = importLines.find(l => l.includes('engine/registry'));
     expect(registryImport).toBeTruthy();
@@ -38,13 +38,13 @@ describe('brain.js DOES import modelsForCapability from engine/registry.js', () 
   });
 });
 
-describe('brain.js does NOT import from detector/', () => {
+describe('providers.js does NOT import from detector/', () => {
   it('does not import from detector/hardware.js', () => {
-    expect(brainSource.includes('detector/hardware')).toBe(false);
+    expect(providersSource.includes('detector/hardware')).toBe(false);
   });
 
   it('does not import from detector/profiles.js', () => {
-    expect(brainSource.includes('detector/profiles')).toBe(false);
+    expect(providersSource.includes('detector/profiles')).toBe(false);
   });
 
   it('has no import referencing detector/ at all', () => {

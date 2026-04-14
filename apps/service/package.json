@@ -43,6 +43,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "agentic-core": "workspace:*",
     "agentic-embed": "workspace:*",
     "agentic-sense": "workspace:*",
     "agentic-store": "workspace:*",

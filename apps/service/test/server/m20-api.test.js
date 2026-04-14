@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 
-vi.mock('../../src/server/brain.js', () => ({
+vi.mock('../../src/server/core-bridge.js', () => ({
   chat: vi.fn(async function* () { yield { type: 'content', content: 'hi' }; })
 }));
 vi.mock('../../src/server/hub.js', () => ({
@@ -23,7 +23,7 @@ vi.mock('../../src/server/shutdown.js', () => ({ registerShutdown: vi.fn() }));
 vi.mock('../../src/engine/health.js', () => ({ stopHealthCheck: vi.fn(), getAllHealth: vi.fn(() => ({})) }));
 
 import { startServer, stopServer } from '../../src/server/api.js';
-import { chat } from '../../src/server/brain.js';
+import { chat } from '../../src/server/core-bridge.js';
 import { getDevices } from '../../src/server/hub.js';
 
 let server, base;

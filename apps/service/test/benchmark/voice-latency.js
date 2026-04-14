@@ -2,7 +2,7 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { transcribe } from '../../src/runtime/stt.js';
-import { chat } from '../../src/server/brain.js';
+import { chat } from '../../src/server/core-bridge.js';
 import { synthesize } from '../../src/runtime/tts.js';
 import { measurePipeline } from '../../src/runtime/profiler.js';
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('../src/server/brain.js', () => ({ chat: vi.fn() }));
+vi.mock('../src/server/core-bridge.js', () => ({ chat: vi.fn() }));
 vi.mock('../src/detector/hardware.js', () => ({
   detect: vi.fn().mockResolvedValue({ platform: 'darwin', arch: 'arm64', gpu: {}, memory: 16, cpu: {} })
 }));
@@ -16,7 +16,7 @@ vi.mock('../src/engine/registry.js', async (importOriginal) => {
 });
 
 import { createApp } from '../src/server/api.js';
-import { chat } from '../src/server/brain.js';
+import { chat } from '../src/server/core-bridge.js';
 import { modelsForCapability } from '../src/engine/registry.js';
 
 describe('M102 DBB — GET /v1/models', () => {

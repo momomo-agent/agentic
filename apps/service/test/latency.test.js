@@ -7,7 +7,7 @@ vi.mock('../src/runtime/stt.js', () => ({
   init: vi.fn(),
   transcribe: vi.fn(async () => { await delay(300); return 'hello'; })
 }));
-vi.mock('../src/server/brain.js', () => ({
+vi.mock('../src/server/core-bridge.js', () => ({
   chat: vi.fn(async function*() { await delay(1000); yield 'hi'; })
 }));
 vi.mock('../src/runtime/tts.js', () => ({
@@ -18,7 +18,7 @@ vi.mock('../src/runtime/tts.js', () => ({
 describe('voice pipeline latency', () => {
   it('STT + LLM + TTS end-to-end < 2000ms', async () => {
     const { transcribe } = await import('../src/runtime/stt.js');
-    const { chat } = await import('../src/server/brain.js');
+    const { chat } = await import('../src/server/core-bridge.js');
     const { synthesize } = await import('../src/runtime/tts.js');
 
     const start = Date.now();

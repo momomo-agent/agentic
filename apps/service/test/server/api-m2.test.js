@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 
-vi.mock('../../src/server/brain.js', () => ({ chat: vi.fn() }));
+vi.mock('../../src/server/core-bridge.js', () => ({ chat: vi.fn() }));
 vi.mock('../../src/detector/hardware.js', () => ({
   detect: vi.fn().mockResolvedValue({ platform: 'darwin', arch: 'arm64', gpu: {}, memory: 16, cpu: {} })
 }));

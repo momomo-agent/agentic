@@ -36,7 +36,7 @@ describe('brain.js - DBB-001: tool_use response format (text field)', () => {
       }
     };
 
-    const { chat } = await import('../../src/server/brain.js');
+    const { chat } = await import('../../src/server/core-bridge.js');
     const chunks = [];
     for await (const chunk of chat([{ role: 'user', content: 'hi' }])) {
       chunks.push(chunk);

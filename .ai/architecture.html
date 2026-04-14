@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0d1117; font-family: -apple-system, 'SF Pro Display', 'Inter', sans-serif; color: #c9d1d9; padding: 40px; }
+
+.arch { max-width: 1600px; margin: 0 auto; }
+
+h1 { text-align: center; font-size: 28px; font-weight: 700; color: #f0f6fc; margin-bottom: 8px; letter-spacing: -0.5px; }
+.subtitle { text-align: center; font-size: 14px; color: #8b949e; margin-bottom: 40px; }
+
+/* Layers */
+.layer { margin-bottom: 24px; border-radius: 16px; padding: 20px; position: relative; }
+.layer-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.layer-label span { font-size: 14px; }
+
+/* Cards */
+.cards { display: flex; flex-wrap: wrap; gap: 12px; }
+.card { border-radius: 10px; padding: 14px 16px; min-width: 160px; flex: 1; position: relative; }
+.card-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.card-desc { font-size: 11px; opacity: 0.7; line-height: 1.4; }
+.card-tag { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 6px; }
+
+/* Layer: Cloud */
+.layer-cloud { background: rgba(56, 139, 253, 0.06); border: 1px solid rgba(56, 139, 253, 0.2); }
+.layer-cloud .layer-label { color: #58a6ff; }
+.layer-cloud .card { background: rgba(56, 139, 253, 0.08); border: 1px solid rgba(56, 139, 253, 0.15); }
+.layer-cloud .card-name { color: #79c0ff; }
+
+/* Layer: Apps */
+.layer-apps { background: rgba(63, 185, 80, 0.06); border: 1px solid rgba(63, 185, 80, 0.2); }
+.layer-apps .layer-label { color: #3fb950; }
+.layer-apps .card { background: rgba(63, 185, 80, 0.08); border: 1px solid rgba(63, 185, 80, 0.15); }
+.layer-apps .card-name { color: #7ee787; }
+
+/* Layer: Glue */
+.layer-glue { background: rgba(219, 97, 162, 0.06); border: 1px solid rgba(219, 97, 162, 0.2); }
+.layer-glue .layer-label { color: #db61a2; }
+.layer-glue .card { background: rgba(219, 97, 162, 0.08); border: 1px solid rgba(219, 97, 162, 0.15); }
+.layer-glue .card-name { color: #f778ba; }
+
+/* Layer: Packages */
+.layer-pkg { background: rgba(188, 140, 255, 0.06); border: 1px solid rgba(188, 140, 255, 0.2); }
+.layer-pkg .layer-label { color: #bc8cff; }
+.layer-pkg .card { background: rgba(188, 140, 255, 0.08); border: 1px solid rgba(188, 140, 255, 0.15); }
+.layer-pkg .card-name { color: #d2a8ff; }
+
+/* Layer: Local */
+.layer-local { background: rgba(210, 153, 34, 0.06); border: 1px solid rgba(210, 153, 34, 0.2); }
+.layer-local .layer-label { color: #d29922; }
+.layer-local .card { background: rgba(210, 153, 34, 0.08); border: 1px solid rgba(210, 153, 34, 0.15); }
+.layer-local .card-name { color: #e3b341; }
+
+/* Sub-sections */
+.sub-section { margin-bottom: 12px; }
+.sub-label { font-size: 10px; font-weight: 600; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-left: 4px; }
+
+/* Service detail */
+.service-box { border-radius: 12px; padding: 16px; background: rgba(63, 185, 80, 0.04); border: 1px dashed rgba(63, 185, 80, 0.3); }
+.service-inner { display: flex; gap: 12px; flex-wrap: wrap; }
+.service-col { flex: 1; min-width: 200px; }
+.service-col-label { font-size: 10px; font-weight: 600; color: #8b949e; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.mini-card { background: rgba(63, 185, 80, 0.06); border: 1px solid rgba(63, 185, 80, 0.12); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; font-size: 11px; }
+.mini-card b { color: #7ee787; font-size: 12px; }
+
+/* Paths */
+.paths { display: flex; gap: 16px; margin: 32px 0; }
+.path-card { flex: 1; border-radius: 12px; padding: 18px; text-align: center; }
+.path-num { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.path-flow { font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace; margin: 8px 0; padding: 8px; border-radius: 6px; background: rgba(0,0,0,0.3); }
+.path-desc { font-size: 11px; opacity: 0.7; }
+
+.path-1 { background: rgba(63, 185, 80, 0.1); border: 2px solid rgba(63, 185, 80, 0.4); }
+.path-1 .path-num { color: #3fb950; }
+.path-2 { background: rgba(56, 139, 253, 0.1); border: 2px solid rgba(56, 139, 253, 0.4); }
+.path-2 .path-num { color: #58a6ff; }
+.path-3 { background: rgba(210, 153, 34, 0.1); border: 2px solid rgba(210, 153, 34, 0.4); }
+.path-3 .path-num { color: #d29922; }
+
+/* Dep arrows */
+.dep-section { margin: 24px 0; padding: 16px 20px; border-radius: 12px; background: rgba(139, 148, 158, 0.04); border: 1px solid rgba(139, 148, 158, 0.1); }
+.dep-title { font-size: 12px; font-weight: 700; color: #f0f6fc; margin-bottom: 12px; }
+.dep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 6px; }
+.dep-row { font-size: 11px; font-family: 'SF Mono', monospace; padding: 4px 8px; border-radius: 4px; background: rgba(0,0,0,0.2); }
+.dep-row .from { color: #d2a8ff; }
+.dep-row .arrow { color: #484f58; margin: 0 4px; }
+.dep-row .to { color: #79c0ff; }
+.dep-row .via { color: #8b949e; font-style: italic; }
+
+/* Network badge */
+.net { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 3px; margin-left: 4px; vertical-align: middle; }
+.net-http { background: rgba(56, 139, 253, 0.2); color: #58a6ff; }
+.net-ws { background: rgba(63, 185, 80, 0.2); color: #3fb950; }
+.net-local { background: rgba(139, 148, 158, 0.15); color: #8b949e; }
+.net-none { background: rgba(139, 148, 158, 0.08); color: #484f58; }
+</style>
+</head>
+<body>
+<div class="arch">
+
+<h1>agentic — 给 AI 造身体的零件箱</h1>
+<p class="subtitle">13 packages · 3 apps · 3 communication paths</p>
+
+<!-- THREE PATHS -->
+<div class="paths">
+  <div class="path-card path-1">
+    <div class="path-num">Path 1</div>
+    <div style="font-size:12px;font-weight:600;color:#7ee787">Local Inference</div>
+    <div class="path-flow">App ←<span class="net net-ws">WS</span>→ service → Ollama</div>
+    <div class="path-desc">零外网，本地推理<br/>API key 不需要</div>
+  </div>
+  <div class="path-card path-2">
+    <div class="path-num">Path 2</div>
+    <div style="font-size:12px;font-weight:600;color:#79c0ff">Service Proxy</div>
+    <div class="path-flow">App ←<span class="net net-ws">WS</span>→ service ←<span class="net net-http">HTTP</span>→ Cloud</div>
+    <div class="path-desc">Service 代理云端请求<br/>API key 留在服务端</div>
+  </div>
+  <div class="path-card path-3">
+    <div class="path-num">Path 3</div>
+    <div style="font-size:12px;font-weight:600;color:#e3b341">Direct</div>
+    <div class="path-flow">App → core ←<span class="net net-http">HTTP</span>→ Cloud</div>
+    <div class="path-desc">无 service，core 直连<br/>最简单，key 在客户端</div>
+  </div>
+</div>
+
+<!-- CLOUD LAYER -->
+<div class="layer layer-cloud">
+  <div class="layer-label"><span>☁️</span> Cloud APIs</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-name">Anthropic</div>
+      <div class="card-desc">Claude models<br/>/v1/messages</div>
+      <span class="card-tag net-http">HTTP Streaming</span>
+    </div>
+    <div class="card">
+      <div class="card-name">OpenAI</div>
+      <div class="card-desc">GPT · TTS · STT · Embeddings<br/>/v1/chat/completions</div>
+      <span class="card-tag net-http">HTTP Streaming</span>
+    </div>
+    <div class="card">
+      <div class="card-name">ElevenLabs</div>
+      <div class="card-desc">High-quality TTS<br/>/v1/text-to-speech</div>
+      <span class="card-tag net-http">HTTP</span>
+    </div>
+  </div>
+</div>
+
+<!-- APPS LAYER -->
+<div class="layer layer-apps">
+  <div class="layer-label"><span>📱</span> Apps</div>
+
+  <!-- Service detail -->
+  <div class="service-box" style="margin-bottom:12px">
+    <div style="font-size:14px;font-weight:700;color:#7ee787;margin-bottom:12px">agentic-service <span style="font-size:11px;font-weight:400;color:#8b949e">— Local-first AI server (Node.js)</span></div>
+    <div class="service-inner">
+      <div class="service-col">
+        <div class="service-col-label">Server</div>
+        <div class="mini-card"><b>api.js</b> — Express REST + HTTPS</div>
+        <div class="mini-card"><b>brain.js</b> — LLM orchestration <span class="net net-local">uses core</span></div>
+        <div class="mini-card"><b>hub.js</b> — WebSocket server + devices <span class="net net-ws">WS</span></div>
+        <div class="mini-card"><b>queue.js</b> — Request queue</div>
+      </div>
+      <div class="service-col">
+        <div class="service-col-label">Engine Registry</div>
+        <div class="mini-card"><b>ollama.js</b> — Local engine <span class="net net-local">localhost</span></div>
+        <div class="mini-card"><b>cloud.js</b> — Cloud fallback <span class="net net-http">HTTP</span></div>
+        <div class="mini-card"><b>tts.js</b> / <b>whisper.js</b> — Audio engines</div>
+        <div class="mini-card"><b>registry.js</b> — Model resolution + routing</div>
+      </div>
+      <div class="service-col">
+        <div class="service-col-label">Runtime</div>
+        <div class="mini-card"><b>tts.js</b> — Text-to-speech runtime</div>
+        <div class="mini-card"><b>stt.js</b> — Speech-to-text runtime</div>
+        <div class="mini-card"><b>sense.js</b> — Perception runtime</div>
+        <div class="mini-card"><b>embed.js</b> — Embedding runtime</div>
+        <div class="mini-card"><b>vad.js</b> — Voice Activity Detection</div>
+      </div>
+      <div class="service-col">
+        <div class="service-col-label">Hardware</div>
+        <div class="mini-card"><b>hardware.js</b> — GPU/CPU detection</div>
+        <div class="mini-card"><b>matcher.js</b> — Model↔hardware matching</div>
+        <div class="mini-card"><b>profiles.js</b> — Device profiles</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:#8b949e">
+      Dependencies: <span style="color:#d2a8ff">agentic-core</span> · <span style="color:#d2a8ff">agentic-embed</span> · <span style="color:#d2a8ff">agentic-sense</span> · <span style="color:#d2a8ff">agentic-store</span> · <span style="color:#d2a8ff">agentic-voice</span>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-name">agentic-lite</div>
+      <div class="card-desc">Lightweight web client<br/>Browser-first, connects to service or direct</div>
+      <div style="margin-top:6px;font-size:10px;color:#8b949e">Deps: <span style="color:#d2a8ff">core</span> · <span style="color:#d2a8ff">filesystem</span> · <span style="color:#d2a8ff">shell</span></div>
+    </div>
+    <div class="card">
+      <div class="card-name">@agentic/docs</div>
+      <div class="card-desc">Documentation site<br/>No runtime dependencies</div>
+    </div>
+  </div>
+</div>
+
+<!-- GLUE LAYER -->
+<div class="layer layer-glue">
+  <div class="layer-label"><span>🧬</span> Composition Layer</div>
+  <div class="cards">
+    <div class="card" style="flex:2">
+      <div class="card-name">agentic <span style="font-size:10px;font-weight:400;color:#8b949e">— 胶水层</span></div>
+      <div class="card-desc">
+        <code>think()</code> → core · <code>speak()</code> → voice · <code>remember()</code> → memory<br/>
+        One import, all capabilities. Lazy-loads sub-packages.
+      </div>
+      <div style="margin-top:6px;font-size:10px;color:#8b949e">Deps: <span style="color:#d2a8ff">core</span> · <span style="color:#d2a8ff">memory</span> (+ optional: all others)</div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="card-name">agentic-claw <span style="font-size:10px;font-weight:400;color:#8b949e">— Agent Runtime</span></div>
+      <div class="card-desc">
+        <code>createClaw()</code> wires core + memory into a living agent<br/>
+        Autonomous loop, tool use, memory persistence
+      </div>
+      <div style="margin-top:6px;font-size:10px;color:#8b949e">Deps: <span style="color:#d2a8ff">core</span> · <span style="color:#d2a8ff">memory</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PACKAGES LAYER -->
+<div class="layer layer-pkg">
+  <div class="layer-label"><span>📦</span> Packages <span style="font-size:10px;font-weight:400;color:#8b949e;text-transform:none;letter-spacing:0">— Zero dependencies, browser + Node.js</span></div>
+
+  <div class="sub-section">
+    <div class="sub-label">🧠 Intelligence</div>
+    <div class="cards">
+      <div class="card" style="border-color:rgba(188,140,255,0.4);border-width:2px">
+        <div class="card-name">agentic-core ⭐</div>
+        <div class="card-desc">
+          LLM calls · tool loop · parallel execution · streaming<br/>
+          registerProvider() · schema validation · provider failover<br/>
+          synthesize() · transcribe()
+        </div>
+        <span class="card-tag net-http">HTTP → Anthropic / OpenAI</span>
+      </div>
+      <div class="card">
+        <div class="card-name">agentic-memory</div>
+        <div class="card-desc">Conversation context<br/>Knowledge retrieval</div>
+        <span class="card-tag net-http">Embedding API</span>
+      </div>
+      <div class="card">
+        <div class="card-name">agentic-embed</div>
+        <div class="card-desc">Vector search · text chunking<br/>Semantic search</div>
+        <span class="card-tag net-http">Embedding API</span>
+      </div>
+      <div class="card">
+        <div class="card-name">agentic-spatial</div>
+        <div class="card-desc">Spatial reconstruction<br/>from photos via VLM</div>
+        <span class="card-tag net-none">No network</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-label">🦾 Body (Perception + Action)</div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-name">agentic-voice</div>
+        <div class="card-desc">TTS + STT in one library<br/>Delegates to core when available</div>
+        <span class="card-tag net-http">OpenAI / ElevenLabs</span>
+      </div>
+      <div class="card">
+        <div class="card-name">agentic-sense</div>
+        <div class="card-desc">Human perception<br/>Face · hands · pose · objects</div>
+        <span class="card-tag net-local">MediaPipe local</span>
+      </div>
+      <div class="card">
+        <div class="card-name">agentic-act</div>
+        <div class="card-desc">Browser automation<br/>Clicks · types · screenshots</div>
+        <span class="card-tag net-none">No network</span>
+      </div>
+      <div class="card">
+        <div class="card-name">agentic-shell</div>
+        <div class="card-desc">Command execution<br/>Depends on filesystem</div>
+        <span class="card-tag net-none">No network</span>
+      </div>
+      <div class="card">
+        <div class="card-name">agentic-filesystem</div>
+        <div class="card-desc">Virtual POSIX filesystem<br/>Smart storage backend</div>
+        <span class="card-tag net-none">No network</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sub-section">
+    <div class="sub-label">🔧 Infrastructure</div>
+    <div class="cards">
+      <div class="card">
+        <div class="card-name">agentic-store</div>
+        <div class="card-desc">Key-value persistence<br/>IndexedDB → localStorage fallback</div>
+        <span class="card-tag net-none">No network</span>
+      </div>
+      <div class="card">
+        <div class="card-name">agentic-render</div>
+        <div class="card-desc">Streaming markdown renderer<br/>One script tag, beautiful defaults</div>
+        <span class="card-tag net-none">No network</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOCAL INFRA -->
+<div class="layer layer-local">
+  <div class="layer-label"><span>🖥️</span> Local Infrastructure</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-name">Ollama</div>
+      <div class="card-desc">Local LLM inference<br/>localhost:11434</div>
+      <span class="card-tag net-local">localhost</span>
+    </div>
+    <div class="card">
+      <div class="card-name">Whisper.cpp</div>
+      <div class="card-desc">Local speech-to-text<br/>CPU/GPU inference</div>
+      <span class="card-tag net-none">Local binary</span>
+    </div>
+    <div class="card">
+      <div class="card-name">MediaPipe</div>
+      <div class="card-desc">Vision models<br/>Browser WASM/WebGL</div>
+      <span class="card-tag net-none">In-browser</span>
+    </div>
+    <div class="card">
+      <div class="card-name">SQLite / IndexedDB</div>
+      <div class="card-desc">Persistent storage<br/>Node → SQLite · Browser → IndexedDB</div>
+      <span class="card-tag net-none">Local</span>
+    </div>
+  </div>
+</div>
+
+<!-- DEPENDENCY MAP -->
+<div class="dep-section">
+  <div class="dep-title">📐 Dependency Map</div>
+  <div class="dep-grid">
+    <div class="dep-row"><span class="from">agentic</span> <span class="arrow">→</span> <span class="to">core</span>, <span class="to">memory</span> <span class="via">(+ lazy: all others)</span></div>
+    <div class="dep-row"><span class="from">claw</span> <span class="arrow">→</span> <span class="to">core</span>, <span class="to">memory</span></div>
+    <div class="dep-row"><span class="from">shell</span> <span class="arrow">→</span> <span class="to">filesystem</span></div>
+    <div class="dep-row"><span class="from">voice</span> <span class="arrow">⇢</span> <span class="to">core</span> <span class="via">(optional delegation)</span></div>
+    <div class="dep-row"><span class="from">service</span> <span class="arrow">→</span> <span class="to">core</span>, <span class="to">embed</span>, <span class="to">sense</span>, <span class="to">store</span>, <span class="to">voice</span></div>
+    <div class="dep-row"><span class="from">lite</span> <span class="arrow">→</span> <span class="to">core</span>, <span class="to">filesystem</span>, <span class="to">shell</span></div>
+    <div class="dep-row"><span class="from">brain.js</span> <span class="arrow">→</span> <span class="to">core.registerProvider()</span> <span class="via">(engine bridge)</span></div>
+    <div class="dep-row"><span class="from">core</span> <span class="arrow">→</span> <span class="via">zero dependencies (standalone)</span></div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

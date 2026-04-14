@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-vi.mock('../../src/server/brain.js', () => ({
+vi.mock('../../src/server/core-bridge.js', () => ({
   chat: vi.fn(async function* () { yield { type: 'content', text: 'hi' }; })
 }));
 vi.mock('../../src/runtime/stt.js', () => ({ init: vi.fn(), transcribe: vi.fn() }));
@@ -37,7 +37,7 @@ describe('DBB-008: hub registerDevice + getDevices', () => {
 // DBB-009
 describe('DBB-009: brain chat returns AsyncGenerator', () => {
   it('chat() yields at least one chunk with type field', async () => {
-    const { chat } = await import('../../src/server/brain.js');
+    const { chat } = await import('../../src/server/core-bridge.js');
     const gen = chat([{ role: 'user', content: 'hi' }]);
     expect(typeof gen[Symbol.asyncIterator]).toBe('function');
     const chunks = [];

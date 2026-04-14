@@ -37,7 +37,7 @@ cd agentic
 pnpm install
 ```
 
-### 使用单个库
+### 使用
 
 ```bash
 # 在你的项目里
@@ -47,11 +47,21 @@ git submodule add https://github.com/momomo-agent/agentic.git lib/agentic
 ```json
 {
   "dependencies": {
-    "agentic-core": "file:./lib/agentic/packages/core",
-    "agentic-voice": "file:./lib/agentic/packages/voice"
+    "agentic": "file:./lib/agentic/packages/agentic"
   }
 }
 ```
+
+```js
+import { Agentic } from 'agentic'
+
+const ai = new Agentic({ provider: 'anthropic', apiKey: 'sk-...' })
+const reply = await ai.think('你好')
+await ai.remember('用户喜欢简洁的回答')
+await ai.speak(reply)
+```
+
+一个入口，所有能力。子库按需 lazy load，没装的会给出明确提示。
 
 ### 开发
 

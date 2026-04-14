@@ -4,7 +4,7 @@ import path from 'path';
 import os from 'os';
 
 // Mock chat before importing api
-vi.mock('../../src/server/brain.js', () => ({
+vi.mock('../../src/server/core-bridge.js', () => ({
   chat: vi.fn(),
   registerTool: vi.fn(),
   chatSession: vi.fn()
@@ -21,7 +21,7 @@ vi.mock('../../src/detector/hardware.js', () => ({
 vi.mock('../../src/runtime/stt.js', () => ({ init: vi.fn(), transcribe: vi.fn() }));
 vi.mock('../../src/runtime/tts.js', () => ({ init: vi.fn(), synthesize: vi.fn() }));
 
-import { chat } from '../../src/server/brain.js';
+import { chat } from '../../src/server/core-bridge.js';
 import { startServer } from '../../src/server/api.js';
 
 const CONFIG_PATH = path.join(os.homedir(), '.agentic-service', 'config.json');

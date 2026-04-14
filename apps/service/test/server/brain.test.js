@@ -54,7 +54,7 @@ async function collect(gen) {
   return chunks;
 }
 
-import { chat } from '../../src/server/brain.js';
+import { chat } from '../../src/server/core-bridge.js';
 
 describe('brain.js — DBB-008: tool_use chunks', () => {
   beforeEach(() => { mockEngine = null; });
