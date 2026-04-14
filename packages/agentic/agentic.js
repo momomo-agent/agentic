@@ -1,21 +1,25 @@
 /**
  * agentic — 给 AI 造身体
  *
- * 子库的胶水层。
- * 有 serviceUrl → 走 WebSocket 连 agentic-service（双向通信，低延迟）
- * 没有 serviceUrl → 走 agentic-core 直连 provider（HTTP）
+ * 统一入口，一个 class 访问所有能力。每个能力可独立配置 provider。
  *
  * Usage:
- *   // 直连云端 provider
- *   const ai = new Agentic({ provider: 'anthropic', apiKey: 'sk-...' })
- *
- *   // 连本地 agentic-service（WebSocket）
- *   const ai = new Agentic({ serviceUrl: 'http://localhost:1234' })
- *
- *   // 同样的 API
+ *   // 默认实例（后续 configure）
+ *   import { ai } from 'agentic'
+ *   ai.configure({ llm: { provider: 'anthropic', apiKey: 'sk-...' } })
  *   await ai.think('hello')
- *   await ai.speak('hello')
- *   await ai.remember('user likes coffee')
+ *
+ *   // 自定义实例，每个能力独立配置
+ *   import { Agentic } from 'agentic'
+ *   const ai = new Agentic({
+ *     llm:   { provider: 'anthropic', apiKey: 'sk-ant-...' },
+ *     tts:   { provider: 'elevenlabs', apiKey: 'el-...' },
+ *     stt:   { provider: 'sensevoice', baseUrl: 'http://localhost:18906' },
+ *     embed: { provider: 'local', baseUrl: 'http://localhost:9877' },
+ *   })
+ *
+ *   // 简单场景：顶层配置作为所有能力的 fallback
+ *   const ai = new Agentic({ provider: 'openai', apiKey: 'sk-...' })
  */
 ;(function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory()
@@ -184,6 +188,30 @@
       this._i = {} // lazy instances
       this._serviceUrl = opts.serviceUrl ? opts.serviceUrl.replace(/\/+$/, '') : null
       this._ws = this._serviceUrl ? createWsConnection(this._serviceUrl) : null
+
+      // Per-capability config with top-level fallback
+      // Each capability can have its own { provider, apiKey, baseUrl, model, ...extra }
+      this._cfg = {}
+      const caps = ['llm', 'tts', 'stt', 'embed', 'memory', 'store', 'act', 'sense', 'fs', 'shell', 'spatial', 'render']
+      for (const cap of caps) {
+        this._cfg[cap] = opts[cap] || {}
+      }
+    }
+
+    /** Resolve a config key for a capability, falling back to top-level opts */
+    _cfgFor(cap, key) {
+      return this._cfg[cap]?.[key] ?? this._opts[key]
+    }
+
+    /** Get full resolved config for a capability */
+    _cfgAll(cap) {
+      return {
+        provider: this._cfgFor(cap, 'provider'),
+        apiKey: this._cfgFor(cap, 'apiKey'),
+        baseUrl: this._cfgFor(cap, 'baseUrl'),
+        model: this._cfgFor(cap, 'model'),
+        ...this._cfg[cap],
+      }
     }
 
     _get(key, init) {
@@ -215,10 +243,10 @@
       const ask = core.agenticAsk || core
 
       const config = {
-        provider: opts.provider || this._opts.provider,
-        baseUrl: opts.baseUrl || this._opts.baseUrl,
-        apiKey: opts.apiKey || this._opts.apiKey,
-        model: opts.model || this._opts.model,
+        provider: opts.provider || this._cfgFor('llm', 'provider'),
+        baseUrl: opts.baseUrl || this._cfgFor('llm', 'baseUrl'),
+        apiKey: opts.apiKey || this._cfgFor('llm', 'apiKey'),
+        model: opts.model || this._cfgFor('llm', 'model'),
         system: opts.system || this._opts.system,
         stream: opts.stream || false,
       }
@@ -250,13 +278,13 @@
     _tts() {
       return this._get('tts', () => {
         const v = this._need('agentic-voice')
-        const o = this._opts.tts || {}
+        const c = this._cfgAll('tts')
         return v.createTTS({
-          provider: o.provider || 'openai',
-          baseUrl: o.baseUrl || this._opts.baseUrl,
-          apiKey: o.apiKey || this._opts.apiKey,
-          voice: o.voice, model: o.model,
-          core: this._core(),  // pass core for network delegation
+          provider: c.provider || 'openai',
+          baseUrl: c.baseUrl,
+          apiKey: c.apiKey,
+          voice: c.voice, model: c.model,
+          core: this._core(),
         })
       })
     }
@@ -288,13 +316,13 @@
     _stt() {
       return this._get('stt', () => {
         const v = this._need('agentic-voice')
-        const o = this._opts.stt || {}
+        const c = this._cfgAll('stt')
         return v.createSTT({
-          provider: o.provider || 'openai',
-          baseUrl: o.baseUrl || this._opts.baseUrl,
-          apiKey: o.apiKey || this._opts.apiKey,
-          model: o.model,
-          core: this._core(),  // pass core for network delegation
+          provider: c.provider || 'openai',
+          baseUrl: c.baseUrl,
+          apiKey: c.apiKey,
+          model: c.model,
+          core: this._core(),
         })
       })
     }
@@ -348,7 +376,7 @@
     // ════════════════════════════════════════════════════════════════
 
     _mem() {
-      return this._get('mem', () => this._need('agentic-memory').createMemory({ knowledge: true, ...this._opts.memory }))
+      return this._get('mem', () => this._need('agentic-memory').createMemory({ knowledge: true, ...this._cfgAll('memory') }))
     }
 
     async remember(text, meta = {}) {
@@ -367,7 +395,7 @@
     async _store() {
       if (!this._i.store) {
         const mod = this._need('agentic-store')
-        const s = await mod.createStore({ backend: 'sqlite', ...this._opts.store })
+        const s = await mod.createStore({ backend: 'sqlite', ...this._cfgAll('store') })
         this._i.store = s
       }
       return this._i.store
@@ -391,7 +419,7 @@
     async _embedIndex() {
       return this._get('embedIndex', async () => {
         const mod = this._embedLib()
-        return mod.create({ ...this._opts.embed })
+        return mod.create({ ...this._cfgAll('embed') })
       })
     }
 
@@ -421,10 +449,7 @@
     // ════════════════════════════════════════════════════════════════
 
     _act() {
-      return this._get('act', () => new (this._need('agentic-act').AgenticAct)({
-        apiKey: this._opts.apiKey, model: this._opts.model,
-        baseUrl: this._opts.baseUrl, provider: this._opts.provider,
-      }))
+      return this._get('act', () => new (this._need('agentic-act').AgenticAct)(this._cfgAll('act')))
     }
 
     async decide(input) { return this._act().decide(input) }
@@ -446,8 +471,10 @@
     _fs() {
       return this._get('fs', () => {
         const mod = this._need('agentic-filesystem')
-        const Backend = mod.NodeFsBackend || mod.MemoryStorage
-        return new mod.AgenticFileSystem(Backend ? new Backend() : undefined)
+        const c = this._cfgAll('fs')
+        const Backend = c.backend === 'memory' ? mod.MemoryStorage
+          : (mod.NodeFsBackend || mod.MemoryStorage)
+        return new mod.AgenticFileSystem(Backend ? new Backend(c) : undefined)
       })
     }
 
@@ -474,17 +501,15 @@
     // ════════════════════════════════════════════════════════════════
 
     async reconstructSpace(images, opts = {}) {
+      const c = this._cfgAll('spatial')
       return this._need('agentic-spatial').reconstructSpace({
-        images, apiKey: this._opts.apiKey, model: this._opts.model,
-        baseUrl: this._opts.baseUrl, provider: this._opts.provider, ...opts,
+        images, ...c, ...opts,
       })
     }
 
     createSpatialSession(opts = {}) {
-      return new (this._need('agentic-spatial').SpatialSession)({
-        apiKey: this._opts.apiKey, model: this._opts.model,
-        baseUrl: this._opts.baseUrl, provider: this._opts.provider, ...opts,
-      })
+      const c = this._cfgAll('spatial')
+      return new (this._need('agentic-spatial').SpatialSession)({ ...c, ...opts })
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -493,11 +518,12 @@
 
     createClaw(opts = {}) {
       const clawMod = this._need('agentic-claw')
+      const c = this._cfgAll('llm')
       return clawMod.createClaw({
-        apiKey: this._opts.apiKey,
-        provider: this._opts.provider,
-        baseUrl: this._opts.baseUrl,
-        model: this._opts.model,
+        apiKey: c.apiKey,
+        provider: c.provider,
+        baseUrl: c.baseUrl,
+        model: c.model,
         systemPrompt: this._opts.system,
         ...opts,
       })
@@ -552,6 +578,23 @@
       }
     }
 
+    /** Reconfigure this instance (merges into existing config) */
+    configure(opts = {}) {
+      Object.assign(this._opts, opts)
+      const caps = ['llm', 'tts', 'stt', 'embed', 'memory', 'store', 'act', 'sense', 'fs', 'shell', 'spatial', 'render']
+      for (const cap of caps) {
+        if (opts[cap]) this._cfg[cap] = { ...this._cfg[cap], ...opts[cap] }
+      }
+      if (opts.serviceUrl) {
+        this._serviceUrl = opts.serviceUrl.replace(/\/+$/, '')
+        if (this._ws) this._ws.close()
+        this._ws = createWsConnection(this._serviceUrl)
+      }
+      // Clear cached instances so they pick up new config
+      this._i = {}
+      return this
+    }
+
     /** URL of connected agentic-service, or null */
     get serviceUrl() { return this._serviceUrl }
 
@@ -576,5 +619,6 @@
     return String(input)
   }
 
-  return { Agentic }
+  const ai = new Agentic()
+  return { Agentic, ai }
 })
