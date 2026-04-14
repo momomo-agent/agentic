@@ -43,7 +43,8 @@ afterEach(() => {
 
 // Import the module (ES module with relative imports)
 const mod = await import(join(__dirname, '..', 'agentic-core.js'))
-const { agenticAsk } = mod
+const exports = mod.default || mod
+const { agenticAsk } = exports
 
 // Helper: create Anthropic-style non-stream response (end_turn, no tools)
 function anthropicTextResponse(text) {

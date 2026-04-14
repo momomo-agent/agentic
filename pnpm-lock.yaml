@@ -47,36 +47,12 @@ importers:
 
   apps/service:
     dependencies:
-      agentic-act:
-        specifier: workspace:*
-        version: link:../../packages/act
-      agentic-claw:
-        specifier: workspace:*
-        version: link:../../packages/claw
-      agentic-core:
-        specifier: workspace:*
-        version: link:../../packages/core
       agentic-embed:
         specifier: workspace:*
         version: link:../../packages/embed
-      agentic-filesystem:
-        specifier: workspace:*
-        version: link:../../packages/filesystem
-      agentic-memory:
-        specifier: workspace:*
-        version: link:../../packages/memory
-      agentic-render:
-        specifier: workspace:*
-        version: link:../../packages/render
       agentic-sense:
         specifier: workspace:*
         version: link:../../packages/sense
-      agentic-shell:
-        specifier: workspace:*
-        version: link:../../packages/shell
-      agentic-spatial:
-        specifier: workspace:*
-        version: link:../../packages/spatial
       agentic-store:
         specifier: workspace:*
         version: link:../../packages/store
@@ -122,6 +98,15 @@ importers:
         version: 2.1.9(@types/node@25.5.2)(jsdom@29.0.2)
 
   packages/act: {}
+
+  packages/agentic:
+    dependencies:
+      agentic-core:
+        specifier: workspace:*
+        version: link:../core
+      agentic-memory:
+        specifier: workspace:*
+        version: link:../memory
 
   packages/claw:
     dependencies:

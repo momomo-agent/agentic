@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 // LLM logic moved from src/runtime/llm.js to src/server/brain.js
-const src = readFileSync(resolve(process.cwd(), 'src/server/brain.js'), 'utf8');
+const src = readFileSync(resolve(process.cwd(), 'apps/service/src/server/brain.js'), 'utf8');
 
 describe('DBB-008/009: brain.js hardware-adaptive model selection', () => {
   it('no hardcoded gemma4:26b model string', () => {

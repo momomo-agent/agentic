@@ -290,41 +290,117 @@ function recordToolCallOutcome(state, toolName, params, result, error) {
 // 完全端侧运行，通过可配置的 proxy 调用 LLM
 // 支持流式输出 (stream) + 智能循环检测（对齐 OpenClaw）
 
+// ── Error Classification ──
+
+function classifyError(err) {
+  const msg = (err && typeof err === 'object' ? err.message || '' : String(err)).toLowerCase()
+  const status = err && err.status ? err.status : 0
+
+  if (status === 401 || status === 403 || /unauthorized|forbidden|invalid.*api.?key|authentication/i.test(msg))
+    return { category: 'auth', retryable: false }
+  if (status === 402 || /billing|payment|quota exceeded|insufficient.?funds/i.test(msg))
+    return { category: 'billing', retryable: false }
+  if (status === 429 || /rate.?limit|too many requests/i.test(msg))
+    return { category: 'rate_limit', retryable: true }
+  if (/context.?length|token.?limit|maximum.?context|too.?long/i.test(msg))
+    return { category: 'context_overflow', retryable: false }
+  if (status >= 500 || status === 529 || /server.?error|internal.?error|bad.?gateway|service.?unavailable/i.test(msg))
+    return { category: 'server', retryable: true }
+  if (/network|econnrefused|econnreset|etimedout|fetch.?failed|dns|socket/i.test(msg))
+    return { category: 'network', retryable: true }
+  return { category: 'unknown', retryable: false }
+}
 
 const MAX_ROUNDS = 200  // 安全兜底，实际由循环检测控制（与 OpenClaw 一致）
 
-async function agenticAsk(prompt, config, emit) {
-  try {
-    return await _agenticAsk(prompt, config, emit)
-  } catch (e) {
-    // Ensure all errors are Error instances
-    throw e instanceof Error ? e : new Error(String(e))
+// ── agenticAsk: backward-compat wrapper ──
+// If emit (3rd arg) is a function → legacy mode, returns Promise<{answer, rounds, messages}>
+// Otherwise → generator mode, returns AsyncGenerator<ChatEvent>
+
+function agenticAsk(prompt, config, emit) {
+  if (typeof emit === 'function') {
+    // Legacy mode: collect events, call emit(), return final result
+    return (async () => {
+      let answer = ''
+      let rounds = 0
+      let messages = []
+      for await (const event of _agenticAskGen(prompt, config)) {
+        // Map new event types to legacy emit calls
+        if (event.type === 'tool_use') {
+          emit('tool', { name: event.name, input: event.input })
+        } else if (event.type === 'warning') {
+          emit('warning', { level: event.level, message: event.message })
+        } else {
+          emit(event.type, event)
+        }
+        if (event.type === 'done') {
+          answer = event.answer
+          rounds = event.rounds
+          messages = event.messages || []
+        }
+      }
+      return { answer, rounds, messages }
+    })()
   }
+  // Generator mode
+  return _agenticAskGen(prompt, config)
 }
 
-async function _agenticAsk(prompt, config, emit) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images, audio } = config
-  
-  if (!apiKey) throw new Error('API Key required')
-  
-  // Schema mode: structured output with validation + retry
-  if (schema) {
-    return await schemaAsk(prompt, config, emit)
+// ── Provider failover ──
+
+async function _callWithFailover(opts) {
+  const { messages, tools, model, baseUrl, apiKey, proxyUrl, stream, system, provider, signal, providers } = opts
+  const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
+
+  let lastErr
+  for (let i = 0; i < providerList.length; i++) {
+    const p = providerList[i]
+    const prov = p.provider || provider
+    const chatFn = prov === 'anthropic' ? anthropicChat : openaiChat
+    try {
+      return await chatFn({
+        messages, tools,
+        model: p.model || model,
+        baseUrl: p.baseUrl || baseUrl,
+        apiKey: p.apiKey || apiKey,
+        proxyUrl: p.proxyUrl || proxyUrl,
+        stream, emit: function noop(){}, system, signal
+      })
+    } catch (err) {
+      lastErr = err
+      // If more providers remain, try next regardless of error type
+      if (i < providerList.length - 1) continue
+      throw err
+    }
   }
-  
+  throw lastErr
+}
+
+// ── Core async generator ──
+
+async function* _agenticAskGen(prompt, config) {
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images, audio, signal, providers } = config
+
+  if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
+
+  // Schema mode
+  if (schema) {
+    const result = await schemaAsk(prompt, config, function noop(){})
+    yield { type: 'done', answer: result.answer, rounds: 1, stopReason: 'end_turn', messages: [] }
+    return
+  }
+
   const { defs: toolDefs, customTools } = buildToolDefs(tools)
-  
+
   // Build messages
   const messages = []
   if (history?.length) {
     messages.push(...history)
   }
-  
+
   // Build user message — support vision (images) and audio
   if (images?.length || audio) {
     const content = []
-    
-    // Add images
     if (images?.length) {
       for (const img of images) {
         if (provider === 'anthropic') {
@@ -335,73 +411,85 @@ async function _agenticAsk(prompt, config, emit) {
         }
       }
     }
-    
-    // Add audio (Gemini/Ollama format)
     if (audio) {
       if (provider === 'anthropic') {
-        // Anthropic doesn't support audio yet
         console.warn('[agenticAsk] Anthropic does not support audio input')
       } else {
-        // OpenAI/Gemini format
-        content.push({
-          type: 'input_audio',
-          input_audio: {
-            data: audio.data,
-            format: audio.format || 'wav'
-          }
-        })
+        content.push({ type: 'input_audio', input_audio: { data: audio.data, format: audio.format || 'wav' } })
       }
     }
-    
     content.push({ type: 'text', text: prompt })
     messages.push({ role: 'user', content })
   } else {
     messages.push({ role: 'user', content: prompt })
   }
-  
+
   let round = 0
   let finalAnswer = null
-  const state = { toolCallHistory: [] }  // 循环检测状态
-  
+  const state = { toolCallHistory: [] }
+
   console.log('[agenticAsk] Starting with prompt:', prompt.slice(0, 50))
   console.log('[agenticAsk] Tools available:', tools, 'Stream:', stream)
   console.log('[agenticAsk] Provider:', provider)
-  
+
   while (round < MAX_ROUNDS) {
     round++
+
+    // Check abort signal
+    if (signal && signal.aborted) {
+      yield { type: 'error', error: 'aborted', category: 'network', retryable: false }
+      return
+    }
+
     console.log(`\n[Round ${round}] Calling LLM...`)
-    emit('status', { message: `Round ${round}/${MAX_ROUNDS}` })
-    
-    // Call LLM (always stream for Anthropic to handle tools properly; for OpenAI, stream on final round or when no tools)
+    yield { type: 'status', message: `Round ${round}/${MAX_ROUNDS}` }
+
     const isStreamRound = stream && (provider === 'anthropic' || !toolDefs.length || round > 1)
-    const chatFn = provider === 'anthropic' ? anthropicChat : openaiChat
-    const response = await chatFn({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: isStreamRound, emit, system })
-    
+    let response
+
+    try {
+      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: isStreamRound, system, provider, signal, providers })
+    } catch (err) {
+      const cls = classifyError(err)
+      yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
+      return
+    }
+
+    // Yield text content as text_delta
+    if (response.content) {
+      yield { type: 'text_delta', text: response.content }
+    }
+
     console.log(`[Round ${round}] LLM Response:`)
     console.log(`  - stop_reason: ${response.stop_reason}`)
     console.log(`  - content:`, response.content)
     console.log(`  - tool_calls: ${response.tool_calls?.length || 0}`)
-    
+
     // Check if done
     if (['end_turn', 'stop'].includes(response.stop_reason) || !response.tool_calls?.length) {
       console.log(`[Round ${round}] Done: stop_reason=${response.stop_reason}, tool_calls=${response.tool_calls?.length || 0}`)
       finalAnswer = response.content
       break
     }
-    
+
     // Execute tools
     console.log(`[Round ${round}] Executing ${response.tool_calls.length} tool calls...`)
     messages.push({ role: 'assistant', content: response.content, tool_calls: response.tool_calls })
-    
+
     for (const call of response.tool_calls) {
       console.log(`[Round ${round}] Tool: ${call.name}, Input:`, call.input)
-      
+
+      if (signal && signal.aborted) {
+        yield { type: 'error', error: 'aborted', category: 'network', retryable: false }
+        return
+      }
+
       recordToolCall(state, call.name, call.input)
-      
+
       const loopDetection = detectToolCallLoop(state, call.name, call.input)
       if (loopDetection.stuck) {
         console.log(`[Round ${round}] Loop detected: ${loopDetection.detector} (${loopDetection.level})`)
-        emit('warning', { level: loopDetection.level, message: loopDetection.message })
+        yield { type: 'warning', level: loopDetection.level, message: loopDetection.message }
         if (loopDetection.level === 'critical') {
           finalAnswer = `[Loop Detection] ${loopDetection.message}`
           break
@@ -409,36 +497,50 @@ async function _agenticAsk(prompt, config, emit) {
         messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify({ error: `LOOP_DETECTED: ${loopDetection.message}` }) })
         continue
       }
-      
-      emit('tool', { name: call.name, input: call.input })
-      const result = await executeTool(call.name, call.input, { searchApiKey, customTools })
-      console.log(`[Round ${round}] Tool result:`, result)
-      
-      recordToolCallOutcome(state, call.name, call.input, result, null)
-      messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(result) })
+
+      yield { type: 'tool_use', id: call.id, name: call.name, input: call.input }
+
+      try {
+        const result = await executeTool(call.name, call.input, { searchApiKey, customTools })
+        console.log(`[Round ${round}] Tool result:`, result)
+        recordToolCallOutcome(state, call.name, call.input, result, null)
+        messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(result) })
+        yield { type: 'tool_result', id: call.id, name: call.name, output: result }
+      } catch (toolErr) {
+        const errMsg = toolErr instanceof Error ? toolErr.message : String(toolErr)
+        recordToolCallOutcome(state, call.name, call.input, null, errMsg)
+        messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify({ error: errMsg }) })
+        yield { type: 'tool_error', id: call.id, name: call.name, error: errMsg }
+      }
     }
-    
+
     if (finalAnswer) break
   }
-  
+
   console.log(`\n[agenticAsk] Loop ended at round ${round}`)
-  
+
   if (!finalAnswer) {
     console.log('[agenticAsk] Generating final answer (no tools)...')
-    emit('status', { message: 'Generating final answer...' })
-    const chatFn = provider === 'anthropic' ? anthropicChat : openaiChat
-    const finalResponse = await chatFn({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream, emit, system })
-    finalAnswer = finalResponse.content || '(no response)'
+    yield { type: 'status', message: 'Generating final answer...' }
+    try {
+      const chatFn = provider === 'anthropic' ? anthropicChat : openaiChat
+      const finalResponse = await chatFn({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream, emit: function noop(){}, system, signal })
+      finalAnswer = finalResponse.content || '(no response)'
+    } catch (err) {
+      const cls = classifyError(err)
+      yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
+      return
+    }
     console.log('[agenticAsk] Final answer:', finalAnswer.slice(0, 100))
   }
-  
+
   console.log('[agenticAsk] Complete. Total rounds:', round)
-  return { answer: finalAnswer, rounds: round, messages }
+  yield { type: 'done', answer: finalAnswer, rounds: round, stopReason: 'end_turn', messages }
 }
 
 // ── LLM Chat Functions ──
 
-async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system }) {
+async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
   
@@ -482,17 +584,17 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
 
   if (stream && !proxyUrl) {
     // Stream mode — direct SSE
-    return await streamAnthropic(url, headers, body, emit)
+    return await streamAnthropic(url, headers, body, emit, signal)
   }
 
   if (stream && proxyUrl) {
     // Stream via transparent proxy (Vercel Edge / similar)
     // Send stream:true request through proxy with custom headers
     const proxyHeaders = { ...headers, 'x-base-url': baseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }
-    return await streamAnthropic(proxyUrl, proxyHeaders, body, emit)
+    return await streamAnthropic(proxyUrl, proxyHeaders, body, emit, signal)
   }
 
-  const response = await callLLM(url, apiKey, body, proxyUrl, true)
+  const response = await callLLM(url, apiKey, body, proxyUrl, true, signal)
   
   const text = response.content.find(c => c.type === 'text')?.text || ''
   
@@ -505,7 +607,7 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
   }
 }
 
-async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system }) {
+async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
   const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
@@ -515,15 +617,15 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   const headers = { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` }
 
   if (stream && !proxyUrl) {
-    return await streamOpenAI(url, headers, body, emit)
+    return await streamOpenAI(url, headers, body, emit, signal)
   }
 
   if (stream && proxyUrl) {
     const proxyHeaders = { ...headers, 'x-base-url': baseUrl || 'https://api.openai.com', 'x-provider': 'openai', 'x-api-key': apiKey }
-    return await streamOpenAI(proxyUrl, proxyHeaders, body, emit)
+    return await streamOpenAI(proxyUrl, proxyHeaders, body, emit, signal)
   }
 
-  const response = await callLLM(url, apiKey, body, proxyUrl, false)
+  const response = await callLLM(url, apiKey, body, proxyUrl, false, signal)
   
   // Handle SSE response from non-stream endpoints
   if (typeof response === 'string' && response.includes('chat.completion.chunk')) {
@@ -548,11 +650,15 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
 
 // ── Streaming Functions ──
 
-async function streamAnthropic(url, headers, body, emit) {
-  const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) })
+async function streamAnthropic(url, headers, body, emit, signal) {
+  const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
+  if (signal) fetchOpts.signal = signal
+  const res = await fetch(url, fetchOpts)
   if (!res.ok) {
     const err = await res.text()
-    throw new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
+    const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
+    e.status = res.status
+    throw e
   }
 
   const reader = res.body.getReader()
@@ -609,11 +715,15 @@ async function streamAnthropic(url, headers, body, emit) {
   return { content, tool_calls: toolCalls, stop_reason: stopReason }
 }
 
-async function streamOpenAI(url, headers, body, emit) {
-  const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) })
+async function streamOpenAI(url, headers, body, emit, signal) {
+  const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
+  if (signal) fetchOpts.signal = signal
+  const res = await fetch(url, fetchOpts)
   if (!res.ok) {
     const err = await res.text()
-    throw new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
+    const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
+    e.status = res.status
+    throw e
   }
 
   const reader = res.body.getReader()
@@ -670,7 +780,7 @@ async function streamOpenAI(url, headers, body, emit) {
 
 // ── Non-stream Proxy/Direct Call ──
 
-async function callLLM(url, apiKey, body, proxyUrl, isAnthropic = false) {
+async function callLLM(url, apiKey, body, proxyUrl, isAnthropic = false, signal) {
   const headers = { 'content-type': 'application/json' }
   if (isAnthropic) {
     headers['x-api-key'] = apiKey
@@ -678,30 +788,33 @@ async function callLLM(url, apiKey, body, proxyUrl, isAnthropic = false) {
   } else {
     headers['authorization'] = `Bearer ${apiKey}`
   }
-  
+
   if (proxyUrl) {
-    // Transparent proxy — pass config via headers, body goes through directly
     const proxyHeaders = {
       ...headers,
       'x-base-url': url.replace(/\/v1\/.*$/, ''),
       'x-provider': isAnthropic ? 'anthropic' : 'openai',
       'x-api-key': apiKey,
     }
-    const response = await fetch(proxyUrl, {
-      method: 'POST',
-      headers: proxyHeaders,
-      body: JSON.stringify(body),
-    })
+    const fetchOpts = { method: 'POST', headers: proxyHeaders, body: JSON.stringify(body) }
+    if (signal) fetchOpts.signal = signal
+    const response = await fetch(proxyUrl, fetchOpts)
     if (!response.ok) {
       const text = await response.text()
-      throw new Error(`API error ${response.status}: ${text.slice(0, 300)}`)
+      const e = new Error(`API error ${response.status}: ${text.slice(0, 300)}`)
+      e.status = response.status
+      throw e
     }
     return await response.json()
   } else {
-    const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) })
+    const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
+    if (signal) fetchOpts.signal = signal
+    const response = await fetch(url, fetchOpts)
     if (!response.ok) {
       const text = await response.text()
-      throw new Error(`API error ${response.status}: ${text}`)
+      const e = new Error(`API error ${response.status}: ${text}`)
+      e.status = response.status
+      throw e
     }
     const text = await response.text()
     if (text.trimStart().startsWith('data: ')) return reassembleSSE(text)
@@ -1156,5 +1269,5 @@ async function _audioFetch(url, opts, retries = 3) {
   throw lastErr
 }
 
-  return { agenticAsk, toolRegistry, synthesize, transcribe }
+  return { agenticAsk, classifyError, toolRegistry, synthesize, transcribe }
 })
