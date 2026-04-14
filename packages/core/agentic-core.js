@@ -367,6 +367,12 @@ async function _callWithFailover(opts) {
   const { messages, tools, model, baseUrl, apiKey, proxyUrl, stream, system, provider, signal, providers } = opts
   const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
 
+  // Eager execution hint: inject once here so all providers (anthropic, openai, custom) get it
+  let effectiveSystem = system
+  if (tools?.length) {
+    effectiveSystem = system ? EAGER_HINT + '\n\n' + system : EAGER_HINT
+  }
+
   let lastErr
   for (let i = 0; i < providerList.length; i++) {
     const p = providerList[i]
@@ -380,7 +386,7 @@ async function _callWithFailover(opts) {
         baseUrl: p.baseUrl || baseUrl,
         apiKey: p.apiKey || apiKey,
         proxyUrl: p.proxyUrl || proxyUrl,
-        stream, emit: function noop(){}, system, signal,
+        stream, emit: function noop(){}, system: effectiveSystem, signal,
         onToolReady: opts.onToolReady,
       })
     } catch (err) {
@@ -401,6 +407,12 @@ async function* _streamCallWithFailover(opts) {
   const { messages, tools, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers } = opts
   const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
 
+  // Eager execution hint: inject once here so all providers get it
+  let effectiveSystem = system
+  if (tools?.length) {
+    effectiveSystem = system ? EAGER_HINT + '\n\n' + system : EAGER_HINT
+  }
+
   let lastErr
   for (let i = 0; i < providerList.length; i++) {
     const p = providerList[i]
@@ -414,7 +426,7 @@ async function* _streamCallWithFailover(opts) {
     const custom = _customProviders.get(prov)
     if (custom) {
       try {
-        const response = await custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system, signal })
+        const response = await custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system: effectiveSystem, signal })
         if (response.content) yield { type: 'text_delta', text: response.content }
         yield { type: 'response', content: response.content, tool_calls: response.tool_calls || [], stop_reason: response.stop_reason }
         return
@@ -447,28 +459,16 @@ async function* _streamCallWithFailover(opts) {
           }
         }
         body = { model: pModel || 'claude-sonnet-4', max_tokens: 4096, messages: anthropicMessages, stream: true }
-        if (system) body.system = system
-        if (tools?.length) {
-          body.tools = tools
-          const hint = EAGER_HINT
-          const hintBlock = { type: 'text', text: hint }
-          if (body.system) {
-            const userBlock = typeof body.system === 'string' ? { type: 'text', text: body.system } : body.system
-            body.system = Array.isArray(userBlock) ? [hintBlock, ...userBlock] : [hintBlock, userBlock]
-          } else {
-            body.system = [hintBlock]
-          }
-        }
+        if (effectiveSystem) body.system = effectiveSystem
+        if (tools?.length) body.tools = tools
         if (pProxyUrl) { headers = { ...headers, 'x-base-url': pBaseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }; url = pProxyUrl }
       } else {
         url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
         headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
-        const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
+        const oaiMessages = effectiveSystem ? [{ role: 'system', content: effectiveSystem }, ...messages] : messages
         body = { model: pModel || 'gpt-4', messages: oaiMessages, stream: true }
         if (tools?.length) {
           body.tools = tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })); body.tool_choice = 'auto'
-          const hint = EAGER_HINT
-          body.messages.unshift({ role: 'system', content: hint })
         }
         if (pProxyUrl) { headers['x-base-url'] = pBaseUrl || 'https://api.openai.com'; headers['x-provider'] = 'openai'; url = pProxyUrl }
       }
@@ -824,20 +824,6 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
   if (system) body.system = system
   if (tools?.length) {
     body.tools = tools
-    // Eager execution hint as separate system block — doesn't pollute user's system prompt
-    const hint = EAGER_HINT
-    const hintBlock = { type: 'text', text: hint }
-    if (body.system) {
-      // Convert to array format: [hint, user_system]
-      const userBlock = typeof body.system === 'string'
-        ? { type: 'text', text: body.system }
-        : body.system
-      body.system = Array.isArray(userBlock)
-        ? [hintBlock, ...userBlock]
-        : [hintBlock, userBlock]
-    } else {
-      body.system = [hintBlock]
-    }
   }
   
   const headers = { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
@@ -874,9 +860,6 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   const body = { model, messages: oaiMessages, stream }
   if (tools?.length) {
     body.tools = tools.map(t => ({ type: 'function', function: t }))
-    // Eager execution hint as separate system message before user's system prompt
-    const hint = EAGER_HINT
-    body.messages.unshift({ role: 'system', content: hint })
   }
   
   const headers = { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` }
