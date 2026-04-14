@@ -391,6 +391,121 @@ async function _callWithFailover(opts) {
   throw lastErr
 }
 
+/**
+ * Streaming version of _callWithFailover.
+ * Yields { type: 'text_delta', text } and { type: 'tool_ready', toolCall } events,
+ * then yields { type: 'response', content, tool_calls, stop_reason } at the end.
+ */
+async function* _streamCallWithFailover(opts) {
+  const { messages, tools, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers } = opts
+  const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
+
+  let lastErr
+  for (let i = 0; i < providerList.length; i++) {
+    const p = providerList[i]
+    const prov = p.provider || provider
+    const pModel = p.model || model
+    const pBaseUrl = p.baseUrl || baseUrl
+    const pApiKey = p.apiKey || apiKey
+    const pProxyUrl = p.proxyUrl || proxyUrl
+
+    // Custom providers don't support generator mode — fall back to non-streaming
+    const custom = _customProviders.get(prov)
+    if (custom) {
+      try {
+        const response = await custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system, signal })
+        if (response.content) yield { type: 'text_delta', text: response.content }
+        yield { type: 'response', content: response.content, tool_calls: response.tool_calls || [], stop_reason: response.stop_reason }
+        return
+      } catch (err) { lastErr = err; if (i < providerList.length - 1) continue; throw err }
+    }
+
+    try {
+      const isAnthropic = prov === 'anthropic'
+      const base = (pBaseUrl || (isAnthropic ? 'https://api.anthropic.com' : 'https://api.openai.com')).replace(/\/+$/, '')
+
+      let url, headers, body
+      if (isAnthropic) {
+        url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
+        headers = { 'content-type': 'application/json', 'x-api-key': pApiKey, 'anthropic-version': '2023-06-01' }
+        // Build Anthropic messages format
+        const anthropicMessages = []
+        for (const m of messages) {
+          if (m.role === 'user') anthropicMessages.push({ role: 'user', content: m.content })
+          else if (m.role === 'assistant') {
+            if (m.tool_calls?.length) {
+              const blocks = []; if (m.content) blocks.push({ type: 'text', text: m.content })
+              for (const tc of m.tool_calls) blocks.push({ type: 'tool_use', id: tc.id, name: tc.name, input: tc.input })
+              anthropicMessages.push({ role: 'assistant', content: blocks })
+            } else { anthropicMessages.push({ role: 'assistant', content: m.content }) }
+          } else if (m.role === 'tool') {
+            const toolResult = { type: 'tool_result', tool_use_id: m.tool_call_id, content: m.content }
+            const last = anthropicMessages[anthropicMessages.length - 1]
+            if (last?.role === 'user' && Array.isArray(last.content) && last.content[0]?.type === 'tool_result') { last.content.push(toolResult) }
+            else { anthropicMessages.push({ role: 'user', content: [toolResult] }) }
+          }
+        }
+        body = { model: pModel || 'claude-sonnet-4', max_tokens: 4096, messages: anthropicMessages, stream: true }
+        if (system) body.system = system
+        if (tools?.length) body.tools = tools
+        if (pProxyUrl) { headers = { ...headers, 'x-base-url': pBaseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }; url = pProxyUrl }
+      } else {
+        url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
+        headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
+        const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
+        body = { model: pModel || 'gpt-4', messages: oaiMessages, stream: true }
+        if (tools?.length) { body.tools = tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })); body.tool_choice = 'auto' }
+        if (pProxyUrl) { headers['x-base-url'] = pBaseUrl || 'https://api.openai.com'; headers['x-provider'] = 'openai'; url = pProxyUrl }
+      }
+
+      // Use the appropriate generator
+      const gen = isAnthropic ? _streamAnthropicGen(url, headers, body, signal) : _streamOpenAIGen(url, headers, body, signal)
+
+      let content = '', toolCalls = [], stopReason = 'end_turn'
+      const oaiToolMap = {} // for OpenAI incremental tool_delta assembly
+
+      for await (const evt of gen) {
+        if (evt.type === 'text_delta') {
+          content += evt.text
+          yield evt
+        } else if (evt.type === 'tool_ready') {
+          // Anthropic: complete tool call
+          toolCalls.push(evt.toolCall)
+          yield evt
+        } else if (evt.type === 'tool_delta') {
+          // OpenAI: incremental tool call assembly
+          const td = evt.toolDelta
+          if (!oaiToolMap[td.index]) oaiToolMap[td.index] = { id: '', name: '', arguments: '' }
+          if (td.id) oaiToolMap[td.index].id = td.id
+          if (td.name) oaiToolMap[td.index].name = td.name
+          if (td.arguments) oaiToolMap[td.index].arguments += td.arguments
+        } else if (evt.type === 'stop') {
+          stopReason = evt.stop_reason
+        }
+      }
+
+      // Finalize OpenAI tool calls
+      if (Object.keys(oaiToolMap).length) {
+        for (const t of Object.values(oaiToolMap)) {
+          if (!t.name) continue
+          let input = {}; try { input = JSON.parse(t.arguments || '{}') } catch {}
+          const tc = { id: t.id, name: t.name, input }
+          toolCalls.push(tc)
+          yield { type: 'tool_ready', toolCall: tc }
+        }
+      }
+
+      yield { type: 'response', content, tool_calls: toolCalls, stop_reason: stopReason }
+      return
+    } catch (err) {
+      lastErr = err
+      if (i < providerList.length - 1) continue
+      throw err
+    }
+  }
+  throw lastErr
+}
+
 // ── Core async generator ──
 
 async function* _agenticAskGen(prompt, config) {
@@ -447,14 +562,6 @@ async function* _agenticAskGen(prompt, config) {
   console.log('[agenticAsk] Tools available:', tools, 'Stream:', stream)
   console.log('[agenticAsk] Provider:', provider)
 
-  // Eager execution hint: when tools are available, nudge the model to call tools
-  // before generating text so eager execution can start tools in parallel with streaming
-  let eagerSystem = system || ''
-  if (toolDefs.length > 0) {
-    const hint = '\n\nWhen you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
-    eagerSystem = eagerSystem ? eagerSystem + hint : hint.trim()
-  }
-
   while (round < MAX_ROUNDS) {
     round++
 
@@ -486,7 +593,7 @@ async function* _agenticAskGen(prompt, config) {
     } : null
 
     try {
-      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: isStreamRound, system: eagerSystem, provider, signal, providers, onToolReady })
+      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: isStreamRound, system, provider, signal, providers, onToolReady })
     } catch (err) {
       const cls = classifyError(err)
       yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
@@ -672,7 +779,12 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
     stream,
   }
   if (system) body.system = system
-  if (tools?.length) body.tools = tools
+  if (tools?.length) {
+    body.tools = tools
+    // Eager execution hint: nudge model to call tools before text for parallel execution
+    const hint = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
+    body.system = body.system ? body.system + '\n\n' + hint : hint
+  }
   
   const headers = { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
 
@@ -706,7 +818,16 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   const url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
   const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
   const body = { model, messages: oaiMessages, stream }
-  if (tools?.length) body.tools = tools.map(t => ({ type: 'function', function: t }))
+  if (tools?.length) {
+    body.tools = tools.map(t => ({ type: 'function', function: t }))
+    // Eager execution hint: nudge model to call tools before text for parallel execution
+    const hint = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
+    if (body.messages[0]?.role === 'system') {
+      body.messages[0].content += '\n\n' + hint
+    } else {
+      body.messages.unshift({ role: 'system', content: hint })
+    }
+  }
   
   const headers = { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` }
 
@@ -744,7 +865,19 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
 
 // ── Streaming Functions ──
 
+// streamAnthropic — legacy (non-generator), kept for backward compat
 async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
+  let content = '', toolCalls = [], stopReason = 'end_turn'
+  for await (const evt of _streamAnthropicGen(url, headers, body, signal)) {
+    if (evt.type === 'text_delta') { content += evt.text; emit('token', { text: evt.text }) }
+    else if (evt.type === 'tool_ready') { toolCalls.push(evt.toolCall); if (onToolReady) onToolReady(evt.toolCall) }
+    else if (evt.type === 'stop') { stopReason = evt.stop_reason }
+  }
+  return { content, tool_calls: toolCalls, stop_reason: stopReason }
+}
+
+// True streaming generator for Anthropic SSE
+async function* _streamAnthropicGen(url, headers, body, signal) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
   const res = await fetch(url, fetchOpts)
@@ -758,11 +891,8 @@ async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
-  let content = ''
-  let toolCalls = []
   let currentToolInput = ''
   let currentTool = null
-  let stopReason = 'end_turn'
 
   while (true) {
     const { done, value } = await reader.read()
@@ -781,8 +911,7 @@ async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
         
         if (event.type === 'content_block_delta') {
           if (event.delta?.type === 'text_delta') {
-            content += event.delta.text
-            emit('token', { text: event.delta.text })
+            yield { type: 'text_delta', text: event.delta.text }
           } else if (event.delta?.type === 'input_json_delta') {
             currentToolInput += event.delta.partial_json || ''
           }
@@ -796,22 +925,43 @@ async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
             let input = {}
             try { input = JSON.parse(currentToolInput || '{}') } catch {}
             const toolCall = { ...currentTool, input }
-            toolCalls.push(toolCall)
-            if (onToolReady) onToolReady(toolCall)
+            yield { type: 'tool_ready', toolCall }
             currentTool = null
             currentToolInput = ''
           }
         } else if (event.type === 'message_delta') {
-          if (event.delta?.stop_reason) stopReason = event.delta.stop_reason
+          if (event.delta?.stop_reason) yield { type: 'stop', stop_reason: event.delta.stop_reason }
         }
       } catch {}
     }
   }
-
-  return { content, tool_calls: toolCalls, stop_reason: stopReason }
 }
 
+// streamOpenAI — legacy (non-generator), kept for backward compat
 async function streamOpenAI(url, headers, body, emit, signal, onToolReady) {
+  let content = '', finishReason = 'stop'
+  const toolCallsMap = {}
+  for await (const evt of _streamOpenAIGen(url, headers, body, signal)) {
+    if (evt.type === 'text_delta') { content += evt.text; emit('token', { text: evt.text }) }
+    else if (evt.type === 'tool_delta') {
+      const tc = evt.toolDelta
+      if (!toolCallsMap[tc.index]) toolCallsMap[tc.index] = { id: '', name: '', arguments: '' }
+      if (tc.id) toolCallsMap[tc.index].id = tc.id
+      if (tc.name) toolCallsMap[tc.index].name = tc.name
+      if (tc.arguments) toolCallsMap[tc.index].arguments += tc.arguments
+    }
+    else if (evt.type === 'stop') { finishReason = evt.stop_reason }
+  }
+  const tcList = Object.values(toolCallsMap).filter(t => t.name).map(t => {
+    let input = {}; try { input = JSON.parse(t.arguments || '{}') } catch {}
+    return { id: t.id, name: t.name, input }
+  })
+  if (onToolReady) { for (const tc of tcList) onToolReady(tc) }
+  return { content, tool_calls: tcList, stop_reason: finishReason }
+}
+
+// True streaming generator for OpenAI SSE
+async function* _streamOpenAIGen(url, headers, body, signal) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
   const res = await fetch(url, fetchOpts)
@@ -825,9 +975,6 @@ async function streamOpenAI(url, headers, body, emit, signal, onToolReady) {
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
-  let content = ''
-  let toolCalls = {}
-  let finishReason = 'stop'
 
   while (true) {
     const { done, value } = await reader.read()
@@ -847,36 +994,19 @@ async function streamOpenAI(url, headers, body, emit, signal, onToolReady) {
         if (!delta) continue
 
         if (delta.content) {
-          content += delta.content
-          emit('token', { text: delta.content })
+          yield { type: 'text_delta', text: delta.content }
         }
         if (chunk.choices?.[0]?.finish_reason) {
-          finishReason = chunk.choices[0].finish_reason
+          yield { type: 'stop', stop_reason: chunk.choices[0].finish_reason }
         }
         if (delta.tool_calls) {
           for (const tc of delta.tool_calls) {
-            if (!toolCalls[tc.index]) toolCalls[tc.index] = { id: '', name: '', arguments: '' }
-            if (tc.id) toolCalls[tc.index].id = tc.id
-            if (tc.function?.name) toolCalls[tc.index].name = tc.function.name
-            if (tc.function?.arguments) toolCalls[tc.index].arguments += tc.function.arguments
+            yield { type: 'tool_delta', toolDelta: { index: tc.index, id: tc.id || '', name: tc.function?.name || '', arguments: tc.function?.arguments || '' } }
           }
         }
       } catch {}
     }
   }
-
-  const tcList = Object.values(toolCalls).filter(t => t.name).map(t => {
-    let input = {}
-    try { input = JSON.parse(t.arguments || '{}') } catch {}
-    return { id: t.id, name: t.name, input }
-  })
-
-  // OpenAI doesn't have per-tool completion signals, fire all at once
-  if (onToolReady) {
-    for (const tc of tcList) onToolReady(tc)
-  }
-
-  return { content, tool_calls: tcList, stop_reason: finishReason }
 }
 
 // ── Non-stream Proxy/Direct Call ──
