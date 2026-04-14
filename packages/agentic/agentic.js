@@ -235,57 +235,9 @@
       return typeof result === 'string' ? result : result?.answer || result
     }
 
-    /**
-     * stream(input, opts) → AsyncGenerator<ChatEvent>
-     *
-     * Like think(), but returns an async generator that yields token-level events:
-     *   { type: 'text_delta', text }
-     *   { type: 'tool_use', id, name, input }
-     *   { type: 'tool_result', id, name, output }
-     *   { type: 'tool_error', id, name, error }
-     *   { type: 'done', answer, stopReason }
-     *   { type: 'error', error }
-     *
-     * Usage:
-     *   for await (const event of ai.stream('hello', { tools })) {
-     *     if (event.type === 'text_delta') process.stdout.write(event.text)
-     *   }
-     */
-    async *stream(input, opts = {}) {
-      // WebSocket path: not yet supported for streaming, fall back to think()
-      if (this._ws) {
-        const result = await this.think(input, opts)
-        yield { type: 'text_delta', text: result }
-        yield { type: 'done', answer: result, stopReason: 'end_turn' }
-        return
-      }
-
-      const core = this._need('agentic-core')
-      const ask = core.agenticAsk || core
-
-      const config = {
-        provider: opts.provider || this._opts.provider,
-        baseUrl: opts.baseUrl || this._opts.baseUrl,
-        apiKey: opts.apiKey || this._opts.apiKey,
-        model: opts.model || this._opts.model,
-        system: opts.system || this._opts.system,
-        stream: true, // always streaming
-        signal: opts.signal,
-      }
-
-      if (opts.tools) config.tools = opts.tools
-      if (opts.images) config.images = opts.images
-      if (opts.audio) config.audio = opts.audio
-      if (opts.history) config.history = opts.history
-      if (opts.providers) config.providers = opts.providers
-
-      const gen = ask(input, config)
-      yield* gen
-    }
-
-    get tools() {
-      return this._need('agentic-core').toolRegistry
-    }
+    // Note: no `tools` or `stream()` here. Tools and streaming belong to Claw.
+    // Agentic is a capability dispatcher — createClaw(), think(), speak(), etc.
+    // think() is for simple one-shot Q&A. For agentic tool loops, use createClaw().
 
     // ════════════════════════════════════════════════════════════════
     // SPEAK — agentic-voice TTS, delegates to core for network
