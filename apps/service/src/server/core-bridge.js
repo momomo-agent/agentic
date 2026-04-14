@@ -29,6 +29,8 @@ function hasVisionContent(messages) {
   return false;
 }
 
+const EAGER_SYSTEM = 'When using tools, call them FIRST before any text explanation. Do not narrate what you are about to do — just call the tool, then explain after you have the result.'
+
 export async function* chat(input, options = {}) {
   const messages = typeof input === 'string'
     ? [...(options.history || []), { role: 'user', content: input }]
@@ -52,12 +54,16 @@ export async function* chat(input, options = {}) {
     }
     providers.push({ provider: 'cloud-fallback' });
 
+    const userSystem = options.system
+    const system = userSystem ? `${EAGER_SYSTEM}\n\n${userSystem}` : EAGER_SYSTEM
+
     const iter = core.agenticAsk('', {
       provider: providers[0].provider,
       providers,
       tools: mergedTools,
       history: messages,
       stream: true,
+      system,
     });
 
     for await (const chunk of iter) {

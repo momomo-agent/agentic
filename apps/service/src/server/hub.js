@@ -1,10 +1,15 @@
 import { WebSocketServer } from 'ws';
 import { randomUUID } from 'node:crypto';
-// import * as sense from '../runtime/sense.js'; // Not needed for basic demos
 import { chat as brainChat } from './core-bridge.js';
 import * as stt from '../runtime/stt.js';
 import * as tts from '../runtime/tts.js';
 import { detectVoiceActivity } from '../runtime/vad.js';
+import { getConfig, setConfig, getAssignments, setAssignments, addToPool, removeFromPool } from '../config.js';
+import { getEngines, discoverModels, modelsForCapability, resolveModel } from '../engine/registry.js';
+import { getAllHealth } from '../engine/health.js';
+import { embed } from '../runtime/embed.js';
+import { getMetrics } from '../runtime/profiler.js';
+import { getQueueStats } from './queue.js';
 
 const SENTENCE_END_RE = /[.!?]+\s+/;
 
@@ -101,22 +106,30 @@ export function broadcastWakeword(deviceId) {
 }
 
 async function handleChat(ws, msg) {
-  const { messages, history = [], text, options = {} } = msg;
+  const { messages, history = [], text, options = {}, _reqId } = msg;
   const chatMessages = messages || [...history, { role: 'user', content: text }];
 
-  ws.send(JSON.stringify({ type: 'chat_start' }));
+  ws.send(JSON.stringify({ type: 'chat_start', _reqId }));
 
   const chunks = [];
   for await (const chunk of brainChat(chatMessages, options)) {
     if (chunk.type === 'text_delta') {
       chunks.push(chunk.text);
-      ws.send(JSON.stringify({ type: 'chat_delta', text: chunk.text }));
+      ws.send(JSON.stringify({ type: 'chat_delta', text: chunk.text, _reqId }));
+    } else if (chunk.type === 'tool_use') {
+      ws.send(JSON.stringify({ type: 'tool_use', id: chunk.id, name: chunk.name, input: chunk.input, _reqId }));
+    } else if (chunk.type === 'tool_progress') {
+      ws.send(JSON.stringify({ type: 'tool_progress', id: chunk.id, name: chunk.name, delta: chunk.delta, _reqId }));
+    } else if (chunk.type === 'tool_result') {
+      ws.send(JSON.stringify({ type: 'tool_result', id: chunk.id, name: chunk.name, output: chunk.output, _reqId }));
+    } else if (chunk.type === 'tool_error') {
+      ws.send(JSON.stringify({ type: 'tool_error', id: chunk.id, name: chunk.name, error: chunk.error, _reqId }));
     } else if (chunk.type === 'error') {
-      ws.send(JSON.stringify({ type: 'chat_error', error: chunk.error }));
+      ws.send(JSON.stringify({ type: 'chat_error', error: chunk.error, _reqId }));
     }
   }
 
-  ws.send(JSON.stringify({ type: 'chat_end', text: chunks.join('') }));
+  ws.send(JSON.stringify({ type: 'chat_end', text: chunks.join(''), _reqId }));
 }
 
 async function handleVoiceStream(ws, msg) {
@@ -194,6 +207,91 @@ export function startWakeWordDetection(keyword = process.env.WAKE_WORD || 'hey a
   });
 }
 
+// ── WS RPC: all service capabilities over WebSocket ──────────
+
+function reply(ws, _reqId, data) {
+  ws.send(JSON.stringify({ _reqId, ...data }));
+}
+
+async function handleRpc(ws, msg) {
+  const { _reqId, method, params = {} } = msg;
+  try {
+    let result;
+    switch (method) {
+      // ── Models ──
+      case 'models': {
+        const engines = await getEngines();
+        const models = [];
+        for (const e of engines) {
+          const m = await discoverModels(e.id);
+          models.push(...m.map(mod => ({ id: mod.name || mod.id, engine: e.id, ...mod })));
+        }
+        result = models;
+        break;
+      }
+
+      // ── Embed ──
+      case 'embed': {
+        const vec = await embed(params.text);
+        result = { embedding: vec };
+        break;
+      }
+
+      // ── STT ──
+      case 'transcribe': {
+        const buf = Buffer.from(params.audio, 'base64');
+        const text = await stt.transcribe(buf, params.options);
+        result = { text };
+        break;
+      }
+
+      // ── TTS ──
+      case 'synthesize': {
+        const audio = await tts.synthesize(params.text, params.options);
+        result = { audio: Buffer.from(audio).toString('base64') };
+        break;
+      }
+
+      // ── Vision ──
+      case 'vision': {
+        const chunks = [];
+        for await (const chunk of brainChat(params.messages, { vision: true })) {
+          if (chunk.type === 'text_delta') chunks.push(chunk.text);
+        }
+        result = { text: chunks.join('') };
+        break;
+      }
+
+      // ── Config ──
+      case 'config.get': result = await getConfig(); break;
+      case 'config.set': result = await setConfig(params); break;
+      case 'assignments.get': result = await getAssignments(); break;
+      case 'assignments.set': result = await setAssignments(params); break;
+      case 'pool.add': result = await addToPool(params); break;
+      case 'pool.remove': result = await removeFromPool(params.id); break;
+
+      // ── Status / Health ──
+      case 'health': result = { status: 'ok' }; break;
+      case 'status': {
+        const config = await getConfig();
+        result = { engines: await getEngines(), health: getAllHealth(), config };
+        break;
+      }
+      case 'perf': result = getMetrics(); break;
+      case 'queue.stats': result = getQueueStats(); break;
+      case 'devices': result = getDevices(); break;
+      case 'engines': result = await getEngines(); break;
+      case 'engines.health': result = getAllHealth(); break;
+
+      default:
+        return reply(ws, _reqId, { type: 'rpc_error', error: `Unknown method: ${method}` });
+    }
+    reply(ws, _reqId, { type: 'rpc_result', result });
+  } catch (err) {
+    reply(ws, _reqId, { type: 'rpc_error', error: err.message });
+  }
+}
+
 export function initWebSocket(httpServer) {
   const wss = new WebSocketServer({ server: httpServer });
 
@@ -225,7 +323,12 @@ export function initWebSocket(httpServer) {
       } else if (msg.type === 'chat') {
         handleChat(ws, msg).catch(err => {
           console.error('[chat error]', err.message);
-          try { ws.send(JSON.stringify({ type: 'error', error: err.message })); } catch {}
+          try { ws.send(JSON.stringify({ type: 'chat_error', error: err.message, _reqId: msg._reqId })); } catch {}
+        });
+      } else if (msg.type === 'rpc') {
+        handleRpc(ws, msg).catch(err => {
+          console.error('[rpc error]', err.message);
+          try { ws.send(JSON.stringify({ type: 'rpc_error', error: err.message, _reqId: msg._reqId })); } catch {}
         });
       } else if (msg.type === 'voice_stream') {
         handleVoiceStream(ws, msg).catch(err => {

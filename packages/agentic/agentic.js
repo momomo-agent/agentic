@@ -1,15 +1,16 @@
 /**
  * agentic — 给 AI 造身体
  *
- * 子库的胶水层。think 永远走 agentic-core（core 自己处理 provider 路由）。
- * voice 子库没装时，speak/listen/converse 可以 fallback 到 agentic-service HTTP。
+ * 子库的胶水层。
+ * 有 serviceUrl → 走 WebSocket 连 agentic-service（双向通信，低延迟）
+ * 没有 serviceUrl → 走 agentic-core 直连 provider（HTTP）
  *
  * Usage:
  *   // 直连云端 provider
  *   const ai = new Agentic({ provider: 'anthropic', apiKey: 'sk-...' })
  *
- *   // 连本地 agentic-service（service 暴露 OpenAI-compatible API）
- *   const ai = new Agentic({ provider: 'openai', baseUrl: 'http://localhost:1234' })
+ *   // 连本地 agentic-service（WebSocket）
+ *   const ai = new Agentic({ serviceUrl: 'http://localhost:1234' })
  *
  *   // 同样的 API
  *   await ai.think('hello')
@@ -33,21 +34,127 @@
     return _cache[name]
   }
 
-  // ── HTTP helpers (for voice fallback + admin) ────────────────────
+  // ── WebSocket connection manager ─────────────────────────────
 
-  async function _fetch(base, path, opts = {}) {
-    const url = `${base.replace(/\/+$/, '')}${path}`
-    const res = await fetch(url, opts)
-    if (!res.ok) {
-      const text = await res.text().catch(() => '')
-      throw new Error(`HTTP ${res.status} ${path}: ${text}`)
+  const WS = typeof WebSocket !== 'undefined' ? WebSocket
+    : (typeof require === 'function' ? (() => { try { return require('ws') } catch { return null } })() : null)
+
+  function createWsConnection(serviceUrl) {
+    const wsUrl = serviceUrl.replace(/^http/, 'ws').replace(/\/+$/, '')
+    let ws = null
+    let connected = false
+    let connectPromise = null
+    const pending = new Map() // reqId → { resolve, reject, chunks, onDelta }
+    let reqCounter = 0
+
+    function connect() {
+      if (connectPromise) return connectPromise
+      connectPromise = new Promise((resolve, reject) => {
+        if (!WS) return reject(new Error('WebSocket not available'))
+        ws = new WS(wsUrl)
+
+        ws.onopen = () => {
+          connected = true
+          connectPromise = null
+          resolve(ws)
+        }
+
+        ws.onmessage = (event) => {
+          let msg
+          try { msg = JSON.parse(typeof event.data === 'string' ? event.data : event.data.toString()) } catch { return }
+
+          if (msg._reqId && pending.has(msg._reqId)) {
+            const req = pending.get(msg._reqId)
+            if (msg.type === 'rpc_result') {
+              req.resolve(msg.result)
+              pending.delete(msg._reqId)
+            } else if (msg.type === 'rpc_error') {
+              req.reject(new Error(msg.error || 'RPC error'))
+              pending.delete(msg._reqId)
+            } else if (msg.type === 'chat_delta') {
+              req.chunks.push(msg.text || '')
+              if (req.onDelta) req.onDelta(msg.text || '')
+            } else if (msg.type === 'chat_end') {
+              req.resolve(msg.text || req.chunks.join(''))
+              pending.delete(msg._reqId)
+            } else if (msg.type === 'chat_error' || msg.type === 'error') {
+              req.reject(new Error(msg.error || 'Unknown error'))
+              pending.delete(msg._reqId)
+            }
+          } else if (msg.type === 'chat_delta' || msg.type === 'chat_end' || msg.type === 'chat_error') {
+            // Legacy: no _reqId, match to the single pending request
+            const first = pending.values().next().value
+            if (!first) return
+            const reqId = pending.keys().next().value
+            if (msg.type === 'chat_delta') {
+              first.chunks.push(msg.text || '')
+              if (first.onDelta) first.onDelta(msg.text || '')
+            } else if (msg.type === 'chat_end') {
+              first.resolve(msg.text || first.chunks.join(''))
+              pending.delete(reqId)
+            } else if (msg.type === 'chat_error') {
+              first.reject(new Error(msg.error || 'Unknown error'))
+              pending.delete(reqId)
+            }
+          }
+        }
+
+        ws.onerror = (err) => {
+          if (!connected) {
+            connectPromise = null
+            reject(err)
+          }
+        }
+
+        ws.onclose = () => {
+          connected = false
+          connectPromise = null
+          // Reject all pending
+          for (const [id, req] of pending) {
+            req.reject(new Error('WebSocket closed'))
+          }
+          pending.clear()
+        }
+      })
+      return connectPromise
     }
-    return res
-  }
 
-  async function _json(base, path, opts) {
-    const res = await _fetch(base, path, opts)
-    return res.json()
+    async function chat(messages, options = {}) {
+      if (!connected || !ws || ws.readyState !== 1) await connect()
+      const reqId = `r_${++reqCounter}_${Date.now()}`
+
+      return new Promise((resolve, reject) => {
+        pending.set(reqId, { resolve, reject, chunks: [], onDelta: options.emit })
+        ws.send(JSON.stringify({
+          type: 'chat',
+          _reqId: reqId,
+          messages,
+          options: { tools: options.tools },
+        }))
+      })
+    }
+
+    function close() {
+      if (ws) { ws.close(); ws = null }
+      connected = false
+      connectPromise = null
+    }
+
+    async function rpc(method, params = {}) {
+      if (!connected || !ws || ws.readyState !== 1) await connect()
+      const reqId = `r_${++reqCounter}_${Date.now()}`
+
+      return new Promise((resolve, reject) => {
+        pending.set(reqId, {
+          resolve, reject, chunks: [],
+          onDelta: null,
+          _rpc: true,
+        })
+        ws.send(JSON.stringify({ type: 'rpc', _reqId: reqId, method, params }))
+      })
+    }
+
+    return { connect, chat, rpc, close, get connected() { return connected } }
   }
 
   // ── Agentic class ────────────────────────────────────────────────
@@ -76,6 +183,7 @@
       this._opts = opts
       this._i = {} // lazy instances
       this._serviceUrl = opts.serviceUrl ? opts.serviceUrl.replace(/\/+$/, '') : null
+      this._ws = this._serviceUrl ? createWsConnection(this._serviceUrl) : null
     }
 
     _get(key, init) {
@@ -90,13 +198,19 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // THINK — always through agentic-core
-    //
-    // core handles provider routing (anthropic/openai/ollama).
-    // To use agentic-service: provider='openai', baseUrl='http://localhost:1234'
+    // THINK — serviceUrl → WebSocket to service, otherwise → core direct
     // ════════════════════════════════════════════════════════════════
 
     async think(input, opts = {}) {
+      // Route: serviceUrl → WebSocket, otherwise → core direct
+      if (this._ws) {
+        const messages = opts.history
+          ? [...opts.history, { role: 'user', content: input }]
+          : [{ role: 'user', content: input }]
+        if (opts.system) messages.unshift({ role: 'system', content: opts.system })
+        return this._ws.chat(messages, { tools: opts.tools, emit: opts.emit })
+      }
+
       const core = this._need('agentic-core')
       const ask = core.agenticAsk || core
 
@@ -119,6 +233,54 @@
       const emit = opts.emit || (() => {})
       const result = await ask(input, config, emit)
       return typeof result === 'string' ? result : result?.answer || result
+    }
+
+    /**
+     * stream(input, opts) → AsyncGenerator<ChatEvent>
+     *
+     * Like think(), but returns an async generator that yields token-level events:
+     *   { type: 'text_delta', text }
+     *   { type: 'tool_use', id, name, input }
+     *   { type: 'tool_result', id, name, output }
+     *   { type: 'tool_error', id, name, error }
+     *   { type: 'done', answer, stopReason }
+     *   { type: 'error', error }
+     *
+     * Usage:
+     *   for await (const event of ai.stream('hello', { tools })) {
+     *     if (event.type === 'text_delta') process.stdout.write(event.text)
+     *   }
+     */
+    async *stream(input, opts = {}) {
+      // WebSocket path: not yet supported for streaming, fall back to think()
+      if (this._ws) {
+        const result = await this.think(input, opts)
+        yield { type: 'text_delta', text: result }
+        yield { type: 'done', answer: result, stopReason: 'end_turn' }
+        return
+      }
+
+      const core = this._need('agentic-core')
+      const ask = core.agenticAsk || core
+
+      const config = {
+        provider: opts.provider || this._opts.provider,
+        baseUrl: opts.baseUrl || this._opts.baseUrl,
+        apiKey: opts.apiKey || this._opts.apiKey,
+        model: opts.model || this._opts.model,
+        system: opts.system || this._opts.system,
+        stream: true, // always streaming
+        signal: opts.signal,
+      }
+
+      if (opts.tools) config.tools = opts.tools
+      if (opts.images) config.images = opts.images
+      if (opts.audio) config.audio = opts.audio
+      if (opts.history) config.history = opts.history
+      if (opts.providers) config.providers = opts.providers
+
+      const gen = ask(input, config)
+      yield* gen
     }
 
     get tools() {
@@ -150,6 +312,15 @@
     _hasVoice() { return !!load('agentic-voice') }
 
     async speak(text, opts) {
+      if (this._ws) {
+        const result = await this._ws.rpc('synthesize', { text, options: opts })
+        // result.audio is base64
+        if (typeof Buffer !== 'undefined') return Buffer.from(result.audio, 'base64')
+        const bin = atob(result.audio)
+        const arr = new Uint8Array(bin.length)
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i)
+        return arr.buffer
+      }
       return this._tts().fetchAudio(text, opts)
     }
 
@@ -177,6 +348,13 @@
     }
 
     async listen(audio, opts) {
+      if (this._ws) {
+        const b64 = typeof audio === 'string' ? audio
+          : (typeof Buffer !== 'undefined' && Buffer.isBuffer(audio)) ? audio.toString('base64')
+          : _toBase64(audio)
+        const result = await this._ws.rpc('transcribe', { audio: b64, options: opts })
+        return result.text
+      }
       return this._stt().transcribe(audio, opts)
     }
 
@@ -190,6 +368,14 @@
 
     async see(image, prompt = '描述这张图片', opts = {}) {
       const b64 = typeof image === 'string' ? image : _toBase64(image)
+      if (this._ws) {
+        const messages = [{ role: 'user', content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } },
+        ]}]
+        const result = await this._ws.rpc('vision', { messages })
+        return result.text
+      }
       return this.think(prompt, { ...opts, images: [{ url: `data:image/jpeg;base64,${b64}` }] })
     }
 
@@ -257,7 +443,13 @@
       })
     }
 
-    async embed(text) { return this._embedLib().localEmbed(Array.isArray(text) ? text : [text])[0] }
+    async embed(text) {
+      if (this._ws) {
+        const result = await this._ws.rpc('embed', { text: Array.isArray(text) ? text[0] : text })
+        return result.embedding
+      }
+      return this._embedLib().localEmbed(Array.isArray(text) ? text : [text])[0]
+    }
     async index(id, text, meta) { const idx = await this._embedIndex(); return idx.add(id, text, meta) }
     async indexMany(docs) { const idx = await this._embedIndex(); return idx.addMany(docs) }
     async search(query, opts) { const idx = await this._embedIndex(); return idx.search(query, opts) }
@@ -360,23 +552,24 @@
     }
 
     // ════════════════════════════════════════════════════════════════
-    // ADMIN — agentic-service management (requires serviceUrl)
+    // ADMIN — agentic-service management (requires serviceUrl → WS)
     // ════════════════════════════════════════════════════════════════
 
     get admin() {
-      if (!this._serviceUrl) return null
-      const base = this._serviceUrl
+      if (!this._ws) return null
+      const rpc = (method, params) => this._ws.rpc(method, params)
       return this._get('admin', () => ({
-        health: () => _json(base, '/health'),
-        status: () => _json(base, '/api/status'),
-        perf: () => _json(base, '/api/perf'),
-        config: (newConfig) => newConfig
-          ? _json(base, '/api/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newConfig) })
-          : _json(base, '/api/config'),
-        devices: () => _json(base, '/api/devices'),
-        logs: () => _json(base, '/api/logs'),
-        models: () => _json(base, '/v1/models'),
-        deleteModel: (name) => _json(base, `/api/models/${encodeURIComponent(name)}`, { method: 'DELETE' }),
+        health: () => rpc('health'),
+        status: () => rpc('status'),
+        perf: () => rpc('perf'),
+        config: (newConfig) => newConfig ? rpc('config.set', newConfig) : rpc('config.get'),
+        devices: () => rpc('devices'),
+        models: () => rpc('models'),
+        engines: () => rpc('engines'),
+        queueStats: () => rpc('queue.stats'),
+        assignments: (updates) => updates ? rpc('assignments.set', updates) : rpc('assignments.get'),
+        addToPool: (model) => rpc('pool.add', model),
+        removeFromPool: (id) => rpc('pool.remove', { id }),
       }))
     }
 
@@ -386,15 +579,16 @@
 
     capabilities() {
       const has = name => !!load(name)
+      const ws = !!this._ws
       return {
-        think: has('agentic-core'),
-        speak: has('agentic-voice'),
-        listen: has('agentic-voice'),
-        see: has('agentic-core'),
-        converse: has('agentic-core') && has('agentic-voice'),
+        think: ws || has('agentic-core'),
+        speak: ws || has('agentic-voice'),
+        listen: ws || has('agentic-voice'),
+        see: ws || has('agentic-core'),
+        converse: (ws || has('agentic-core')) && (ws || has('agentic-voice')),
         remember: has('agentic-memory'), recall: has('agentic-memory'),
         save: has('agentic-store'), load: has('agentic-store'),
-        embed: has('agentic-embed'), search: has('agentic-embed'),
+        embed: ws || has('agentic-embed'), search: has('agentic-embed'),
         perceive: has('agentic-sense'),
         decide: has('agentic-act'), act: has('agentic-act'),
         render: has('agentic-render'),
@@ -402,7 +596,7 @@
         run: has('agentic-shell'),
         spatial: has('agentic-spatial'),
         claw: has('agentic-claw'),
-        admin: !!this._serviceUrl,
+        admin: ws,
       }
     }
 
@@ -410,6 +604,7 @@
     get serviceUrl() { return this._serviceUrl }
 
     destroy() {
+      if (this._ws) { this._ws.close(); this._ws = null }
       for (const inst of Object.values(this._i)) {
         if (inst?.destroy) inst.destroy()
         else if (inst?.close) inst.close()
