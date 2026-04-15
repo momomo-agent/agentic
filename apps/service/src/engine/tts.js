@@ -6,6 +6,7 @@
  */
 
 const TTS_MODELS = [
+  { name: 'mlx-tts', description: 'Qwen3-TTS — Apple Silicon 本地高质量 TTS (MLX)', capabilities: ['tts'] },
   { name: 'kokoro', description: 'Kokoro — 高质量多语言 TTS', capabilities: ['tts'] },
   { name: 'piper', description: 'Piper — 轻量离线 TTS', capabilities: ['tts'] },
   { name: 'macos-say', description: 'macOS Say — 系统内置', capabilities: ['tts'] },
@@ -22,6 +23,24 @@ export default {
 
   async models() {
     const models = [];
+
+    // MLX-TTS (Qwen3-TTS) — Apple Silicon only
+    if (process.platform === 'darwin' && process.arch === 'arm64') {
+      try {
+        const mlx = await import('../runtime/adapters/voice/mlx-tts.js');
+        const info = await mlx.getModelInfo();
+        models.push({
+          id: 'mlx-tts',
+          name: 'mlx-tts',
+          description: 'Qwen3-TTS — Apple Silicon 本地高质量 TTS (MLX)',
+          capabilities: ['tts'],
+          installed: info.available && info.installed,
+          local: true,
+        });
+      } catch {
+        models.push({ id: 'mlx-tts', name: 'mlx-tts', description: 'Qwen3-TTS — Apple Silicon 本地高质量 TTS (MLX)', capabilities: ['tts'], installed: false, local: true });
+      }
+    }
 
     // macOS say is always available on macOS
     if (process.platform === 'darwin') {
@@ -51,6 +70,7 @@ export default {
    */
   async run(modelName, input) {
     const adapterMap = {
+      'mlx-tts':   () => import('../runtime/adapters/voice/mlx-tts.js'),
       'macos-say': () => import('../runtime/adapters/voice/macos-say.js'),
       piper:       () => import('../runtime/adapters/voice/piper.js'),
       kokoro:      () => import('../runtime/adapters/voice/kokoro.js'),

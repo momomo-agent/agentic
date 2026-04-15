@@ -929,6 +929,47 @@ function addRoutes(r) {
     }
   });
 
+  // ── TTS model install (mlx-tts, piper, etc.) ──
+
+  r.post('/api/tts/install', async (req, res) => {
+    const { model } = req.body || {};
+    const ttsModel = model || 'mlx-tts';
+
+    if (ttsModel === 'mlx-tts') {
+      try {
+        const mlx = await import('../runtime/adapters/voice/mlx-tts.js');
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        await mlx.install((progress) => {
+          res.write(`data: ${JSON.stringify(progress)}\n\n`);
+        });
+        res.write(`data: [DONE]\n\n`);
+        res.end();
+      } catch (e) {
+        if (!res.headersSent) {
+          res.status(500).json({ error: e.message });
+        } else {
+          res.write(`data: ${JSON.stringify({ step: 'error', status: 'failed', detail: e.message })}\n\n`);
+          res.end();
+        }
+      }
+    } else {
+      res.status(400).json({ error: `Install not supported for: ${ttsModel}` });
+    }
+  });
+
+  r.get('/api/tts/status', async (req, res) => {
+    try {
+      const mlx = await import('../runtime/adapters/voice/mlx-tts.js');
+      const info = await mlx.getModelInfo();
+      res.json(info);
+    } catch (e) {
+      res.json({ available: false, installed: false, error: e.message });
+    }
+  });
+
   r.get('/api/logs', (req, res) => res.json(logBuffer.slice(-50)));
 
   // ─── Extended API routes (using dynamic imports to avoid linter stripping) ──

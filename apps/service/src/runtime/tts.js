@@ -6,6 +6,7 @@ import { record } from './latency-log.js';
 // Legacy adapter map — used as final fallback when no engine is available
 // adapters/voice/openai-tts is the default cloud fallback
 const ADAPTERS = {
+  'mlx-tts':   () => import('./adapters/voice/mlx-tts.js'),
   'macos-say': () => import('./adapters/voice/macos-say.js'),
   piper:       () => import('./adapters/voice/piper.js'),
   kokoro:      () => import('./adapters/voice/kokoro.js'),
