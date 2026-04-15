@@ -92,7 +92,7 @@
     </div>
 
     <!-- 推荐本地模型 -->
-    <div class="card" v-if="ollamaAvailable">
+    <div class="card" v-if="ollamaAvailable || hasTtsModels">
       <div class="card-title">推荐下载</div>
       <div class="model-list">
         <div v-for="m in uninstalledRecommended" :key="m.name" class="model-item recommend">
@@ -100,11 +100,14 @@
             <div class="model-name">
               {{ m.name }}
               <span class="cap-badge" v-for="c in m.capabilities" :key="c">{{ capLabel(c) }}</span>
+              <span class="engine-tag" v-if="m.engineId">{{ engineLabel(m.engineId) }}</span>
             </div>
             <div class="model-desc">{{ m.description }}</div>
             <div class="model-meta" v-if="m.size">{{ m.size }}</div>
           </div>
-          <button class="btn-download" @click="pullModel(m.name)" :disabled="!!downloads[m.name]">下载</button>
+          <button class="btn-download" @click="installModel(m)" :disabled="!!downloads[m.name]">
+            {{ downloads[m.name] ? downloads[m.name].status : '下载' }}
+          </button>
         </div>
       </div>
       <!-- 自定义下载 -->
@@ -152,9 +155,17 @@ const BASE_URLS: Record<string, string> = {
 const defaultBaseUrl = computed(() => BASE_URLS[newCloud.provider] || 'https://api.example.com/v1')
 
 const ollamaAvailable = computed(() => engines.value.some(e => e.id === 'ollama' && e.available))
+const hasTtsModels = computed(() => allModels.value.some(m => m.engineId === 'tts' && m.local && !m.installed))
 const installedModels = computed(() => allModels.value.filter(m => m.installed))
 const installedNames = computed(() => new Set(installedModels.value.map(m => m.name)))
-const uninstalledRecommended = computed(() => recommended.value.filter(m => !installedNames.value.has(m.name)))
+const uninstalledRecommended = computed(() => {
+  const recs = recommended.value.filter(m => !installedNames.value.has(m.name))
+  // Also include uninstalled local TTS models from allModels
+  const ttsModels = allModels.value
+    .filter(m => m.engineId === 'tts' && m.local && !m.installed && !installedNames.value.has(m.name))
+    .filter(m => !recs.some(r => r.name === m.name))
+  return [...recs, ...ttsModels]
+})
 
 function formatSize(bytes: number) {
   if (!bytes) return ''
@@ -191,6 +202,49 @@ async function addCloudModel() {
     newCloud.capabilities = ['chat']
     await fetchAll()
   } catch (e: any) { error.value = e.message }
+}
+
+async function installModel(m: any) {
+  // Route TTS models to /api/tts/install, others to Ollama pull
+  if (m.engineId === 'tts' || m.name === 'mlx-tts') {
+    await installTtsModel(m.name)
+  } else {
+    await pullModel(m.name)
+  }
+}
+
+async function installTtsModel(name: string) {
+  downloads[name] = { status: '准备安装...', percent: 0 }
+  try {
+    const res = await fetch('/api/tts/install', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: name }),
+    })
+    const reader = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let stepCount = 0
+    const totalSteps = 3 // uv, mlx-audio, model
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      for (const line of decoder.decode(value).split('\n').filter(l => l.startsWith('data: '))) {
+        const raw = line.slice(6).trim()
+        if (raw === '[DONE]') { delete downloads[name]; await fetchAll(); return }
+        try {
+          const d = JSON.parse(raw)
+          if (d.status === 'ok') stepCount++
+          const percent = (stepCount / totalSteps) * 100
+          downloads[name] = { status: d.detail || d.step, percent: Math.min(percent, 99) }
+          if (d.status === 'failed') { downloads[name] = { status: `失败: ${d.detail}`, percent: 0 }; return }
+        } catch {}
+      }
+    }
+    delete downloads[name]
+    await fetchAll()
+  } catch (e: any) {
+    downloads[name] = { status: e.message, percent: 0 }
+  }
 }
 
 async function pullModel(name: string) {
