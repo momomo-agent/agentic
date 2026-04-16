@@ -198,7 +198,8 @@ export default {
 
     const controller = new AbortController();
     const hasImages = ollamaMessages.some(m => m.images?.length);
-    const timeout = setTimeout(() => controller.abort(), hasImages ? 30000 : 5000);
+    // First-token timeout: model cold-start can take 15-30s (loading weights into memory)
+    const timeout = setTimeout(() => controller.abort(), hasImages ? 120000 : 60000);
 
     const res = await fetch(`${host}/api/chat`, {
       method: 'POST',
