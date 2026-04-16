@@ -1,13 +1,14 @@
 import { getConfig, onConfigChange } from '../config.js';
 import { resolveModel as registryResolve, modelsForCapability, getEngine } from '../engine/registry.js';
 
-// Import agentic-core
+// Import agentic-core (UMD → ESM: exports land on .default)
 let core;
 try {
-  core = await import('agentic-core');
+  const mod = await import('agentic-core');
+  core = mod.default || mod;
 } catch {
-  const { default: _core } = await import('../../../packages/core/agentic-core.js');
-  core = _core;
+  const mod = await import('../../../packages/core/agentic-core.js');
+  core = mod.default || mod;
 }
 
 let _config = null;
@@ -95,7 +96,7 @@ async function resolveModel(slot = 'chat') {
 function registerEngineAsProvider(name, engineResolveFn) {
   if (!core.registerProvider) return;
 
-  core.registerProvider(name, async ({ messages, tools: toolDefs, model, stream, system, signal }) => {
+  core.registerProvider(name, async function* ({ messages, tools: toolDefs, system, signal }) {
     const resolved = await engineResolveFn();
     if (!resolved?.engine?.run) throw new Error(`Engine not available for provider "${name}"`);
 
@@ -108,21 +109,13 @@ function registerEngineAsProvider(name, engineResolveFn) {
       });
     }
 
-    const content = [];
-    const tool_calls = [];
     for await (const chunk of engine.run(modelName, input)) {
       if (chunk.type === 'content') {
-        content.push(chunk.text || '');
+        yield { type: 'text_delta', text: chunk.text || '' };
       } else if (chunk.type === 'tool_use') {
-        tool_calls.push({ id: chunk.id || `call_${Date.now()}_${tool_calls.length}`, name: chunk.name, input: chunk.input });
+        yield { type: 'tool_use', id: chunk.id || `call_${Date.now()}`, name: chunk.name, input: chunk.input };
       }
     }
-
-    return {
-      content: content.join(''),
-      tool_calls: tool_calls.length ? tool_calls : undefined,
-      stop_reason: tool_calls.length ? 'tool_use' : 'end_turn',
-    };
   });
 }
 

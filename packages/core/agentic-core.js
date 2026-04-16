@@ -410,13 +410,31 @@ async function* _streamCallWithFailover(opts) {
     const pApiKey = p.apiKey || apiKey
     const pProxyUrl = p.proxyUrl || proxyUrl
 
-    // Custom providers don't support generator mode — fall back to non-streaming
+    // Custom providers: support both async generator (streaming) and plain async (non-streaming)
     const custom = _customProviders.get(prov)
     if (custom) {
       try {
-        const response = await custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system, signal })
-        if (response.content) yield { type: 'text_delta', text: response.content }
-        yield { type: 'response', content: response.content, tool_calls: response.tool_calls || [], stop_reason: response.stop_reason }
+        const result = custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system, signal })
+        if (result && typeof result[Symbol.asyncIterator] === 'function') {
+          // Streaming custom provider
+          let content = ''; const tool_calls = []
+          for await (const chunk of result) {
+            if (chunk.type === 'text_delta' || chunk.type === 'content') {
+              const text = chunk.text || ''
+              content += text
+              yield { type: 'text_delta', text }
+            } else if (chunk.type === 'tool_use') {
+              tool_calls.push(chunk)
+              yield chunk
+            }
+          }
+          yield { type: 'response', content, tool_calls, stop_reason: tool_calls.length ? 'tool_use' : 'end_turn' }
+        } else {
+          // Non-streaming custom provider
+          const response = await result
+          if (response.content) yield { type: 'text_delta', text: response.content }
+          yield { type: 'response', content: response.content, tool_calls: response.tool_calls || [], stop_reason: response.stop_reason }
+        }
         return
       } catch (err) { lastErr = err; if (i < providerList.length - 1) continue; throw err }
     }

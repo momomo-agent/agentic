@@ -1,84 +1,79 @@
 import { startMark, endMark } from '../runtime/profiler.js';
-import { isCloudMode, setCloudMode, incrementErrors, getErrorCount, startProbing } from './providers.js';
-
-// Import agentic-core
-let core;
-try {
-  core = await import('agentic-core');
-} catch {
-  const { default: _core } = await import('../../../packages/core/agentic-core.js');
-  core = _core;
-}
+import { resolveModel, modelsForCapability } from '../engine/registry.js';
+import { getConfig } from '../config.js';
 
 const tools = new Map();
-const MAX_ERRORS = 3;
 
 export function registerTool(name, fn) {
   tools.set(name, fn);
-  if (core.toolRegistry) {
-    core.toolRegistry.register(name, { name, description: `service tool: ${name}`, execute: fn });
-  }
 }
 
 function hasVisionContent(messages) {
   for (const msg of messages) {
-    if (Array.isArray(msg.content)) {
-      if (msg.content.some(b => b.type === 'image_url')) return true;
-    }
+    if (Array.isArray(msg.content) && msg.content.some(b => b.type === 'image_url')) return true;
   }
   return false;
 }
 
-const EAGER_SYSTEM = 'When using tools, call them FIRST before any text explanation. Do not narrate what you are about to do — just call the tool, then explain after you have the result.'
+const _modelCache = new Map(); // slot → { resolved, ts }
+const MODEL_CACHE_TTL = 30_000;
+
+async function findModel(slot) {
+  const cached = _modelCache.get(slot);
+  if (cached && Date.now() - cached.ts < MODEL_CACHE_TTL) return cached.resolved;
+
+  const config = await getConfig();
+  const assigned = config.assignments?.[slot];
+  if (assigned) {
+    const r = await resolveModel(assigned);
+    if (r) { _modelCache.set(slot, { resolved: r, ts: Date.now() }); return r; }
+  }
+  const cap = slot === 'chatFallback' ? 'chat' : slot;
+  const models = await modelsForCapability(cap);
+  if (models.length > 0) {
+    const r = await resolveModel(models[0].id);
+    if (r) { _modelCache.set(slot, { resolved: r, ts: Date.now() }); return r; }
+  }
+  return null;
+}
 
 export async function* chat(input, options = {}) {
   const messages = typeof input === 'string'
     ? [...(options.history || []), { role: 'user', content: input }]
     : input;
 
-  const registeredTools = [...tools.entries()].map(([name, fn]) => ({
-    name, description: `service tool: ${name}`,
-    parameters: { type: 'object', properties: {} },
-    execute: fn,
-  }));
-  const mergedTools = [...(options.tools || []), ...registeredTools];
-
   startMark('llm');
 
+  const slot = hasVisionContent(messages) ? 'vision' : 'chat';
+  let resolved = await findModel(slot);
+  if (!resolved && slot === 'vision') resolved = await findModel('chat');
+
+  if (!resolved) {
+    yield { type: 'error', error: 'No local model available' };
+    endMark('llm');
+    return;
+  }
+
+  const { engine, modelName } = resolved;
+  const runInput = { messages };
+
+  const mergedTools = [
+    ...(options.tools || []),
+    ...[...tools.entries()].map(([name, fn]) => ({
+      name, description: `service tool: ${name}`, parameters: { type: 'object', properties: {} }, execute: fn,
+    })),
+  ];
+  if (mergedTools.length > 0) {
+    runInput.tools = mergedTools.map(t => ({ name: t.name, description: t.description || '', parameters: t.parameters || {} }));
+  }
+
   try {
-    const needsVision = hasVisionContent(messages);
-    const providers = [];
-
-    if (!isCloudMode()) {
-      providers.push({ provider: needsVision ? 'local-vision' : 'local' });
-    }
-    providers.push({ provider: 'cloud-fallback' });
-
-    const userSystem = options.system
-    const system = userSystem ? `${EAGER_SYSTEM}\n\n${userSystem}` : EAGER_SYSTEM
-
-    const iter = core.agenticAsk('', {
-      provider: providers[0].provider,
-      providers,
-      tools: mergedTools,
-      history: messages,
-      stream: true,
-      system,
-    });
-
-    for await (const chunk of iter) {
-      yield chunk;
+    for await (const chunk of engine.run(modelName, runInput)) {
+      if (chunk.type === 'content') yield { type: 'text_delta', text: chunk.text };
+      else if (chunk.type === 'tool_use') yield chunk;
     }
   } catch (err) {
-    const isTimeout = err.name === 'TimeoutError' || err.name === 'AbortError';
-    if (!isTimeout) incrementErrors();
-
-    if (isTimeout || getErrorCount() >= MAX_ERRORS) {
-      setCloudMode(true);
-      startProbing();
-      console.log(`[core-bridge] switching to cloud mode (timeout=${isTimeout}, errors=${getErrorCount()})`);
-    }
-
+    console.error('[core-bridge] engine error:', err.message);
     yield { type: 'error', error: err.message };
   }
 

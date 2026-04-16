@@ -22,7 +22,7 @@ async function* withRetry(fn, { maxRetries, shouldRetry, getDelay, engineName })
 }
 
 function getHost(config) {
-  return config?.ollamaHost || config?.ollama?.host || process.env.OLLAMA_HOST || 'http://localhost:11434';
+  return config?.ollamaHost || config?.ollama?.host || process.env.OLLAMA_HOST || 'http://127.0.0.1:11434';
 }
 
 // Known capability hints by model name patterns
