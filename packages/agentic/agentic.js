@@ -133,7 +133,7 @@
           type: 'think',
           _reqId: reqId,
           messages,
-          options: { tools: options.tools, prefer: options.prefer, model: options.model, baseUrl: options.baseUrl, apiKey: options.apiKey },
+          options: { tools: options.tools, prefer: options.prefer },
         }))
       })
     }
@@ -235,17 +235,21 @@
           ? [...opts.history, { role: 'user', content: input }]
           : [{ role: 'user', content: input }]
         if (opts.system) messages.unshift({ role: 'system', content: opts.system })
-        return this._ws.chat(messages, { tools: opts.tools, emit: opts.emit, prefer: opts.prefer, model: opts.model, baseUrl: opts.baseUrl, apiKey: opts.apiKey })
+        return this._ws.chat(messages, { tools: opts.tools, emit: opts.emit, prefer: opts.prefer })
       }
 
       const core = this._need('agentic-core')
       const ask = core.agenticAsk || core
 
+      // Resolve prefer → provider/baseUrl/apiKey/model overrides
+      const pref = opts.prefer
+      const prefObj = pref && typeof pref === 'object' ? pref : null
+
       const config = {
-        provider: opts.provider || this._cfgFor('llm', 'provider'),
-        baseUrl: opts.baseUrl || this._cfgFor('llm', 'baseUrl'),
-        apiKey: opts.apiKey || this._cfgFor('llm', 'apiKey'),
-        model: opts.model || this._cfgFor('llm', 'model'),
+        provider: prefObj?.provider || opts.provider || this._cfgFor('llm', 'provider'),
+        baseUrl: prefObj?.baseUrl || opts.baseUrl || this._cfgFor('llm', 'baseUrl'),
+        apiKey: prefObj?.key || opts.apiKey || this._cfgFor('llm', 'apiKey'),
+        model: prefObj?.model || opts.model || this._cfgFor('llm', 'model'),
         system: opts.system || this._opts.system,
         stream: opts.stream || false,
       }
