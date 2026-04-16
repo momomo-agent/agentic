@@ -491,6 +491,8 @@ async function* _streamCallWithFailover(opts) {
           if (td.arguments) oaiToolMap[td.index].arguments += td.arguments
         } else if (evt.type === 'stop') {
           stopReason = evt.stop_reason
+        } else if (evt.type === 'usage') {
+          yield evt
         }
       }
 
@@ -978,6 +980,11 @@ async function* _streamAnthropicGen(url, headers, body, signal) {
       try {
         const event = JSON.parse(data)
         
+        // Emit usage from message_start (includes cache stats)
+        if (event.type === 'message_start' && event.message?.usage) {
+          yield { type: 'usage', usage: event.message.usage }
+        }
+
         if (event.type === 'content_block_delta') {
           if (event.delta?.type === 'text_delta') {
             yield { type: 'text_delta', text: event.delta.text }
@@ -999,6 +1006,7 @@ async function* _streamAnthropicGen(url, headers, body, signal) {
             currentToolInput = ''
           }
         } else if (event.type === 'message_delta') {
+          if (event.usage) yield { type: 'usage', usage: event.usage }
           if (event.delta?.stop_reason) yield { type: 'stop', stop_reason: event.delta.stop_reason }
         }
       } catch {}

@@ -232,30 +232,33 @@ async function handleRpc(ws, msg) {
 
       // ── Embed ──
       case 'embed': {
-        const vec = await embed(params.text);
+        const vec = await embed(params.text, params.options);
         result = { embedding: vec };
         break;
       }
 
-      // ── STT ──
-      case 'transcribe': {
+      // ── Listen (STT) ──
+      case 'listen':
+      case 'transcribe': { // compat
         const buf = Buffer.from(params.audio, 'base64');
         const text = await stt.transcribe(buf, params.options);
         result = { text };
         break;
       }
 
-      // ── TTS ──
-      case 'synthesize': {
+      // ── Speak (TTS) ──
+      case 'speak':
+      case 'synthesize': { // compat
         const audio = await tts.synthesize(params.text, params.options);
         result = { audio: Buffer.from(audio).toString('base64') };
         break;
       }
 
-      // ── Vision ──
-      case 'vision': {
+      // ── See (Vision) ──
+      case 'see':
+      case 'vision': { // compat
         const chunks = [];
-        for await (const chunk of brainChat(params.messages, { vision: true })) {
+        for await (const chunk of brainChat(params.messages, { vision: true, ...params.options })) {
           if (chunk.type === 'text_delta') chunks.push(chunk.text);
         }
         result = { text: chunks.join('') };
@@ -320,7 +323,7 @@ export function initWebSocket(httpServer) {
           pending.resolve(msg.data);
           pendingCaptures.delete(msg.requestId);
         }
-      } else if (msg.type === 'chat') {
+      } else if (msg.type === 'chat' || msg.type === 'think') {
         handleChat(ws, msg).catch(err => {
           console.error('[chat error]', err.message);
           try { ws.send(JSON.stringify({ type: 'chat_error', error: err.message, _reqId: msg._reqId })); } catch {}

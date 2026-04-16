@@ -130,10 +130,10 @@
       return new Promise((resolve, reject) => {
         pending.set(reqId, { resolve, reject, chunks: [], onDelta: options.emit })
         ws.send(JSON.stringify({
-          type: 'chat',
+          type: 'think',
           _reqId: reqId,
           messages,
-          options: { tools: options.tools },
+          options: { tools: options.tools, prefer: options.prefer, model: options.model, baseUrl: options.baseUrl, apiKey: options.apiKey },
         }))
       })
     }
@@ -235,7 +235,7 @@
           ? [...opts.history, { role: 'user', content: input }]
           : [{ role: 'user', content: input }]
         if (opts.system) messages.unshift({ role: 'system', content: opts.system })
-        return this._ws.chat(messages, { tools: opts.tools, emit: opts.emit })
+        return this._ws.chat(messages, { tools: opts.tools, emit: opts.emit, prefer: opts.prefer, model: opts.model, baseUrl: opts.baseUrl, apiKey: opts.apiKey })
       }
 
       const core = this._need('agentic-core')
@@ -292,7 +292,7 @@
 
     async speak(text, opts) {
       if (this._ws) {
-        const result = await this._ws.rpc('synthesize', { text, options: opts })
+        const result = await this._ws.rpc('speak', { text, options: opts })
         // result.audio is base64
         if (typeof Buffer !== 'undefined') return Buffer.from(result.audio, 'base64')
         const bin = atob(result.audio)
@@ -331,7 +331,7 @@
         const b64 = typeof audio === 'string' ? audio
           : (typeof Buffer !== 'undefined' && Buffer.isBuffer(audio)) ? audio.toString('base64')
           : _toBase64(audio)
-        const result = await this._ws.rpc('transcribe', { audio: b64, options: opts })
+        const result = await this._ws.rpc('listen', { audio: b64, options: opts })
         return result.text
       }
       return this._stt().transcribe(audio, opts)
@@ -352,7 +352,7 @@
           { type: 'text', text: prompt },
           { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64}` } },
         ]}]
-        const result = await this._ws.rpc('vision', { messages })
+        const result = await this._ws.rpc('see', { messages, options: opts })
         return result.text
       }
       return this.think(prompt, { ...opts, images: [{ url: `data:image/jpeg;base64,${b64}` }] })
