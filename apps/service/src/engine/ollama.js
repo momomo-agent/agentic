@@ -14,7 +14,8 @@ async function* withRetry(fn, { maxRetries, shouldRetry, getDelay, engineName })
       lastError = err;
       if (attempt > maxRetries || !shouldRetry(err)) throw err;
       const delay = getDelay(err, attempt);
-      console.log(`[retry] engine=${engineName} attempt=${attempt + 1} reason=${err.message}`);
+      const reason = /aborted/i.test(err.message) ? 'model loading timeout, retrying...' : err.message;
+      console.log(`[ollama] ${engineName} attempt ${attempt + 1}/${maxRetries + 1}: ${reason}`);
       await new Promise(r => setTimeout(r, delay));
     }
   }

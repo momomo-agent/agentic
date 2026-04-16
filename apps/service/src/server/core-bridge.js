@@ -74,7 +74,15 @@ export async function* chat(input, options = {}) {
     }
   } catch (err) {
     console.error('[core-bridge] engine error:', err.message);
-    yield { type: 'error', error: err.message };
+    let userMessage = err.message;
+    if (err.name === 'AbortError' || /aborted/i.test(err.message)) {
+      userMessage = `Model timed out — ${modelName} may still be loading into memory. Try again in a few seconds.`;
+    } else if (/ECONNREFUSED/i.test(err.message)) {
+      userMessage = `Cannot connect to Ollama (${resolved.provider}). Is it running?`;
+    } else if (/fetch failed/i.test(err.message)) {
+      userMessage = `Lost connection to model engine. Check if Ollama is still running.`;
+    }
+    yield { type: 'error', error: userMessage };
   }
 
   chat._lastMs = endMark('llm');
