@@ -31,6 +31,12 @@
   const _cache = {}
   function load(name) {
     if (_cache[name] !== undefined) return _cache[name]
+    // Browser: check global scope for pre-loaded UMD modules
+    // Convention: 'agentic-core' → AgenticCore, 'agentic-store' → AgenticStore, etc.
+    if (typeof window !== 'undefined') {
+      const globalName = name.split('-').map(s => s[0].toUpperCase() + s.slice(1)).join('')
+      if (window[globalName]) { _cache[name] = window[globalName]; return _cache[name] }
+    }
     try {
       if (typeof require === 'function') _cache[name] = require(name)
       else _cache[name] = null
@@ -402,7 +408,9 @@
     async _store() {
       if (!this._i.store) {
         const mod = this._need('agentic-store')
-        const s = await mod.createStore({ backend: 'sqlite', ...this._opts.store })
+        const storeOpts = this._opts.store || {}
+        const name = storeOpts.name || 'agentic'
+        const s = await mod.createStore(name, storeOpts)
         this._i.store = s
       }
       return this._i.store
