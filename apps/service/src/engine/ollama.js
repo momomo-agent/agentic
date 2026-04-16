@@ -172,10 +172,22 @@ export default {
       return out;
     });
 
+    // Disable thinking by default (configurable via config.ollama.thinking)
+    const thinking = config?.ollama?.thinking ?? false;
+
+    // Append /no_think for qwen3-style models that use prompt-based control
+    if (!thinking) {
+      const lastUser = [...ollamaMessages].reverse().find(m => m.role === 'user');
+      if (lastUser && typeof lastUser.content === 'string' && !lastUser.content.includes('/no_think')) {
+        lastUser.content += ' /no_think';
+      }
+    }
+
     const body = {
       model: modelName,
       messages: ollamaMessages,
       stream: true,
+      think: thinking,  // Ollama native think param (gemma4, etc.)
     };
     if (input.tools?.length) {
       body.tools = input.tools.map(t => ({
