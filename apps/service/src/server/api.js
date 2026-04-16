@@ -503,6 +503,19 @@ function addRoutes(r) {
     res.json({ hardware, config, ollama, devices: getDevices(), download });
   });
 
+  r.get('/api/connect-info', (req, res) => {
+    const nets = os.networkInterfaces();
+    const lanIPs = [];
+    for (const ifaces of Object.values(nets)) {
+      for (const iface of ifaces) {
+        if (iface.family === 'IPv4' && !iface.internal) lanIPs.push(iface.address);
+      }
+    }
+    const port = req.socket.localPort || 11234;
+    const wsUrl = `ws://${lanIPs[0] || '127.0.0.1'}:${port}`;
+    res.json({ wsUrl, lanIPs, port });
+  });
+
   r.get('/api/devices', (req, res) => res.json(getDevices()));
 
   r.get('/api/config', async (req, res) => res.json(await getConfig()));

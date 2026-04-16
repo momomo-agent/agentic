@@ -132,6 +132,21 @@
       </div>
     </div>
 
+    <!-- 连接二维码 -->
+    <div class="card" style="margin-top: 24px" v-if="connectInfo">
+      <div class="card-title">扫码连接 iOS App</div>
+      <div style="display:flex;align-items:center;gap:24px;padding:8px 0">
+        <img v-if="qrDataUrl" :src="qrDataUrl" width="160" height="160" style="border-radius:8px" />
+        <div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">局域网 WebSocket 地址</div>
+          <code style="font-size:14px;font-weight:600">{{ connectInfo.wsUrl }}</code>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-tertiary)">
+            其他 IP：{{ connectInfo.lanIPs.slice(1).join(' · ') || '无' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 实时日志 -->
     <div class="card" style="margin-top: 24px">
       <div class="card-header">
@@ -152,6 +167,7 @@
 
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import QRCode from 'qrcode'
 
 const status = ref({})
 const config = ref({})
@@ -168,6 +184,16 @@ let deviceTimer = null
 
 const sttOk = ref(false)
 const ttsOk = ref(false)
+const connectInfo = ref(null)
+const qrDataUrl = ref('')
+
+async function fetchConnectInfo() {
+  try {
+    const info = await fetch('/api/connect-info').then(r => r.json())
+    connectInfo.value = info
+    qrDataUrl.value = await QRCode.toDataURL(info.wsUrl, { width: 160, margin: 1 })
+  } catch {}
+}
 
 function slotDisplay(slot) {
   const id = config.value.assignments?.[slot]
@@ -235,6 +261,7 @@ function formatLogTime(ts) {
 onMounted(() => {
   fetchData()
   fetchDevices()
+  fetchConnectInfo()
   timer = setInterval(fetchData, 5000)
   logTimer = setInterval(fetchLogs, 3000)
   deviceTimer = setInterval(fetchDevices, 5000)
