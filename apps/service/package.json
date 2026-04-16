@@ -16,7 +16,8 @@
     "tunnel": "node src/tunnel.js",
     "smoke": "bash test/e2e/smoke.sh",
     "smoke:api": "bash test/e2e/smoke.sh --api-only",
-    "smoke:ui": "bash test/e2e/smoke.sh --ui-only"
+    "smoke:ui": "bash test/e2e/smoke.sh --ui-only",
+    "prestart": "test -f dist/admin/index.html || npm run build"
   },
   "keywords": [
     "ai",
