@@ -68,22 +68,30 @@ program
 
       console.log(chalk.gray('Press Ctrl+C to stop'));
 
+      let shuttingDown = false;
       function shutdown() {
+        if (shuttingDown) {
+          console.log(chalk.yellow('Forced exit'));
+          process.exit(1);
+        }
+        shuttingDown = true;
         console.log(chalk.yellow('\n\nShutting down...'));
         startDrain();
-        waitDrain(10_000).catch(() => {
+        const timeout = setTimeout(() => {
           console.warn(chalk.yellow('Drain timeout exceeded, forcing exit'));
           process.exit(1);
-        }).then(() => {
+        }, 10_000);
+        waitDrain(10_000).then(() => {
           const closing = server.http ? [server.http, server.https] : [server];
           let closed = 0;
           closing.forEach(s => s.close(() => {
             if (++closed === closing.length) {
+              clearTimeout(timeout);
               console.log(chalk.green('✓ Server closed'));
               process.exit(0);
             }
           }));
-        });
+        }).catch(() => {});
       }
 
       process.on('SIGINT', shutdown);

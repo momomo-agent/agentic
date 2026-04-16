@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
-import { promises as fs } from 'fs';
+import { promises as fs, existsSync } from 'fs';
 import path from 'path';
 import os from 'os';
 import http from 'http';
@@ -988,7 +988,10 @@ function addRoutes(r) {
   // ─── Extended API routes (using dynamic imports to avoid linter stripping) ──
   import('./api-extended.js').then(mod => mod.addExtendedRoutes(r, apiError)).catch(() => {});
 
-  const adminDist = new URL('../../dist/admin', import.meta.url).pathname;
+  const adminDist = path.resolve(new URL('.', import.meta.url).pathname, '..', '..', 'dist', 'admin');
+  if (!existsSync(path.join(adminDist, 'index.html'))) {
+    console.warn(`[admin] dist not found at ${adminDist}, run: npm run build`);
+  }
   r.use('/admin', express.static(adminDist, { etag: false, maxAge: 0 }));
   r.get('/admin', (req, res) => { res.set('Cache-Control', 'no-store'); res.sendFile(path.join(adminDist, 'index.html')); });
   

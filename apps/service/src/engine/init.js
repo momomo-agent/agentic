@@ -16,6 +16,26 @@ export async function initEngines() {
   register('whisper', whisper);
   register('tts', tts);
 
+  // Auto-start ollama if not running
+  try {
+    const res = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(2000) });
+    if (!res.ok) throw new Error('not ok');
+    console.log('[engines] ollama already running');
+  } catch {
+    console.log('[engines] ollama not running, starting...');
+    const { spawn } = await import('child_process');
+    const child = spawn('ollama', ['serve'], { detached: true, stdio: 'ignore' });
+    child.unref();
+    // Wait up to 15s for ollama to be ready
+    for (let i = 0; i < 15; i++) {
+      await new Promise(r => setTimeout(r, 1000));
+      try {
+        const r2 = await fetch('http://127.0.0.1:11434/api/tags', { signal: AbortSignal.timeout(2000) });
+        if (r2.ok) { console.log('[engines] ollama started'); break; }
+      } catch {}
+    }
+  }
+
   // 2. 云端引擎 — 从配置中读取已配置的 provider
   const config = await getConfig();
   const providers = config.providers || {};
