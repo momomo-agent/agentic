@@ -195,6 +195,9 @@ export default {
         type: 'function',
         function: { name: t.name, description: t.description || '', parameters: t.parameters || {} },
       }));
+      console.log(`[ollama] Sending ${body.tools.length} tools to ${modelName}: ${body.tools.map(t => t.function.name).join(', ')}`);
+    } else {
+      console.log(`[ollama] No tools for ${modelName}`);
     }
 
     const controller = new AbortController();
@@ -233,6 +236,7 @@ export default {
             clearTimeout(timeout);
           }
           if (json.message?.tool_calls?.length) {
+            console.log(`[ollama] Model returned ${json.message.tool_calls.length} tool_calls: ${json.message.tool_calls.map(tc => tc.function?.name).join(', ')}`);
             for (const tc of json.message.tool_calls) {
               const args = typeof tc.function.arguments === 'string'
                 ? JSON.parse(tc.function.arguments) : tc.function.arguments;
