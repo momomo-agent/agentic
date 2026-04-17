@@ -106,13 +106,15 @@ export function broadcastWakeword(deviceId) {
 }
 
 async function handleChat(ws, msg) {
-  const { messages, history = [], text, options = {}, _reqId } = msg;
+  const { messages, history = [], text, options = {}, tools, _reqId } = msg;
   const chatMessages = messages || [...history, { role: 'user', content: text }];
+  const mergedOptions = tools ? { ...options, tools } : options;
 
   ws.send(JSON.stringify({ type: 'chat_start', _reqId }));
+  console.log(`[hub] chat reqId=${_reqId} tools=${tools?.length || 0} messages=${chatMessages.length}`);
 
   const chunks = [];
-  for await (const chunk of brainChat(chatMessages, options)) {
+  for await (const chunk of brainChat(chatMessages, mergedOptions)) {
     if (chunk.type === 'text_delta') {
       chunks.push(chunk.text);
       ws.send(JSON.stringify({ type: 'chat_delta', text: chunk.text, _reqId }));

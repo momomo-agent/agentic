@@ -64,7 +64,11 @@ export async function* chat(input, options = {}) {
     })),
   ];
   if (mergedTools.length > 0) {
-    runInput.tools = mergedTools.map(t => ({ name: t.name, description: t.description || '', parameters: t.parameters || {} }));
+    runInput.tools = mergedTools.map(t => {
+      // Handle OpenAI function-calling format: { type: "function", function: { name, description, parameters } }
+      const fn = t.function || t;
+      return { name: fn.name, description: fn.description || '', parameters: fn.parameters || {} };
+    });
   }
 
   try {
