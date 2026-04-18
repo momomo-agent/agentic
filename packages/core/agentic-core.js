@@ -1690,5 +1690,87 @@ async function warmup(config = {}) {
   }
 }
 
-  return { agenticAsk, warmup, classifyError, toolRegistry, synthesize, transcribe, registerProvider, unregisterProvider }
+// ── agenticStep: single-turn LLM call, caller controls tool loop ──
+// Returns { text, toolCalls, messages, done } — caller executes tools and calls step() again
+async function agenticStep(messages, config) {
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = [], proxyUrl, stream = false, system, signal, providers, emit: emitFn } = config
+
+  if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
+
+  // Build tool defs from tool objects (same format as think() tools)
+  // tools can be: array of {name, description, input_schema, execute} or string names
+  let toolDefs = []
+  if (tools.length > 0 && typeof tools[0] === 'object' && tools[0].name) {
+    // Custom tool objects — convert to provider format
+    toolDefs = tools.map(t => ({
+      name: t.name,
+      description: t.description,
+      input_schema: t.input_schema || { type: 'object', properties: {} }
+    }))
+  } else if (tools.length > 0 && typeof tools[0] === 'string') {
+    // Built-in tool names — use buildToolDefs
+    const built = buildToolDefs(tools)
+    toolDefs = built.defs
+  }
+
+  const emit = emitFn || (() => {})
+  let response
+  let text = ''
+
+  if (stream) {
+    // Streaming: yield tokens, collect response
+    try {
+      const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers })
+      for await (const evt of streamGen) {
+        if (evt.type === 'text_delta') {
+          text += evt.text
+          emit('token', { text: evt.text })
+        } else if (evt.type === 'response') {
+          response = evt
+        }
+      }
+    } catch (err) {
+      throw err
+    }
+  } else {
+    try {
+      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers })
+      text = response.content || ''
+    } catch (err) {
+      throw err
+    }
+  }
+
+  const toolCalls = response.tool_calls || []
+  const done = ['end_turn', 'stop'].includes(response.stop_reason) || toolCalls.length === 0
+
+  // Build updated messages array (append assistant message)
+  const updatedMessages = [...messages]
+  if (toolCalls.length > 0) {
+    updatedMessages.push({ role: 'assistant', content: text || '', tool_calls: toolCalls })
+  } else if (text) {
+    updatedMessages.push({ role: 'assistant', content: text })
+  }
+
+  return {
+    text,
+    toolCalls: toolCalls.map(tc => ({ id: tc.id, name: tc.name, input: tc.input })),
+    messages: updatedMessages,
+    done,
+    stopReason: response.stop_reason
+  }
+}
+
+// Helper: build tool result message for pushing back into messages after executing tools
+function buildToolResults(toolCalls, results) {
+  return toolCalls.map((tc, i) => {
+    const result = results[i]
+    const content = result.error
+      ? JSON.stringify({ error: result.error })
+      : JSON.stringify(result.output ?? result)
+    return { role: 'tool', tool_call_id: tc.id, content }
+  })
+}
+
+  return { agenticAsk, agenticStep, buildToolResults, warmup, classifyError, toolRegistry, synthesize, transcribe, registerProvider, unregisterProvider }
 })
