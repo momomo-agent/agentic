@@ -17,6 +17,8 @@ export class AgenticShell {
 
   setEnv(key: string, value: string): void { this.env.set(key, value) }
 
+  getCwd(): string { return this.cwd }
+
   private substituteEnv(cmd: string): string {
     return cmd
       .replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, n) => this.env.get(n) ?? '')

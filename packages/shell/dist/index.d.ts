@@ -7,6 +7,7 @@ declare class AgenticShell {
     private jobs;
     private nextJobId;
     setEnv(key: string, value: string): void;
+    getCwd(): string;
     private substituteEnv;
     private substituteCommands;
     constructor(fs: AgenticFileSystem);

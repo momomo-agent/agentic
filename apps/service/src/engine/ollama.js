@@ -152,6 +152,16 @@ export default {
     // Chat mode (streaming)
     // Convert OpenAI-style multimodal content to Ollama format
     const ollamaMessages = (input.messages || []).map(msg => {
+      // Normalize tool_calls: Ollama expects arguments as object, not JSON string
+      if (msg.tool_calls) {
+        const fixed = { ...msg };
+        fixed.tool_calls = msg.tool_calls.map(tc => {
+          const fn = tc.function || tc;
+          const args = typeof fn.arguments === 'string' ? (() => { try { return JSON.parse(fn.arguments); } catch { return {}; } })() : (fn.arguments || {});
+          return { function: { name: fn.name, arguments: args } };
+        });
+        return fixed;
+      }
       if (typeof msg.content === 'string') return msg;
       if (!Array.isArray(msg.content)) return msg;
       // Extract text and images from content blocks
@@ -190,6 +200,9 @@ export default {
       stream: true,
       think: thinking,  // Ollama native think param (gemma4, etc.)
     };
+    // Debug: log messages with tool roles
+    const toolMsgs = ollamaMessages.filter(m => m.role === 'tool' || m.role === 'assistant' && m.tool_calls);
+    if (toolMsgs.length) console.log(`[ollama] tool-related messages:`, JSON.stringify(toolMsgs, null, 2));
     if (input.tools?.length) {
       body.tools = input.tools.map(t => ({
         type: 'function',
@@ -203,11 +216,12 @@ export default {
     const controller = new AbortController();
     const hasImages = ollamaMessages.some(m => m.images?.length);
     // First-token timeout: model cold-start can take 15-30s (loading weights into memory)
-    const timeout = setTimeout(() => controller.abort(), hasImages ? 120000 : 60000);
+    const timeout = setTimeout(() => { controller.abort(); console.log(`[ollama] ⚠️ First-token timeout for ${modelName}`); }, hasImages ? 120000 : 60000);
 
+    console.log(`[ollama] Fetching ${host}/api/chat (${body.messages.length} messages, ${JSON.stringify(body).length} bytes)`);
     const res = await fetch(`${host}/api/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Connection': 'close' },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -215,6 +229,8 @@ export default {
       clearTimeout(timeout);
       throw new Error(`Ollama chat error: ${res.status}`);
     }
+
+    console.log(`[ollama] Fetch done, status: ${res.status} (${body.messages.length} msgs)`);
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -240,7 +256,7 @@ export default {
             for (const tc of json.message.tool_calls) {
               const args = typeof tc.function.arguments === 'string'
                 ? JSON.parse(tc.function.arguments) : tc.function.arguments;
-              yield { type: 'tool_use', name: tc.function.name, input: args, text: JSON.stringify(args) };
+              yield { type: 'tool_use', id: tc.id || `call_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, name: tc.function.name, input: args, text: JSON.stringify(args) };
             }
           }
           if (json.message?.content) {
@@ -251,6 +267,10 @@ export default {
           }
         }
       }
+      console.log(`[ollama] Stream ended: ${gotFirstToken ? 'OK' : 'NO TOKENS'}, last buf: ${buf.length} bytes`);
+    } catch (err) {
+      console.error(`[ollama] Stream error:`, err.message);
+      throw err;
     } finally {
       clearTimeout(timeout);
     }

@@ -119,13 +119,9 @@ async function handleChat(ws, msg) {
       chunks.push(chunk.text);
       ws.send(JSON.stringify({ type: 'chat_delta', text: chunk.text, _reqId }));
     } else if (chunk.type === 'tool_use') {
-      ws.send(JSON.stringify({ type: 'tool_use', id: chunk.id, name: chunk.name, input: chunk.input, _reqId }));
-    } else if (chunk.type === 'tool_progress') {
-      ws.send(JSON.stringify({ type: 'tool_progress', id: chunk.id, name: chunk.name, delta: chunk.delta, _reqId }));
-    } else if (chunk.type === 'tool_result') {
-      ws.send(JSON.stringify({ type: 'tool_result', id: chunk.id, name: chunk.name, output: chunk.output, _reqId }));
-    } else if (chunk.type === 'tool_error') {
-      ws.send(JSON.stringify({ type: 'tool_error', id: chunk.id, name: chunk.name, error: chunk.error, _reqId }));
+      const toolId = chunk.id || `call_${_reqId}_${Date.now()}`;
+      const argsStr = typeof chunk.input === 'string' ? chunk.input : JSON.stringify(chunk.input || {});
+      ws.send(JSON.stringify({ type: 'tool_use', id: toolId, name: chunk.name, input: chunk.input, arguments: argsStr, _reqId }));
     } else if (chunk.type === 'error') {
       ws.send(JSON.stringify({ type: 'chat_error', error: chunk.error, _reqId }));
     }

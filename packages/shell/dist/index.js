@@ -20,6 +20,9 @@ var AgenticShell = class {
   setEnv(key, value) {
     this.env.set(key, value);
   }
+  getCwd() {
+    return this.cwd;
+  }
   substituteEnv(cmd) {
     return cmd.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, n) => this.env.get(n) ?? "").replace(/\$([A-Za-z_][A-Za-z0-9_]*)/g, (_, n) => this.env.get(n) ?? "");
   }
