@@ -1048,6 +1048,8 @@ export async function startServer(port = 3000, { https: useHttps = false } = {})
     try {
       const { createServer } = await import('./httpsServer.js');
       httpsServer = createServer(app);
+      httpsServer.keepAliveTimeout = 0;
+      httpsServer.headersTimeout = 0;
       await listenAsync(httpsServer, port);
     } catch (err) {
       console.error(`HTTPS setup failed: ${err.message}, falling back to HTTP`);
@@ -1084,6 +1086,8 @@ export async function startServer(port = 3000, { https: useHttps = false } = {})
   }
 
   const httpServer = http.createServer(app);
+  httpServer.keepAliveTimeout = 0; // disable keepalive timeout — WebSocket streaming needs persistent connections
+  httpServer.headersTimeout = 0;
   await listenAsync(httpServer, port);
   initWebSocket(httpServer);
   startWakeWordDetection();
