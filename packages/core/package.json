@@ -1,25 +1,25 @@
 {
   "name": "agentic-core",
-  "version": "0.2.0",
+  "version": "0.3.0",
+  "type": "module",
   "description": "AI agent engine — LLM calls, tools, schema, streaming. Zero dependencies.",
-  "main": "agentic-core.js",
-  "browser": "agentic-core.js",
-  "files": [
-    "agentic-core.js",
-    "README.md"
-  ],
-  "keywords": [
-    "agent",
-    "ai",
-    "llm",
-    "tools",
-    "schema",
-    "streaming",
-    "zero-dependency"
-  ],
+  "main": "./dist/agentic-core.cjs",
+  "module": "./dist/agentic-core.es.js",
+  "browser": "./dist/agentic-core.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-core.es.js",
+      "require": "./dist/agentic-core.cjs",
+      "browser": "./dist/agentic-core.umd.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "vite build"
+  },
+  "keywords": ["agent", "ai", "llm", "tools", "schema", "streaming"],
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/momomo-agent/agentic-core.git"
+  "devDependencies": {
+    "vite": "catalog:"
   }
 }

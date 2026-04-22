@@ -1,29 +1,24 @@
 {
   "name": "agentic",
-  "version": "0.1.0",
-  "description": "给 AI 造身体 — 一次 import，所有能力",
-  "main": "agentic.js",
-  "files": ["agentic.js", "README.md"],
-  "keywords": ["ai", "agent", "llm", "toolkit", "memory", "voice", "sense"],
+  "version": "0.3.0",
+  "type": "module",
+  "description": "给 AI 造身体 — unified entry point for all agentic capabilities",
+  "main": "./dist/agentic.cjs",
+  "module": "./dist/agentic.es.js",
+  "browser": "./dist/agentic.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic.es.js",
+      "require": "./dist/agentic.cjs",
+      "browser": "./dist/agentic.umd.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "vite build"
+  },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/momomo-agent/agentic.git"
-  },
-  "peerDependencies": {
-    "agentic-core": "workspace:*",
-    "agentic-memory": "workspace:*"
-  },
-  "peerDependenciesMeta": {
-    "agentic-act": { "optional": true },
-    "agentic-claw": { "optional": true },
-    "agentic-embed": { "optional": true },
-    "agentic-filesystem": { "optional": true },
-    "agentic-render": { "optional": true },
-    "agentic-sense": { "optional": true },
-    "agentic-shell": { "optional": true },
-    "agentic-spatial": { "optional": true },
-    "agentic-store": { "optional": true },
-    "agentic-voice": { "optional": true }
+  "devDependencies": {
+    "vite": "catalog:"
   }
 }

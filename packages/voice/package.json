@@ -1,27 +1,19 @@
 {
   "name": "agentic-voice",
-  "version": "0.1.0",
-  "description": "Speech for AI apps — TTS + STT in one library",
-  "main": "agentic-voice.js",
-  "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest"
+  "version": "0.3.0",
+  "type": "module",
+  "main": "./dist/agentic-voice.cjs",
+  "module": "./dist/agentic-voice.es.js",
+  "browser": "./dist/agentic-voice.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-voice.es.js",
+      "require": "./dist/agentic-voice.cjs",
+      "browser": "./dist/agentic-voice.umd.js"
+    }
   },
-  "keywords": [
-    "ai",
-    "tts",
-    "stt",
-    "voice",
-    "speech",
-    "agentic"
-  ],
+  "files": ["dist", "src"],
+  "scripts": { "build": "vite build" },
   "license": "MIT",
-  "dependencies": {
-    "playwright": "^1.58.2"
-  },
-  "devDependencies": {
-    "@vitest/coverage-v8": "^2.1.9",
-    "jsdom": "^29.0.2",
-    "vitest": "^2.1.9"
-  }
+  "devDependencies": { "vite": "catalog:" }
 }

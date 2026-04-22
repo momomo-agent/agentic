@@ -4,10 +4,20 @@
   "version": "0.1.0",
   "description": "给 AI 造身体的零件箱",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm -r --filter './packages/*' build",
+    "build:bundle": "vite build --config vite.bundle.config.js",
+    "build:all": "pnpm build && pnpm build:bundle",
     "dev": "pnpm -r --parallel dev",
     "test": "pnpm -r test"
   },
-  "keywords": ["ai", "agent", "llm", "toolkit"],
-  "license": "MIT"
+  "keywords": [
+    "ai",
+    "agent",
+    "llm",
+    "toolkit"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^8.0.9"
+  }
 }
