@@ -129,12 +129,14 @@
       }
     }
 
-    // Format active intents for Talker context injection
-    function formatForTalker() {
-      const active = getActive()
-      if (active.length === 0) return ''
+    // Format intents for Talker context injection
+    function formatForTalker(opts = {}) {
+      const includeSettled = opts.includeSettled || false
+      const all = Object.values(_intents).map(i => ({ ...i }))
+      const items = includeSettled ? all : all.filter(i => !['done', 'failed', 'cancelled'].includes(i.status))
+      if (items.length === 0) return ''
 
-      const lines = active.map(i => {
+      const lines = items.map(i => {
         let line = `- [${i.status}] ${i.goal}`
         if (i.progress) line += ` (${i.progress})`
         if (i.dependsOn.length > 0) {
@@ -146,7 +148,13 @@
         }
         return line
       })
-      return `Active intents:\n${lines.join('\n')}`
+      return `Intents:\n${lines.join('\n')}`
+    }
+
+    function markReported(...ids) {
+      for (const id of ids) {
+        if (_intents[id]) _intents[id]._reported = true
+      }
     }
 
     function reset() {
@@ -161,7 +169,7 @@
     const api = {
       create, update, cancel, running, done, fail,
       get, getAll, getActive, onChange, formatForTalker, reset,
-      setStatus,
+      setStatus, markReported,
       ready: _ready,
     }
     return api

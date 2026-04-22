@@ -344,6 +344,7 @@ Only JSON, no explanation.`
       _intentWorker.delete(intentId)
       _workerIntent.delete(workerId)
       _logDecision(workerId, 'done', result.summary || 'completed')
+      _emit('done', { workerId, intentId, result })
       _save()
       // Free the scheduler slot so suspended workers can take it
       _scheduler.abort(workerId)
@@ -358,6 +359,7 @@ Only JSON, no explanation.`
       _intentWorker.delete(intentId)
       _workerIntent.delete(workerId)
       _logDecision(workerId, 'fail', error || 'unknown error')
+      _emit('fail', { workerId, intentId, error })
       _save()
       // Free the scheduler slot so suspended workers can take it
       _scheduler.abort(workerId)
