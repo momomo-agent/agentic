@@ -1,0 +1,9 @@
+{
+  "name": "agentic-conductor",
+  "version": "0.2.0",
+  "description": "Multi-intent dispatch engine with parallel workers, plan management, and suspend/resume",
+  "main": "conductor.js",
+  "files": ["conductor.js", "intent-state.js", "scheduler.js", "dispatcher.js"],
+  "keywords": ["agentic", "conductor", "dispatch", "multi-agent", "scheduler"],
+  "license": "MIT"
+}

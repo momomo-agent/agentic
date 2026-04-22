@@ -277,8 +277,45 @@
     }
 
     // Note: no `tools` or `stream()` here. Tools and streaming belong to Claw.
-    // Agentic is a capability dispatcher — createClaw(), think(), speak(), etc.
+    // Agentic is a capability dispatcher — createClaw(), createConductor(), think(), speak(), etc.
     // think() is for simple one-shot Q&A. For agentic tool loops, use createClaw().
+    // For multi-intent dispatch with parallel workers, use createConductor().
+
+    // ════════════════════════════════════════════════════════════════
+    // STEP — single-turn LLM call, caller controls tool loop
+    // ════════════════════════════════════════════════════════════════
+
+    async step(messages, opts = {}) {
+      const core = this._need('agentic-core')
+      if (!core.agenticStep) throw new Error('agentic-core does not support step() — update to latest version')
+
+      const config = {
+        provider: opts.provider || this._cfgFor('llm', 'provider'),
+        baseUrl: opts.baseUrl || this._cfgFor('llm', 'baseUrl'),
+        apiKey: opts.apiKey || this._cfgFor('llm', 'apiKey'),
+        model: opts.model || this._cfgFor('llm', 'model'),
+        system: opts.system || this._opts.system,
+        stream: opts.stream || false,
+        proxyUrl: opts.proxyUrl || this._opts.proxyUrl,
+        emit: opts.emit,
+      }
+      if (opts.tools) config.tools = opts.tools
+      if (opts.signal) config.signal = opts.signal
+
+      return core.agenticStep(messages, config)
+    }
+
+    // Helper: build tool result messages after executing tools
+    buildToolResults(toolCalls, results) {
+      const core = this._need('agentic-core')
+      if (core.buildToolResults) return core.buildToolResults(toolCalls, results)
+      // Fallback
+      return toolCalls.map((tc, i) => {
+        const r = results[i]
+        const content = r.error ? JSON.stringify({ error: r.error }) : JSON.stringify(r.output ?? r)
+        return { role: 'tool', tool_call_id: tc.id, content }
+      })
+    }
 
     // ════════════════════════════════════════════════════════════════
     // SPEAK — agentic-voice TTS, delegates to core for network
@@ -555,6 +592,47 @@
     }
 
     // ════════════════════════════════════════════════════════════════
+    // CONDUCTOR — multi-intent dispatch engine
+    // ════════════════════════════════════════════════════════════════
+
+    createConductor(opts = {}) {
+      const conductorMod = this._need('agentic-conductor')
+      const o = this._opts
+
+      // Build an AI adapter that uses this Agentic instance
+      const aiAdapter = {
+        chat: (messages, chatOpts = {}) => this.think(
+          messages[messages.length - 1]?.content || '',
+          {
+            history: messages.slice(0, -1),
+            system: chatOpts.system,
+            tools: chatOpts.tools,
+          }
+        ).then(r => ({ answer: r.answer || r.content || r.text, usage: r.usage }))
+      }
+
+      // Use agentic-store if available, otherwise conductor's built-in memoryStore
+      let store = opts.store
+      if (!store) {
+        try {
+          const storeMod = load('agentic-store')
+          if (storeMod) {
+            // Lazy: will be initialized on first use
+            store = null // let conductor use its built-in memoryStore for now
+            // TODO: auto-create agentic-store instance when persist option is set
+          }
+        } catch {}
+      }
+
+      return conductorMod.createConductor({
+        ai: aiAdapter,
+        systemPrompt: o.system || opts.systemPrompt,
+        ...opts,
+        store,
+      })
+    }
+
+    // ════════════════════════════════════════════════════════════════
     // ADMIN — agentic-service management (requires serviceUrl → WS)
     // ════════════════════════════════════════════════════════════════
 
@@ -599,6 +677,7 @@
         run: has('agentic-shell'),
         spatial: has('agentic-spatial'),
         claw: has('agentic-claw'),
+        conductor: has('agentic-conductor'),
         admin: ws,
       }
     }
