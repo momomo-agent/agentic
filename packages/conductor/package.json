@@ -1,9 +1,23 @@
 {
   "name": "agentic-conductor",
   "version": "0.2.0",
-  "description": "Multi-intent dispatch engine with parallel workers, plan management, and suspend/resume",
-  "main": "conductor.js",
-  "files": ["conductor.js", "intent-state.js", "scheduler.js", "dispatcher.js"],
-  "keywords": ["agentic", "conductor", "dispatch", "multi-agent", "scheduler"],
-  "license": "MIT"
+  "type": "module",
+  "main": "./dist/agentic-conductor.cjs",
+  "module": "./dist/agentic-conductor.es.js",
+  "browser": "./dist/agentic-conductor.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-conductor.es.js",
+      "require": "./dist/agentic-conductor.cjs",
+      "browser": "./dist/agentic-conductor.umd.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "vite build",
+    "test": "node test/test-conductor.js && node test/test-exhaustive.js"
+  },
+  "devDependencies": {
+    "vite": "catalog:"
+  }
 }
