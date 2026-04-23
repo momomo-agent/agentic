@@ -1,14 +1,20 @@
 {
   "name": "agentic-act",
-  "version": "0.1.0",
-  "description": "Browser automation for AI agents — clicks, types, screenshots. Zero dependencies.",
-  "main": "agentic-act.js",
-  "browser": "agentic-act.js",
-  "files": ["agentic-act.js", "README.md"],
-  "keywords": ["agent", "browser", "automation", "playwright", "zero-dependency"],
+  "version": "0.3.0",
+  "type": "module",
+  "description": "AI decision + action engine",
+  "main": "./dist/agentic-act.cjs",
+  "module": "./dist/agentic-act.es.js",
+  "browser": "./dist/agentic-act.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-act.es.js",
+      "require": "./dist/agentic-act.cjs",
+      "browser": "./dist/agentic-act.umd.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": { "build": "vite build" },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/momomo-agent/agentic-act.git"
-  }
+  "devDependencies": { "vite": "catalog:" }
 }

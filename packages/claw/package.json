@@ -1,46 +1,20 @@
 {
   "name": "agentic-claw",
-  "version": "0.1.0",
-  "description": "AI agent runtime — createClaw() wires up agentic-core + agentic-memory into a living agent.",
-  "main": "agentic-claw.js",
-  "files": [
-    "agentic-claw.js",
-    "README.md"
-  ],
-  "keywords": [
-    "agent",
-    "ai",
-    "claw",
-    "runtime",
-    "llm",
-    "zero-dependency"
-  ],
+  "version": "0.3.0",
+  "type": "module",
+  "description": "AI agent runtime",
+  "main": "./dist/agentic-claw.cjs",
+  "module": "./dist/agentic-claw.es.js",
+  "browser": "./dist/agentic-claw.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-claw.es.js",
+      "require": "./dist/agentic-claw.cjs",
+      "browser": "./dist/agentic-claw.umd.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": { "build": "vite build" },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/momomo-agent/agentic-claw.git"
-  },
-  "peerDependencies": {
-    "agentic-core": "workspace:*",
-    "agentic-memory": "workspace:*"
-  },
-  "peerDependenciesMeta": {
-    "agentic-act": { "optional": true },
-    "agentic-embed": { "optional": true },
-    "agentic-filesystem": { "optional": true },
-    "agentic-render": { "optional": true },
-    "agentic-sense": { "optional": true },
-    "agentic-shell": { "optional": true },
-    "agentic-spatial": { "optional": true },
-    "agentic-store": { "optional": true },
-    "agentic-voice": { "optional": true }
-  },
-  "devDependencies": {
-    "@vitest/coverage-v8": "^2.1.9",
-    "vitest": "^2.1.9"
-  },
-  "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest"
-  }
+  "devDependencies": { "vite": "catalog:" }
 }

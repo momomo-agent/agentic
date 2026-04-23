@@ -3,8 +3,19 @@
   "version": "0.1.0",
   "description": "Spatial reconstruction from photos using VLM. Part of the agentic family.",
   "type": "module",
-  "main": "src/index.js",
+  "main": "./dist/agentic-spatial.cjs",
+  "module": "./dist/agentic-spatial.es.js",
+  "browser": "./dist/agentic-spatial.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-spatial.es.js",
+      "require": "./dist/agentic-spatial.cjs",
+      "browser": "./dist/agentic-spatial.umd.js"
+    }
+  },
+  "files": ["dist", "src"],
   "scripts": {
+    "build": "vite build",
     "dev": "npx serve .",
     "test": "vitest run",
     "test:watch": "vitest"

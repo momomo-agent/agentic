@@ -1,16 +1,20 @@
 {
   "name": "agentic-embed",
-  "version": "0.1.0",
-  "description": "Vector search for AI — text chunking, embeddings, semantic search. Zero deps.",
-  "main": "agentic-embed.js",
-  "files": ["agentic-embed.js", "agentic-embed.min.js", "README.md"],
-  "scripts": {
-    "minify": "npx terser agentic-embed.js -c -m -o agentic-embed.min.js"
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Vector search for AI",
+  "main": "./dist/agentic-embed.cjs",
+  "module": "./dist/agentic-embed.es.js",
+  "browser": "./dist/agentic-embed.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-embed.es.js",
+      "require": "./dist/agentic-embed.cjs",
+      "browser": "./dist/agentic-embed.umd.js"
+    }
   },
-  "keywords": ["embedding", "vector", "search", "rag", "semantic", "ai", "llm", "zero-dependency"],
+  "files": ["dist", "src"],
+  "scripts": { "build": "vite build" },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/momomo-agent/agentic-embed.git"
-  }
+  "devDependencies": { "vite": "catalog:" }
 }

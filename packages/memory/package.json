@@ -1,22 +1,20 @@
 {
   "name": "agentic-memory",
-  "version": "0.2.0",
-  "description": "AI memory — conversation context + knowledge retrieval. Zero dependencies.",
-  "main": "agentic-memory.js",
-  "files": ["agentic-memory.js", "agentic-memory.min.js", "README.md"],
-  "scripts": {
-    "minify": "npx terser agentic-memory.js -c -m -o agentic-memory.min.js",
-    "test": "vitest run",
-    "test:watch": "vitest"
+  "version": "0.3.0",
+  "type": "module",
+  "description": "AI memory system",
+  "main": "./dist/agentic-memory.cjs",
+  "module": "./dist/agentic-memory.es.js",
+  "browser": "./dist/agentic-memory.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-memory.es.js",
+      "require": "./dist/agentic-memory.cjs",
+      "browser": "./dist/agentic-memory.umd.js"
+    }
   },
-  "keywords": ["memory", "conversation", "context", "knowledge", "embedding", "vector", "search", "rag", "ai", "llm", "zero-dependency"],
+  "files": ["dist", "src"],
+  "scripts": { "build": "vite build" },
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/momomo-agent/agentic-memory.git"
-  },
-  "devDependencies": {
-    "@vitest/coverage-v8": "^2.1.9",
-    "vitest": "^2.1.9"
-  }
+  "devDependencies": { "vite": "catalog:" }
 }

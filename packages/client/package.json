@@ -1,0 +1,20 @@
+{
+  "name": "agentic-client",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Client SDK for agentic-service",
+  "main": "./dist/agentic-client.cjs",
+  "module": "./dist/agentic-client.es.js",
+  "browser": "./dist/agentic-client.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-client.es.js",
+      "require": "./dist/agentic-client.cjs",
+      "browser": "./dist/agentic-client.umd.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": { "build": "vite build" },
+  "license": "MIT",
+  "devDependencies": { "vite": "catalog:" }
+}
