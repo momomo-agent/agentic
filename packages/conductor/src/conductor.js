@@ -46,12 +46,19 @@ Rules:
 - Sequential tasks → use dependsOn with the ID of the prerequisite
 - Always include a natural language reply before/after the intents block`
 
+function buildCapabilityList(tools) {
+  if (!tools || tools.length === 0) return ''
+  const lines = tools.map(t => `- ${t.name}: ${t.description || '(no description)'}`)
+  return `\n## Your Capabilities\nYou can do these things (via background workers):\n${lines.join('\n')}`
+}
+
 export function createConductor(opts = {}) {
   const {
     ai, tools = [], systemPrompt = '', formatContext = null,
     strategy = 'dispatch', store = null, maxSlots = 3,
     maxTurnBudget = 30, maxTokenBudget = 200000, turnQuantum = 10,
     dispatchMode = 'llm', planMode = true, onWorkerStart = null,
+    personality = '', talkerDirectives = '', workerDirectives = '',
   } = opts
 
   if (!ai) throw new Error('ai instance is required')
@@ -127,11 +134,18 @@ export function createConductor(opts = {}) {
 
   async function chat(input, chatOpts = {}) {
     _talkerMessages.push({ role: 'user', content: input })
-    let sys = TALKER_SYSTEM
-    if (systemPrompt) sys = systemPrompt + '\n\n' + TALKER_SYSTEM
+    // Build Talker system prompt: personality + directives + capabilities + worker context
+    let sys = ''
+    if (personality) sys += personality + '\n\n'
+    if (systemPrompt) sys += systemPrompt + '\n\n'
+    sys += talkerDirectives || TALKER_SYSTEM
+    sys += buildCapabilityList(tools)
     if (formatContext) sys += '\n\n' + formatContext()
     const intentContext = intentState.formatForTalker()
     if (intentContext) sys += '\n\n' + intentContext
+    // Inject worker conversation context so Talker knows what Workers are doing
+    const workerContext = dispatcher.formatWorkerContext()
+    if (workerContext) sys += '\n\n## Worker Activity\n' + workerContext
     const result = await ai.chat(_talkerMessages, { system: sys, ...chatOpts })
     const answer = result.answer || result.content || result.text || ''
     _talkerMessages.push({ role: 'assistant', content: answer })
@@ -181,6 +195,13 @@ export function createConductor(opts = {}) {
     planSteps: (workerId, planned) => dispatcher.planSteps(workerId, planned),
     getSteps: (workerId) => dispatcher.getSteps(workerId),
     advanceStep: (workerId, stepIndex) => dispatcher.advanceStep(workerId, stepIndex),
+    getWorkerContext: (wid) => wid != null ? dispatcher.getWorkerMessages(wid) : dispatcher.formatWorkerContext(),
+    buildWorkerSystem: () => {
+      let sys = ''
+      if (personality) sys += personality + '\n\n'
+      sys += workerDirectives || 'You are the execution engine. Execute the given task using tools.\nCRITICAL: You MUST use tools to complete tasks. NEVER answer with just text.'
+      return sys
+    },
     getState, getIntents: () => intentState.getAll(), on, destroy,
     _intentState: intentState, _scheduler: scheduler, _dispatcher: dispatcher,
   }

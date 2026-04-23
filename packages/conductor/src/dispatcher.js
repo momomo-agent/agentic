@@ -11,7 +11,8 @@ export function createDispatcher(opts = {}) {
   let _ai = opts.ai || null
   let _dispatchMode = opts.mode || 'llm'
 
-  const _workers = new Map()
+  const _workers = new Map()       // workerId → worker state
+  const _workerMessages = new Map() // workerId → messages array (worker conversation history)
   const _intentWorker = new Map()
   const _workerIntent = new Map()
   const _decisionLog = []
@@ -170,6 +171,14 @@ export function createDispatcher(opts = {}) {
     const turnTokens = turnResult.usage ? (turnResult.usage.input_tokens || 0) + (turnResult.usage.output_tokens || 0) : (turnResult.tokens || 0)
     if (turnTokens) w.totalTokens = (w.totalTokens || 0) + turnTokens
     if (turnResult.toolCalls) w.toolCallCount = (w.toolCallCount || 0) + turnResult.toolCalls.length
+    // Store worker messages (keep last 20 for shared context)
+    if (turnResult.messages) {
+      _workerMessages.set(workerId, turnResult.messages.slice(-20))
+    }
+    // Track last tool name for quick status
+    if (turnResult.toolCalls?.length > 0) {
+      w.lastTool = turnResult.toolCalls[turnResult.toolCalls.length - 1].name
+    }
     if (w.steps.length > 0 && turnResult.toolCalls?.length > 0) {
       const META = new Set(['plan_steps', 'done', 'update_progress'])
       const realCalls = turnResult.toolCalls.filter(tc => !META.has(tc.name))
@@ -193,10 +202,12 @@ export function createDispatcher(opts = {}) {
 
   function workerCompleted(workerId, result = {}) {
     const intentId = _workerIntent.get(workerId)
+    // Preserve final messages before cleanup
+    const finalMessages = _workerMessages.get(workerId) || []
     if (intentId) { if (result.summary) _intentState.update(intentId, { progress: result.summary }); _intentState.done(intentId) }
-    _workers.delete(workerId); _intentWorker.delete(intentId); _workerIntent.delete(workerId)
+    _workers.delete(workerId); _workerMessages.delete(workerId); _intentWorker.delete(intentId); _workerIntent.delete(workerId)
     _logDecision(workerId, 'done', result.summary || 'completed')
-    _emit('done', { workerId, intentId, result })
+    _emit('done', { workerId, intentId, result, messages: finalMessages })
     _save()
     _scheduler.abort(workerId)
     _autoResumeSuspended()
@@ -205,7 +216,7 @@ export function createDispatcher(opts = {}) {
   function workerFailed(workerId, error) {
     const intentId = _workerIntent.get(workerId)
     if (intentId) _intentState.fail(intentId)
-    _workers.delete(workerId); _intentWorker.delete(intentId); _workerIntent.delete(workerId)
+    _workers.delete(workerId); _workerMessages.delete(workerId); _intentWorker.delete(intentId); _workerIntent.delete(workerId)
     _logDecision(workerId, 'fail', error || 'unknown error')
     _emit('fail', { workerId, intentId, error })
     _save()
@@ -230,7 +241,36 @@ export function createDispatcher(opts = {}) {
   function getSuspended() { return _scheduler.getSuspended() }
   function getWorker(id) { return _workers.has(id) ? { ..._workers.get(id) } : null }
   function getWorkers() { return Array.from(_workers.values()).map(w => ({ ...w })) }
+  function getWorkerMessages(workerId) { return _workerMessages.get(workerId) || [] }
   function getDecisionLog() { return [..._decisionLog] }
+
+  /**
+   * Format worker context for Talker — includes conversation history.
+   * Talker sees what Workers have done: tool calls, results, progress.
+   */
+  function formatWorkerContext(opts = {}) {
+    const maxMessages = opts.maxMessages || 10
+    const maxChars = opts.maxChars || 500
+    const parts = []
+    for (const [wid, w] of _workers) {
+      if (w.status !== 'running' && w.status !== 'suspended') continue
+      const msgs = _workerMessages.get(wid) || []
+      if (msgs.length === 0) {
+        parts.push(`Worker #${wid} "${w.task.slice(0, 50)}": ${w.status}, turn ${w.turnCount || 0}${w.lastTool ? ', last tool: ' + w.lastTool : ''}`)
+        continue
+      }
+      const recent = msgs.slice(-maxMessages)
+      const formatted = recent.map(m => {
+        const role = m.role === 'assistant' ? 'Worker' : m.role === 'tool' ? 'ToolResult' : 'System'
+        const limit = m.role === 'tool' ? maxChars : Math.floor(maxChars * 0.6)
+        const content = typeof m.content === 'string' ? m.content : JSON.stringify(m.content)
+        const trimmed = content.length > limit ? content.slice(0, limit) + '...' : content
+        return `  [${role}] ${trimmed}`
+      }).join('\n')
+      parts.push(`Worker #${wid} "${w.task.slice(0, 50)}" (turn ${w.turnCount || 0}):\n${formatted}`)
+    }
+    return parts.length > 0 ? parts.join('\n\n') : ''
+  }
 
   function planSteps(workerId, planned) {
     const w = _workers.get(workerId)
@@ -253,7 +293,7 @@ export function createDispatcher(opts = {}) {
   function on(fn) { _listeners.push(fn); return () => { const i = _listeners.indexOf(fn); if (i >= 0) _listeners.splice(i, 1) } }
 
   function reset() {
-    _workers.clear(); _intentWorker.clear(); _workerIntent.clear()
+    _workers.clear(); _workerMessages.clear(); _intentWorker.clear(); _workerIntent.clear()
     _decisionLog.length = 0; _nextWorkerId = 1; _listeners.length = 0
   }
 
@@ -263,6 +303,7 @@ export function createDispatcher(opts = {}) {
   return {
     beforeTurn, afterTurn, workerCompleted, workerFailed,
     resumeWorker, getSuspended, planSteps, getSteps, advanceStep,
-    getWorker, getWorkers, getDecisionLog, setMode, on, reset, ready: _ready,
+    getWorker, getWorkers, getWorkerMessages, getDecisionLog,
+    formatWorkerContext, setMode, on, reset, ready: _ready,
   }
 }
