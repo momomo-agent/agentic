@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { AgenticSense } from '../agentic-sense.js'
+import { AgenticSense } from '../src/index.js'
 
 describe('AgenticSense', () => {
   let mockVideo

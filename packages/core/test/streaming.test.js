@@ -35,7 +35,7 @@ afterEach(() => {
   globalThis.fetch = originalFetch
 })
 
-const mod = await import(join(__dirname, '..', 'agentic-core.js'))
+const mod = await import(join(__dirname, '..', 'src', 'index.js'))
 const exports = mod.default || mod
 const { agenticAsk, classifyError } = exports
 

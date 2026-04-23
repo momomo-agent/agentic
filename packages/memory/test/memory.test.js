@@ -7,7 +7,7 @@ import {
   chunkText,
   cosineSimilarity,
   localEmbed,
-} from '../agentic-memory.js'
+} from '../src/index.js'
 
 describe('AgenticMemory', () => {
   describe('createMemory', () => {

@@ -7,7 +7,7 @@
  * 运行: cd packages/agentic && node --test test/unit.test.js
  */
 import { describe, it, expect } from 'vitest'
-import { Agentic, ai as defaultAi } from '../agentic.js'
+import { Agentic, ai as defaultAi } from '../src/index.js'
 
 // ════════════════════════════════════════════════════════════════════
 // 1. 构造 + 配置

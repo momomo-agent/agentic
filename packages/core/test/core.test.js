@@ -42,7 +42,7 @@ afterEach(() => {
 })
 
 // Import the module (ES module with relative imports)
-const mod = await import(join(__dirname, '..', 'agentic-core.js'))
+const mod = await import(join(__dirname, '..', 'src', 'index.js'))
 const exports = mod.default || mod
 const { agenticAsk } = exports
 

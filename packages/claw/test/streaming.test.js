@@ -52,7 +52,7 @@ globalThis.AgenticMemory = {
 }
 
 const require = createRequire(import.meta.url)
-const { createClaw } = require('../agentic-claw.js')
+const { createClaw } = require('../src/index.js')
 
 describe('claw streaming upgrade', () => {
   before(() => {

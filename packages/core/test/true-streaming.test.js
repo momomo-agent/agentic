@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const mod = await import(join(__dirname, '..', 'agentic-core.js'))
+const mod = await import(join(__dirname, '..', 'src', 'index.js'))
 const { agenticAsk } = mod.default || mod
 
 // Helper: create a fake SSE ReadableStream that yields tokens one by one

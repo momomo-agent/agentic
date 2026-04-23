@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { AgenticAct } from '../agentic-act.js'
+import { AgenticAct } from '../src/index.js'
 
 describe('AgenticAct', () => {
   let act

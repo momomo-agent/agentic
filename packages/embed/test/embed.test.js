@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { AgenticEmbed } from '../agentic-embed.js'
+import * as AgenticEmbed from '../src/index.js'
 
 describe('AgenticEmbed', () => {
   let store

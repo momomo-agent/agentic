@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { createStore } from '../agentic-store.js'
+import { createStore } from '../src/index.js'
 import fs from 'fs'
 import path from 'path'
 

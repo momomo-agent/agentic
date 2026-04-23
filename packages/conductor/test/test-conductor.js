@@ -1,6 +1,6 @@
 /* test-conductor.js — End-to-end tests for agentic-conductor */
 
-const { createConductor } = require('./conductor')
+import { createConductor } from '../src/conductor.js'
 
 let passed = 0, failed = 0, total = 0
 function assert(cond, msg) {

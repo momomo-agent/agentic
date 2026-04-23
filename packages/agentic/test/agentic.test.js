@@ -5,11 +5,11 @@
  *
  * 运行: cd packages/agentic && node --test test/agentic.test.js
  */
-const { describe, it, before, after, beforeEach } = require('node:test')
-const assert = require('node:assert/strict')
-const fs = require('fs')
+import { describe, it, before, after, beforeEach } from 'node:test'
+import assert from 'node:assert/strict'
+import fs from 'fs'
 
-const { Agentic } = require('../agentic.js')
+import { Agentic } from '../src/index.js'
 
 const OLLAMA = {
   provider: 'ollama',
@@ -734,8 +734,8 @@ describe('serviceUrl + core delegation', () => {
     }
   })
 
-  it('core 导出 synthesize 和 transcribe', () => {
-    const core = require('agentic-core')
+  it('core 导出 synthesize 和 transcribe', async () => {
+    const core = await import('agentic-core')
     assert.equal(typeof core.synthesize, 'function')
     assert.equal(typeof core.transcribe, 'function')
   })

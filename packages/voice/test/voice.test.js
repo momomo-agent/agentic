@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createVoice, createTTS, createSTT } from '../agentic-voice.js'
+import { createVoice, createTTS, createSTT } from '../src/index.js'
 
 describe('AgenticVoice', () => {
   let mockAudioContext

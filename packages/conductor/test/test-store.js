@@ -1,6 +1,6 @@
 /* test-store.js — Test store-based persistence */
 
-const { createConductor, memoryStore } = require('./conductor')
+import { createConductor, memoryStore } from '../src/conductor.js'
 
 let passed = 0, failed = 0, total = 0
 function assert(cond, msg) {

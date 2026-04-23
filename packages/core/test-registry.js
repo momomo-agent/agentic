@@ -1,4 +1,4 @@
-const { toolRegistry } = require('./agentic-core.js')
+import { toolRegistry } from './src/index.js'
 
 // Test registration
 toolRegistry.register('test_tool', {

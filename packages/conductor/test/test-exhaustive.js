@@ -5,10 +5,10 @@
  * Every public method, every parameter variant.
  */
 
-const { createIntentState } = require('./intent-state')
-const { createScheduler } = require('./scheduler')
-const { createDispatcher } = require('./dispatcher')
-const { createConductor, memoryStore } = require('./conductor')
+import { createIntentState } from '../src/intent-state.js'
+import { createScheduler } from '../src/scheduler.js'
+import { createDispatcher } from '../src/dispatcher.js'
+import { createConductor, memoryStore } from '../src/conductor.js'
 
 let passed = 0, failed = 0, total = 0
 function assert(cond, msg) {
