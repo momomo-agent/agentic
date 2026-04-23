@@ -7,14 +7,23 @@ const AGENTIC_CORE_CDN = 'https://cdn.jsdelivr.net/gh/momomo-agent/agentic-core@
 const AGENTIC_CORE_LOCAL = '../../agentic-core/agentic-core.js'
 
 let agenticAsk
-if (IS_BROWSER) {
-  // In browser, agentic-core is UMD and exports to window
-  await import(AGENTIC_CORE_CDN)
-  agenticAsk = window.agenticAsk
-  if (!agenticAsk) throw new Error('agenticAsk not found in window after loading agentic-core')
-} else {
-  const _mod = await import(AGENTIC_CORE_LOCAL)
-  agenticAsk = (_mod.default || _mod).agenticAsk
+let _coreLoaded = false
+async function loadCore() {
+  if (_coreLoaded) return
+  _coreLoaded = true
+  if (IS_BROWSER) {
+    await import(AGENTIC_CORE_CDN)
+    agenticAsk = window.agenticAsk
+    if (!agenticAsk) throw new Error('agenticAsk not found in window after loading agentic-core')
+  } else {
+    try {
+      const _mod = await import('agentic-core')
+      agenticAsk = (_mod.default || _mod).agenticAsk
+    } catch {
+      const _mod = await import(AGENTIC_CORE_LOCAL)
+      agenticAsk = (_mod.default || _mod).agenticAsk
+    }
+  }
 }
 
 const DEFAULT_MODEL = 'claude-sonnet-4-20250514'
@@ -413,6 +422,7 @@ function ensembleMerge(runs) {
 // ── Single LLM call ──
 
 async function runOnce({ images, apiKey, model, baseUrl, proxyUrl, provider: providerOverride, onProgress, sensorHints }) {
+  await loadCore()
   const mdl = model || DEFAULT_MODEL
   const base = baseUrl || 'https://api.anthropic.com'
   const proxy = proxyUrl || undefined

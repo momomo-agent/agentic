@@ -5,13 +5,16 @@ export default defineConfig({
     lib: {
       entry: 'src/index.js',
       name: 'AgenticSpatial',
-      formats: ['es'],
-      fileName: () => 'agentic-spatial.es.js',
+      formats: ['es', 'cjs', 'umd'],
+      fileName: (format) => `agentic-spatial.${format}.js`,
     },
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
       external: ['agentic-core'],
+      output: {
+        globals: { 'agentic-core': 'AgenticCore' },
+      },
     },
   },
 })
