@@ -6,7 +6,7 @@ export default defineConfig({
       entry: 'src/index.js',
       name: 'AgenticSpatial',
       formats: ['es', 'cjs', 'umd'],
-      fileName: (format) => `agentic-spatial.${format}.js`,
+      fileName: (format) => `agentic-spatial.${format === 'cjs' ? 'cjs' : format + '.js'}`,
     },
     outDir: 'dist',
     emptyOutDir: true,
