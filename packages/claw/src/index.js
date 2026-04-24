@@ -157,7 +157,7 @@
     }
 
     // ── Conductor integration ──────────────────────────────────────
-    const conductorMod = optionalLoad('agentic-conductor', 'AgenticConductor')
+    const conductorMod = options.conductorModule || optionalLoad('agentic-conductor', 'AgenticConductor')
     let _conductor = null
 
     if (conductorMod && conductorMod.createConductor) {
