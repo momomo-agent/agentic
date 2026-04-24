@@ -13,6 +13,16 @@ const mockAi = (reply) => ({
   chat: async (msgs, opts) => ({ answer: reply, content: reply, text: reply, usage: {} }),
 })
 
+// Helper to consume async generator chat()
+async function chatConsume(conductor, input, opts) {
+  let reply = '', intents = [], usage
+  for await (const chunk of conductor.chat(input, opts)) {
+    if (chunk.type === 'text' && chunk.text) reply += chunk.text
+    if (chunk.type === 'done') { reply = chunk.reply || reply; intents = chunk.intents || []; usage = chunk.usage }
+  }
+  return { reply, intents, usage }
+}
+
 console.log('═══════════════════════════════════════════════════')
 console.log('  Test: Shared Personality + Worker Context')
 console.log('═══════════════════════════════════════════════════')
@@ -31,7 +41,7 @@ console.log('\n--- Test 1: Personality parameter ---')
     ai, personality: 'You are Space, warm and anticipatory.',
     tools: [{ name: 'web_search', description: 'Search the web' }],
   })
-  await c.chat('hi')
+  await chatConsume(c, 'hi')
   assert(capturedSystem.includes('You are Space, warm and anticipatory'), 'personality injected into Talker system')
   assert(capturedSystem.includes('web_search: Search the web'), 'capability list injected')
   c.destroy()
@@ -64,7 +74,7 @@ console.log('\n--- Test 3: Worker messages via afterTurn ---')
       return new Promise(() => {}) // never resolves, we test manually
     },
   })
-  await c.chat('search news')
+  await chatConsume(c, 'search news')
   // Wait for scheduler to process
   await new Promise(r => setTimeout(r, 50))
   // Worker should have been spawned
@@ -117,7 +127,7 @@ console.log('\n--- Test 4: Worker context in Talker chat ---')
   })
 
   // First chat creates intent
-  await c.chat('what is the weather?')
+  await chatConsume(c, 'what is the weather?')
   await new Promise(r => setTimeout(r, 50))
   const wid = workerOpts.workerId
 
@@ -131,7 +141,7 @@ console.log('\n--- Test 4: Worker context in Talker chat ---')
   })
 
   // Second chat should see worker context
-  await c.chat('how is it going?')
+  await chatConsume(c, 'how is it going?')
   assert(capturedSystem.includes('Worker Activity'), 'worker activity section in Talker prompt')
   assert(capturedSystem.includes('23°C') || capturedSystem.includes('Beijing'), 'worker tool results visible to Talker')
   c.destroy()
@@ -151,7 +161,7 @@ console.log('\n--- Test 5: talkerDirectives override ---')
     ai,
     talkerDirectives: 'You are a custom Talker. Output intents as JSON.',
   })
-  await c.chat('hi')
+  await chatConsume(c, 'hi')
   assert(capturedSystem.includes('You are a custom Talker'), 'custom talkerDirectives used')
   assert(!capturedSystem.includes('task-aware AI assistant'), 'default TALKER_SYSTEM not used')
   c.destroy()
@@ -172,7 +182,7 @@ console.log('\n--- Test 6: workerCompleted event has messages ---')
   c.on((event, data) => {
     if (event === 'dispatcher.done') doneEvent = data
   })
-  await c.chat('do stuff')
+  await chatConsume(c, 'do stuff')
   await new Promise(r => setTimeout(r, 50))
   const workers = c.getState().workers
   assert(workers.length > 0, 'worker exists')
@@ -201,7 +211,7 @@ console.log('\n--- Test 7: Messages capped at 20 ---')
     dispatchMode: 'code',
     onWorkerStart: (task, abort, opts) => new Promise(() => {}),
   })
-  await c.chat('big task')
+  await chatConsume(c, 'big task')
   await new Promise(r => setTimeout(r, 50))
   const wid = c.getState().workers[0].id
 

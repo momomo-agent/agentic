@@ -156,6 +156,59 @@
       throw new Error('agentic-core not found. Install or include via <script>')
     }
 
+    // ── Conductor integration ──────────────────────────────────────
+    const conductorMod = optionalLoad('agentic-conductor', 'AgenticConductor')
+    let _conductor = null
+
+    if (conductorMod && conductorMod.createConductor) {
+      // Build AI adapter for conductor: chat + stream
+      const aiAdapter = {
+        chat: (messages, chatOpts = {}) => {
+          const input = messages[messages.length - 1]?.content || ''
+          const config = {
+            provider, apiKey, baseUrl: baseUrl || undefined,
+            model: model || undefined, proxyUrl: proxyUrl || undefined,
+            history: messages.slice(0, -1),
+            system: chatOpts.system, tools: chatOpts.tools || allTools,
+            ...(providers ? { providers } : {}),
+          }
+          return askFn(input, config).then(r => ({
+            answer: r.answer || r.content || r.text || '',
+            tool_calls: r.tool_calls || [],
+            usage: r.usage,
+          }))
+        },
+        stream: (messages, chatOpts = {}) => {
+          const input = messages[messages.length - 1]?.content || ''
+          const config = {
+            provider, apiKey, baseUrl: baseUrl || undefined,
+            model: model || undefined, proxyUrl: proxyUrl || undefined,
+            history: messages.slice(0, -1),
+            system: chatOpts.system, tools: chatOpts.tools || allTools,
+            stream: true,
+            ...(providers ? { providers } : {}),
+          }
+          return askFn(input, config) // returns async generator when stream=true
+        },
+      }
+
+      _conductor = conductorMod.createConductor({
+        ai: aiAdapter,
+        tools: allTools,
+        systemPrompt: systemPrompt || '',
+        strategy: options.strategy || 'dispatch',
+        intentMode: options.intentMode || 'tools',
+        dispatchMode: options.dispatchMode || 'code',
+        planMode: options.planMode !== false,
+        maxSlots: options.maxSlots || 3,
+        personality: options.personality || '',
+        talkerDirectives: options.talkerDirectives || '',
+        workerDirectives: options.workerDirectives || '',
+        onWorkerStart: options.onWorkerStart || null,
+        store: null, // use conductor's built-in memoryStore
+      })
+    }
+
     const events = createEventEmitter()
     const sessions = new Map()
     let _heartbeatInterval = null
@@ -332,9 +385,6 @@
       await sessionMem.user(input)
       await _compactIfNeeded(sessionMem)
 
-      const config = _buildAskConfig(sessionMem, chatOpts)
-      await _appendKnowledge(input, config)
-
       const emitFn = (event, data) => {
         if (emit) emit(event, data)
         if (event === 'token') events.emit('token', data)
@@ -343,16 +393,34 @@
       }
 
       try {
-        const result = await askFn(input, config, emitFn)
-        const answer = result.answer || result.content || ''
-        await sessionMem.assistant(answer)
-        events.emit('message', { role: 'assistant', content: answer })
-        await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
-        return {
-          answer,
-          rounds: result.rounds || 1,
-          data: result.data || null,
-          messages: sessionMem.messages(),
+        if (_conductor) {
+          // Conductor path: consume async generator, emit tokens
+          let answer = '', intents = []
+          for await (const chunk of _conductor.chat(input, chatOpts)) {
+            if (chunk.type === 'text' && chunk.text) {
+              answer += chunk.text
+              emitFn('token', { text: chunk.text })
+            } else if (chunk.type === 'tool_use') {
+              emitFn('tool_call', chunk)
+            } else if (chunk.type === 'done') {
+              answer = chunk.reply || answer
+              intents = chunk.intents || []
+            }
+          }
+          await sessionMem.assistant(answer)
+          events.emit('message', { role: 'assistant', content: answer })
+          await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+          return { answer, rounds: 1, intents, data: null, messages: sessionMem.messages() }
+        } else {
+          // Direct askFn path
+          const config = _buildAskConfig(sessionMem, chatOpts)
+          await _appendKnowledge(input, config)
+          const result = await askFn(input, config, emitFn)
+          const answer = result.answer || result.content || ''
+          await sessionMem.assistant(answer)
+          events.emit('message', { role: 'assistant', content: answer })
+          await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+          return { answer, rounds: result.rounds || 1, data: result.data || null, messages: sessionMem.messages() }
         }
       } catch (error) {
         events.emit('error', error)
@@ -361,43 +429,65 @@
     }
 
     // Generator mode — yields ChatEvent
+    // Routes through conductor when available, falls back to direct askFn
     async function* _chatGenerator(sessionMem, input, chatOpts) {
       events.emit('message', { role: 'user', content: input })
       await sessionMem.user(input)
       await _compactIfNeeded(sessionMem)
 
-      const config = _buildAskConfig(sessionMem, chatOpts)
-      await _appendKnowledge(input, config)
-
       try {
-        const result = askFn(input, config) // no emit → generator (or legacy Promise)
+        if (_conductor) {
+          // ── Conductor path: streaming via conductor.chat() async generator ──
+          let answer = ''
+          for await (const chunk of _conductor.chat(input, chatOpts)) {
+            if (chunk.type === 'text' && chunk.text) {
+              answer += chunk.text
+              events.emit('token', { text: chunk.text })
+              yield { type: 'text_delta', text: chunk.text }
+            } else if (chunk.type === 'done') {
+              const reply = chunk.reply || answer
+              await sessionMem.assistant(reply)
+              events.emit('message', { role: 'assistant', content: reply })
+              await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+              yield { type: 'done', answer: reply, intents: chunk.intents || [], rounds: 1, messages: sessionMem.messages() }
+            } else {
+              // Forward tool_use, status, etc.
+              if (chunk.type === 'tool_use') events.emit('tool_call', chunk)
+              else if (chunk.type === 'status') events.emit('status', chunk)
+              yield chunk
+            }
+          }
+        } else {
+          // ── Direct askFn path (no conductor) ──
+          const config = _buildAskConfig(sessionMem, chatOpts)
+          await _appendKnowledge(input, config)
 
-        // Handle legacy askFn that returns a Promise instead of AsyncGenerator
-        if (result && typeof result.then === 'function' && !result[Symbol.asyncIterator]) {
-          const resolved = await result
-          const answer = resolved.answer || resolved.content || ''
-          if (answer) events.emit('token', { text: answer })
-          await sessionMem.assistant(answer)
-          events.emit('message', { role: 'assistant', content: answer })
-          await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
-          yield { type: 'text_delta', text: answer }
-          yield { type: 'done', answer, rounds: resolved.rounds || 1, messages: sessionMem.messages() }
-          return
-        }
+          const result = askFn(input, config)
 
-        for await (const event of result) {
-          // Forward events to claw event emitter
-          if (event.type === 'text_delta') events.emit('token', { text: event.text })
-          else if (event.type === 'status') events.emit('status', event)
-          else if (event.type === 'tool_use') events.emit('tool_call', event)
-
-          yield event
-
-          if (event.type === 'done') {
-            const answer = event.answer || ''
+          // Handle legacy askFn that returns a Promise instead of AsyncGenerator
+          if (result && typeof result.then === 'function' && !result[Symbol.asyncIterator]) {
+            const resolved = await result
+            const answer = resolved.answer || resolved.content || ''
+            if (answer) events.emit('token', { text: answer })
             await sessionMem.assistant(answer)
             events.emit('message', { role: 'assistant', content: answer })
             await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+            yield { type: 'text_delta', text: answer }
+            yield { type: 'done', answer, rounds: resolved.rounds || 1, messages: sessionMem.messages() }
+            return
+          }
+
+          for await (const event of result) {
+            if (event.type === 'text_delta') events.emit('token', { text: event.text })
+            else if (event.type === 'status') events.emit('status', event)
+            else if (event.type === 'tool_use') events.emit('tool_call', event)
+            yield event
+            if (event.type === 'done') {
+              const answer = event.answer || ''
+              await sessionMem.assistant(answer)
+              events.emit('message', { role: 'assistant', content: answer })
+              await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+            }
           }
         }
       } catch (error) {
@@ -675,11 +765,15 @@
         return _voice
       },
 
+      /** Conductor — multi-intent dispatch engine (auto-created when agentic-conductor available) */
+      get conductor() { return _conductor },
+
       /** List available sub-libraries */
       capabilities() {
         return {
           core: true,
           memory: true,
+          conductor: !!_conductor,
           store: !!optionalLoad('agentic-store'),
           filesystem: !!optionalLoad('agentic-filesystem'),
           shell: !!optionalLoad('agentic-shell'),
@@ -700,8 +794,10 @@
         for (const [, mem] of sessions) mem.destroy()
         sessions.clear()
         if (_sharedKnowledge) _sharedKnowledge.destroy()
+        if (_conductor) _conductor.destroy()
         if (_storeSub && _storeSub.close) _storeSub.close()
         _storeSub = _fs = _shell = _act = _render = _sense = _spatial = _embed = _voice = null
+        _conductor = null
       },
     }
 
