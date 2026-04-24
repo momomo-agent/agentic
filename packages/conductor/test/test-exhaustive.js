@@ -19,8 +19,20 @@ function assert(cond, msg) {
 
 function mockAI(answer) {
   return {
-    chat: async (msgs, opts) => ({ answer: answer || 'mock', usage: { input_tokens: 10, output_tokens: 20 } })
+    chat: async function* (msgs, opts) {
+      yield { type: 'text_delta', text: answer || 'mock' }
+      yield { type: 'done', answer: answer || 'mock', usage: { input_tokens: 10, output_tokens: 20 } }
+    }
   }
+}
+
+// Helper: consume async generator chat, return final 'done' event
+async function chatResult(conductor, input, opts) {
+  let result
+  for await (const chunk of conductor.chat(input, opts)) {
+    if (chunk.type === 'done') result = chunk
+  }
+  return result
 }
 
 async function run() {
@@ -226,7 +238,7 @@ async function run() {
 
     is.create('Search news')
     const fmt1 = is.formatForTalker()
-    assert(fmt1.includes('Active intents'), 'formatForTalker: has header')
+    assert(fmt1.includes('Intents:'), 'formatForTalker: has header')
     assert(fmt1.includes('Search news'), 'formatForTalker: includes goal')
     assert(fmt1.includes('[active]'), 'formatForTalker: includes status')
 
@@ -1033,7 +1045,7 @@ async function run() {
     const ai = mockAI('single reply')
     const c = createConductor({ ai, strategy: 'single' })
 
-    const r = await c.chat('hello')
+    const r = await chatResult(c, 'hello')
     assert(r.reply === 'single reply', 'single: reply correct')
     assert(r.intents.length === 0, 'single: no intents')
     assert(r.usage !== undefined, 'single: usage returned')
@@ -1046,10 +1058,10 @@ async function run() {
   console.log('--- 4.3 Single — systemPrompt ---')
   {
     let capturedOpts = null
-    const ai = { chat: async (msgs, opts) => { capturedOpts = opts; return { answer: 'ok' } } }
+    const ai = { chat: async function* (msgs, opts) { capturedOpts = opts; yield { type: 'text_delta', text: 'ok' }; yield { type: 'done', answer: 'ok', usage: {} } } }
     const c = createConductor({ ai, strategy: 'single', systemPrompt: 'Be concise.' })
 
-    await c.chat('test')
+    await chatResult(c, 'test')
     assert(capturedOpts.system.includes('Be concise'), 'single: systemPrompt passed')
 
     c.destroy()
@@ -1060,14 +1072,14 @@ async function run() {
   console.log('--- 4.4 Single — formatContext ---')
   {
     let capturedOpts = null
-    const ai = { chat: async (msgs, opts) => { capturedOpts = opts; return { answer: 'ok' } } }
+    const ai = { chat: async function* (msgs, opts) { capturedOpts = opts; yield { type: 'text_delta', text: 'ok' }; yield { type: 'done', answer: 'ok', usage: {} } } }
     const c = createConductor({
       ai, strategy: 'single',
       systemPrompt: 'Base.',
       formatContext: () => 'Dynamic context here',
     })
 
-    await c.chat('test')
+    await chatResult(c, 'test')
     assert(capturedOpts.system.includes('Dynamic context here'), 'single: formatContext injected')
 
     c.destroy()
@@ -1078,15 +1090,15 @@ async function run() {
   console.log('--- 4.5 Single — tools ---')
   {
     let capturedOpts = null
-    const ai = { chat: async (msgs, opts) => { capturedOpts = opts; return { answer: 'ok' } } }
+    const ai = { chat: async function* (msgs, opts) { capturedOpts = opts; yield { type: 'text_delta', text: 'ok' }; yield { type: 'done', answer: 'ok', usage: {} } } }
     const myTools = [{ name: 'search' }]
     const c = createConductor({ ai, strategy: 'single', tools: myTools })
 
-    await c.chat('test')
+    await chatResult(c, 'test')
     assert(capturedOpts.tools[0].name === 'search', 'single: tools passed')
 
     // Per-call tools override
-    await c.chat('test2', { tools: [{ name: 'calc' }] })
+    await chatResult(c, 'test2', { tools: [{ name: 'calc' }] })
     assert(capturedOpts.tools[0].name === 'calc', 'single: per-call tools override')
 
     c.destroy()
@@ -1097,11 +1109,11 @@ async function run() {
   console.log('--- 4.6 Single — history ---')
   {
     let lastMsgs = null
-    const ai = { chat: async (msgs, opts) => { lastMsgs = msgs; return { answer: 'reply' } } }
+    const ai = { chat: async function* (msgs, opts) { lastMsgs = msgs; yield { type: 'text_delta', text: 'reply' }; yield { type: 'done', answer: 'reply', usage: {} } } }
     const c = createConductor({ ai, strategy: 'single' })
 
-    await c.chat('first')
-    await c.chat('second')
+    await chatResult(c, 'first')
+    await chatResult(c, 'second')
     assert(lastMsgs.length === 4, 'single: history accumulates (2 user + 2 assistant)')
     assert(lastMsgs[0].content === 'first', 'single: first message in history')
     assert(lastMsgs[2].content === 'second', 'single: second message in history')
@@ -1142,7 +1154,7 @@ async function run() {
       onWorkerStart: (task, abort, opts) => { spawned.push({task, opts}); return new Promise(() => {}) },
     })
 
-    const r = await c.chat('search news')
+    const r = await chatResult(c, 'search news')
     assert(r.reply === 'I will search.', 'dispatch chat: intents block stripped')
     assert(r.intents.length === 1, 'dispatch chat: one intent created')
     assert(r.intents[0].goal === 'Search news', 'dispatch chat: intent goal')
@@ -1165,20 +1177,20 @@ async function run() {
       'Cancelling.\n' + BT + 'intents\n[{"action":"cancel","id":"intent-1"}]\n' + BT,
     ]
     let callIdx = 0
-    const ai = { chat: async () => ({ answer: responses[callIdx++] || 'done' }) }
+    const ai = { chat: async function* () { const a = responses[callIdx++] || 'done'; yield { type: 'text_delta', text: a }; yield { type: 'done', answer: a, usage: {} } } }
     const c = createConductor({
       ai, strategy: 'dispatch', dispatchMode: 'code',
       onWorkerStart: () => new Promise(() => {}),
     })
 
-    await c.chat('create')
+    await chatResult(c, 'create')
     assert(c.getIntents().length === 1, 'actions: intent created')
 
-    await c.chat('update')
+    await chatResult(c, 'update')
     const msgs = c.getIntents()[0].messages
     assert(msgs.includes('halfway'), 'actions: update message added')
 
-    await c.chat('cancel')
+    await chatResult(c, 'cancel')
     assert(c.getIntents()[0].status === 'cancelled', 'actions: intent cancelled')
 
     c.destroy()
@@ -1196,7 +1208,7 @@ async function run() {
       onWorkerStart: (task, abort, opts) => { spawned.push({task, opts}); return new Promise(() => {}) },
     })
 
-    await c.chat('do A then B')
+    await chatResult(c, 'do A then B')
     await new Promise(r => setTimeout(r, 50))
     assert(spawned.length === 1, 'deps chat: only A spawned')
 
@@ -1672,7 +1684,7 @@ async function run() {
   {
     let workerOpts = null
     const c = createConductor({
-      ai: { chat: async () => ({ answer: 'ok' }) },
+      ai: { chat: async function* () { yield { type: 'text_delta', text: 'ok' }; yield { type: 'done', answer: 'ok', usage: {} } } },
       strategy: 'dispatch', dispatchMode: 'code',
       tools: [{ name: 'search', description: 'Search' }],
       onWorkerStart: (task, abort, opts) => {
@@ -1716,7 +1728,7 @@ async function run() {
   {
     let workerOpts = null
     const c = createConductor({
-      ai: { chat: async () => ({ answer: 'ok' }) },
+      ai: { chat: async function* () { yield { type: 'text_delta', text: 'ok' }; yield { type: 'done', answer: 'ok', usage: {} } } },
       strategy: 'dispatch', dispatchMode: 'code',
       onWorkerStart: (task, abort, opts) => {
         workerOpts = opts
@@ -1794,7 +1806,7 @@ async function run() {
   console.log('--- 5.10 Steps in state ---')
   {
     const c = createConductor({
-      ai: { chat: async () => ({ answer: 'ok' }) },
+      ai: { chat: async function* () { yield { type: 'text_delta', text: 'ok' }; yield { type: 'done', answer: 'ok', usage: {} } } },
       strategy: 'dispatch', dispatchMode: 'code',
       onWorkerStart: () => new Promise(() => {}),
     })
@@ -1818,7 +1830,7 @@ async function run() {
   {
     let workerOpts = null
     const c = createConductor({
-      ai: { chat: async () => ({ answer: 'ok' }) },
+      ai: { chat: async function* () { yield { type: 'text_delta', text: 'ok' }; yield { type: 'done', answer: 'ok', usage: {} } } },
       strategy: 'dispatch', dispatchMode: 'code',
       planMode: false,
       tools: [{ name: 'search', description: 'Search' }],
@@ -2034,7 +2046,7 @@ async function run() {
   console.log('--- 6.7 Conductor suspend/resume ---')
   {
     const c = createConductor({
-      ai: { chat: async () => ({ answer: 'ok' }) },
+      ai: { chat: async function* () { yield { type: 'text_delta', text: 'ok' }; yield { type: 'done', answer: 'ok', usage: {} } } },
       strategy: 'dispatch', dispatchMode: 'code',
       maxSlots: 1, turnQuantum: 1, maxTurnBudget: 99, maxTokenBudget: 999999,
       onWorkerStart: () => new Promise(() => {}),

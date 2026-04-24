@@ -254,6 +254,10 @@ const _cache = {}
       if (opts.schema) config.schema = opts.schema
 
       if (stream) {
+        if (opts.emit) {
+          // Legacy emit callback mode: stream + emit → return Promise
+          return ask(prompt, config, opts.emit)
+        }
         // Return async generator
         return ask(prompt, config)
       } else {
@@ -266,8 +270,14 @@ const _cache = {}
       }
     }
 
-    // think() — alias for chat() with stream=false (backward compat)
+    // think() — backward compat alias
+    // With stream:true + emit → legacy streaming (returns Promise)
+    // Without stream → non-streaming (returns Promise<string>)
     async think(input, opts = {}) {
+      if (opts.stream && opts.emit) {
+        // Legacy streaming mode: think(msg, { stream: true, emit: fn })
+        return this.chat(input, opts)
+      }
       const result = await this.chat(input, { ...opts, stream: false })
       return result?.answer ?? result
     }
