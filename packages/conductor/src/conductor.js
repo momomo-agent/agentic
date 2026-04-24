@@ -29,7 +29,7 @@ export function memoryStore() {
   }
 }
 
-const TALKER_SYSTEM = `You are a task-aware AI assistant. When the user asks you to do things, you can:
+const TALKER_SYSTEM_PARSE = `You are a task-aware AI assistant. When the user asks you to do things, you can:
 1. Reply directly for simple questions
 2. Create intents for tasks that need background work
 
@@ -46,6 +46,57 @@ Rules:
 - Sequential tasks → use dependsOn with the ID of the prerequisite
 - Always include a natural language reply before/after the intents block`
 
+const TALKER_SYSTEM_TOOLS = `You are a task-aware AI assistant. When the user asks you to do things, you can:
+1. Reply directly for simple questions
+2. Use the intent tools to dispatch background work
+
+Rules:
+- Simple questions → just answer, no tool calls
+- Tasks needing tools/time → call create_intent for each task
+- Sequential tasks → use dependsOn with the ID of the prerequisite intent
+- You may call multiple intent tools in a single turn
+- Always include a natural language reply alongside any tool calls`
+
+const INTENT_TOOLS = [
+  {
+    name: 'create_intent',
+    description: 'Create a background task intent. Returns the created intent with its ID.',
+    parameters: {
+      type: 'object',
+      properties: {
+        goal: { type: 'string', description: 'What the worker should accomplish' },
+        dependsOn: { type: 'array', items: { type: 'string' }, description: 'IDs of intents that must complete first' },
+        priority: { type: 'number', description: 'Priority (1=normal, higher=more urgent)' },
+      },
+      required: ['goal'],
+    },
+  },
+  {
+    name: 'update_intent',
+    description: 'Send a message or update the goal of an existing intent.',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'Intent ID to update' },
+        message: { type: 'string', description: 'Message to send to the worker' },
+        goal: { type: 'string', description: 'Updated goal' },
+      },
+      required: ['id'],
+    },
+  },
+  {
+    name: 'cancel_intent',
+    description: 'Cancel an active intent.',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'Intent ID to cancel' },
+      },
+      required: ['id'],
+    },
+  },
+]
+
 function buildCapabilityList(tools) {
   if (!tools || tools.length === 0) return ''
   const lines = tools.map(t => `- ${t.name}: ${t.description || '(no description)'}`)
@@ -59,6 +110,7 @@ export function createConductor(opts = {}) {
     maxTurnBudget = 30, maxTokenBudget = 200000, turnQuantum = 10,
     dispatchMode = 'llm', planMode = true, onWorkerStart = null,
     personality = '', talkerDirectives = '', workerDirectives = '',
+    intentMode = 'parse', // 'parse' = text block parsing, 'tools' = tool calling
   } = opts
 
   if (!ai) throw new Error('ai instance is required')
@@ -138,7 +190,8 @@ export function createConductor(opts = {}) {
     let sys = ''
     if (personality) sys += personality + '\n\n'
     if (systemPrompt) sys += systemPrompt + '\n\n'
-    sys += talkerDirectives || TALKER_SYSTEM
+    const defaultDirectives = intentMode === 'tools' ? TALKER_SYSTEM_TOOLS : TALKER_SYSTEM_PARSE
+    sys += talkerDirectives || defaultDirectives
     sys += buildCapabilityList(tools)
     if (formatContext) sys += '\n\n' + formatContext()
     const intentContext = intentState.formatForTalker()
@@ -146,17 +199,58 @@ export function createConductor(opts = {}) {
     // Inject worker conversation context so Talker knows what Workers are doing
     const workerContext = dispatcher.formatWorkerContext()
     if (workerContext) sys += '\n\n## Worker Activity\n' + workerContext
-    const result = await ai.chat(_talkerMessages, { system: sys, ...chatOpts })
+
+    // Tool calling mode: inject intent tools
+    const chatTools = intentMode === 'tools' ? [...INTENT_TOOLS, ...(chatOpts.tools || [])] : chatOpts.tools
+    const callOpts = { system: sys, ...chatOpts }
+    if (chatTools) callOpts.tools = chatTools
+
+    const result = await ai.chat(_talkerMessages, callOpts)
     const answer = result.answer || result.content || result.text || ''
-    _talkerMessages.push({ role: 'assistant', content: answer })
-    const intents = _parseIntents(answer)
-    const createdIntents = []
-    for (const op of intents) {
-      if (op.action === 'create') createdIntents.push(intentState.create(op.goal, { dependsOn: op.dependsOn || [], priority: op.priority ?? 1 }))
-      else if (op.action === 'update' && op.id) intentState.update(op.id, { message: op.message, goal: op.goal })
-      else if (op.action === 'cancel' && op.id) intentState.cancel(op.id)
+
+    // Process intents based on mode
+    let createdIntents = []
+    let cleanReply = answer
+
+    if (intentMode === 'tools') {
+      // Tool calling mode: extract intents from tool_calls
+      const toolCalls = result.tool_calls || []
+      const toolResults = []
+      for (const tc of toolCalls) {
+        const args = tc.input || tc.arguments || {}
+        if (tc.name === 'create_intent') {
+          const intent = intentState.create(args.goal, { dependsOn: args.dependsOn || [], priority: args.priority ?? 1 })
+          createdIntents.push(intent)
+          toolResults.push({ id: tc.id, result: JSON.stringify({ created: true, intentId: intent.id, goal: intent.goal }) })
+        } else if (tc.name === 'update_intent') {
+          intentState.update(args.id, { message: args.message, goal: args.goal })
+          toolResults.push({ id: tc.id, result: JSON.stringify({ updated: true, id: args.id }) })
+        } else if (tc.name === 'cancel_intent') {
+          intentState.cancel(args.id)
+          toolResults.push({ id: tc.id, result: JSON.stringify({ cancelled: true, id: args.id }) })
+        }
+      }
+      // Append assistant message with tool_use + tool_results to history
+      if (toolCalls.length > 0) {
+        _talkerMessages.push({ role: 'assistant', content: answer, tool_calls: toolCalls })
+        for (const tr of toolResults) {
+          _talkerMessages.push({ role: 'tool', tool_call_id: tr.id, content: tr.result })
+        }
+      } else {
+        _talkerMessages.push({ role: 'assistant', content: answer })
+      }
+    } else {
+      // Parse mode: extract intents from text blocks
+      _talkerMessages.push({ role: 'assistant', content: answer })
+      const intents = _parseIntents(answer)
+      for (const op of intents) {
+        if (op.action === 'create') createdIntents.push(intentState.create(op.goal, { dependsOn: op.dependsOn || [], priority: op.priority ?? 1 }))
+        else if (op.action === 'update' && op.id) intentState.update(op.id, { message: op.message, goal: op.goal })
+        else if (op.action === 'cancel' && op.id) intentState.cancel(op.id)
+      }
+      cleanReply = answer.replace(/```intents[\s\S]*?```/g, '').trim()
     }
-    const cleanReply = answer.replace(/```intents[\s\S]*?```/g, '').trim()
+
     _emit('chat', { input, reply: cleanReply, intents: createdIntents })
     return { reply: cleanReply, intents: createdIntents, usage: result.usage }
   }
