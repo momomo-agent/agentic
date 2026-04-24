@@ -9,6 +9,15 @@ function assert(cond, msg) {
   else { failed++; console.error(`  ❌ ${msg}`) }
 }
 
+// Helper: collect generator into { reply, intents, usage }
+async function chatAll(conductor, input, opts) {
+  let reply = '', intents = [], usage
+  for await (const chunk of conductor.chat(input, opts || {})) {
+    if (chunk.type === 'done') { reply = chunk.reply; intents = chunk.intents || []; usage = chunk.usage }
+  }
+  return { reply, intents, usage }
+}
+
 // Mock AI that parses intent blocks
 function createMockAI(responses = {}) {
   let callCount = 0
@@ -40,7 +49,7 @@ async function runTests() {
     const ai = createMockAI({ 'hello': 'Hi there!' })
     const c = createConductor({ ai, strategy: 'single' })
 
-    const r = await c.chat('hello')
+    const r = await chatAll(c, 'hello')
     assert(r.reply === 'Hi there!', 'Single mode returns direct reply')
     assert(r.intents.length === 0, 'Single mode has no intents')
     assert(c.getState().strategy === 'single', 'State shows single strategy')
@@ -67,7 +76,7 @@ async function runTests() {
       },
     })
 
-    const r = await c.chat('search AI news')
+    const r = await chatAll(c, 'search AI news')
     assert(r.reply.includes("I'll search"), 'Reply text preserved')
     assert(!r.reply.includes('intents'), 'Intents block stripped from reply')
     assert(r.intents.length === 1, 'One intent created')
@@ -101,7 +110,7 @@ async function runTests() {
       },
     })
 
-    const r = await c.chat('search and report')
+    const r = await chatAll(c, 'search and report')
     assert(r.intents.length === 2, 'Two intents created')
 
     await new Promise(r => setTimeout(r, 50))
@@ -137,10 +146,10 @@ async function runTests() {
       onWorkerStart: () => new Promise(() => {}),
     })
 
-    await c.chat('start task')
+    await chatAll(c, 'start task')
     assert(c.getIntents().length === 1, 'Intent exists')
 
-    await c.chat('cancel that')
+    await chatAll(c, 'cancel that')
     const intents = c.getIntents()
     const cancelled = intents.find(i => i.id === 'intent-1')
     assert(cancelled?.status === 'cancelled', 'Intent cancelled')
@@ -168,7 +177,7 @@ async function runTests() {
       },
     })
 
-    await c.chat('do work')
+    await chatAll(c, 'do work')
     await new Promise(r => setTimeout(r, 50))
     assert(workerOpts !== null, 'Worker started with opts')
 
@@ -198,7 +207,7 @@ async function runTests() {
       onWorkerStart: () => new Promise(() => {}),
     })
 
-    await c.chat('task')
+    await chatAll(c, 'task')
     await new Promise(r => setTimeout(r, 50))
 
     const state = c.getState()
@@ -252,7 +261,7 @@ async function runTests() {
     })
 
     c.on((event, data) => events.push(event))
-    await c.chat('event test')
+    await chatAll(c, 'event test')
     await new Promise(r => setTimeout(r, 50))
 
     assert(events.includes('chat'), 'Chat event emitted')
@@ -278,7 +287,7 @@ async function runTests() {
       onWorkerStart: (task, abort, opts) => new Promise(() => {}),
     })
 
-    await c.chat('cascade test')
+    await chatAll(c, 'cascade test')
     await new Promise(r => setTimeout(r, 50))
 
     // Fail worker A
@@ -310,7 +319,7 @@ async function runTests() {
       onWorkerStart: () => new Promise(() => {}),
     })
 
-    const r = await c.chat('what is the capital of France')
+    const r = await chatAll(c, 'what is the capital of France')
     assert(r.reply === 'The capital of France is Paris.', 'Direct answer returned')
     assert(r.intents.length === 0, 'No intents for simple question')
 

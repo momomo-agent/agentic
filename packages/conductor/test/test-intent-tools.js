@@ -9,6 +9,14 @@ function assert(cond, msg) {
   else { console.log(`  ❌ ${msg}`); console.trace(); failed++ }
 }
 
+async function chatAll(conductor, input, opts) {
+  let reply = '', intents = [], usage
+  for await (const chunk of conductor.chat(input, opts || {})) {
+    if (chunk.type === 'done') { reply = chunk.reply; intents = chunk.intents || []; usage = chunk.usage }
+  }
+  return { reply, intents, usage }
+}
+
 console.log('═══════════════════════════════════════════════════')
 console.log('  Test: Intent Tool Calling Mode')
 console.log('═══════════════════════════════════════════════════')
@@ -24,7 +32,7 @@ console.log('\n--- Test 1: Simple reply (no tool calls) ---')
     }
   }
   const c = createConductor({ ai, intentMode: 'tools', dispatchMode: 'code' })
-  const r = await c.chat('hi')
+  const r = await chatAll(c, 'hi')
   assert(r.reply === 'Hello! How can I help?', 'reply preserved')
   assert(r.intents.length === 0, 'no intents created')
   // Verify intent tools were injected
@@ -53,7 +61,7 @@ console.log('\n--- Test 2: Create intent via tool call ---')
     ai, intentMode: 'tools', dispatchMode: 'code',
     onWorkerStart: (task, abort, opts) => { spawned.push({ task, opts }); return new Promise(() => {}) },
   })
-  const r = await c.chat('search AI news')
+  const r = await chatAll(c, 'search AI news')
   assert(r.reply === "I'll search for AI news for you.", 'reply preserved')
   assert(r.intents.length === 1, 'one intent created')
   assert(r.intents[0].goal === 'Search AI news', 'intent goal correct')
@@ -84,7 +92,7 @@ console.log('\n--- Test 3: Multiple intents with dependencies ---')
     ai, intentMode: 'tools', dispatchMode: 'code',
     onWorkerStart: (task, abort, opts) => { spawned.push({ task, opts }); return new Promise(() => {}) },
   })
-  const r = await c.chat('search and report')
+  const r = await chatAll(c, 'search and report')
   assert(r.intents.length === 2, 'two intents created')
   assert(r.intents[0].goal === 'Search AI news', 'first intent goal')
   assert(r.intents[1].goal === 'Write report', 'second intent goal')
@@ -119,9 +127,9 @@ console.log('\n--- Test 4: Update intent ---')
     ai, intentMode: 'tools', dispatchMode: 'code',
     onWorkerStart: () => new Promise(() => {}),
   })
-  await c.chat('search news')
+  await chatAll(c, 'search news')
   await new Promise(r => setTimeout(r, 50))
-  await c.chat('focus on AI agents')
+  await chatAll(c, 'focus on AI agents')
   const intents = c.getIntents()
   assert(intents[0].messages?.length > 0 || intents[0].goal === 'Search news', 'intent updated')
   c.destroy()
@@ -144,8 +152,8 @@ console.log('\n--- Test 5: Cancel intent ---')
     }
   }
   const c = createConductor({ ai, intentMode: 'tools', dispatchMode: 'llm' })
-  await c.chat('search news')  // creates intent, tool result has intentId
-  await c.chat('cancel that')  // cancels using id from history
+  await chatAll(c, 'search news')  // creates intent, tool result has intentId
+  await chatAll(c, 'cancel that')  // cancels using id from history
   const intents = c.getIntents()
   const status = intents[0]?.status
   assert(status === 'cancelled', `intent cancelled (got ${status})`)
@@ -175,9 +183,9 @@ console.log('\n--- Test 6: Tool results in history ---')
     ai, intentMode: 'tools', dispatchMode: 'code',
     onWorkerStart: () => new Promise(() => {}),
   })
-  await c.chat('do stuff')
+  await chatAll(c, 'do stuff')
   await new Promise(r => setTimeout(r, 50))
-  await c.chat('how is it going?')
+  await chatAll(c, 'how is it going?')
   // Second call should have tool results in history
   assert(capturedMsgs.length >= 4, 'history has user + assistant + tool_result + user')
   const toolMsg = capturedMsgs.find(m => m.role === 'tool')
@@ -197,7 +205,7 @@ console.log('\n--- Test 7: System prompt for tools mode ---')
     }
   }
   const c = createConductor({ ai, intentMode: 'tools' })
-  await c.chat('hi')
+  await chatAll(c, 'hi')
   assert(capturedSystem.includes('intent tools'), 'tools mode system prompt mentions intent tools')
   assert(!capturedSystem.includes('JSON block'), 'tools mode does NOT mention JSON block')
   c.destroy()
@@ -214,7 +222,7 @@ console.log('\n--- Test 8: Parse mode backward compat ---')
     }
   }
   const c = createConductor({ ai, intentMode: 'parse' })
-  await c.chat('hi')
+  await chatAll(c, 'hi')
   assert(capturedSystem.includes('JSON block'), 'parse mode system prompt mentions JSON block')
   assert(!capturedSystem.includes('intent tools'), 'parse mode does NOT mention intent tools')
   c.destroy()
@@ -231,7 +239,7 @@ console.log('\n--- Test 9: Default intentMode ---')
     }
   }
   const c = createConductor({ ai })
-  await c.chat('hi')
+  await chatAll(c, 'hi')
   assert(capturedSystem.includes('JSON block'), 'default mode is parse')
   c.destroy()
 }
@@ -251,7 +259,7 @@ console.log('\n--- Test 10: Tool calls without reply text ---')
     ai, intentMode: 'tools', dispatchMode: 'code',
     onWorkerStart: (task, abort, opts) => { spawned.push(task); return new Promise(() => {}) },
   })
-  const r = await c.chat('do this in background')
+  const r = await chatAll(c, 'do this in background')
   assert(r.intents.length === 1, 'intent created even without reply text')
   assert(r.reply === '', 'empty reply preserved')
   await new Promise(r => setTimeout(r, 50))

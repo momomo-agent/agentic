@@ -119,13 +119,23 @@ export function createConductor(opts = {}) {
   if (strategy === 'single') {
     const messages = []
     return {
-      async chat(input, chatOpts = {}) {
+      async* chat(input, chatOpts = {}) {
         messages.push({ role: 'user', content: input })
         const sys = systemPrompt + (formatContext ? '\n\n' + formatContext() : '')
-        const result = await ai.chat(messages, { system: sys || undefined, tools: chatOpts.tools || tools, ...chatOpts })
-        const answer = result.answer || result.content || result.text || ''
+        const callOpts = { system: sys || undefined, tools: chatOpts.tools || tools, ...chatOpts }
+        let answer = ''
+        if (ai.stream) {
+          for await (const chunk of ai.stream(messages, callOpts)) {
+            if (chunk.type === 'text') answer += chunk.text || ''
+            yield chunk
+          }
+        } else {
+          const result = await ai.chat(messages, callOpts)
+          answer = result.answer || result.content || result.text || ''
+          if (answer) yield { type: 'text', text: answer }
+          yield { type: 'done', reply: answer, intents: [], usage: result.usage }
+        }
         messages.push({ role: 'assistant', content: answer })
-        return { reply: answer, intents: [], usage: result.usage }
       },
       getState() { return { strategy: 'single', messages: messages.length } },
       getIntents() { return [] },
@@ -184,37 +194,60 @@ export function createConductor(opts = {}) {
   dispatcher.on((event, data) => _emit(`dispatcher.${event}`, data))
   scheduler.on((event, data) => _emit(`scheduler.${event}`, data))
 
-  async function chat(input, chatOpts = {}) {
+  async function* chat(input, chatOpts = {}) {
     _talkerMessages.push({ role: 'user', content: input })
-    // Build Talker system prompt: personality + directives + capabilities + worker context
+
+    // Build Talker system prompt
     let sys = ''
     if (personality) sys += personality + '\n\n'
     if (systemPrompt) sys += systemPrompt + '\n\n'
-    const defaultDirectives = intentMode === 'tools' ? TALKER_SYSTEM_TOOLS : TALKER_SYSTEM_PARSE
-    sys += talkerDirectives || defaultDirectives
+    sys += talkerDirectives || (intentMode === 'tools' ? TALKER_SYSTEM_TOOLS : TALKER_SYSTEM_PARSE)
     sys += buildCapabilityList(tools)
     if (formatContext) sys += '\n\n' + formatContext()
     const intentContext = intentState.formatForTalker()
     if (intentContext) sys += '\n\n' + intentContext
-    // Inject worker conversation context so Talker knows what Workers are doing
     const workerContext = dispatcher.formatWorkerContext()
     if (workerContext) sys += '\n\n## Worker Activity\n' + workerContext
 
-    // Tool calling mode: inject intent tools
     const chatTools = intentMode === 'tools' ? [...INTENT_TOOLS, ...(chatOpts.tools || [])] : chatOpts.tools
     const callOpts = { system: sys, ...chatOpts }
     if (chatTools) callOpts.tools = chatTools
 
-    const result = await ai.chat(_talkerMessages, callOpts)
-    const answer = result.answer || result.content || result.text || ''
+    let answer = ''
+    let toolCalls = []
+    let usage
 
-    // Process intents based on mode
-    let createdIntents = []
+    if (ai.stream) {
+      // Streaming path: yield text deltas as they arrive
+      for await (const chunk of ai.stream(_talkerMessages, callOpts)) {
+        if (chunk.type === 'text' && chunk.text) {
+          answer += chunk.text
+          yield chunk
+        } else if (chunk.type === 'tool_use') {
+          toolCalls.push(chunk.tool)
+          yield chunk
+        } else if (chunk.type === 'tool_result') {
+          yield chunk
+        } else if (chunk.type === 'done') {
+          usage = chunk.usage
+        } else {
+          yield chunk
+        }
+      }
+    } else {
+      // Non-streaming fallback
+      const result = await ai.chat(_talkerMessages, callOpts)
+      answer = result.answer || result.content || result.text || ''
+      toolCalls = result.tool_calls || []
+      usage = result.usage
+      if (answer) yield { type: 'text', text: answer }
+    }
+
+    // Process intents
+    const createdIntents = []
     let cleanReply = answer
 
     if (intentMode === 'tools') {
-      // Tool calling mode: extract intents from tool_calls
-      const toolCalls = result.tool_calls || []
       const toolResults = []
       for (const tc of toolCalls) {
         const args = tc.input || tc.arguments || {}
@@ -230,17 +263,13 @@ export function createConductor(opts = {}) {
           toolResults.push({ id: tc.id, result: JSON.stringify({ cancelled: true, id: args.id }) })
         }
       }
-      // Append assistant message with tool_use + tool_results to history
       if (toolCalls.length > 0) {
         _talkerMessages.push({ role: 'assistant', content: answer, tool_calls: toolCalls })
-        for (const tr of toolResults) {
-          _talkerMessages.push({ role: 'tool', tool_call_id: tr.id, content: tr.result })
-        }
+        for (const tr of toolResults) _talkerMessages.push({ role: 'tool', tool_call_id: tr.id, content: tr.result })
       } else {
         _talkerMessages.push({ role: 'assistant', content: answer })
       }
     } else {
-      // Parse mode: extract intents from text blocks
       _talkerMessages.push({ role: 'assistant', content: answer })
       const intents = _parseIntents(answer)
       for (const op of intents) {
@@ -252,7 +281,7 @@ export function createConductor(opts = {}) {
     }
 
     _emit('chat', { input, reply: cleanReply, intents: createdIntents })
-    return { reply: cleanReply, intents: createdIntents, usage: result.usage }
+    yield { type: 'done', reply: cleanReply, intents: createdIntents, usage }
   }
 
   function _parseIntents(text) {
