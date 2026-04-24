@@ -209,12 +209,22 @@ const _cache = {}
     // THINK — serviceUrl → WebSocket to service, otherwise → core direct
     // ════════════════════════════════════════════════════════════════
 
-    async think(input, opts = {}) {
-      // Route: serviceUrl → WebSocket, otherwise → core direct
+        // ════════════════════════════════════════════════════════════════
+    // CHAT — unified interface, stream defaults to true
+    // ════════════════════════════════════════════════════════════════
+    //
+    // chat(input, opts)           — prompt-first (string input)
+    // chat(messages, opts)        — messages-first (array input)
+    // Returns async generator when stream=true (default), Promise when stream=false
+
+    chat(input, opts = {}) {
+      const isMessages = Array.isArray(input)
+      const prompt = isMessages ? (input[input.length - 1]?.content || '') : input
+      const history = isMessages ? input.slice(0, -1) : opts.history
+
+      // Route: serviceUrl → WebSocket
       if (this._ws) {
-        const messages = opts.history
-          ? [...opts.history, { role: 'user', content: input }]
-          : [{ role: 'user', content: input }]
+        const messages = isMessages ? input : (history ? [...history, { role: 'user', content: prompt }] : [{ role: 'user', content: prompt }])
         if (opts.system) messages.unshift({ role: 'system', content: opts.system })
         return this._ws.chat(messages, { tools: opts.tools, emit: opts.emit, prefer: opts.prefer })
       }
@@ -222,9 +232,10 @@ const _cache = {}
       const core = this._need('agentic-core')
       const ask = core.agenticAsk || core
 
-      // Resolve prefer → provider/baseUrl/apiKey/model overrides
       const pref = opts.prefer
       const prefObj = pref && typeof pref === 'object' ? pref : null
+
+      const stream = opts.stream !== false // default true
 
       const config = {
         provider: prefObj?.provider || opts.provider || this._cfgFor('llm', 'provider'),
@@ -232,29 +243,34 @@ const _cache = {}
         apiKey: prefObj?.key || opts.apiKey || this._cfgFor('llm', 'apiKey'),
         model: prefObj?.model || opts.model || this._cfgFor('llm', 'model'),
         system: opts.system || this._opts.system,
-        stream: opts.stream || false,
+        stream,
         proxyUrl: opts.proxyUrl || this._opts.proxyUrl,
       }
 
       if (opts.tools) config.tools = opts.tools
       if (opts.images) config.images = opts.images
       if (opts.audio) config.audio = opts.audio
-      if (opts.history) config.history = opts.history
+      if (history) config.history = history
       if (opts.schema) config.schema = opts.schema
-      if (opts.emit) config.emit = opts.emit
 
-      const emit = opts.emit || (() => {})
-      const result = await ask(input, config, emit)
-      if (typeof result === 'string') return result
-      if (result?.answer != null) return result.answer
-      if (result?.content != null) return typeof result.content === 'string' ? result.content : result.content.map(b => b.text || '').join('')
-      return result
+      if (stream) {
+        // Return async generator
+        return ask(prompt, config)
+      } else {
+        // Return Promise<{ answer, rounds, messages }>
+        const emit = opts.emit || (() => {})
+        return ask(prompt, config, emit).then(r => {
+          if (typeof r === 'string') return { answer: r }
+          return { answer: r?.answer || r?.content || '', rounds: r?.rounds, messages: r?.messages, usage: r?.usage }
+        })
+      }
     }
 
-    // Note: no `tools` or `stream()` here. Tools and streaming belong to Claw.
-    // Agentic is a capability dispatcher — createClaw(), createConductor(), think(), speak(), etc.
-    // think() is for simple one-shot Q&A. For agentic tool loops, use createClaw().
-    // For multi-intent dispatch with parallel workers, use createConductor().
+    // think() — alias for chat() with stream=false (backward compat)
+    async think(input, opts = {}) {
+      const result = await this.chat(input, { ...opts, stream: false })
+      return result?.answer ?? result
+    }
 
     // ════════════════════════════════════════════════════════════════
     // STEP — single-turn LLM call, caller controls tool loop
@@ -575,24 +591,14 @@ const _cache = {}
       const o = this._opts
 
       // Build an AI adapter: single chat() returning async generator
+      const self = this
       const aiAdapter = {
-        chat: (messages, chatOpts = {}) => {
-          const core = this._need('agentic-core')
-          const ask = core.agenticAsk || core
-          const input = messages[messages.length - 1]?.content || ''
-          const o = this._opts
-          const config = {
-            provider: o.provider || 'anthropic',
-            baseUrl: o.baseUrl,
-            apiKey: o.apiKey,
-            model: o.model,
-            proxyUrl: o.proxyUrl,
-            history: messages.slice(0, -1),
+        chat(messages, chatOpts = {}) {
+          return self.chat(messages, {
             system: chatOpts.system,
             tools: chatOpts.tools,
             stream: true,
-          }
-          return ask(input, config) // returns async generator
+          })
         },
       }
 
