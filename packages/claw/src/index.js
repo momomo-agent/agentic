@@ -227,6 +227,14 @@
         onWorkerStart: options.onWorkerStart || defaultOnWorkerStart,
         store: null, // use conductor's built-in memoryStore
       })
+      // Forward conductor events to claw's event emitter
+      _conductor.on((event, data) => {
+        events.emit('conductor', { event, ...data })
+        // Auto-emit worker results for UI consumption
+        if (event === 'scheduler.finished' && data?.status === 'done') {
+          events.emit('worker_done', { taskId: data.id, task: data.task, result: data.result })
+        }
+      })
     }
 
     const events = createEventEmitter()

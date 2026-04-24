@@ -204,12 +204,29 @@ export function createConductor(opts = {}) {
     sys += talkerDirectives || (intentMode === 'tools' ? TALKER_SYSTEM_TOOLS : TALKER_SYSTEM_PARSE)
     sys += buildCapabilityList(tools)
     if (formatContext) sys += '\n\n' + formatContext()
-    const intentContext = intentState.formatForTalker()
+    const intentContext = intentState.formatForTalker({ includeSettled: true })
     if (intentContext) sys += '\n\n' + intentContext
     const workerContext = dispatcher.formatWorkerContext()
     if (workerContext) sys += '\n\n## Worker Activity\n' + workerContext
 
-    const chatTools = intentMode === 'tools' ? [...INTENT_TOOLS, ...(chatOpts.tools || [])] : chatOpts.tools
+    // Add execute functions to INTENT_TOOLS so askFn can handle them
+    const executableIntentTools = INTENT_TOOLS.map(t => {
+      if (t.name === 'create_intent') return { ...t, execute: (args) => {
+        const intent = intentState.create(args.goal, { dependsOn: args.dependsOn || [], priority: args.priority ?? 1 })
+        return { created: true, intentId: intent.id, goal: intent.goal }
+      }}
+      if (t.name === 'update_intent') return { ...t, execute: (args) => {
+        intentState.update(args.id, { message: args.message, goal: args.goal })
+        return { updated: true, id: args.id }
+      }}
+      if (t.name === 'cancel_intent') return { ...t, execute: (args) => {
+        intentState.cancel(args.id)
+        return { cancelled: true, id: args.id }
+      }}
+      return t
+    })
+
+    const chatTools = intentMode === 'tools' ? [...executableIntentTools, ...(chatOpts.tools || [])] : chatOpts.tools
     const callOpts = { system: sys, ...chatOpts }
     if (chatTools) callOpts.tools = chatTools
 
@@ -246,24 +263,37 @@ export function createConductor(opts = {}) {
     let cleanReply = answer
 
     if (intentMode === 'tools') {
-      const toolResults = []
       for (const tc of toolCalls) {
         const args = tc.input || tc.arguments || {}
         if (tc.name === 'create_intent') {
-          const intent = intentState.create(args.goal, { dependsOn: args.dependsOn || [], priority: args.priority ?? 1 })
-          createdIntents.push(intent)
-          toolResults.push({ id: tc.id, result: JSON.stringify({ created: true, intentId: intent.id, goal: intent.goal }) })
+          // Check if intent was already created by execute function
+          const existing = intentState.getAll().find(i => i.goal === args.goal)
+          if (existing) {
+            createdIntents.push(existing)
+          } else {
+            // Fallback: create intent here (e.g. mock ai that doesn't call execute)
+            const intent = intentState.create(args.goal, { dependsOn: args.dependsOn || [], priority: args.priority ?? 1 })
+            createdIntents.push(intent)
+          }
         } else if (tc.name === 'update_intent') {
+          // update is idempotent, safe to call again
           intentState.update(args.id, { message: args.message, goal: args.goal })
-          toolResults.push({ id: tc.id, result: JSON.stringify({ updated: true, id: args.id }) })
         } else if (tc.name === 'cancel_intent') {
           intentState.cancel(args.id)
-          toolResults.push({ id: tc.id, result: JSON.stringify({ cancelled: true, id: args.id }) })
         }
       }
       if (toolCalls.length > 0) {
         _talkerMessages.push({ role: 'assistant', content: answer, tool_calls: toolCalls })
-        for (const tr of toolResults) _talkerMessages.push({ role: 'tool', tool_call_id: tr.id, content: tr.result })
+        for (const tc of toolCalls) {
+          const args = tc.input || tc.arguments || {}
+          let result = '{}'
+          if (tc.name === 'create_intent') {
+            const intent = createdIntents.find(i => i.goal === args.goal)
+            result = JSON.stringify({ created: true, intentId: intent?.id, goal: args.goal })
+          } else if (tc.name === 'update_intent') result = JSON.stringify({ updated: true, id: args.id })
+          else if (tc.name === 'cancel_intent') result = JSON.stringify({ cancelled: true, id: args.id })
+          _talkerMessages.push({ role: 'tool', tool_call_id: tc.id, content: result })
+        }
       } else {
         _talkerMessages.push({ role: 'assistant', content: answer })
       }
