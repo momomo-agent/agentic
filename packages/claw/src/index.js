@@ -177,6 +177,41 @@
         },
       }
 
+      // Default onWorkerStart: use askFn to execute worker tasks
+      const defaultOnWorkerStart = async (task, abort, taskOpts) => {
+        const workerTools = taskOpts.tools || allTools
+        const workerSystem = (options.workerDirectives || '') +
+          '\nYou are a worker executing a specific task. Focus on completing it efficiently.\n' +
+          'Available tools: ' + workerTools.filter(t => t.name !== 'plan_steps' && t.name !== 'done').map(t => t.name).join(', ')
+
+        const config = {
+          provider, apiKey, baseUrl: baseUrl || undefined,
+          model: model || undefined, proxyUrl: proxyUrl || undefined,
+          system: workerSystem,
+          tools: workerTools,
+          stream: true,
+          ...(providers ? { providers } : {}),
+        }
+
+        let answer = ''
+        for await (const chunk of askFn(task, config)) {
+          if (abort?.aborted) break
+          if ((chunk.type === 'text_delta' || chunk.type === 'text') && chunk.text) {
+            answer += chunk.text
+          } else if (chunk.type === 'done') {
+            answer = chunk.answer || answer
+          }
+        }
+
+        // Signal completion via done tool if available
+        const doneTool = workerTools.find(t => t.name === 'done')
+        if (doneTool?.execute) {
+          doneTool.execute({ summary: answer.slice(0, 500) })
+        }
+
+        return answer
+      }
+
       _conductor = conductorMod.createConductor({
         ai: aiAdapter,
         tools: allTools,
@@ -189,7 +224,7 @@
         personality: options.personality || '',
         talkerDirectives: options.talkerDirectives || '',
         workerDirectives: options.workerDirectives || '',
-        onWorkerStart: options.onWorkerStart || null,
+        onWorkerStart: options.onWorkerStart || defaultOnWorkerStart,
         store: null, // use conductor's built-in memoryStore
       })
     }
