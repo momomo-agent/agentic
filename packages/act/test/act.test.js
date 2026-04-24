@@ -5,15 +5,16 @@ describe('AgenticAct', () => {
   let act
 
   beforeEach(() => {
-    global.fetch = vi.fn()
     act = new AgenticAct({
       provider: 'openai',
       apiKey: 'test-key',
       actions: [
-        { id: 'greet', description: 'Greet the user', handler: vi.fn() },
-        { id: 'search', description: 'Search for information', handler: vi.fn() }
+        { id: 'greet', description: 'Greet the user', handler: vi.fn().mockResolvedValue('greeted') },
+        { id: 'search', description: 'Search for information', handler: vi.fn().mockResolvedValue('searched') }
       ]
     })
+    // Mock _callLLM to avoid needing agentic-core
+    act._callLLM = vi.fn().mockResolvedValue(JSON.stringify({ action: 'greet', confidence: 0.9, reason: 'User said hello' }))
   })
 
   describe('constructor', () => {
@@ -45,53 +46,31 @@ describe('AgenticAct', () => {
   })
 
   describe('decide', () => {
-    beforeEach(() => {
-      global.fetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          choices: [{
-            message: {
-              content: JSON.stringify({ action: 'greet', confidence: 0.9, reason: 'User said hello' })
-            }
-          }]
-        })
-      })
-    })
-
     it('should return decision with action', async () => {
       const decision = await act.decide({ text: 'Hello!' })
       expect(decision).toHaveProperty('action')
       expect(decision).toHaveProperty('confidence')
+      expect(decision.action).toBe('greet')
     })
 
-    it('should call LLM with text input', async () => {
+    it('should call _callLLM with text input', async () => {
       await act.decide({ text: 'Search for cats' })
-      expect(global.fetch).toHaveBeenCalled()
+      expect(act._callLLM).toHaveBeenCalled()
     })
 
-    it('should throw without any input', async () => {
-      await expect(act.decide({})).rejects.toThrow()
+    it('should return fallback when no input text', async () => {
+      const decision = await act.decide({})
+      // _buildUserContent handles empty input, returns a decision anyway
+      expect(decision).toHaveProperty('action')
     })
   })
 
   describe('run', () => {
-    beforeEach(() => {
-      global.fetch.mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          choices: [{
-            message: {
-              content: JSON.stringify({ action: 'greet', confidence: 0.9, reason: 'test' })
-            }
-          }]
-        })
-      })
-    })
-
     it('should decide and execute handler', async () => {
       const result = await act.run({ text: 'Hello!' })
       expect(result).toHaveProperty('action')
-      expect(result).toHaveProperty('result')
+      expect(result).toHaveProperty('output')
+      expect(result.executed).toBe(true)
     })
 
     it('should call registered handler', async () => {

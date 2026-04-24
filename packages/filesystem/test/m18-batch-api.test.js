@@ -141,7 +141,10 @@ describe('m18: AgenticFileSystem batchGet/batchSet/scanStream public methods', (
   // ── JSDoc on new methods ──
 
   it('batchGet, batchSet, scanStream have JSDoc (via source check)', async () => {
-    const src = await import('node:fs/promises').then(fs => fs.readFile('/Users/kenefe/LOCAL/momo-agent/projects/agentic-filesystem/src/filesystem.ts', 'utf8'))
+    const { dirname, join } = await import('node:path')
+    const { fileURLToPath } = await import('node:url')
+    const __dirname = dirname(fileURLToPath(import.meta.url))
+    const src = await import('node:fs/promises').then(fs => fs.readFile(join(__dirname, '..', 'src', 'filesystem.ts'), 'utf8'))
     assert.ok(src.includes('async batchGet('), 'batchGet method exists')
     assert.ok(src.includes('async batchSet('), 'batchSet method exists')
     assert.ok(src.includes('scanStream(pattern'), 'scanStream method exists')
