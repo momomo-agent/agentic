@@ -29,7 +29,12 @@ function createMockAI(responses = {}) {
       const key = Object.keys(responses).find(k => lastMsg.includes(k))
       const answer = key ? responses[key] : 'OK, I understand.'
       this.calls.push({ messages, opts, answer })
-      return Promise.resolve({ answer, usage: { input_tokens: 100, output_tokens: 50 } })
+      // Return async generator (unified chat interface)
+      const self = this
+      return (async function* () {
+        yield { type: 'text_delta', text: answer }
+        yield { type: 'done', answer, usage: { input_tokens: 100, output_tokens: 50 } }
+      })()
     },
     get callCount() { return callCount },
   }

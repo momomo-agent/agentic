@@ -124,16 +124,16 @@ export function createConductor(opts = {}) {
         const sys = systemPrompt + (formatContext ? '\n\n' + formatContext() : '')
         const callOpts = { system: sys || undefined, tools: chatOpts.tools || tools, ...chatOpts }
         let answer = ''
-        if (ai.stream) {
-          for await (const chunk of ai.stream(messages, callOpts)) {
-            if (chunk.type === 'text') answer += chunk.text || ''
+        for await (const chunk of ai.chat(messages, callOpts)) {
+          if (chunk.type === 'text_delta' || chunk.type === 'text') {
+            answer += chunk.text || ''
+            yield { type: 'text', text: chunk.text || '' }
+          } else if (chunk.type === 'done') {
+            answer = chunk.answer || answer
+            yield { type: 'done', reply: answer, intents: [], usage: chunk.usage }
+          } else {
             yield chunk
           }
-        } else {
-          const result = await ai.chat(messages, callOpts)
-          answer = result.answer || result.content || result.text || ''
-          if (answer) yield { type: 'text', text: answer }
-          yield { type: 'done', reply: answer, intents: [], usage: result.usage }
         }
         messages.push({ role: 'assistant', content: answer })
       },
@@ -217,30 +217,28 @@ export function createConductor(opts = {}) {
     let toolCalls = []
     let usage
 
-    if (ai.stream) {
-      // Streaming path: yield text deltas as they arrive
-      for await (const chunk of ai.stream(_talkerMessages, callOpts)) {
-        if (chunk.type === 'text' && chunk.text) {
-          answer += chunk.text
-          yield chunk
-        } else if (chunk.type === 'tool_use') {
-          toolCalls.push(chunk.tool)
-          yield chunk
-        } else if (chunk.type === 'tool_result') {
-          yield chunk
-        } else if (chunk.type === 'done') {
-          usage = chunk.usage
-        } else {
-          yield chunk
+    // Unified: ai.chat() always returns async generator (stream default true)
+    for await (const chunk of ai.chat(_talkerMessages, callOpts)) {
+      if ((chunk.type === 'text_delta' || chunk.type === 'text') && chunk.text) {
+        answer += chunk.text
+        yield { type: 'text', text: chunk.text }
+      } else if (chunk.type === 'tool_use') {
+        toolCalls.push(chunk.tool || { id: chunk.id, name: chunk.name, input: chunk.input })
+        yield chunk
+      } else if (chunk.type === 'tool_result') {
+        yield chunk
+      } else if (chunk.type === 'done') {
+        answer = chunk.answer || answer
+        usage = chunk.usage
+        // Also collect tool_calls from done event (non-streaming path)
+        if (chunk.tool_calls?.length) {
+          for (const tc of chunk.tool_calls) {
+            if (!toolCalls.some(t => t.id === tc.id)) toolCalls.push(tc)
+          }
         }
+      } else {
+        yield chunk
       }
-    } else {
-      // Non-streaming fallback
-      const result = await ai.chat(_talkerMessages, callOpts)
-      answer = result.answer || result.content || result.text || ''
-      toolCalls = result.tool_calls || []
-      usage = result.usage
-      if (answer) yield { type: 'text', text: answer }
     }
 
     // Process intents

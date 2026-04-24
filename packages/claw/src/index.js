@@ -161,24 +161,9 @@
     let _conductor = null
 
     if (conductorMod && conductorMod.createConductor) {
-      // Build AI adapter for conductor: chat + stream
+      // Build AI adapter for conductor: single chat() returning async generator
       const aiAdapter = {
         chat: (messages, chatOpts = {}) => {
-          const input = messages[messages.length - 1]?.content || ''
-          const config = {
-            provider, apiKey, baseUrl: baseUrl || undefined,
-            model: model || undefined, proxyUrl: proxyUrl || undefined,
-            history: messages.slice(0, -1),
-            system: chatOpts.system, tools: chatOpts.tools || allTools,
-            ...(providers ? { providers } : {}),
-          }
-          return askFn(input, config).then(r => ({
-            answer: r.answer || r.content || r.text || '',
-            tool_calls: r.tool_calls || [],
-            usage: r.usage,
-          }))
-        },
-        stream: (messages, chatOpts = {}) => {
           const input = messages[messages.length - 1]?.content || ''
           const config = {
             provider, apiKey, baseUrl: baseUrl || undefined,
@@ -188,7 +173,7 @@
             stream: true,
             ...(providers ? { providers } : {}),
           }
-          return askFn(input, config) // returns async generator when stream=true
+          return askFn(input, config) // returns async generator
         },
       }
 

@@ -574,16 +574,26 @@ const _cache = {}
       const conductorMod = this._need('agentic-conductor')
       const o = this._opts
 
-      // Build an AI adapter that uses this Agentic instance
+      // Build an AI adapter: single chat() returning async generator
       const aiAdapter = {
-        chat: (messages, chatOpts = {}) => this.think(
-          messages[messages.length - 1]?.content || '',
-          {
+        chat: (messages, chatOpts = {}) => {
+          const core = this._need('agentic-core')
+          const ask = core.agenticAsk || core
+          const input = messages[messages.length - 1]?.content || ''
+          const o = this._opts
+          const config = {
+            provider: o.provider || 'anthropic',
+            baseUrl: o.baseUrl,
+            apiKey: o.apiKey,
+            model: o.model,
+            proxyUrl: o.proxyUrl,
             history: messages.slice(0, -1),
             system: chatOpts.system,
             tools: chatOpts.tools,
+            stream: true,
           }
-        ).then(r => ({ answer: r.answer || r.content || r.text, usage: r.usage }))
+          return ask(input, config) // returns async generator
+        },
       }
 
       // Use agentic-store if available, otherwise conductor's built-in memoryStore

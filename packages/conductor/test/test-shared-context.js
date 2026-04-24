@@ -10,7 +10,10 @@ function assert(cond, msg) {
 }
 
 const mockAi = (reply) => ({
-  chat: async (msgs, opts) => ({ answer: reply, content: reply, text: reply, usage: {} }),
+  chat: (msgs, opts) => (async function* () {
+    yield { type: 'text_delta', text: reply }
+    yield { type: 'done', answer: reply, usage: {} }
+  })(),
 })
 
 // Helper to consume async generator chat()
@@ -32,9 +35,11 @@ console.log('\n--- Test 1: Personality parameter ---')
 {
   let capturedSystem = ''
   const ai = {
-    chat: async (msgs, opts) => {
+    chat(msgs, opts) {
       capturedSystem = opts.system || ''
-      return { answer: 'Hello!', usage: {} }
+      return (async function* () {
+        yield { type: 'done', answer: 'Hello!', usage: {} }
+      })()
     }
   }
   const c = createConductor({
@@ -108,11 +113,13 @@ console.log('\n--- Test 4: Worker context in Talker chat ---')
   let capturedSystem = ''
   let callCount = 0
   const ai = {
-    chat: async (msgs, opts) => {
+    chat(msgs, opts) {
       callCount++
       capturedSystem = opts.system || ''
-      if (callCount === 1) return { answer: '```intents\n[{"action":"create","goal":"fetch weather"}]\n```', usage: {} }
-      return { answer: 'The weather is 23°C', usage: {} }
+      const answer = callCount === 1 ? '```intents\n[{"action":"create","goal":"fetch weather"}]\n```' : 'The weather is 23°C'
+      return (async function* () {
+        yield { type: 'done', answer, usage: {} }
+      })()
     }
   }
   let workerOpts = null
@@ -152,9 +159,11 @@ console.log('\n--- Test 5: talkerDirectives override ---')
 {
   let capturedSystem = ''
   const ai = {
-    chat: async (msgs, opts) => {
+    chat(msgs, opts) {
       capturedSystem = opts.system || ''
-      return { answer: 'ok', usage: {} }
+      return (async function* () {
+        yield { type: 'done', answer: 'ok', usage: {} }
+      })()
     }
   }
   const c = createConductor({

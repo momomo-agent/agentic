@@ -1771,4 +1771,49 @@ function buildToolResults(toolCalls, results) {
   })
 }
 
-export { agenticAsk, agenticStep, buildToolResults, warmup, classifyError, toolRegistry, synthesize, transcribe, registerProvider, unregisterProvider }
+// ── chat: unified messages-first API ──
+// chat(messages, opts) → AsyncGenerator<ChatEvent>
+// stream (default true) is just an option, not a separate function.
+// When stream=false, still returns generator but buffers internally.
+//
+// Usage:
+//   for await (const e of chat(messages, { system, tools, stream: true })) { ... }
+//   const result = await chatResult(messages, opts) // convenience wrapper
+
+function chat(messages, opts = {}) {
+  const { system, tools, stream = true, provider, apiKey, baseUrl, model, proxyUrl, signal, providers, images, audio, schema, searchApiKey } = opts
+
+  // Extract last user message as prompt, rest as history
+  const lastMsg = messages[messages.length - 1]
+  const prompt = typeof lastMsg?.content === 'string' ? lastMsg.content : JSON.stringify(lastMsg?.content || '')
+  const history = messages.slice(0, -1)
+
+  const config = {
+    provider, apiKey, baseUrl, model, proxyUrl, signal, providers,
+    history, system, tools, stream, images, audio, schema, searchApiKey,
+  }
+
+  // Clean undefined values
+  for (const k of Object.keys(config)) {
+    if (config[k] === undefined) delete config[k]
+  }
+
+  return _agenticAskGen(prompt, config)
+}
+
+// Convenience: await chatResult(messages, opts) → { answer, tool_calls, usage, rounds }
+async function chatResult(messages, opts = {}) {
+  let answer = '', toolCalls = [], usage, rounds = 0
+  for await (const event of chat(messages, opts)) {
+    if (event.type === 'done') {
+      answer = event.answer || ''
+      rounds = event.rounds || 0
+      usage = event.usage
+    } else if (event.type === 'tool_use') {
+      toolCalls.push({ id: event.id, name: event.name, input: event.input })
+    }
+  }
+  return { answer, tool_calls: toolCalls, usage, rounds }
+}
+
+export { agenticAsk, agenticStep, buildToolResults, warmup, classifyError, toolRegistry, synthesize, transcribe, registerProvider, unregisterProvider, chat, chatResult }

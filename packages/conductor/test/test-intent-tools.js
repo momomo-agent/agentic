@@ -17,6 +17,22 @@ async function chatAll(conductor, input, opts) {
   return { reply, intents, usage }
 }
 
+// Wrap a response-returning function into unified ai.chat() async generator
+function mockAi(fn) {
+  return {
+    chat(msgs, opts) {
+      const r = fn(msgs, opts)
+      return (async function* () {
+        if (r.answer) yield { type: 'text_delta', text: r.answer }
+        if (r.tool_calls?.length) {
+          for (const tc of r.tool_calls) yield { type: 'tool_use', tool: tc, id: tc.id, name: tc.name, input: tc.input }
+        }
+        yield { type: 'done', answer: r.answer || '', tool_calls: r.tool_calls || [], usage: r.usage || {} }
+      })()
+    }
+  }
+}
+
 console.log('═══════════════════════════════════════════════════')
 console.log('  Test: Intent Tool Calling Mode')
 console.log('═══════════════════════════════════════════════════')
@@ -25,17 +41,14 @@ console.log('══════════════════════�
 console.log('\n--- Test 1: Simple reply (no tool calls) ---')
 {
   let capturedOpts = null
-  const ai = {
-    chat: async (msgs, opts) => {
-      capturedOpts = opts
-      return { answer: 'Hello! How can I help?', tool_calls: [], usage: {} }
-    }
-  }
+  const ai = mockAi((msgs, opts) => {
+    capturedOpts = opts
+    return { answer: 'Hello! How can I help?', tool_calls: [], usage: {} }
+  })
   const c = createConductor({ ai, intentMode: 'tools', dispatchMode: 'code' })
   const r = await chatAll(c, 'hi')
   assert(r.reply === 'Hello! How can I help?', 'reply preserved')
   assert(r.intents.length === 0, 'no intents created')
-  // Verify intent tools were injected
   assert(capturedOpts.tools.some(t => t.name === 'create_intent'), 'create_intent tool injected')
   assert(capturedOpts.tools.some(t => t.name === 'update_intent'), 'update_intent tool injected')
   assert(capturedOpts.tools.some(t => t.name === 'cancel_intent'), 'cancel_intent tool injected')
@@ -46,17 +59,11 @@ console.log('\n--- Test 1: Simple reply (no tool calls) ---')
 console.log('\n--- Test 2: Create intent via tool call ---')
 {
   const spawned = []
-  const ai = {
-    chat: async (msgs, opts) => {
-      return {
-        answer: "I'll search for AI news for you.",
-        tool_calls: [
-          { id: 'tc_1', name: 'create_intent', input: { goal: 'Search AI news' } },
-        ],
-        usage: {},
-      }
-    }
-  }
+  const ai = mockAi(() => ({
+    answer: "I'll search for AI news for you.",
+    tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Search AI news' } }],
+    usage: {},
+  }))
   const c = createConductor({
     ai, intentMode: 'tools', dispatchMode: 'code',
     onWorkerStart: (task, abort, opts) => { spawned.push({ task, opts }); return new Promise(() => {}) },
@@ -75,19 +82,14 @@ console.log('\n--- Test 2: Create intent via tool call ---')
 console.log('\n--- Test 3: Multiple intents with dependencies ---')
 {
   const spawned = []
-  let firstIntentId = null
-  const ai = {
-    chat: async (msgs, opts) => {
-      return {
-        answer: "I'll search and then write a report.",
-        tool_calls: [
-          { id: 'tc_1', name: 'create_intent', input: { goal: 'Search AI news' } },
-          { id: 'tc_2', name: 'create_intent', input: { goal: 'Write report', dependsOn: ['1'], priority: 2 } },
-        ],
-        usage: {},
-      }
-    }
-  }
+  const ai = mockAi(() => ({
+    answer: "I'll search and then write a report.",
+    tool_calls: [
+      { id: 'tc_1', name: 'create_intent', input: { goal: 'Search AI news' } },
+      { id: 'tc_2', name: 'create_intent', input: { goal: 'Write report', dependsOn: ['1'], priority: 2 } },
+    ],
+    usage: {},
+  }))
   const c = createConductor({
     ai, intentMode: 'tools', dispatchMode: 'code',
     onWorkerStart: (task, abort, opts) => { spawned.push({ task, opts }); return new Promise(() => {}) },
@@ -106,27 +108,14 @@ console.log('\n--- Test 3: Multiple intents with dependencies ---')
 console.log('\n--- Test 4: Update intent ---')
 {
   let callCount = 0
-  const ai = {
-    chat: async (msgs, opts) => {
-      callCount++
-      if (callCount === 1) {
-        return {
-          answer: "Creating task.",
-          tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Search news' } }],
-          usage: {},
-        }
-      }
-      return {
-        answer: "Updated the task.",
-        tool_calls: [{ id: 'tc_2', name: 'update_intent', input: { id: '1', message: 'Focus on AI agents' } }],
-        usage: {},
-      }
+  const ai = mockAi((msgs, opts) => {
+    callCount++
+    if (callCount === 1) {
+      return { answer: "Creating task.", tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Search news' } }], usage: {} }
     }
-  }
-  const c = createConductor({
-    ai, intentMode: 'tools', dispatchMode: 'code',
-    onWorkerStart: () => new Promise(() => {}),
+    return { answer: "Updated the task.", tool_calls: [{ id: 'tc_2', name: 'update_intent', input: { id: '1', message: 'Focus on AI agents' } }], usage: {} }
   })
+  const c = createConductor({ ai, intentMode: 'tools', dispatchMode: 'code', onWorkerStart: () => new Promise(() => {}) })
   await chatAll(c, 'search news')
   await new Promise(r => setTimeout(r, 50))
   await chatAll(c, 'focus on AI agents')
@@ -139,24 +128,20 @@ console.log('\n--- Test 4: Update intent ---')
 console.log('\n--- Test 5: Cancel intent ---')
 {
   let capturedIntentId = null
-  const ai = {
-    chat: async (msgs, opts) => {
-      // Return cancel tool call using the actual intent id from tool result in history
-      const toolResult = msgs.find(m => m.role === 'tool')
-      if (toolResult) {
-        const data = JSON.parse(toolResult.content)
-        capturedIntentId = data.intentId
-        return { answer: 'Cancelled.', tool_calls: [{ id: 'tc_2', name: 'cancel_intent', input: { id: capturedIntentId } }], usage: {} }
-      }
-      return { answer: 'Creating.', tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Search news' } }], usage: {} }
+  const ai = mockAi((msgs) => {
+    const toolResult = msgs.find(m => m.role === 'tool')
+    if (toolResult) {
+      const data = JSON.parse(toolResult.content)
+      capturedIntentId = data.intentId
+      return { answer: 'Cancelled.', tool_calls: [{ id: 'tc_2', name: 'cancel_intent', input: { id: capturedIntentId } }], usage: {} }
     }
-  }
+    return { answer: 'Creating.', tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Search news' } }], usage: {} }
+  })
   const c = createConductor({ ai, intentMode: 'tools', dispatchMode: 'llm' })
-  await chatAll(c, 'search news')  // creates intent, tool result has intentId
-  await chatAll(c, 'cancel that')  // cancels using id from history
+  await chatAll(c, 'search news')
+  await chatAll(c, 'cancel that')
   const intents = c.getIntents()
-  const status = intents[0]?.status
-  assert(status === 'cancelled', `intent cancelled (got ${status})`)
+  assert(intents[0]?.status === 'cancelled', `intent cancelled (got ${intents[0]?.status})`)
   c.destroy()
 }
 
@@ -165,28 +150,18 @@ console.log('\n--- Test 6: Tool results in history ---')
 {
   let capturedMsgs = null
   let callCount = 0
-  const ai = {
-    chat: async (msgs, opts) => {
-      callCount++
-      capturedMsgs = msgs
-      if (callCount === 1) {
-        return {
-          answer: "Creating task.",
-          tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Do stuff' } }],
-          usage: {},
-        }
-      }
-      return { answer: "Sure, what about it?", tool_calls: [], usage: {} }
+  const ai = mockAi((msgs) => {
+    callCount++
+    capturedMsgs = msgs
+    if (callCount === 1) {
+      return { answer: "Creating task.", tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Do stuff' } }], usage: {} }
     }
-  }
-  const c = createConductor({
-    ai, intentMode: 'tools', dispatchMode: 'code',
-    onWorkerStart: () => new Promise(() => {}),
+    return { answer: "Sure, what about it?", tool_calls: [], usage: {} }
   })
+  const c = createConductor({ ai, intentMode: 'tools', dispatchMode: 'code', onWorkerStart: () => new Promise(() => {}) })
   await chatAll(c, 'do stuff')
   await new Promise(r => setTimeout(r, 50))
   await chatAll(c, 'how is it going?')
-  // Second call should have tool results in history
   assert(capturedMsgs.length >= 4, 'history has user + assistant + tool_result + user')
   const toolMsg = capturedMsgs.find(m => m.role === 'tool')
   assert(toolMsg !== undefined, 'tool result message in history')
@@ -198,12 +173,10 @@ console.log('\n--- Test 6: Tool results in history ---')
 console.log('\n--- Test 7: System prompt for tools mode ---')
 {
   let capturedSystem = ''
-  const ai = {
-    chat: async (msgs, opts) => {
-      capturedSystem = opts.system || ''
-      return { answer: 'ok', tool_calls: [], usage: {} }
-    }
-  }
+  const ai = mockAi((msgs, opts) => {
+    capturedSystem = opts.system || ''
+    return { answer: 'ok', tool_calls: [], usage: {} }
+  })
   const c = createConductor({ ai, intentMode: 'tools' })
   await chatAll(c, 'hi')
   assert(capturedSystem.includes('intent tools'), 'tools mode system prompt mentions intent tools')
@@ -215,12 +188,10 @@ console.log('\n--- Test 7: System prompt for tools mode ---')
 console.log('\n--- Test 8: Parse mode backward compat ---')
 {
   let capturedSystem = ''
-  const ai = {
-    chat: async (msgs, opts) => {
-      capturedSystem = opts.system || ''
-      return { answer: 'ok', usage: {} }
-    }
-  }
+  const ai = mockAi((msgs, opts) => {
+    capturedSystem = opts.system || ''
+    return { answer: 'ok', usage: {} }
+  })
   const c = createConductor({ ai, intentMode: 'parse' })
   await chatAll(c, 'hi')
   assert(capturedSystem.includes('JSON block'), 'parse mode system prompt mentions JSON block')
@@ -232,12 +203,10 @@ console.log('\n--- Test 8: Parse mode backward compat ---')
 console.log('\n--- Test 9: Default intentMode ---')
 {
   let capturedSystem = ''
-  const ai = {
-    chat: async (msgs, opts) => {
-      capturedSystem = opts.system || ''
-      return { answer: 'ok', usage: {} }
-    }
-  }
+  const ai = mockAi((msgs, opts) => {
+    capturedSystem = opts.system || ''
+    return { answer: 'ok', usage: {} }
+  })
   const c = createConductor({ ai })
   await chatAll(c, 'hi')
   assert(capturedSystem.includes('JSON block'), 'default mode is parse')
@@ -248,13 +217,11 @@ console.log('\n--- Test 9: Default intentMode ---')
 console.log('\n--- Test 10: Tool calls without reply text ---')
 {
   const spawned = []
-  const ai = {
-    chat: async () => ({
-      answer: '',
-      tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Background task' } }],
-      usage: {},
-    })
-  }
+  const ai = mockAi(() => ({
+    answer: '',
+    tool_calls: [{ id: 'tc_1', name: 'create_intent', input: { goal: 'Background task' } }],
+    usage: {},
+  }))
   const c = createConductor({
     ai, intentMode: 'tools', dispatchMode: 'code',
     onWorkerStart: (task, abort, opts) => { spawned.push(task); return new Promise(() => {}) },
