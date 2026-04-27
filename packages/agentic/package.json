@@ -18,6 +18,22 @@
     "build": "vite build"
   },
   "license": "MIT",
+  "dependencies": {
+    "agentic-act": "file:../act",
+    "agentic-claw": "file:../claw",
+    "agentic-client": "file:../client",
+    "agentic-conductor": "file:../conductor",
+    "agentic-core": "file:../core",
+    "agentic-embed": "file:../embed",
+    "agentic-filesystem": "file:../filesystem",
+    "agentic-memory": "file:../memory",
+    "agentic-render": "file:../render",
+    "agentic-sense": "file:../sense",
+    "agentic-shell": "file:../shell",
+    "agentic-spatial": "file:../spatial",
+    "agentic-store": "file:../store",
+    "agentic-voice": "file:../voice"
+  },
   "devDependencies": {
     "vite": "catalog:"
   }
