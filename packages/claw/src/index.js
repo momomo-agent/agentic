@@ -527,13 +527,12 @@
           }
         }
       } catch (error) {
-        events.emit('error', error)
-        throw error
-      } finally {
-        // Rollback user message from sessionMem if we never got a successful response
+        // Rollback user message on error so retry doesn't duplicate
         if (!success) {
           sessionMem.popLast()
         }
+        events.emit('error', error)
+        throw error
       }
     }
 
