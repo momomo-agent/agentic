@@ -124,18 +124,28 @@ export function createConductor(opts = {}) {
         const sys = systemPrompt + (formatContext ? '\n\n' + formatContext() : '')
         const callOpts = { system: sys || undefined, tools: chatOpts.tools || tools, ...chatOpts }
         let answer = ''
-        for await (const chunk of ai.chat(messages, callOpts)) {
-          if (chunk.type === 'text_delta' || chunk.type === 'text') {
-            answer += chunk.text || ''
-            yield { type: 'text', text: chunk.text || '' }
-          } else if (chunk.type === 'done') {
-            answer = chunk.answer || answer
-            yield { type: 'done', reply: answer, intents: [], usage: chunk.usage }
-          } else {
-            yield chunk
+        let lastUsage
+        try {
+          for await (const chunk of ai.chat(messages, callOpts)) {
+            if (chunk.type === 'text_delta' || chunk.type === 'text') {
+              answer += chunk.text || ''
+              yield { type: 'text', text: chunk.text || '' }
+            } else if (chunk.type === 'done') {
+              answer = chunk.answer || answer
+              lastUsage = chunk.usage
+            } else {
+              yield chunk
+            }
           }
+        } catch (error) {
+          // Rollback user message on failure so retry doesn't duplicate
+          messages.pop()
+          throw error
         }
+        // Push assistant BEFORE yield done — if generator is abandoned after
+        // yield, the message is already in history for the next turn.
         messages.push({ role: 'assistant', content: answer })
+        yield { type: 'done', reply: answer, intents: [], usage: lastUsage }
       },
       getState() { return { strategy: 'single', messages: messages.length } },
       getIntents() { return [] },

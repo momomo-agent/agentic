@@ -216,7 +216,7 @@
         ai: aiAdapter,
         tools: allTools,
         systemPrompt: systemPrompt || '',
-        strategy: options.strategy || 'dispatch',
+        strategy: options.strategy || 'single',
         intentMode: options.intentMode || 'tools',
         dispatchMode: options.dispatchMode || 'code',
         planMode: options.planMode !== false,
@@ -335,13 +335,17 @@
     // ── Build askFn config ─────────────────────────────────────────
     function _buildAskConfig(sessionMem, chatOpts) {
       let sys = systemPrompt || ''
+      // Exclude the last message (current user input) from history
+      // because askFn will add it as the prompt parameter
+      const fullHistory = sessionMem.history()
+      const history = fullHistory.slice(0, -1)
       return {
         provider,
         apiKey,
         baseUrl: baseUrl || undefined,
         model: model || undefined,
         proxyUrl: proxyUrl || undefined,
-        history: sessionMem.history(),
+        history,
         system: sys || undefined,
         tools: chatOpts.tools || allTools,
         stream,
@@ -463,6 +467,7 @@
       await sessionMem.user(input)
       await _compactIfNeeded(sessionMem)
 
+      let success = false
       try {
         if (_conductor) {
           // ── Conductor path: streaming via conductor.chat() async generator ──
@@ -477,6 +482,7 @@
               await sessionMem.assistant(reply)
               events.emit('message', { role: 'assistant', content: reply })
               await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+              success = true
               yield { type: 'done', answer: reply, intents: chunk.intents || [], rounds: 1, messages: sessionMem.messages() }
             } else {
               // Forward tool_use, status, etc.
@@ -500,6 +506,7 @@
             await sessionMem.assistant(answer)
             events.emit('message', { role: 'assistant', content: answer })
             await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+            success = true
             yield { type: 'text_delta', text: answer }
             yield { type: 'done', answer, rounds: resolved.rounds || 1, messages: sessionMem.messages() }
             return
@@ -515,12 +522,18 @@
               await sessionMem.assistant(answer)
               events.emit('message', { role: 'assistant', content: answer })
               await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+              success = true
             }
           }
         }
       } catch (error) {
         events.emit('error', error)
         throw error
+      } finally {
+        // Rollback user message from sessionMem if we never got a successful response
+        if (!success) {
+          sessionMem.popLast()
+        }
       }
     }
 

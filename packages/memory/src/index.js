@@ -527,6 +527,17 @@
         return this
       },
 
+      /** Remove the last message (for error rollback) */
+      popLast() {
+        if (_messages.length > 0) {
+          const removed = _messages.pop()
+          if (removed.role === 'user') _metadata.turns = Math.max(0, _metadata.turns - 1)
+          _save()
+          return removed
+        }
+        return null
+      },
+
       fork(newOptions = {}) {
         const forked = createMemory({
           maxTokens, maxMessages, systemPrompt: _systemPrompt,

@@ -2,20 +2,25 @@
   "name": "agentic-shell",
   "version": "0.1.0",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/agentic-shell.cjs",
+  "module": "./dist/agentic-shell.es.js",
+  "browser": "./dist/agentic-shell.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/agentic-shell.es.js",
+      "require": "./dist/agentic-shell.cjs",
+      "browser": "./dist/agentic-shell.umd.js"
+    }
+  },
   "scripts": {
-    "build": "tsup",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "build": "vite build",
+    "test": "vitest run"
   },
   "dependencies": {
     "agentic-filesystem": "file:../filesystem"
   },
   "devDependencies": {
-    "tsup": "^8.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^2.0.0",
-    "@vitest/coverage-v8": "^2.0.0"
+    "vite": "catalog:",
+    "vitest": "catalog:"
   }
 }
