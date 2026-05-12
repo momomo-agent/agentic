@@ -112,13 +112,19 @@
   // ── createClaw ───────────────────────────────────────────────────
 
   function createClaw(options = {}) {
+    // Mutable runtime config — can be updated after creation via claw.configure()
+    // so the model/provider/apiKey picked at creation time is no longer a life sentence.
+    const cfg = {
+      apiKey: options.apiKey,
+      provider: options.provider || 'anthropic',
+      baseUrl: options.baseUrl || null,
+      model: options.model || null,
+      proxyUrl: options.proxyUrl || null,
+      systemPrompt: options.systemPrompt || null,
+      providers: options.providers || null,
+      stream: options.stream !== false,
+    }
     const {
-      apiKey,
-      provider = 'anthropic',
-      baseUrl = null,
-      model = null,
-      proxyUrl = null,
-      systemPrompt = null,
       tools = [],
       skills = [],
       skillConfig = {},
@@ -128,11 +134,9 @@
       embedBaseUrl = null,
       persist = null,
       maxTokens = 8000,
-      stream = true,
-      providers = null,
     } = options
 
-    if (!apiKey && (!providers || !providers.length)) throw new Error('apiKey is required')
+    if (!cfg.apiKey && (!cfg.providers || !cfg.providers.length)) throw new Error('apiKey is required')
 
     // Resolve skills
     const resolvedSkills = skills.map(s => {
@@ -166,12 +170,15 @@
         chat: (messages, chatOpts = {}) => {
           const input = messages[messages.length - 1]?.content || ''
           const config = {
-            provider, apiKey, baseUrl: baseUrl || undefined,
-            model: model || undefined, proxyUrl: proxyUrl || undefined,
+            provider: chatOpts.provider || cfg.provider,
+            apiKey: chatOpts.apiKey || cfg.apiKey,
+            baseUrl: chatOpts.baseUrl || cfg.baseUrl || undefined,
+            model: chatOpts.model || cfg.model || undefined,
+            proxyUrl: chatOpts.proxyUrl || cfg.proxyUrl || undefined,
             history: messages.slice(0, -1),
             system: chatOpts.system, tools: chatOpts.tools || allTools,
             stream: true,
-            ...(providers ? { providers } : {}),
+            ...(cfg.providers ? { providers: cfg.providers } : {}),
           }
           return askFn(input, config) // returns async generator
         },
@@ -185,12 +192,15 @@
           'Available tools: ' + workerTools.filter(t => t.name !== 'plan_steps' && t.name !== 'done').map(t => t.name).join(', ')
 
         const config = {
-          provider, apiKey, baseUrl: baseUrl || undefined,
-          model: model || undefined, proxyUrl: proxyUrl || undefined,
+          provider: taskOpts.provider || cfg.provider,
+          apiKey: taskOpts.apiKey || cfg.apiKey,
+          baseUrl: taskOpts.baseUrl || cfg.baseUrl || undefined,
+          model: taskOpts.model || cfg.model || undefined,
+          proxyUrl: taskOpts.proxyUrl || cfg.proxyUrl || undefined,
           system: workerSystem,
           tools: workerTools,
           stream: true,
-          ...(providers ? { providers } : {}),
+          ...(cfg.providers ? { providers: cfg.providers } : {}),
         }
 
         let answer = ''
@@ -215,7 +225,7 @@
       _conductor = conductorMod.createConductor({
         ai: aiAdapter,
         tools: allTools,
-        systemPrompt: systemPrompt || '',
+        systemPrompt: cfg.systemPrompt || '',
         strategy: options.strategy || 'single',
         intentMode: options.intentMode || 'tools',
         dispatchMode: options.dispatchMode || 'code',
@@ -262,7 +272,7 @@
     function _createSessionMemory(sessionId) {
       return memory.createMemory({
         maxTokens,
-        systemPrompt,
+        systemPrompt: cfg.systemPrompt,
         storage: persist ? (persist + ':' + sessionId) : null,
         id: sessionId,
       })
@@ -334,22 +344,23 @@
 
     // ── Build askFn config ─────────────────────────────────────────
     function _buildAskConfig(sessionMem, chatOpts) {
-      let sys = systemPrompt || ''
+      const sys = chatOpts.system ?? chatOpts.systemPrompt ?? cfg.systemPrompt ?? ''
       // Exclude the last message (current user input) from history
       // because askFn will add it as the prompt parameter
       const fullHistory = sessionMem.history()
       const history = fullHistory.slice(0, -1)
+      const effProviders = chatOpts.providers || cfg.providers
       return {
-        provider,
-        apiKey,
-        baseUrl: baseUrl || undefined,
-        model: model || undefined,
-        proxyUrl: proxyUrl || undefined,
+        provider: chatOpts.provider || cfg.provider,
+        apiKey: chatOpts.apiKey || cfg.apiKey,
+        baseUrl: (chatOpts.baseUrl || cfg.baseUrl) || undefined,
+        model: (chatOpts.model || cfg.model) || undefined,
+        proxyUrl: (chatOpts.proxyUrl || cfg.proxyUrl) || undefined,
         history,
         system: sys || undefined,
         tools: chatOpts.tools || allTools,
-        stream,
-        ...(providers ? { providers } : {}),
+        stream: chatOpts.stream ?? cfg.stream,
+        ...(effProviders ? { providers: effProviders } : {}),
         ...(chatOpts.signal ? { signal: chatOpts.signal } : {}),
         ...(chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {}),
       }
@@ -665,6 +676,41 @@
       on(event, fn) { events.on(event, fn); return this },
       off(event, fn) { events.off(event, fn); return this },
 
+      /**
+       * Update runtime config. Any of model/provider/apiKey/baseUrl/proxyUrl/systemPrompt/providers/stream
+       * can be changed after creation — subsequent chat() calls pick up the new values.
+       * Pass null/'' to clear a field (resets to undefined for that call).
+       */
+      configure(patch = {}) {
+        if (!patch || typeof patch !== 'object') return this
+        for (const k of ['apiKey', 'provider', 'baseUrl', 'model', 'proxyUrl', 'systemPrompt', 'providers', 'stream']) {
+          if (k in patch) cfg[k] = patch[k]
+        }
+        events.emit('configure', { ...cfg })
+        return this
+      },
+
+      /** Convenience: switch model. */
+      setModel(model) { cfg.model = model || null; events.emit('configure', { ...cfg }); return this },
+      /** Convenience: switch provider (optionally also apiKey/baseUrl/model in one call). */
+      setProvider(provider, extras = {}) {
+        if (provider) cfg.provider = provider
+        for (const k of ['apiKey', 'baseUrl', 'model', 'proxyUrl']) {
+          if (k in extras) cfg[k] = extras[k]
+        }
+        events.emit('configure', { ...cfg })
+        return this
+      },
+      /** Convenience: swap API key without recreating claw. */
+      setApiKey(apiKey) { cfg.apiKey = apiKey || null; events.emit('configure', { ...cfg }); return this },
+      /** Convenience: set providers[] failover list. */
+      setProviders(providers) { cfg.providers = Array.isArray(providers) && providers.length ? providers : null; events.emit('configure', { ...cfg }); return this },
+      /** Convenience: update systemPrompt. */
+      setSystemPrompt(systemPrompt) { cfg.systemPrompt = systemPrompt || null; events.emit('configure', { ...cfg }); return this },
+
+      /** Snapshot of current runtime config (copy, safe to mutate). */
+      getConfig() { return { ...cfg } },
+
       /** Warmup: pre-heat connection + prompt cache */
       async warmup() {
         const warmupFn = core?.warmup || (typeof warmup === 'function' ? warmup : null)
@@ -673,14 +719,14 @@
           return { ok: false, reason: 'not_available' }
         }
         return warmupFn({
-          provider,
-          apiKey,
-          baseUrl,
-          model,
-          system: systemPrompt,
+          provider: cfg.provider,
+          apiKey: cfg.apiKey,
+          baseUrl: cfg.baseUrl,
+          model: cfg.model,
+          system: cfg.systemPrompt,
           tools: allTools,
-          proxyUrl,
-          providers,
+          proxyUrl: cfg.proxyUrl,
+          providers: cfg.providers,
         })
       },
 
@@ -732,8 +778,8 @@
         const mod = optionalLoad('agentic-act', 'AgenticAct')
         if (!mod) return null
         _act = {
-          decide: (input, opts = {}) => new mod.AgenticAct({ apiKey, model, baseUrl, ...opts }).decide(input),
-          run: (input, opts = {}) => new mod.AgenticAct({ apiKey, model, baseUrl, ...opts }).run(input),
+          decide: (input, opts = {}) => new mod.AgenticAct({ apiKey: cfg.apiKey, model: cfg.model, baseUrl: cfg.baseUrl, ...opts }).decide(input),
+          run: (input, opts = {}) => new mod.AgenticAct({ apiKey: cfg.apiKey, model: cfg.model, baseUrl: cfg.baseUrl, ...opts }).run(input),
         }
         return _act
       },
@@ -771,9 +817,9 @@
         const mod = optionalLoad('agentic-spatial', 'AgenticSpatial')
         if (!mod) return null
         _spatial = {
-          reconstruct: (opts) => mod.reconstructSpace({ apiKey, model, baseUrl, ...opts }),
+          reconstruct: (opts) => mod.reconstructSpace({ apiKey: cfg.apiKey, model: cfg.model, baseUrl: cfg.baseUrl, ...opts }),
           Session: mod.SpatialSession,
-          createSession: (opts = {}) => new mod.SpatialSession({ apiKey, model, baseUrl, ...opts }),
+          createSession: (opts = {}) => new mod.SpatialSession({ apiKey: cfg.apiKey, model: cfg.model, baseUrl: cfg.baseUrl, ...opts }),
         }
         return _spatial
       },
@@ -798,9 +844,9 @@
         const mod = optionalLoad('agentic-voice', 'AgenticVoice')
         if (!mod) return null
         _voice = {
-          createTTS: (opts = {}) => mod.createTTS({ apiKey, baseUrl, ...opts }),
+          createTTS: (opts = {}) => mod.createTTS({ apiKey: cfg.apiKey, baseUrl: cfg.baseUrl, ...opts }),
           createSTT: (opts = {}) => mod.createSTT(opts),
-          createVoice: (opts = {}) => mod.createVoice({ apiKey, baseUrl, ...opts }),
+          createVoice: (opts = {}) => mod.createVoice({ apiKey: cfg.apiKey, baseUrl: cfg.baseUrl, ...opts }),
         }
         return _voice
       },
