@@ -446,23 +446,8 @@ async function* _streamCallWithFailover(opts) {
       if (isAnthropic) {
         url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
         headers = { 'content-type': 'application/json', 'x-api-key': pApiKey, 'anthropic-version': '2023-06-01' }
-        // Build Anthropic messages format
-        const anthropicMessages = []
-        for (const m of messages) {
-          if (m.role === 'user') anthropicMessages.push({ role: 'user', content: m.content })
-          else if (m.role === 'assistant') {
-            if (m.tool_calls?.length) {
-              const blocks = []; if (m.content) blocks.push({ type: 'text', text: m.content })
-              for (const tc of m.tool_calls) blocks.push({ type: 'tool_use', id: tc.id, name: tc.name, input: tc.input })
-              anthropicMessages.push({ role: 'assistant', content: blocks })
-            } else { anthropicMessages.push({ role: 'assistant', content: m.content }) }
-          } else if (m.role === 'tool') {
-            const toolResult = { type: 'tool_result', tool_use_id: m.tool_call_id, content: m.content }
-            const last = anthropicMessages[anthropicMessages.length - 1]
-            if (last?.role === 'user' && Array.isArray(last.content) && last.content[0]?.type === 'tool_result') { last.content.push(toolResult) }
-            else { anthropicMessages.push({ role: 'user', content: [toolResult] }) }
-          }
-        }
+        // Build Anthropic messages format (handles multimodal tool_result blocks)
+        const anthropicMessages = buildAnthropicMessages(messages)
         body = { model: pModel || 'claude-sonnet-4', max_tokens: 4096, messages: anthropicMessages, stream: true }
         if (system) body.system = [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
         if (tools?.length) {
@@ -477,7 +462,7 @@ async function* _streamCallWithFailover(opts) {
       } else {
         url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
         headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
-        const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
+        const oaiMessages = buildOpenAIMessages(messages, system)
         body = { model: pModel || 'gpt-4', messages: oaiMessages, stream: true }
         if (tools?.length) {
           body.tools = tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })); body.tool_choice = 'auto'
@@ -777,11 +762,13 @@ async function* _agenticAskGen(prompt, config) {
       // Push results in original order + yield events
       for (const { call, result, error } of results) {
         if (error) {
-          messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify({ error }) })
+          const { blocks, is_error } = await normalizeToolResultBlocks({ error })
+          messages.push({ role: 'tool', tool_call_id: call.id, blocks, is_error: is_error || true, content: JSON.stringify({ error }) })
           yield { type: 'tool_error', id: call.id, name: call.name, error }
         } else {
-          messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify(result) })
-          yield { type: 'tool_result', id: call.id, name: call.name, output: result }
+          const { blocks, is_error } = await normalizeToolResultBlocks(result)
+          messages.push({ role: 'tool', tool_call_id: call.id, blocks, is_error, content: JSON.stringify(result) })
+          yield { type: 'tool_result', id: call.id, name: call.name, output: result, blocks }
         }
       }
     }
@@ -825,34 +812,10 @@ async function* _agenticAskGen(prompt, config) {
 async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
-  
-  // Convert messages to Anthropic format (handle tool_use/tool_result)
-  const anthropicMessages = []
-  for (const m of messages) {
-    if (m.role === 'user') {
-      anthropicMessages.push({ role: 'user', content: m.content })
-    } else if (m.role === 'assistant') {
-      if (m.tool_calls?.length) {
-        const blocks = []
-        if (m.content) blocks.push({ type: 'text', text: m.content })
-        for (const tc of m.tool_calls) {
-          blocks.push({ type: 'tool_use', id: tc.id, name: tc.name, input: tc.input })
-        }
-        anthropicMessages.push({ role: 'assistant', content: blocks })
-      } else {
-        anthropicMessages.push({ role: 'assistant', content: m.content })
-      }
-    } else if (m.role === 'tool') {
-      const toolResult = { type: 'tool_result', tool_use_id: m.tool_call_id, content: m.content }
-      const last = anthropicMessages[anthropicMessages.length - 1]
-      if (last?.role === 'user' && Array.isArray(last.content) && last.content[0]?.type === 'tool_result') {
-        last.content.push(toolResult)
-      } else {
-        anthropicMessages.push({ role: 'user', content: [toolResult] })
-      }
-    }
-  }
-  
+
+  // Convert messages to Anthropic format (handles multimodal tool_result blocks + companion user messages)
+  const anthropicMessages = buildAnthropicMessages(messages)
+
   const body = {
     model,
     max_tokens: 4096,
@@ -911,7 +874,7 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
 async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
-  const oaiMessages = system ? [{ role: 'system', content: system }, ...messages] : messages
+  const oaiMessages = buildOpenAIMessages(messages, system)
   const body = { model, messages: oaiMessages, stream }
   if (tools?.length) {
     body.tools = tools.map(t => ({ type: 'function', function: t }))
@@ -1331,6 +1294,376 @@ function reassembleSSE(raw) {
     choices: [{ message: { content, tool_calls: tcList.length ? tcList.map(t => ({ id: t.id, type: 'function', function: { name: t.name, arguments: t.arguments } })) : undefined }, finish_reason: finishReason || 'stop' }],
     model, usage: usage || { prompt_tokens: 0, completion_tokens: 0 }
   }
+}
+
+// ── Tool Result Normaliser ──
+// Tools can return any of:
+//   string                             → { content: [{ type:'text', text }] }
+//   { error: '...' }                    → is_error:true + text block with error
+//   { content: [blocks], is_error? }    → structured (the canonical shape)
+//   any other object                    → JSON.stringify-ed text block
+//
+// Normalized block types this layer understands:
+//   { type:'text', text }
+//   { type:'image', source:{ type:'base64', media_type, data } }                         (Anthropic / OpenAI)
+//   { type:'image', source:{ type:'url', url } }                                          (OpenAI native; Anthropic gets fetched or downgraded)
+//   { type:'image', source:{ type:'path', path, media_type? } }                           (auto-read + base64 when possible)
+//   { type:'document', source:{ type:'base64'|'url'|'path', data|url|path, media_type } } (PDF etc.)
+//   { type:'audio',   source:{ type:'base64'|'url'|'path', data|url|path, media_type } }  (Gemini-native; downgraded elsewhere)
+//   { type:'video',   source:{ type:'base64'|'url'|'path', data|url|path, media_type } }  (Gemini-native; downgraded elsewhere)
+//   { type:'file',    source:{ type:'path'|'url', path|url, media_type?, summary? } }     (generic reference — inlined when small enough, otherwise passed as metadata + summary)
+//
+// For convenience we also accept legacy keys:
+//   { image, media_type } | { image_base64 } | { image_url } | { path }
+//
+// The normaliser never throws for unknown shapes — it stringifies as text fallback.
+
+const DEFAULT_INLINE_LIMITS = {
+  image: 5 * 1024 * 1024,      // 5 MB per image
+  document: 10 * 1024 * 1024,  // 10 MB per PDF
+  audio: 10 * 1024 * 1024,
+  video: 10 * 1024 * 1024,
+  file: 2 * 1024 * 1024,       // generic file inlined as text only if small
+  totalPerResult: 20 * 1024 * 1024, // 20 MB per tool_result
+}
+
+function _guessMediaType(pathOrUrl, fallback = 'application/octet-stream') {
+  if (!pathOrUrl) return fallback
+  const m = /\.([a-zA-Z0-9]+)(?:$|[?#])/.exec(String(pathOrUrl))
+  const ext = m ? m[1].toLowerCase() : ''
+  switch (ext) {
+    case 'png': return 'image/png'
+    case 'jpg': case 'jpeg': return 'image/jpeg'
+    case 'gif': return 'image/gif'
+    case 'webp': return 'image/webp'
+    case 'pdf': return 'application/pdf'
+    case 'txt': case 'md': case 'markdown': case 'log': return 'text/plain'
+    case 'json': return 'application/json'
+    case 'mp3': return 'audio/mpeg'
+    case 'wav': return 'audio/wav'
+    case 'ogg': return 'audio/ogg'
+    case 'm4a': return 'audio/mp4'
+    case 'mp4': return 'video/mp4'
+    case 'mov': return 'video/quicktime'
+    case 'webm': return 'video/webm'
+    default: return fallback
+  }
+}
+
+function _decodeBase64Len(b64) {
+  if (!b64) return 0
+  // Approx decoded-byte length from base64 length; avoids decoding for size check.
+  const padding = (b64.endsWith('==') ? 2 : b64.endsWith('=') ? 1 : 0)
+  return Math.floor(b64.length * 3 / 4) - padding
+}
+
+async function _readFileAsBase64(path) {
+  if (typeof process === 'undefined' || !process.versions?.node) {
+    throw new Error('file-path blocks require Node.js runtime')
+  }
+  const fs = await import('node:fs/promises')
+  const buf = await fs.readFile(path)
+  return buf.toString('base64')
+}
+
+async function _readFileAsText(path, maxBytes = 1024 * 1024) {
+  if (typeof process === 'undefined' || !process.versions?.node) {
+    throw new Error('file-path blocks require Node.js runtime')
+  }
+  const fs = await import('node:fs/promises')
+  const buf = await fs.readFile(path)
+  const slice = buf.byteLength > maxBytes ? buf.subarray(0, maxBytes) : buf
+  const suffix = buf.byteLength > maxBytes ? `\n\n…[truncated ${buf.byteLength - maxBytes} bytes]` : ''
+  return slice.toString('utf8') + suffix
+}
+
+// Turn any user-supplied tool output into an array of canonical blocks.
+// Async because `path` sources may need fs reads; returns { blocks, is_error }.
+async function normalizeToolResultBlocks(rawResult, options = {}) {
+  const limits = { ...DEFAULT_INLINE_LIMITS, ...(options.limits || {}) }
+  let is_error = false
+  let input = rawResult
+
+  if (input === undefined || input === null) {
+    return { blocks: [{ type: 'text', text: '' }], is_error: false }
+  }
+  if (typeof input === 'string') {
+    return { blocks: [{ type: 'text', text: input }], is_error: false }
+  }
+  if (typeof input !== 'object') {
+    return { blocks: [{ type: 'text', text: String(input) }], is_error: false }
+  }
+
+  // Explicit error shape → is_error + text block
+  if (input.error && !Array.isArray(input.content)) {
+    return {
+      blocks: [{ type: 'text', text: typeof input.error === 'string' ? input.error : JSON.stringify(input.error) }],
+      is_error: true,
+    }
+  }
+
+  // Legacy convenience: single-block object
+  if (Array.isArray(input.content)) {
+    is_error = !!input.is_error
+    input = { content: input.content }
+  } else if (input.type && typeof input.type === 'string') {
+    input = { content: [input] }
+  } else if (typeof input.image_base64 === 'string' || (typeof input.image === 'string' && (input.image.startsWith('data:') || input.media_type))) {
+    const data = input.image_base64 || (input.image.startsWith('data:') ? input.image.split(',')[1] : input.image)
+    const media_type = input.media_type || (input.image.startsWith('data:image/') ? input.image.slice(5, input.image.indexOf(';')) : 'image/png')
+    input = { content: [{ type: 'image', source: { type: 'base64', media_type, data } }] }
+  } else if (typeof input.image_url === 'string') {
+    input = { content: [{ type: 'image', source: { type: 'url', url: input.image_url } }] }
+  } else if (typeof input.path === 'string') {
+    input = { content: [{ type: 'file', source: { type: 'path', path: input.path, media_type: _guessMediaType(input.path) } }] }
+  } else {
+    // Plain data object → JSON text
+    return { blocks: [{ type: 'text', text: JSON.stringify(input) }], is_error: false }
+  }
+
+  const normalized = []
+  let totalBytes = 0
+
+  for (const rawBlock of input.content || []) {
+    if (!rawBlock) continue
+    if (typeof rawBlock === 'string') {
+      normalized.push({ type: 'text', text: rawBlock })
+      continue
+    }
+    if (rawBlock.type === 'text') {
+      normalized.push({ type: 'text', text: String(rawBlock.text ?? '') })
+      continue
+    }
+
+    // Unify source block across media types
+    const kind = rawBlock.type
+    if (!['image', 'document', 'audio', 'video', 'file'].includes(kind)) {
+      normalized.push({ type: 'text', text: `[unknown block ${kind}] ${JSON.stringify(rawBlock).slice(0, 200)}` })
+      continue
+    }
+
+    let source = rawBlock.source
+    // Support shorthand: image.data (string) implies base64
+    if (!source) {
+      if (typeof rawBlock.data === 'string') source = { type: 'base64', data: rawBlock.data, media_type: rawBlock.media_type }
+      else if (typeof rawBlock.url === 'string') source = { type: 'url', url: rawBlock.url, media_type: rawBlock.media_type }
+      else if (typeof rawBlock.path === 'string') source = { type: 'path', path: rawBlock.path, media_type: rawBlock.media_type }
+    }
+    if (!source || typeof source !== 'object') {
+      normalized.push({ type: 'text', text: `[${kind}] <no source>` })
+      continue
+    }
+
+    let { type: srcType, data, url, path, media_type } = source
+    if (!media_type) media_type = _guessMediaType(path || url, kind === 'image' ? 'image/png' : 'application/octet-stream')
+
+    let resolved
+    try {
+      if (srcType === 'base64') {
+        const size = _decodeBase64Len(data)
+        if (size > (limits[kind] || limits.file)) {
+          normalized.push({ type: 'text', text: `[${kind} omitted: ${size} bytes exceeds ${limits[kind]} limit]` })
+          continue
+        }
+        totalBytes += size
+        resolved = { type: kind, source: { type: 'base64', media_type, data } }
+      } else if (srcType === 'url') {
+        totalBytes += 128 // nominal
+        resolved = { type: kind, source: { type: 'url', media_type, url } }
+      } else if (srcType === 'path') {
+        // Try to inline from disk; fall back to text metadata if too big or not readable
+        let size = 0
+        try {
+          if (typeof process !== 'undefined' && process.versions?.node) {
+            const fs = await import('node:fs/promises')
+            const stat = await fs.stat(path)
+            size = stat.size
+          }
+        } catch { /* ignore */ }
+        const cap = limits[kind] || limits.file
+        // For generic `file` blocks with a text media type, prefer inlining as text (more useful to the model).
+        if (kind === 'file' && media_type.startsWith('text/')) {
+          const text = await _readFileAsText(path, limits.file)
+          normalized.push({ type: 'text', text: `[file ${path}]\n${text}` })
+          continue
+        }
+        if (size > 0 && size <= cap) {
+          const data64 = await _readFileAsBase64(path)
+          totalBytes += size
+          resolved = { type: kind, source: { type: 'base64', media_type, data: data64 } }
+        } else {
+          const summary = rawBlock.summary || source.summary
+          normalized.push({ type: 'text', text: `[${kind} ${path} ${size ? `${size} bytes` : ''} ${media_type}]${summary ? `\n${summary}` : ''}` })
+          continue
+        }
+      } else {
+        normalized.push({ type: 'text', text: `[${kind}] <unsupported source ${srcType}>` })
+        continue
+      }
+    } catch (err) {
+      normalized.push({ type: 'text', text: `[${kind} error: ${err.message}]` })
+      continue
+    }
+
+    if (totalBytes > limits.totalPerResult) {
+      normalized.push({ type: 'text', text: `[tool_result truncated: exceeded ${limits.totalPerResult} byte budget]` })
+      break
+    }
+    normalized.push(resolved)
+  }
+
+  if (!normalized.length) normalized.push({ type: 'text', text: '' })
+  return { blocks: normalized, is_error }
+}
+
+// Map normalized blocks → Anthropic tool_result.content (text + image only) and
+// return any "companion" user-message blocks (document / audio / video) that
+// Anthropic disallows inside tool_result. Companion blocks are emitted as a
+// follow-up user message immediately after the tool_result block.
+function blocksForAnthropicToolResult(blocks) {
+  const primary = []   // what goes inside tool_result.content
+  const companion = [] // posted as a separate user message with a leading text note
+  for (const b of blocks) {
+    if (b.type === 'text') { primary.push({ type: 'text', text: b.text }); continue }
+    if (b.type === 'image' && b.source?.type === 'base64') { primary.push({ type: 'image', source: b.source }); continue }
+    if (b.type === 'image' && b.source?.type === 'url') {
+      // Anthropic tool_result does not accept URL images; inline a short note and
+      // put the image in the companion message instead (where URL images ARE accepted).
+      primary.push({ type: 'text', text: `[image available at ${b.source.url}]` })
+      companion.push({ type: 'image', source: { type: 'url', url: b.source.url } })
+      continue
+    }
+    if (b.type === 'document') {
+      primary.push({ type: 'text', text: '[document attached — see next message]' })
+      if (b.source?.type === 'base64') companion.push({ type: 'document', source: b.source })
+      else if (b.source?.type === 'url') companion.push({ type: 'document', source: { type: 'url', url: b.source.url } })
+      continue
+    }
+    if (b.type === 'audio' || b.type === 'video' || b.type === 'file') {
+      // Anthropic has no native tool_result slot for these; describe in text.
+      const desc = b.source?.type === 'url' ? `url=${b.source.url}` : (b.source?.type === 'path' ? `path=${b.source.path}` : (b.source?.media_type || 'binary'))
+      primary.push({ type: 'text', text: `[${b.type} ${desc}]` })
+      continue
+    }
+    // Fallback
+    primary.push({ type: 'text', text: JSON.stringify(b).slice(0, 500) })
+  }
+  return { primary, companion }
+}
+
+// Map normalized blocks → OpenAI Chat Completions tool-role content.
+// Chat Completions `tool` messages only accept string content, so we emit
+// a text summary and return separate user-content parts for the multimodal
+// channel (images/audio) that must be sent as a follow-up user message.
+function blocksForOpenAIToolResult(blocks) {
+  const parts = []      // goes into follow-up user message as content parts
+  const textLines = []  // joined into tool message content (string)
+  for (const b of blocks) {
+    if (b.type === 'text') { textLines.push(b.text); continue }
+    if (b.type === 'image') {
+      const url = b.source?.type === 'url'
+        ? b.source.url
+        : `data:${b.source?.media_type || 'image/png'};base64,${b.source?.data || ''}`
+      parts.push({ type: 'image_url', image_url: { url, detail: 'auto' } })
+      textLines.push(`[image attached — see next user message]`)
+      continue
+    }
+    if (b.type === 'audio') {
+      if (b.source?.type === 'base64') parts.push({ type: 'input_audio', input_audio: { data: b.source.data, format: (b.source.media_type || 'audio/wav').split('/')[1] || 'wav' } })
+      textLines.push(`[audio attached]`)
+      continue
+    }
+    if (b.type === 'document' || b.type === 'file') {
+      const desc = b.source?.type === 'url' ? `url=${b.source.url}` : (b.source?.type === 'path' ? `path=${b.source.path}` : (b.source?.media_type || 'binary'))
+      textLines.push(`[${b.type} ${desc}]`)
+      continue
+    }
+    if (b.type === 'video') {
+      textLines.push('[video attached — not supported by this provider]')
+      continue
+    }
+    textLines.push(JSON.stringify(b).slice(0, 500))
+  }
+  return { text: textLines.join('\n').trim(), parts }
+}
+
+// Build Anthropic `messages` array from our internal format. Understands the
+// optional `m.blocks` / `m.is_error` fields set by executeTool paths and maps
+// them via blocksForAnthropicToolResult (which can emit a companion user
+// message for disallowed-inside-tool_result content like PDFs / URL images).
+function buildAnthropicMessages(messages) {
+  const out = []
+  for (const m of messages) {
+    if (m.role === 'user') {
+      out.push({ role: 'user', content: m.content })
+    } else if (m.role === 'assistant') {
+      if (m.tool_calls?.length) {
+        const blocks = []
+        if (m.content) blocks.push({ type: 'text', text: m.content })
+        for (const tc of m.tool_calls) blocks.push({ type: 'tool_use', id: tc.id, name: tc.name, input: tc.input })
+        out.push({ role: 'assistant', content: blocks })
+      } else {
+        out.push({ role: 'assistant', content: m.content })
+      }
+    } else if (m.role === 'tool') {
+      const useBlocks = Array.isArray(m.blocks) && m.blocks.length > 0
+      let primary, companion = []
+      if (useBlocks) {
+        const mapped = blocksForAnthropicToolResult(m.blocks)
+        primary = mapped.primary
+        companion = mapped.companion
+      } else {
+        primary = [{ type: 'text', text: typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? '') }]
+      }
+      const toolResult = { type: 'tool_result', tool_use_id: m.tool_call_id, content: primary }
+      if (m.is_error) toolResult.is_error = true
+      const last = out[out.length - 1]
+      if (last?.role === 'user' && Array.isArray(last.content) && last.content[0]?.type === 'tool_result') {
+        last.content.push(toolResult)
+      } else {
+        out.push({ role: 'user', content: [toolResult] })
+      }
+      if (companion.length) {
+        // Anthropic allows images / documents in ordinary user messages; send them
+        // right after the tool_result so the model associates them with the result.
+        out.push({ role: 'user', content: [{ type: 'text', text: `Attachments from tool call ${m.tool_call_id}:` }, ...companion] })
+      }
+    }
+  }
+  return out
+}
+
+// Build OpenAI Chat Completions `messages` array. `tool` role only accepts
+// string content in Chat Completions, so we stringify multimodal blocks into
+// a summary string on the tool message and push a follow-up user message with
+// the actual image/audio parts (which IS supported in user content).
+function buildOpenAIMessages(messages, system) {
+  const out = []
+  if (system) out.push({ role: 'system', content: system })
+  for (const m of messages) {
+    if (m.role === 'tool' && Array.isArray(m.blocks) && m.blocks.length > 0) {
+      const { text, parts } = blocksForOpenAIToolResult(m.blocks)
+      const prefix = m.is_error ? '[tool error]\n' : ''
+      out.push({ role: 'tool', tool_call_id: m.tool_call_id, content: prefix + (text || '') })
+      if (parts.length) {
+        out.push({
+          role: 'user',
+          content: [
+            { type: 'text', text: `Attachments from tool call ${m.tool_call_id}:` },
+            ...parts,
+          ],
+        })
+      }
+      continue
+    }
+    // Default: passthrough. Strip our extension fields so providers don't reject unknown keys.
+    if (m.role === 'tool') {
+      out.push({ role: 'tool', tool_call_id: m.tool_call_id, content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? '') })
+    } else {
+      out.push(m)
+    }
+  }
+  return out
 }
 
 // ── Tools ──
@@ -1876,11 +2209,41 @@ async function agenticStep(messages, config) {
 function buildToolResults(toolCalls, results) {
   return toolCalls.map((tc, i) => {
     const result = results[i]
-    const content = result.error
+    if (result && Array.isArray(result.blocks)) {
+      // Caller already normalised via normalizeToolResultBlocks
+      return {
+        role: 'tool',
+        tool_call_id: tc.id,
+        blocks: result.blocks,
+        is_error: !!result.is_error,
+        content: result.content || JSON.stringify(result.output ?? { blocks: result.blocks }),
+      }
+    }
+    const content = result?.error
       ? JSON.stringify({ error: result.error })
-      : JSON.stringify(result.output ?? result)
-    return { role: 'tool', tool_call_id: tc.id, content }
+      : JSON.stringify(result?.output ?? result)
+    return { role: 'tool', tool_call_id: tc.id, content, is_error: !!result?.error }
   })
+}
+
+// Async variant that performs full normalisation (reads files, validates sizes, etc.).
+// Prefer this when tools may return structured blocks or file paths.
+async function buildToolResultsAsync(toolCalls, results, options) {
+  const out = []
+  for (let i = 0; i < toolCalls.length; i++) {
+    const tc = toolCalls[i]
+    const r = results[i]
+    const source = r?.error ? { error: r.error } : (r?.output ?? r)
+    const { blocks, is_error } = await normalizeToolResultBlocks(source, options)
+    out.push({
+      role: 'tool',
+      tool_call_id: tc.id,
+      blocks,
+      is_error,
+      content: JSON.stringify(r?.error ? { error: r.error } : (r?.output ?? r ?? null)),
+    })
+  }
+  return out
 }
 
 // ── chat: unified messages-first API ──
@@ -1928,4 +2291,4 @@ async function chatResult(messages, opts = {}) {
   return { answer, tool_calls: toolCalls, usage, rounds }
 }
 
-export { agenticAsk, agenticStep, buildToolResults, warmup, classifyError, toolRegistry, synthesize, transcribe, registerProvider, unregisterProvider, chat, chatResult }
+export { agenticAsk, agenticStep, buildToolResults, buildToolResultsAsync, normalizeToolResultBlocks, warmup, classifyError, toolRegistry, synthesize, transcribe, registerProvider, unregisterProvider, chat, chatResult }
