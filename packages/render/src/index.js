@@ -196,9 +196,11 @@
         continue
       }
 
-      // Table detection
-      if (/^\|(.+)\|$/.test(line)) {
-        const cells = line.slice(1, -1).split('|')
+      // Table detection: line starts with | and contains at least one more |
+      if (/^\|.+/.test(line) && line.indexOf('|', 1) > 0) {
+        // Strip trailing | if present, then split on |
+        const trimmed = line.replace(/\|\s*$/, '').slice(1)
+        const cells = trimmed.split('|')
         if (!inTable) {
           flushBlockquote(); flushList()
           inTable = true
@@ -445,9 +447,12 @@
   padding: 16px 18px;
   background: var(--ar-code-bg);
   overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   font-size: 13.5px;
   line-height: 1.6;
 }
+.ar-pre::-webkit-scrollbar { display: none; }
 .ar-code {
   font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
   background: none;
