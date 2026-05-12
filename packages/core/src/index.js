@@ -371,7 +371,11 @@ async function _callWithFailover(opts) {
     const p = providerList[i]
     const prov = p.provider || provider
     const custom = _customProviders.get(prov)
-    const chatFn = custom || (prov === 'anthropic' ? anthropicChat : openaiChat)
+    const chatFn = custom || (
+      prov === 'anthropic' ? anthropicChat
+      : prov === 'openai-responses' ? openaiResponsesChat
+      : openaiChat
+    )
     try {
       return await chatFn({
         messages, tools,
@@ -459,6 +463,17 @@ async function* _streamCallWithFailover(opts) {
         // Enable prompt caching beta
         headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
         if (pProxyUrl) { headers = { ...headers, 'x-base-url': pBaseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }; url = pProxyUrl }
+      } else if (prov === 'openai-responses') {
+        url = base.includes('/v1') ? `${base}/responses` : `${base}/v1/responses`
+        headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
+        const input = buildOpenAIResponsesInput(messages)
+        body = { model: pModel || 'gpt-4.1-mini', input, stream: true }
+        if (system) body.instructions = system
+        if (tools?.length) {
+          body.tools = tools.map(t => ({ type: 'function', name: t.name, description: t.description, parameters: t.input_schema || t.parameters }))
+          body.tool_choice = 'auto'
+        }
+        if (pProxyUrl) { headers['x-base-url'] = pBaseUrl || 'https://api.openai.com'; headers['x-provider'] = 'openai-responses'; url = pProxyUrl }
       } else {
         url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
         headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
@@ -471,7 +486,10 @@ async function* _streamCallWithFailover(opts) {
       }
 
       // Use the appropriate generator
-      const gen = isAnthropic ? _streamAnthropicGen(url, headers, body, signal) : _streamOpenAIGen(url, headers, body, signal)
+      const isResponses = prov === 'openai-responses'
+      const gen = isAnthropic ? _streamAnthropicGen(url, headers, body, signal)
+        : isResponses ? _streamOpenAIResponsesGen(url, headers, body, signal)
+        : _streamOpenAIGen(url, headers, body, signal)
 
       let content = '', toolCalls = [], stopReason = 'end_turn'
       const oaiToolMap = {} // for OpenAI incremental tool_delta assembly
@@ -600,7 +618,7 @@ async function* _agenticAskGen(prompt, config) {
     console.log(`\n[Round ${round}] Calling LLM...`)
     yield { type: 'status', message: `Round ${round}/${MAX_ROUNDS}` }
 
-    const isStreamRound = stream && (provider === 'anthropic' || !toolDefs.length || round > 1)
+    const isStreamRound = stream && (provider === 'anthropic' || provider === 'openai-responses' || !toolDefs.length || round > 1)
     let response
 
     // Eager tool execution: start tools as soon as LLM finishes each tool_use block
@@ -791,7 +809,7 @@ async function* _agenticAskGen(prompt, config) {
         }
         finalAnswer = content || '(no response)'
       } else {
-        const chatFn = provider === 'anthropic' ? anthropicChat : openaiChat
+        const chatFn = provider === 'anthropic' ? anthropicChat : provider === 'openai-responses' ? openaiResponsesChat : openaiChat
         const finalResponse = await chatFn({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit: function noop(){}, system, signal })
         finalAnswer = finalResponse.content || '(no response)'
       }
@@ -915,6 +933,70 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
 }
 
 // ── Streaming Functions ──
+
+async function openaiResponsesChat({ messages, tools, model = 'gpt-4.1-mini', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady }) {
+  const base = baseUrl.replace(/\/+$/, '')
+  const url = base.includes('/v1') ? `${base}/responses` : `${base}/v1/responses`
+  const input = buildOpenAIResponsesInput(messages)
+  const body = { model, input, stream }
+  if (system) body.instructions = system
+  if (tools?.length) {
+    // Responses API tools are flat (no `function` wrapper)
+    body.tools = tools.map(t => ({
+      type: 'function',
+      name: t.name,
+      description: t.description,
+      parameters: t.input_schema || t.parameters,
+    }))
+    body.tool_choice = 'auto'
+  }
+  const headers = { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` }
+
+  if (stream) {
+    let reqUrl = url
+    let reqHeaders = headers
+    if (proxyUrl) {
+      reqHeaders = { ...headers, 'x-base-url': baseUrl || 'https://api.openai.com', 'x-provider': 'openai-responses', 'x-api-key': apiKey }
+      reqUrl = proxyUrl
+    }
+    let content = '', toolCalls = [], stopReason = 'end_turn'
+    for await (const evt of _streamOpenAIResponsesGen(reqUrl, reqHeaders, body, signal)) {
+      if (evt.type === 'text_delta') { content += evt.text; if (emit) emit('token', { text: evt.text }) }
+      else if (evt.type === 'tool_ready') { toolCalls.push(evt.toolCall); if (onToolReady) onToolReady(evt.toolCall) }
+      else if (evt.type === 'stop') { stopReason = evt.stop_reason }
+    }
+    return { content, tool_calls: toolCalls, stop_reason: stopReason }
+  }
+
+  // Non-streaming path: plain POST.
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    ...(signal ? { signal } : {}),
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    const e = new Error(`API error ${res.status}: ${errText.slice(0, 300)}`)
+    e.status = res.status
+    throw e
+  }
+  const resp = await res.json()
+  let content = ''
+  const tool_calls = []
+  for (const item of resp.output || []) {
+    if (item.type === 'message') {
+      for (const c of item.content || []) {
+        if (c.type === 'output_text' && c.text) content += c.text
+      }
+    } else if (item.type === 'function_call') {
+      let input = {}
+      try { input = item.arguments ? JSON.parse(item.arguments) : {} } catch {}
+      tool_calls.push({ id: item.call_id || item.id, name: item.name, input })
+    }
+  }
+  return { content, tool_calls, stop_reason: resp.status || 'end_turn' }
+}
 
 // streamAnthropic — legacy (non-generator), kept for backward compat
 async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
@@ -1173,6 +1255,138 @@ async function* _streamOpenAIGen(url, headers, body, signal) {
       for (const line of lines) {
         if (line && line.startsWith('data:')) yield* handleFrame(line)
       }
+    }
+  }
+  if (buffer.trim()) yield* handleFrame(buffer)
+}
+
+// True streaming generator for OpenAI Responses API SSE.
+// Responses API uses *named* SSE events (event: response.output_text.delta, etc.)
+// instead of the choices/delta shape of Chat Completions.
+// Normalises them to the same internal event types this package already uses
+// so downstream code doesn't need to care which transport ran.
+async function* _streamOpenAIResponsesGen(url, headers, body, signal) {
+  const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
+  if (signal) fetchOpts.signal = signal
+  const res = await fetch(url, fetchOpts)
+  if (!res.ok) {
+    const err = await res.text()
+    const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
+    e.status = res.status
+    throw e
+  }
+
+  const debug = (typeof process !== 'undefined' && process.env && process.env.AGENTIC_DEBUG_STREAM)
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  // Track in-progress function_call items so we can emit one `tool_ready`
+  // per completed call instead of per-delta.
+  const funcCallByItemId = {}
+  let nextIndex = 0
+
+  function* handleFrame(frame) {
+    if (!frame) return
+    let eventName = 'message'
+    const dataChunks = []
+    for (const rawLine of frame.split(/\r?\n/)) {
+      if (!rawLine || rawLine.startsWith(':')) continue
+      if (rawLine.startsWith('event:')) {
+        eventName = rawLine.slice(6).trim()
+      } else if (rawLine.startsWith('data:')) {
+        const rest = rawLine.slice(5)
+        dataChunks.push(rest.startsWith(' ') ? rest.slice(1) : rest)
+      }
+    }
+    if (!dataChunks.length) return
+    const data = dataChunks.join('\n').trim()
+    if (!data || data === '[DONE]') return
+    let chunk
+    try { chunk = JSON.parse(data) } catch (err) {
+      if (debug) console.error('[agentic-core] SSE JSON parse failed (openai responses) data=%s err=%s', data.slice(0, 200), err.message)
+      return
+    }
+
+    // Some deployments include `type` inside the payload; prefer the explicit event line.
+    const type = eventName !== 'message' ? eventName : (chunk.type || 'message')
+
+    // Error frames
+    if (type === 'error' || type === 'response.error' || chunk.error) {
+      const msg = chunk.error?.message || chunk.message || 'upstream error'
+      const e = new Error(`Upstream stream error: ${String(msg).slice(0, 200)}`)
+      e.status = chunk.error?.status || chunk.status || 0
+      throw e
+    }
+
+    if (type === 'response.output_text.delta') {
+      if (chunk.delta) yield { type: 'text_delta', text: chunk.delta }
+      return
+    }
+
+    // Function call lifecycle. Responses API emits output_item.added with a
+    // partially-populated function_call, then argument deltas, then output_item.done.
+    if (type === 'response.output_item.added' && chunk.item?.type === 'function_call') {
+      const it = chunk.item
+      funcCallByItemId[it.id] = {
+        id: it.call_id || it.id,
+        name: it.name || '',
+        arguments: typeof it.arguments === 'string' ? it.arguments : '',
+        index: nextIndex++,
+      }
+      return
+    }
+    if (type === 'response.function_call_arguments.delta') {
+      const key = chunk.item_id
+      if (!funcCallByItemId[key]) funcCallByItemId[key] = { id: '', name: '', arguments: '', index: nextIndex++ }
+      if (typeof chunk.delta === 'string') funcCallByItemId[key].arguments += chunk.delta
+      return
+    }
+    if (type === 'response.output_item.done' && chunk.item?.type === 'function_call') {
+      const it = chunk.item
+      const buf = funcCallByItemId[it.id] || {}
+      const argsStr = typeof it.arguments === 'string' && it.arguments
+        ? it.arguments
+        : (buf.arguments || '')
+      let parsed = {}
+      try { parsed = argsStr ? JSON.parse(argsStr) : {} } catch {}
+      delete funcCallByItemId[it.id]
+      yield {
+        type: 'tool_ready',
+        toolCall: { id: it.call_id || buf.id || it.id, name: it.name || buf.name || '', input: parsed },
+      }
+      return
+    }
+
+    if (type === 'response.completed' || type === 'response.incomplete') {
+      const r = chunk.response || {}
+      const reason = r.incomplete_details?.reason || r.status || (type === 'response.incomplete' ? 'incomplete' : 'end_turn')
+      yield { type: 'stop', stop_reason: reason }
+      if (r.usage) {
+        yield {
+          type: 'usage',
+          usage: {
+            input_tokens: r.usage.input_tokens,
+            output_tokens: r.usage.output_tokens,
+            cache_read_input_tokens: r.usage.input_tokens_details?.cached_tokens || 0,
+            cache_creation_input_tokens: 0,
+          },
+        }
+      }
+      return
+    }
+
+    // Silently ignore other housekeeping events (response.created / in_progress / content_part.* / refusal / ...)
+  }
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    if (/\n\r?\n/.test(buffer)) {
+      const parts = buffer.split(/\n\r?\n/)
+      buffer = parts.pop() || ''
+      for (const frame of parts) yield* handleFrame(frame)
     }
   }
   if (buffer.trim()) yield* handleFrame(buffer)
@@ -1672,6 +1886,141 @@ function buildOpenAIMessages(messages, system) {
   return out
 }
 
+// Convert canonical tool-result blocks into OpenAI Responses API `output` items.
+// Responses API natively supports mixed text + input_image inside a function_call_output.
+// Other media (audio/video/document/file) currently collapse to input_text descriptions
+// until the API grows native slots for them.
+function blocksForOpenAIResponsesToolResult(blocks) {
+  const output = []
+  const pending = []
+  function flushText() {
+    if (pending.length) {
+      output.push({ type: 'input_text', text: pending.join('\n') })
+      pending.length = 0
+    }
+  }
+  for (const b of blocks || []) {
+    if (!b) continue
+    if (b.type === 'text') {
+      pending.push(b.text ?? '')
+      continue
+    }
+    if (b.type === 'image') {
+      flushText()
+      const src = b.source || {}
+      if (src.type === 'base64' && src.data) {
+        const media = src.media_type || 'image/png'
+        output.push({ type: 'input_image', image_url: `data:${media};base64,${src.data}` })
+      } else if (src.type === 'url' && src.url) {
+        output.push({ type: 'input_image', image_url: src.url })
+      } else {
+        pending.push('[image: unsupported source shape]')
+        flushText()
+      }
+      continue
+    }
+    // document / audio / video / file have no native Responses slot yet — describe in text.
+    const src = b.source || {}
+    const locator = src.type === 'url' ? src.url
+      : src.type === 'path' ? src.path
+      : src.type === 'base64' ? `${_decodeBase64Len(src.data || '')} bytes`
+      : 'inline'
+    const media_type = src.media_type || b.media_type || 'application/octet-stream'
+    pending.push(`[${b.type} ${locator} ${media_type}]${b.summary ? `\n${b.summary}` : ''}`)
+  }
+  flushText()
+  // Responses API requires at least one item
+  if (!output.length) output.push({ type: 'input_text', text: '' })
+  return output
+}
+
+// Convert canonical messages into Responses API `input` items.
+// Mapping:
+//   - { role: 'system' } → kept out (callers pass `instructions` separately)
+//   - { role: 'user', content: string } → { type: 'message', role: 'user', content: [{ type: 'input_text', text }] }
+//   - { role: 'user', content: [...] } → structured content preserved (images become input_image)
+//   - { role: 'assistant', content: string } → { type: 'message', role: 'assistant', content: [{ type: 'output_text', text }] }
+//   - { role: 'assistant', tool_calls: [...] } → one `function_call` item per call (plus optional text message before)
+//   - { role: 'tool', tool_call_id, blocks|content } → one `function_call_output` item carrying the multimodal output
+function buildOpenAIResponsesInput(messages) {
+  const input = []
+  for (const m of messages) {
+    if (m.role === 'system') continue // system goes to `instructions` field, not input
+    if (m.role === 'user') {
+      if (typeof m.content === 'string') {
+        input.push({ type: 'message', role: 'user', content: [{ type: 'input_text', text: m.content }] })
+      } else if (Array.isArray(m.content)) {
+        const parts = []
+        for (const p of m.content) {
+          if (!p) continue
+          if (p.type === 'text' || p.type === 'input_text') {
+            parts.push({ type: 'input_text', text: p.text || '' })
+          } else if (p.type === 'image_url') {
+            const url = typeof p.image_url === 'string' ? p.image_url : p.image_url?.url
+            if (url) parts.push({ type: 'input_image', image_url: url })
+          } else if (p.type === 'image' && p.source) {
+            if (p.source.type === 'base64' && p.source.data) {
+              parts.push({ type: 'input_image', image_url: `data:${p.source.media_type || 'image/png'};base64,${p.source.data}` })
+            } else if (p.source.type === 'url' && p.source.url) {
+              parts.push({ type: 'input_image', image_url: p.source.url })
+            }
+          } else if (p.type === 'input_audio' && p.input_audio) {
+            // Responses API audio support varies by model — pass through best-effort.
+            parts.push({ type: 'input_audio', input_audio: p.input_audio })
+          } else {
+            // Unknown part: serialise as text so nothing silently vanishes
+            parts.push({ type: 'input_text', text: typeof p === 'string' ? p : JSON.stringify(p) })
+          }
+        }
+        if (!parts.length) parts.push({ type: 'input_text', text: '' })
+        input.push({ type: 'message', role: 'user', content: parts })
+      } else {
+        input.push({ type: 'message', role: 'user', content: [{ type: 'input_text', text: JSON.stringify(m.content ?? '') }] })
+      }
+      continue
+    }
+    if (m.role === 'assistant') {
+      if (typeof m.content === 'string' && m.content) {
+        input.push({ type: 'message', role: 'assistant', content: [{ type: 'output_text', text: m.content }] })
+      }
+      if (Array.isArray(m.tool_calls)) {
+        for (const tc of m.tool_calls) {
+          input.push({
+            type: 'function_call',
+            call_id: tc.id,
+            name: tc.name,
+            arguments: typeof tc.input === 'string' ? tc.input : JSON.stringify(tc.input ?? {}),
+          })
+        }
+      }
+      continue
+    }
+    if (m.role === 'tool') {
+      if (Array.isArray(m.blocks) && m.blocks.length > 0) {
+        const output = blocksForOpenAIResponsesToolResult(m.blocks)
+        const item = {
+          type: 'function_call_output',
+          call_id: m.tool_call_id,
+          output,
+        }
+        if (m.is_error) item.is_error = true
+        input.push(item)
+      } else {
+        const text = typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? '')
+        const prefix = m.is_error ? '[tool error]\n' : ''
+        input.push({
+          type: 'function_call_output',
+          call_id: m.tool_call_id,
+          output: [{ type: 'input_text', text: prefix + text }],
+          ...(m.is_error ? { is_error: true } : {}),
+        })
+      }
+      continue
+    }
+  }
+  return input
+}
+
 // ── Tools ──
 
 function buildToolDefs(tools) {
@@ -1791,7 +2140,7 @@ async function schemaAsk(prompt, config, emit) {
     
     emit('status', { message: attempt === 0 ? 'Generating structured output...' : `Retry ${attempt}/${retries}...` })
     
-    const chatFn = provider === 'anthropic' ? anthropicChat : openaiChat
+    const chatFn = provider === 'anthropic' ? anthropicChat : provider === 'openai-responses' ? openaiResponsesChat : openaiChat
     const response = await chatFn({
       messages: [{ role: 'user', content: userContent }],
       tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit
