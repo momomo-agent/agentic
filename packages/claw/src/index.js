@@ -161,18 +161,19 @@
     }
 
     // ── Abort management ───────────────────────────────────────────
-    let _currentController = null
+    const _controllers = new Map() // sessionId → AbortController
 
-    function _createSignal(chatOpts) {
+    function _createSignal(sessionId, chatOpts) {
       // If caller provides their own signal, use it (they manage lifecycle)
       if (chatOpts.signal) return chatOpts.signal
-      // Otherwise create an internal controller so claw.abort() works
-      _currentController = new AbortController()
-      return _currentController.signal
+      // Otherwise create an internal controller so session.abort() works
+      const controller = new AbortController()
+      _controllers.set(sessionId, controller)
+      return controller.signal
     }
 
-    function _clearController() {
-      _currentController = null
+    function _clearController(sessionId) {
+      _controllers.delete(sessionId)
     }
 
     // ── Conductor integration ──────────────────────────────────────
@@ -378,7 +379,7 @@
         tools: chatOpts.tools || allTools,
         stream: chatOpts.stream ?? cfg.stream,
         ...(effProviders ? { providers: effProviders } : {}),
-        signal: _createSignal(chatOpts),
+        signal: _createSignal(sessionMem.id || 'default', chatOpts),
         ...(chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {}),
         ...(chatOpts.images ? { images: chatOpts.images } : {}),
         ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
@@ -488,7 +489,7 @@
         events.emit('error', error)
         throw error
       } finally {
-        _clearController()
+        _clearController(sessionMem.id || 'default')
       }
     }
 
@@ -579,7 +580,7 @@
             events.emit('message', { role: 'assistant', content: partialAnswer, partial: true })
           } catch (_) { /* best-effort */ }
         }
-        _clearController()
+        _clearController(sessionMem.id || 'default')
       }
     }
 
@@ -631,11 +632,24 @@
       /** Create/get a named session */
       session(id = 'default') {
         const mem = _getSession(id)
+        const sessionId = id || 'default'
         return {
           chat(input, optsOrEmit, maybeEmit) { return _chat(mem, input, optsOrEmit, maybeEmit) },
           retry(opts) { return _retry(mem, opts) },
+          /** Abort this session's in-flight chat. No-op if idle. */
+          abort() {
+            const controller = _controllers.get(sessionId)
+            if (controller) {
+              controller.abort()
+              _controllers.delete(sessionId)
+              events.emit('abort', { sessionId })
+            }
+            return this
+          },
+          /** Whether this session has a chat in progress. */
+          get isGenerating() { return _controllers.has(sessionId) },
           memory: mem,
-          id,
+          id: sessionId,
         }
       },
 
@@ -773,18 +787,19 @@
       /** Snapshot of current tools (copy). */
       getTools() { return allTools.slice() },
 
-      /** Abort the current in-flight chat. No-op if idle. */
+      /** Abort all in-flight chats across all sessions. No-op if idle. */
       abort() {
-        if (_currentController) {
-          _currentController.abort()
-          _currentController = null
-          events.emit('abort')
+        if (_controllers.size === 0) return this
+        for (const [sid, controller] of _controllers) {
+          controller.abort()
         }
+        _controllers.clear()
+        events.emit('abort')
         return this
       },
 
-      /** Whether a chat is currently in progress. */
-      get isGenerating() { return _currentController !== null },
+      /** Whether any chat is currently in progress (any session). */
+      get isGenerating() { return _controllers.size > 0 },
 
       /** Snapshot of current runtime config (copy, safe to mutate). */
       getConfig() { return { ...cfg } },
