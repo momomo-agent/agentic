@@ -383,6 +383,7 @@
         ...(chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {}),
         ...(chatOpts.images ? { images: chatOpts.images } : {}),
         ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
+        maxTokens: chatOpts.maxTokens || cfg.maxTokens || undefined,
       }
     }
 

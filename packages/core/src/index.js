@@ -363,7 +363,7 @@ function unregisterProvider(name) {
 // ── Provider failover ──
 
 async function _callWithFailover(opts) {
-  const { messages, tools, model, baseUrl, apiKey, proxyUrl, stream, system, provider, signal, providers } = opts
+  const { messages, tools, model, baseUrl, apiKey, proxyUrl, stream, system, provider, signal, providers, maxTokens } = opts
   const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
 
   let lastErr
@@ -383,7 +383,7 @@ async function _callWithFailover(opts) {
         baseUrl: p.baseUrl || baseUrl,
         apiKey: p.apiKey || apiKey,
         proxyUrl: p.proxyUrl || proxyUrl,
-        stream, emit: function noop(){}, system, signal,
+        stream, emit: function noop(){}, system, signal, maxTokens,
         onToolReady: opts.onToolReady,
       })
     } catch (err) {
@@ -401,7 +401,7 @@ async function _callWithFailover(opts) {
  * then yields { type: 'response', content, tool_calls, stop_reason } at the end.
  */
 async function* _streamCallWithFailover(opts) {
-  const { messages, tools, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers } = opts
+  const { messages, tools, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, maxTokens } = opts
   const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
 
   let lastErr
@@ -452,7 +452,7 @@ async function* _streamCallWithFailover(opts) {
         headers = { 'content-type': 'application/json', 'x-api-key': pApiKey, 'anthropic-version': '2023-06-01' }
         // Build Anthropic messages format (handles multimodal tool_result blocks)
         const anthropicMessages = buildAnthropicMessages(messages)
-        body = { model: pModel || 'claude-sonnet-4', max_tokens: 4096, messages: anthropicMessages, stream: true }
+        body = { model: pModel || 'claude-sonnet-4', max_tokens: maxTokens || 4096, messages: anthropicMessages, stream: true }
         if (system) body.system = Array.isArray(system)
           ? system.map(s => typeof s === 'string' ? { type: 'text', text: s, cache_control: { type: 'ephemeral' } } : { type: 'text', ...s })
           : [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
@@ -545,7 +545,7 @@ async function* _streamCallWithFailover(opts) {
 // ── Core async generator ──
 
 async function* _agenticAskGen(prompt, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images, audio, signal, providers } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images, audio, signal, providers, maxTokens } = config
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
 
@@ -631,7 +631,7 @@ async function* _agenticAskGen(prompt, config) {
     if (isStreamRound) {
       // True streaming path — yield text_delta tokens as they arrive
       try {
-        const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers })
+        const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers, maxTokens })
         for await (const evt of streamGen) {
           if (evt.type === 'text_delta') {
             if (!t_firstToken) t_firstToken = Date.now()
@@ -663,7 +663,7 @@ async function* _agenticAskGen(prompt, config) {
     } else {
       // Non-streaming path — await complete response
       try {
-        response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers })
+        response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, maxTokens })
       } catch (err) {
         const cls = classifyError(err)
         yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
@@ -833,7 +833,7 @@ async function* _agenticAskGen(prompt, config) {
 
 // ── LLM Chat Functions ──
 
-async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady }) {
+async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady, maxTokens }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
 
@@ -842,7 +842,7 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
 
   const body = {
     model,
-    max_tokens: 4096,
+    max_tokens: maxTokens || 4096,
     messages: anthropicMessages,
     stream,
   }
