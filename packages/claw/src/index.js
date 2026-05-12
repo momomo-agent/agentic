@@ -179,6 +179,8 @@
             system: chatOpts.system, tools: chatOpts.tools || allTools,
             stream: true,
             ...(cfg.providers ? { providers: cfg.providers } : {}),
+            ...(chatOpts.images ? { images: chatOpts.images } : {}),
+            ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
           }
           return askFn(input, config) // returns async generator
         },
@@ -363,6 +365,8 @@
         ...(effProviders ? { providers: effProviders } : {}),
         ...(chatOpts.signal ? { signal: chatOpts.signal } : {}),
         ...(chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {}),
+        ...(chatOpts.images ? { images: chatOpts.images } : {}),
+        ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
       }
     }
 

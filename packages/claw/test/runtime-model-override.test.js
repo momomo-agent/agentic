@@ -15,6 +15,8 @@ function installFakes() {
       baseUrl: config.baseUrl,
       proxyUrl: config.proxyUrl,
       system: config.system,
+      images: config.images,
+      audio: config.audio,
     })
     return (async function* () {
       yield { type: 'text_delta', text: 'ok' }
@@ -108,5 +110,19 @@ describe('runtime model override', () => {
     claw.on('configure', (c) => { seen = c })
     claw.setModel('b')
     expect(seen?.model).toBe('b')
+  })
+
+  it('chat(opts) forwards images and audio through to agentic-core', async () => {
+    const claw = createClaw({ apiKey: 'k1', model: 'a' })
+    const imgs = [{ media_type: 'image/png', data: 'AAA' }]
+    const aud = { data: 'ZZZ', format: 'wav' }
+    await drain(claw.chat('look at this', { images: imgs }))
+    await drain(claw.chat('listen to this', { audio: aud }))
+    await drain(claw.chat('plain text'))
+    expect(captured[0].images).toEqual(imgs)
+    expect(captured[1].audio).toEqual(aud)
+    // Images / audio must not leak across calls
+    expect(captured[2].images).toBeUndefined()
+    expect(captured[2].audio).toBeUndefined()
   })
 })

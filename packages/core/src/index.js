@@ -1412,6 +1412,12 @@ async function normalizeToolResultBlocks(rawResult, options = {}) {
     const data = input.image_base64 || (input.image.startsWith('data:') ? input.image.split(',')[1] : input.image)
     const media_type = input.media_type || (input.image.startsWith('data:image/') ? input.image.slice(5, input.image.indexOf(';')) : 'image/png')
     input = { content: [{ type: 'image', source: { type: 'base64', media_type, data } }] }
+  } else if (input.image && typeof input.image === 'object' && typeof input.image.data === 'string') {
+    // Shorthand: { image: { data, media_type }, output? } — optional `output` becomes a text block
+    const blocks = []
+    if (typeof input.output === 'string' && input.output) blocks.push({ type: 'text', text: input.output })
+    blocks.push({ type: 'image', source: { type: 'base64', media_type: input.image.media_type || 'image/png', data: input.image.data } })
+    input = { content: blocks }
   } else if (typeof input.image_url === 'string') {
     input = { content: [{ type: 'image', source: { type: 'url', url: input.image_url } }] }
   } else if (typeof input.path === 'string') {

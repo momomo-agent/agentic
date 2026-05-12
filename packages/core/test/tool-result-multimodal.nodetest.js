@@ -130,6 +130,26 @@ describe('normalizeToolResultBlocks', () => {
     assert.equal(blocks[0].source.type, 'url')
   })
 
+  it('accepts { image: { data, media_type }, output } shorthand (read_image convention)', async () => {
+    const { blocks } = await normalizeToolResultBlocks({
+      image: { data: TINY_PNG_B64, media_type: 'image/png' },
+      output: '1x1 pixel PNG',
+    })
+    assert.equal(blocks.length, 2)
+    assert.equal(blocks[0].type, 'text')
+    assert.equal(blocks[0].text, '1x1 pixel PNG')
+    assert.equal(blocks[1].type, 'image')
+    assert.equal(blocks[1].source.media_type, 'image/png')
+    assert.equal(blocks[1].source.data, TINY_PNG_B64)
+  })
+
+  it('accepts { image: { data } } without output', async () => {
+    const { blocks } = await normalizeToolResultBlocks({ image: { data: TINY_PNG_B64 } })
+    assert.equal(blocks.length, 1)
+    assert.equal(blocks[0].type, 'image')
+    assert.equal(blocks[0].source.media_type, 'image/png')
+  })
+
   it('reads an on-disk file as base64 (image)', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'agentic-toolresult-'))
     const p = join(dir, 'pic.png')
