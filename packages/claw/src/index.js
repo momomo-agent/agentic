@@ -506,8 +506,11 @@
       try {
         if (_conductor) {
           // ── Conductor path: streaming via conductor.chat() async generator ──
+          const sessionId = sessionMem.id || 'default'
+          const abortSignal = _controllers.get(sessionId)?.signal
           let answer = ''
           for await (const chunk of _conductor.chat(input, chatOpts)) {
+            if (abortSignal?.aborted) break
             if (chunk.type === 'text' && chunk.text) {
               answer += chunk.text
               partialAnswer = answer
@@ -549,7 +552,11 @@
             return
           }
 
+          const sessionId = sessionMem.id || 'default'
+          const abortSignal = _controllers.get(sessionId)?.signal
           for await (const event of result) {
+            // Guard: stop emitting after abort
+            if (abortSignal?.aborted) break
             if (event.type === 'text_delta') {
               partialAnswer += event.text || ''
               events.emit('token', { text: event.text })
