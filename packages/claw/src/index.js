@@ -712,6 +712,35 @@
       /** Convenience: update systemPrompt. */
       setSystemPrompt(systemPrompt) { cfg.systemPrompt = systemPrompt || null; events.emit('configure', { ...cfg }); return this },
 
+      /** Add a tool at runtime. Same-name tool is replaced (upsert). */
+      addTool(tool) {
+        if (!tool || !tool.name) throw new Error('tool.name required')
+        const idx = allTools.findIndex(t => t.name === tool.name)
+        if (idx >= 0) allTools[idx] = tool
+        else allTools.push(tool)
+        events.emit('tools', allTools.slice())
+        return this
+      },
+
+      /** Remove a tool by name. No-op if not found. */
+      removeTool(name) {
+        const idx = allTools.findIndex(t => t.name === name)
+        if (idx >= 0) allTools.splice(idx, 1)
+        events.emit('tools', allTools.slice())
+        return this
+      },
+
+      /** Replace the entire tool set. */
+      setTools(newTools) {
+        allTools.length = 0
+        if (Array.isArray(newTools)) allTools.push(...newTools)
+        events.emit('tools', allTools.slice())
+        return this
+      },
+
+      /** Snapshot of current tools (copy). */
+      getTools() { return allTools.slice() },
+
       /** Snapshot of current runtime config (copy, safe to mutate). */
       getConfig() { return { ...cfg } },
 

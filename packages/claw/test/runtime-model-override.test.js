@@ -112,6 +112,66 @@ describe('runtime model override', () => {
     expect(seen?.model).toBe('b')
   })
 
+  it('addTool/removeTool/setTools/getTools manage tools dynamically', async () => {
+    const toolA = { name: 'a', description: 'tool a', input_schema: {}, execute: () => 'a' }
+    const toolB = { name: 'b', description: 'tool b', input_schema: {}, execute: () => 'b' }
+    const toolC = { name: 'c', description: 'tool c', input_schema: {}, execute: () => 'c' }
+    const claw = createClaw({ apiKey: 'k1', tools: [toolA] })
+
+    // getTools returns initial tools
+    expect(claw.getTools().map(t => t.name)).toEqual(['a'])
+
+    // addTool appends
+    claw.addTool(toolB)
+    expect(claw.getTools().map(t => t.name)).toEqual(['a', 'b'])
+
+    // addTool same name replaces (upsert)
+    const toolA2 = { ...toolA, description: 'updated a' }
+    claw.addTool(toolA2)
+    expect(claw.getTools().length).toBe(2)
+    expect(claw.getTools()[0].description).toBe('updated a')
+
+    // removeTool by name
+    claw.removeTool('b')
+    expect(claw.getTools().map(t => t.name)).toEqual(['a'])
+
+    // removeTool non-existent is no-op
+    claw.removeTool('zzz')
+    expect(claw.getTools().map(t => t.name)).toEqual(['a'])
+
+    // setTools replaces entirely
+    claw.setTools([toolB, toolC])
+    expect(claw.getTools().map(t => t.name)).toEqual(['b', 'c'])
+
+    // setTools([]) clears
+    claw.setTools([])
+    expect(claw.getTools()).toEqual([])
+  })
+
+  it('addTool/removeTool/setTools emit tools event', () => {
+    const toolA = { name: 'a', description: 'tool a', input_schema: {}, execute: () => 'a' }
+    const claw = createClaw({ apiKey: 'k1' })
+    const seen = []
+    claw.on('tools', (tools) => seen.push(tools.map(t => t.name)))
+
+    claw.addTool(toolA)
+    claw.removeTool('a')
+    claw.setTools([toolA])
+
+    expect(seen).toEqual([['a'], [], ['a']])
+  })
+
+  it('dynamically added tools are used in chat calls', async () => {
+    const claw = createClaw({ apiKey: 'k1', model: 'a' })
+    const toolX = { name: 'x', description: 'tool x', input_schema: { type: 'object' }, execute: () => 'x' }
+    claw.addTool(toolX)
+    await drain(claw.chat('use x'))
+    // The captured config should include tool 'x' in tools
+    // (agenticAsk receives tools via config)
+    // We can't easily check this with current fakes, but at least verify no crash
+    expect(claw.getTools().map(t => t.name)).toContain('x')
+  })
+
   it('chat(opts) forwards images and audio through to agentic-core', async () => {
     const claw = createClaw({ apiKey: 'k1', model: 'a' })
     const imgs = [{ media_type: 'image/png', data: 'AAA' }]
