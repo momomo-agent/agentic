@@ -500,6 +500,7 @@
       await _compactIfNeeded(sessionMem)
 
       let success = false
+      let partialAnswer = ''
       try {
         if (_conductor) {
           // ── Conductor path: streaming via conductor.chat() async generator ──
@@ -507,6 +508,7 @@
           for await (const chunk of _conductor.chat(input, chatOpts)) {
             if (chunk.type === 'text' && chunk.text) {
               answer += chunk.text
+              partialAnswer = answer
               events.emit('token', { text: chunk.text })
               yield { type: 'text_delta', text: chunk.text }
             } else if (chunk.type === 'done') {
@@ -545,7 +547,10 @@
           }
 
           for await (const event of result) {
-            if (event.type === 'text_delta') events.emit('token', { text: event.text })
+            if (event.type === 'text_delta') {
+              partialAnswer += event.text || ''
+              events.emit('token', { text: event.text })
+            }
             else if (event.type === 'status') events.emit('status', event)
             else if (event.type === 'tool_use') events.emit('tool_call', event)
             yield event
@@ -560,12 +565,20 @@
         }
       } catch (error) {
         // Rollback user message on error so retry doesn't duplicate
-        if (!success) {
+        if (!success && !partialAnswer) {
           sessionMem.popLast()
         }
         events.emit('error', error)
         throw error
       } finally {
+        // Persist partial answer if generator was aborted/broken mid-stream
+        if (!success && partialAnswer) {
+          try {
+            await sessionMem.assistant(partialAnswer)
+            await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+            events.emit('message', { role: 'assistant', content: partialAnswer, partial: true })
+          } catch (_) { /* best-effort */ }
+        }
         _clearController()
       }
     }
@@ -616,7 +629,7 @@
       },
 
       /** Create/get a named session */
-      session(id) {
+      session(id = 'default') {
         const mem = _getSession(id)
         return {
           chat(input, optsOrEmit, maybeEmit) { return _chat(mem, input, optsOrEmit, maybeEmit) },
