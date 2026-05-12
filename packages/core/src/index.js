@@ -638,7 +638,7 @@ async function* _agenticAskGen(prompt, config) {
             const promise = (async () => {
               const t0 = Date.now()
               try {
-                const result = await executeTool(toolCall.name, toolCall.input, { searchApiKey, customTools })
+                const result = await executeTool(toolCall.name, toolCall.input, { searchApiKey, customTools, signal })
                 return { call: toolCall, result, error: null, ms: Date.now() - t0 }
               } catch (err) {
                 return { call: toolCall, result: null, error: err.message || String(err), ms: Date.now() - t0 }
@@ -741,7 +741,7 @@ async function* _agenticAskGen(prompt, config) {
             return eager
           }
 
-          result = await executeTool(call.name, call.input, { searchApiKey, customTools })
+          result = await executeTool(call.name, call.input, { searchApiKey, customTools, signal })
 
           // Streaming tool: async generator → collect progress, return final
           if (result && typeof result[Symbol.asyncIterator] === 'function') {
@@ -2059,10 +2059,19 @@ function buildToolDefs(tools) {
 }
 
 async function executeTool(name, input, config) {
+  // Build context object passed as second argument to tool execute functions.
+  // This gives tools access to signal, session info, and other runtime state
+  // without polluting the input schema.
+  const toolContext = {
+    signal: config.signal,
+    toolName: name,
+    ...(config.toolContext || {}),
+  }
+
   // Check registry first
   const registered = toolRegistry.get(name)
   if (registered && registered.execute) {
-    const result = registered.execute(input)
+    const result = registered.execute(input, toolContext)
     // Streaming tool: returns async generator
     if (result && typeof result[Symbol.asyncIterator] === 'function') {
       return result // caller handles iteration
@@ -2074,7 +2083,7 @@ async function executeTool(name, input, config) {
   if (config.customTools) {
     const custom = config.customTools.find(t => t.name === name)
     if (custom && custom.execute) {
-      const result = custom.execute(input)
+      const result = custom.execute(input, toolContext)
       if (result && typeof result[Symbol.asyncIterator] === 'function') {
         return result
       }

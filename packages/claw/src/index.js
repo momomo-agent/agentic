@@ -160,6 +160,21 @@
       throw new Error('agentic-core not found. Install or include via <script>')
     }
 
+    // ── Abort management ───────────────────────────────────────────
+    let _currentController = null
+
+    function _createSignal(chatOpts) {
+      // If caller provides their own signal, use it (they manage lifecycle)
+      if (chatOpts.signal) return chatOpts.signal
+      // Otherwise create an internal controller so claw.abort() works
+      _currentController = new AbortController()
+      return _currentController.signal
+    }
+
+    function _clearController() {
+      _currentController = null
+    }
+
     // ── Conductor integration ──────────────────────────────────────
     const conductorMod = options.conductorModule || optionalLoad('agentic-conductor', 'AgenticConductor')
     let _conductor = null
@@ -363,7 +378,7 @@
         tools: chatOpts.tools || allTools,
         stream: chatOpts.stream ?? cfg.stream,
         ...(effProviders ? { providers: effProviders } : {}),
-        ...(chatOpts.signal ? { signal: chatOpts.signal } : {}),
+        signal: _createSignal(chatOpts),
         ...(chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {}),
         ...(chatOpts.images ? { images: chatOpts.images } : {}),
         ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
@@ -472,6 +487,8 @@
       } catch (error) {
         events.emit('error', error)
         throw error
+      } finally {
+        _clearController()
       }
     }
 
@@ -548,6 +565,8 @@
         }
         events.emit('error', error)
         throw error
+      } finally {
+        _clearController()
       }
     }
 
@@ -740,6 +759,19 @@
 
       /** Snapshot of current tools (copy). */
       getTools() { return allTools.slice() },
+
+      /** Abort the current in-flight chat. No-op if idle. */
+      abort() {
+        if (_currentController) {
+          _currentController.abort()
+          _currentController = null
+          events.emit('abort')
+        }
+        return this
+      },
+
+      /** Whether a chat is currently in progress. */
+      get isGenerating() { return _currentController !== null },
 
       /** Snapshot of current runtime config (copy, safe to mutate). */
       getConfig() { return { ...cfg } },
