@@ -522,6 +522,7 @@
             } else {
               // Forward tool_use, status, etc.
               if (chunk.type === 'tool_use') events.emit('tool_call', chunk)
+              else if (chunk.type === 'tool_input_delta') events.emit('tool_input_delta', chunk)
               else if (chunk.type === 'status') events.emit('status', chunk)
               yield chunk
             }
@@ -554,6 +555,7 @@
             }
             else if (event.type === 'status') events.emit('status', event)
             else if (event.type === 'tool_use') events.emit('tool_call', event)
+            else if (event.type === 'tool_input_delta') events.emit('tool_input_delta', event)
             yield event
             if (event.type === 'done') {
               const answer = event.answer || ''

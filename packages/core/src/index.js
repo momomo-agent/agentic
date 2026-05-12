@@ -453,7 +453,9 @@ async function* _streamCallWithFailover(opts) {
         // Build Anthropic messages format (handles multimodal tool_result blocks)
         const anthropicMessages = buildAnthropicMessages(messages)
         body = { model: pModel || 'claude-sonnet-4', max_tokens: 4096, messages: anthropicMessages, stream: true }
-        if (system) body.system = [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
+        if (system) body.system = Array.isArray(system)
+          ? system.map(s => typeof s === 'string' ? { type: 'text', text: s, cache_control: { type: 'ephemeral' } } : { type: 'text', ...s })
+          : [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
         if (tools?.length) {
           body.tools = tools.map((t, i) => i === tools.length - 1
             ? { ...t, cache_control: { type: 'ephemeral' } }
@@ -497,6 +499,8 @@ async function* _streamCallWithFailover(opts) {
       for await (const evt of gen) {
         if (evt.type === 'text_delta') {
           content += evt.text
+          yield evt
+        } else if (evt.type === 'tool_input_delta') {
           yield evt
         } else if (evt.type === 'tool_ready') {
           // Anthropic: complete tool call
@@ -632,6 +636,8 @@ async function* _agenticAskGen(prompt, config) {
           if (evt.type === 'text_delta') {
             if (!t_firstToken) t_firstToken = Date.now()
             yield evt // Forward token-level events to consumer
+          } else if (evt.type === 'tool_input_delta') {
+            yield evt // Forward tool argument streaming to consumer
           } else if (evt.type === 'tool_ready') {
             // Start eager tool execution
             const toolCall = evt.toolCall
@@ -853,7 +859,9 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
 
   // Apply cache_control to system prompt
   if (system) {
-    body.system = [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
+    body.system = Array.isArray(system)
+      ? system.map(s => typeof s === 'string' ? { type: 'text', text: s, cache_control: { type: 'ephemeral' } } : { type: 'text', ...s })
+      : [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
   }
 
   // Apply cache_control to last tool definition (caches all tools up to that point)
@@ -1068,6 +1076,9 @@ async function* _streamAnthropicGen(url, headers, body, signal) {
         yield { type: 'text_delta', text: event.delta.text || '' }
       } else if (event.delta?.type === 'input_json_delta') {
         currentToolInput += event.delta.partial_json || ''
+        if (currentTool) {
+          yield { type: 'tool_input_delta', id: currentTool.id, name: currentTool.name, partial_json: event.delta.partial_json || '' }
+        }
       }
       // thinking_delta / reasoning_delta: intentionally not forwarded as text
       return
