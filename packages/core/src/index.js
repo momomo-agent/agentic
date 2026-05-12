@@ -964,7 +964,11 @@ async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
   return { content, tool_calls: toolCalls, stop_reason: stopReason }
 }
 
-// True streaming generator for Anthropic SSE
+// True streaming generator for Anthropic SSE.
+// Robust to proxy variants: handles `data:` with or without space, CRLF, multi-line
+// events (event: + data:), Anthropic `ping`/`error` control events, and proxies that
+// only emit the event body (JSON without a `type` field, using the `event:` line).
+// Set AGENTIC_DEBUG_STREAM=1 to surface otherwise-swallowed parse errors on stderr.
 async function* _streamAnthropicGen(url, headers, body, signal) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
@@ -976,58 +980,142 @@ async function* _streamAnthropicGen(url, headers, body, signal) {
     throw e
   }
 
+  const debug = (typeof process !== 'undefined' && process.env && process.env.AGENTIC_DEBUG_STREAM)
+
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
   let currentToolInput = ''
   let currentTool = null
+  let sawAnyDelta = false // used to detect empty streams from misbehaving proxies
+
+  // Yield an event object, normalising proxies that drop `type` but keep SSE `event:` line.
+  function* handleEvent(eventName, data) {
+    if (!data || data === '[DONE]') return
+    let event
+    try {
+      event = JSON.parse(data)
+    } catch (parseErr) {
+      if (debug) console.error('[agentic-core] SSE JSON parse failed for event=%s data=%s err=%s', eventName, String(data).slice(0, 200), parseErr.message)
+      return
+    }
+    // Some proxies strip event.type from the JSON body and only keep SSE `event:` line.
+    if (!event.type && eventName) event.type = eventName
+
+    // Proxy-emitted error frames (Anthropic sends `event: error` with { type: 'error', error: {...} })
+    if (event.type === 'error') {
+      const msg = event.error?.message || event.message || 'unknown upstream error'
+      const code = event.error?.type || event.error?.code || 'upstream_error'
+      const e = new Error(`Upstream stream error (${code}): ${msg}`)
+      e.status = event.error?.status || 0
+      throw e
+    }
+    if (event.type === 'ping') return
+
+    if (event.type === 'message_start' && event.message?.usage) {
+      yield { type: 'usage', usage: event.message.usage }
+      return
+    }
+
+    if (event.type === 'content_block_delta') {
+      if (event.delta?.type === 'text_delta') {
+        sawAnyDelta = true
+        yield { type: 'text_delta', text: event.delta.text || '' }
+      } else if (event.delta?.type === 'input_json_delta') {
+        currentToolInput += event.delta.partial_json || ''
+      }
+      // thinking_delta / reasoning_delta: intentionally not forwarded as text
+      return
+    }
+    if (event.type === 'content_block_start') {
+      if (event.content_block?.type === 'tool_use') {
+        currentTool = { id: event.content_block.id, name: event.content_block.name }
+        currentToolInput = ''
+      }
+      return
+    }
+    if (event.type === 'content_block_stop') {
+      if (currentTool) {
+        let input = {}
+        try { input = JSON.parse(currentToolInput || '{}') } catch {}
+        yield { type: 'tool_ready', toolCall: { ...currentTool, input } }
+        currentTool = null
+        currentToolInput = ''
+      }
+      return
+    }
+    if (event.type === 'message_delta') {
+      if (event.usage) yield { type: 'usage', usage: event.usage }
+      if (event.delta?.stop_reason) yield { type: 'stop', stop_reason: event.delta.stop_reason }
+      return
+    }
+    if (debug && event.type) console.error('[agentic-core] unhandled SSE event type=%s', event.type)
+  }
+
+  // Drain one SSE frame (text between blank lines). Each frame can contain multiple
+  // `event:` / `data:` lines; per the SSE spec, multiple `data:` lines are concatenated
+  // with `\n`.
+  function* drainFrame(frame) {
+    if (!frame) return
+    let eventName = ''
+    const dataChunks = []
+    const rawLines = frame.split(/\r?\n/)
+    for (const rawLine of rawLines) {
+      const line = rawLine
+      if (!line || line.startsWith(':')) continue // comment / keepalive
+      // Tolerate both `event: foo` and `event:foo`
+      if (line.startsWith('event:')) {
+        eventName = line.slice(6).trim()
+      } else if (line.startsWith('data:')) {
+        const rest = line.slice(5)
+        // Anthropic spec is `data: {...}` but some proxies drop the space
+        dataChunks.push(rest.startsWith(' ') ? rest.slice(1) : rest)
+      }
+      // id:/retry: silently ignored
+    }
+    if (dataChunks.length) {
+      yield* handleEvent(eventName, dataChunks.join('\n').trim())
+    }
+  }
 
   while (true) {
-    const { done, value } = await reader.read()
+    let chunk
+    try { chunk = await reader.read() } catch (err) {
+      if (debug) console.error('[agentic-core] stream read failed:', err.message)
+      throw err
+    }
+    const { done, value } = chunk
     if (done) break
     buffer += decoder.decode(value, { stream: true })
 
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
-
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const data = line.slice(6).trim()
-      if (data === '[DONE]') continue
-      try {
-        const event = JSON.parse(data)
-        
-        // Emit usage from message_start (includes cache stats)
-        if (event.type === 'message_start' && event.message?.usage) {
-          yield { type: 'usage', usage: event.message.usage }
+    // SSE spec: events are separated by blank lines (`\n\n` or `\r\n\r\n`).
+    // Some proxies emit only `\n`-separated events where each event is a single `data:` line.
+    // Detect that case and fall back to line-by-line when no blank-line boundary appears.
+    if (/\n\r?\n/.test(buffer)) {
+      const parts = buffer.split(/\n\r?\n/)
+      buffer = parts.pop() || ''
+      for (const frame of parts) yield* drainFrame(frame)
+    } else {
+      // Best-effort: drain complete lines that start with `data:` (line-per-event proxies).
+      const lines = buffer.split(/\r?\n/)
+      buffer = lines.pop() || ''
+      for (const line of lines) {
+        if (!line) continue
+        if (line.startsWith('data:')) {
+          yield* drainFrame(line)
         }
-
-        if (event.type === 'content_block_delta') {
-          if (event.delta?.type === 'text_delta') {
-            yield { type: 'text_delta', text: event.delta.text }
-          } else if (event.delta?.type === 'input_json_delta') {
-            currentToolInput += event.delta.partial_json || ''
-          }
-        } else if (event.type === 'content_block_start') {
-          if (event.content_block?.type === 'tool_use') {
-            currentTool = { id: event.content_block.id, name: event.content_block.name }
-            currentToolInput = ''
-          }
-        } else if (event.type === 'content_block_stop') {
-          if (currentTool) {
-            let input = {}
-            try { input = JSON.parse(currentToolInput || '{}') } catch {}
-            const toolCall = { ...currentTool, input }
-            yield { type: 'tool_ready', toolCall }
-            currentTool = null
-            currentToolInput = ''
-          }
-        } else if (event.type === 'message_delta') {
-          if (event.usage) yield { type: 'usage', usage: event.usage }
-          if (event.delta?.stop_reason) yield { type: 'stop', stop_reason: event.delta.stop_reason }
-        }
-      } catch {}
+        // `event:` alone without a following data is meaningless; wait for the full frame.
+      }
     }
+  }
+  // Flush any trailing frame (server closed without final blank line)
+  if (buffer.trim()) {
+    yield* drainFrame(buffer)
+    buffer = ''
+  }
+
+  if (!sawAnyDelta && debug) {
+    console.error('[agentic-core] anthropic stream ended without any text_delta — upstream may have returned an empty completion')
   }
 }
 
@@ -1066,41 +1154,65 @@ async function* _streamOpenAIGen(url, headers, body, signal) {
     throw e
   }
 
+  const debug = (typeof process !== 'undefined' && process.env && process.env.AGENTIC_DEBUG_STREAM)
+
   const reader = res.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
+
+  function* handleFrame(frame) {
+    if (!frame) return
+    const dataChunks = []
+    for (const rawLine of frame.split(/\r?\n/)) {
+      if (!rawLine || rawLine.startsWith(':')) continue
+      if (rawLine.startsWith('data:')) {
+        const rest = rawLine.slice(5)
+        dataChunks.push(rest.startsWith(' ') ? rest.slice(1) : rest)
+      }
+    }
+    if (!dataChunks.length) return
+    const data = dataChunks.join('\n').trim()
+    if (!data || data === '[DONE]') return
+    let chunk
+    try { chunk = JSON.parse(data) } catch (err) {
+      if (debug) console.error('[agentic-core] SSE JSON parse failed (openai) data=%s err=%s', data.slice(0, 200), err.message)
+      return
+    }
+    // OpenAI-compatible error frames
+    if (chunk.error) {
+      const e = new Error(`Upstream stream error: ${chunk.error.message || JSON.stringify(chunk.error).slice(0,200)}`)
+      e.status = chunk.error.status || 0
+      throw e
+    }
+    const delta = chunk.choices?.[0]?.delta
+    if (!delta) return
+    if (delta.content) yield { type: 'text_delta', text: delta.content }
+    if (chunk.choices?.[0]?.finish_reason) yield { type: 'stop', stop_reason: chunk.choices[0].finish_reason }
+    if (delta.tool_calls) {
+      for (const tc of delta.tool_calls) {
+        yield { type: 'tool_delta', toolDelta: { index: tc.index, id: tc.id || '', name: tc.function?.name || '', arguments: tc.function?.arguments || '' } }
+      }
+    }
+  }
 
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
     buffer += decoder.decode(value, { stream: true })
 
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
-
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const data = line.slice(6).trim()
-      if (data === '[DONE]') continue
-      try {
-        const chunk = JSON.parse(data)
-        const delta = chunk.choices?.[0]?.delta
-        if (!delta) continue
-
-        if (delta.content) {
-          yield { type: 'text_delta', text: delta.content }
-        }
-        if (chunk.choices?.[0]?.finish_reason) {
-          yield { type: 'stop', stop_reason: chunk.choices[0].finish_reason }
-        }
-        if (delta.tool_calls) {
-          for (const tc of delta.tool_calls) {
-            yield { type: 'tool_delta', toolDelta: { index: tc.index, id: tc.id || '', name: tc.function?.name || '', arguments: tc.function?.arguments || '' } }
-          }
-        }
-      } catch {}
+    if (/\n\r?\n/.test(buffer)) {
+      const parts = buffer.split(/\n\r?\n/)
+      buffer = parts.pop() || ''
+      for (const frame of parts) yield* handleFrame(frame)
+    } else {
+      const lines = buffer.split(/\r?\n/)
+      buffer = lines.pop() || ''
+      for (const line of lines) {
+        if (line && line.startsWith('data:')) yield* handleFrame(line)
+      }
     }
   }
+  if (buffer.trim()) yield* handleFrame(buffer)
 }
 
 // ── Non-stream Proxy/Direct Call ──
