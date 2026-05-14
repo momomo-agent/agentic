@@ -631,6 +631,7 @@
             return {
               [Symbol.asyncIterator]() { return this },
               next() {
+                if (aborted) return Promise.resolve({ done: true, value: undefined })
                 return Promise.race([gen.next(), abortPromise])
               },
               // After abort, return() must resolve immediately — don't wait
