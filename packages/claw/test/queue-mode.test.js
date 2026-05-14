@@ -103,6 +103,27 @@ describe('claw session.setQueueMode + steer queue', () => {
     claw.destroy()
   })
 
+  it('claw top-level setQueueMode/getQueueMode/queueDepth/clearQueue/isGenerating work on default session', async () => {
+    const claw = makeClaw()
+    expect(claw.getQueueMode()).toBe('block')
+    claw.setQueueMode('steer')
+    expect(claw.getQueueMode()).toBe('steer')
+    expect(claw.isGenerating).toBe(false)
+    expect(claw.queueDepth()).toBe(0)
+
+    const ref = {}
+    const iter = await startAndPause(claw.session(), 'first', ref)
+    expect(claw.isGenerating).toBe(true)
+    claw.session().chat('queued')
+    expect(claw.queueDepth()).toBe(1)
+    claw.clearQueue()
+    expect(claw.queueDepth()).toBe(0)
+    ref.release()
+    await drain(iter)
+    expect(claw.isGenerating).toBe(false)
+    claw.destroy()
+  })
+
   it('steer mode queues mid-turn message and drains at boundary', async () => {
     const claw = makeClaw()
     const session = claw.session()

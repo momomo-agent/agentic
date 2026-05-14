@@ -701,6 +701,30 @@
         return _retry(defaultSession, opts)
       },
 
+      /** Set queue behavior for mid-turn messages on the default session. */
+      setQueueMode(mode) {
+        if (mode !== 'block' && mode !== 'steer' && mode !== 'interrupt') {
+          throw new Error(`Invalid queueMode: ${mode}. Use 'block', 'steer', or 'interrupt'.`)
+        }
+        _queueModes.set(defaultSession.id || 'default', mode)
+        return this
+      },
+      /** Current queue mode for the default session. */
+      getQueueMode() { return _getQueueMode(defaultSession.id || 'default') },
+      /** Number of messages waiting on the default session. */
+      queueDepth() {
+        const q = _steerQueues.get(defaultSession.id || 'default')
+        return q ? q.length : 0
+      },
+      /** Drop all queued steering messages on the default session. */
+      clearQueue() {
+        const q = _steerQueues.get(defaultSession.id || 'default')
+        if (q) q.length = 0
+        return this
+      },
+      /** Whether the default session has a chat in progress. */
+      get isGenerating() { return _controllers.has(defaultSession.id || 'default') },
+
       /** Create/get a named session */
       session(id = 'default') {
         const mem = _getSession(id)
