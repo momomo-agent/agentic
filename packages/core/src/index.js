@@ -388,6 +388,8 @@ async function _callWithFailover(opts) {
       })
     } catch (err) {
       lastErr = err
+      // Don't try next provider if already aborted
+      if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
       if (i < providerList.length - 1) continue
       throw err
     }
@@ -439,7 +441,7 @@ async function* _streamCallWithFailover(opts) {
           yield { type: 'response', content: response.content, tool_calls: response.tool_calls || [], stop_reason: response.stop_reason }
         }
         return
-      } catch (err) { lastErr = err; if (i < providerList.length - 1) continue; throw err }
+      } catch (err) { lastErr = err; if (signal?.aborted) throw new DOMException('Aborted', 'AbortError'); if (i < providerList.length - 1) continue; throw err }
     }
 
     try {
@@ -535,6 +537,7 @@ async function* _streamCallWithFailover(opts) {
       return
     } catch (err) {
       lastErr = err
+      if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
       if (i < providerList.length - 1) continue
       throw err
     }

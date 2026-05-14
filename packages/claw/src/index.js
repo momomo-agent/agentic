@@ -174,7 +174,9 @@
       return controller.signal
     }
 
-    function _clearController(sessionId) {
+    function _clearController(sessionId, expected) {
+      // Only clear if the controller is still ours (prevents race with new chat)
+      if (expected && _controllers.get(sessionId) !== expected) return
       _controllers.delete(sessionId)
     }
 
@@ -526,6 +528,8 @@
 
     // Legacy emit mode (backward compat)
     async function _chatLegacy(sessionMem, input, chatOpts, emit) {
+      const _mySid = sessionMem.id || 'default'
+      const _myCtrl = _controllers.get(_mySid)
       events.emit('message', { role: 'user', content: input })
       await sessionMem.user(input)
       await _compactIfNeeded(sessionMem)
@@ -541,7 +545,8 @@
         if (_conductor && _strategy === 'conductor') {
           // Conductor path: consume async generator, emit tokens
           let answer = '', intents = []
-          for await (const chunk of _conductor.chat(input, chatOpts)) {
+          const abortSignal = _myCtrl?.signal
+          for await (const chunk of _abortableIterator(_conductor.chat(input, chatOpts), abortSignal)) {
             if (chunk.type === 'text' && chunk.text) {
               answer += chunk.text
               emitFn('token', { text: chunk.text })
@@ -571,7 +576,7 @@
         events.emit('error', error)
         throw error
       } finally {
-        _clearController(sessionMem.id || 'default')
+        _clearController(_mySid, _myCtrl)
       }
     }
 
@@ -609,6 +614,8 @@
     // Generator mode — yields ChatEvent
     // Routes through conductor when available, falls back to direct askFn
     async function* _chatGenerator(sessionMem, input, chatOpts) {
+      const _mySid = sessionMem.id || 'default'
+      const _myCtrl = _controllers.get(_mySid)
       events.emit('message', { role: 'user', content: input })
       await sessionMem.user(input)
       await _compactIfNeeded(sessionMem)
@@ -619,9 +626,9 @@
         if (_conductor && _strategy === 'conductor') {
           // ── Conductor path: streaming via conductor.chat() async generator ──
           const sessionId = sessionMem.id || 'default'
-          const abortSignal = _controllers.get(sessionId)?.signal
+          const abortSignal = _myCtrl?.signal
           let answer = ''
-          for await (const chunk of _conductor.chat(input, chatOpts)) {
+          for await (const chunk of _abortableIterator(_conductor.chat(input, chatOpts), abortSignal)) {
             if (abortSignal?.aborted) break
             if (chunk.type === 'text' && chunk.text) {
               answer += chunk.text
@@ -664,8 +671,7 @@
             return
           }
 
-          const sessionId = sessionMem.id || 'default'
-          const abortSignal = _controllers.get(sessionId)?.signal
+          const abortSignal = _myCtrl?.signal
 
           for await (const event of _abortableIterator(result, abortSignal)) {
             // Guard: stop emitting after abort
@@ -695,15 +701,18 @@
         events.emit('error', error)
         throw error
       } finally {
-        // Persist partial answer if generator was aborted/broken mid-stream
-        if (!success && partialAnswer) {
+        // Persist partial answer if generator was aborted/broken mid-stream.
+        // Only persist if we still own the controller — if a new chat has started
+        // (interrupt mode), our partial would corrupt the new conversation's history.
+        const stillOwner = _controllers.get(_mySid) === _myCtrl
+        if (!success && partialAnswer && stillOwner) {
           try {
             await sessionMem.assistant(partialAnswer)
-            await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
+            await _persistHistory(_mySid, sessionMem.messages())
             events.emit('message', { role: 'assistant', content: partialAnswer, partial: true })
           } catch (_) { /* best-effort */ }
         }
-        _clearController(sessionMem.id || 'default')
+        _clearController(_mySid, _myCtrl)
       }
     }
 
