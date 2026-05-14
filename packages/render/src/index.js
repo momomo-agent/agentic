@@ -125,6 +125,7 @@
     let inCodeBlock = false
     let codeLang = ''
     let codeContent = ''
+    let codeIndent = 0
     let inList = false
     let listType = ''
     let inBlockquote = false
@@ -170,12 +171,15 @@
     while (i < lines.length) {
       const line = lines[i]
 
-      // Code blocks
-      if (/^```/.test(line)) {
+      // Code blocks (allow up to 3 leading spaces per CommonMark spec)
+      if (/^\s{0,3}```/.test(line)) {
+        const fenceIndent = line.match(/^(\s*)/)[1].length
+        const fenceLine = line.slice(fenceIndent)
         if (!inCodeBlock) {
           flushBlockquote(); flushList(); flushTable()
           inCodeBlock = true
-          codeLang = line.slice(3).trim()
+          codeIndent = fenceIndent
+          codeLang = fenceLine.slice(3).trim()
           codeContent = ''
           i++
           continue
@@ -191,7 +195,11 @@
       }
 
       if (inCodeBlock) {
-        codeContent += (codeContent ? '\n' : '') + line
+        // Strip the same indentation as the opening fence
+        const stripped = codeIndent > 0 && line.startsWith(' '.repeat(codeIndent))
+          ? line.slice(codeIndent)
+          : line
+        codeContent += (codeContent ? '\n' : '') + stripped
         i++
         continue
       }
