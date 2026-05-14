@@ -298,6 +298,9 @@
     let _heartbeatInterval = null
     let _schedules = []
 
+    // ── Strategy: 'single' (direct askFn) or 'conductor' ──
+    let _strategy = options.strategy || (_conductor ? 'conductor' : 'single')
+
     // Shared knowledge
     const sharedKnowledgeOpts = knowledge ? {
       knowledge: true,
@@ -535,7 +538,7 @@
       }
 
       try {
-        if (_conductor) {
+        if (_conductor && _strategy === 'conductor') {
           // Conductor path: consume async generator, emit tokens
           let answer = '', intents = []
           for await (const chunk of _conductor.chat(input, chatOpts)) {
@@ -613,7 +616,7 @@
       let success = false
       let partialAnswer = ''
       try {
-        if (_conductor) {
+        if (_conductor && _strategy === 'conductor') {
           // ── Conductor path: streaming via conductor.chat() async generator ──
           const sessionId = sessionMem.id || 'default'
           const abortSignal = _controllers.get(sessionId)?.signal
@@ -922,6 +925,23 @@
       setProviders(providers) { cfg.providers = Array.isArray(providers) && providers.length ? providers : null; events.emit('configure', { ...cfg }); return this },
       /** Convenience: update systemPrompt. */
       setSystemPrompt(systemPrompt) { cfg.systemPrompt = systemPrompt || null; events.emit('configure', { ...cfg }); return this },
+
+      /** Switch routing strategy at runtime: 'single' (direct LLM) or 'conductor'. */
+      setStrategy(strategy) {
+        if (strategy !== 'single' && strategy !== 'conductor') {
+          throw new Error("strategy must be 'single' or 'conductor'")
+        }
+        if (strategy === 'conductor' && !_conductor) {
+          throw new Error('conductor not available (agentic-conductor not loaded)')
+        }
+        _strategy = strategy
+        events.emit('strategy', { strategy: _strategy })
+        return this
+      },
+      /** Get current routing strategy. */
+      getStrategy() { return _strategy },
+      /** Whether conductor is available (loaded at init). */
+      get hasConductor() { return !!_conductor },
 
       /** Add a tool at runtime. Same-name tool is replaced (upsert). */
       addTool(tool) {
