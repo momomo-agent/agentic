@@ -545,7 +545,7 @@ async function* _streamCallWithFailover(opts) {
 // ── Core async generator ──
 
 async function* _agenticAskGen(prompt, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images, audio, signal, providers, maxTokens } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images, audio, signal, providers, maxTokens, steer } = config
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
 
@@ -615,6 +615,31 @@ async function* _agenticAskGen(prompt, config) {
     if (signal && signal.aborted) {
       yield { type: 'error', error: 'aborted', category: 'network', retryable: false }
       return
+    }
+
+    // ── Turn-boundary steering injection ──
+    // Caller supplies steer.drain() returning queued user messages to inject
+    // before the next LLM call. Each item may be a string or { content, ... }.
+    // This is the single hook that turns agenticAsk into a steerable loop.
+    if (steer && typeof steer.drain === 'function') {
+      let queued
+      try { queued = steer.drain() } catch (e) { queued = null }
+      if (queued && queued.length) {
+        const injected = []
+        for (const item of queued) {
+          if (item == null) continue
+          const text = typeof item === 'string' ? item : (item.content ?? '')
+          if (!text) continue
+          messages.push({ role: 'user', content: text })
+          injected.push(text)
+        }
+        if (injected.length) {
+          yield { type: 'steered', round, count: injected.length, messages: injected }
+          if (typeof steer.onInjected === 'function') {
+            try { steer.onInjected({ round, messages: injected }) } catch {}
+          }
+        }
+      }
     }
 
     const t_round = Date.now()

@@ -176,6 +176,32 @@
       _controllers.delete(sessionId)
     }
 
+    // ── Steering queue (per session) ────────────────────
+    // queueMode controls behavior when chat() is called while a session is generating:
+    //   'block'     (default) — reject silently (current behavior, returns null)
+    //   'steer'     — queue the message, inject at next turn boundary
+    //   'interrupt' — abort current run and start a new chat
+    const _steerQueues = new Map() // sessionId → Array<string>
+    const _queueModes = new Map()  // sessionId → 'block' | 'steer' | 'interrupt'
+    const _defaultQueueMode = options.queueMode || 'block'
+
+    function _getQueueMode(sessionId) {
+      return _queueModes.get(sessionId) || _defaultQueueMode
+    }
+    function _drainSteerQueue(sessionId) {
+      const q = _steerQueues.get(sessionId)
+      if (!q || !q.length) return []
+      const out = q.slice()
+      q.length = 0
+      return out
+    }
+    function _enqueueSteer(sessionId, content) {
+      let q = _steerQueues.get(sessionId)
+      if (!q) { q = []; _steerQueues.set(sessionId, q) }
+      q.push(content)
+      return q.length
+    }
+
     // ── Conductor integration ──────────────────────────────────────
     const conductorMod = options.conductorModule || optionalLoad('agentic-conductor', 'AgenticConductor')
     let _conductor = null
@@ -384,6 +410,9 @@
         ...(chatOpts.images ? { images: chatOpts.images } : {}),
         ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
         maxTokens: chatOpts.maxTokens || cfg.maxTokens || undefined,
+        steer: {
+          drain: () => _drainSteerQueue(sessionMem.id || 'default'),
+        },
       }
     }
 
@@ -412,7 +441,40 @@
         emit = maybeEmit
       }
 
-      // If emit callback provided → legacy Promise mode (returns Promise)
+      // Mid-turn message handling: when a chat is already running on this session,
+      // queueMode decides what to do.
+      const sid = sessionMem.id || 'default'
+      if (_controllers.has(sid)) {
+        const mode = chatOpts.queueMode || _getQueueMode(sid)
+        if (mode === 'steer') {
+          const depth = _enqueueSteer(sid, input)
+          events.emit('queued', { sessionId: sid, content: input, depth })
+          if (emit) {
+            return Promise.resolve({ queued: true, depth, answer: '', rounds: 0, messages: sessionMem.messages() })
+          }
+          const noop = (async function* () {
+            yield { type: 'queued', sessionId: sid, content: input, depth }
+          })()
+          return {
+            [Symbol.asyncIterator]() { return noop },
+            then(resolve, reject) {
+              return Promise.resolve({ queued: true, depth, answer: '', rounds: 0, messages: sessionMem.messages() }).then(resolve, reject)
+            },
+          }
+        }
+        if (mode === 'interrupt') {
+          const controller = _controllers.get(sid)
+          if (controller) {
+            controller.abort()
+            _controllers.delete(sid)
+            events.emit('abort', { sessionId: sid, reason: 'interrupt' })
+          }
+          // Fall through to start a fresh chat.
+        }
+        // mode === 'block' falls through to current behavior (concurrent generators).
+      }
+
+      // If emit callback provided -> legacy Promise mode (returns Promise)
       if (emit) {
         return _chatLegacy(sessionMem, input, chatOpts, emit)
       }
@@ -658,6 +720,27 @@
           },
           /** Whether this session has a chat in progress. */
           get isGenerating() { return _controllers.has(sessionId) },
+          /** Set queue behavior for mid-turn messages: 'block' | 'steer' | 'interrupt'. */
+          setQueueMode(mode) {
+            if (mode !== 'block' && mode !== 'steer' && mode !== 'interrupt') {
+              throw new Error(`Invalid queueMode: ${mode}. Use 'block', 'steer', or 'interrupt'.`)
+            }
+            _queueModes.set(sessionId, mode)
+            return this
+          },
+          /** Current queue mode for this session. */
+          getQueueMode() { return _getQueueMode(sessionId) },
+          /** Number of messages waiting to be injected at next turn boundary. */
+          queueDepth() {
+            const q = _steerQueues.get(sessionId)
+            return q ? q.length : 0
+          },
+          /** Drop all queued steering messages without injecting. */
+          clearQueue() {
+            const q = _steerQueues.get(sessionId)
+            if (q) q.length = 0
+            return this
+          },
           memory: mem,
           id: sessionId,
         }
