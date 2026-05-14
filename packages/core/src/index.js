@@ -713,6 +713,32 @@ async function* _agenticAskGen(prompt, config) {
 
     // Check if done
     if (['end_turn', 'stop'].includes(response.stop_reason) || !response.tool_calls?.length) {
+      // Before breaking, check if there are steered messages waiting.
+      // If so, inject them and continue the loop instead of exiting.
+      if (steer && typeof steer.drain === 'function') {
+        let lateQueued
+        try { lateQueued = steer.drain() } catch (e) { lateQueued = null }
+        if (lateQueued && lateQueued.length) {
+          // Push the assistant's current answer, then inject user messages
+          messages.push({ role: 'assistant', content: response.content })
+          const injected = []
+          for (const item of lateQueued) {
+            if (item == null) continue
+            const text = typeof item === 'string' ? item : (item.content ?? '')
+            if (!text) continue
+            messages.push({ role: 'user', content: text })
+            injected.push(text)
+          }
+          if (injected.length) {
+            yield { type: 'steered', round, count: injected.length, messages: injected }
+            if (typeof steer.onInjected === 'function') {
+              try { steer.onInjected({ round, messages: injected }) } catch {}
+            }
+            console.log(`[Round ${round}] Steered ${injected.length} message(s) at end_turn, continuing loop`)
+            continue // back to top of while loop for another LLM call
+          }
+        }
+      }
       console.log(`[Round ${round}] Done: stop_reason=${response.stop_reason}, tool_calls=${response.tool_calls?.length || 0}`)
       finalAnswer = response.content
       break
