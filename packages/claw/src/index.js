@@ -616,7 +616,30 @@
 
           const sessionId = sessionMem.id || 'default'
           const abortSignal = _controllers.get(sessionId)?.signal
-          for await (const event of result) {
+
+          // Create an abort-aware async iterator wrapper.
+          // When abort fires, the wrapper resolves the current pending next()
+          // with { done: true } so the for-await loop exits immediately,
+          // even if the underlying generator is stuck in a long await.
+          function abortableIterator(gen, signal) {
+            if (!signal) return gen
+            let abortResolve = null
+            const abortPromise = new Promise(resolve => {
+              abortResolve = resolve
+              if (signal.aborted) { resolve({ done: true, value: undefined }); return }
+              signal.addEventListener('abort', () => resolve({ done: true, value: undefined }), { once: true })
+            })
+            return {
+              [Symbol.asyncIterator]() { return this },
+              next() {
+                return Promise.race([gen.next(), abortPromise])
+              },
+              return(...args) { return gen.return ? gen.return(...args) : Promise.resolve({ done: true, value: undefined }) },
+              throw(...args) { return gen.throw ? gen.throw(...args) : Promise.reject(args[0]) },
+            }
+          }
+
+          for await (const event of abortableIterator(result, abortSignal)) {
             // Guard: stop emitting after abort
             if (abortSignal?.aborted) break
             if (event.type === 'text_delta') {
