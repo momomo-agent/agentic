@@ -623,19 +623,27 @@
           // even if the underlying generator is stuck in a long await.
           function abortableIterator(gen, signal) {
             if (!signal) return gen
-            let abortResolve = null
+            let aborted = false
             const abortPromise = new Promise(resolve => {
-              abortResolve = resolve
-              if (signal.aborted) { resolve({ done: true, value: undefined }); return }
-              signal.addEventListener('abort', () => resolve({ done: true, value: undefined }), { once: true })
+              if (signal.aborted) { aborted = true; resolve({ done: true, value: undefined }); return }
+              signal.addEventListener('abort', () => { aborted = true; resolve({ done: true, value: undefined }) }, { once: true })
             })
             return {
               [Symbol.asyncIterator]() { return this },
               next() {
                 return Promise.race([gen.next(), abortPromise])
               },
-              return(...args) { return gen.return ? gen.return(...args) : Promise.resolve({ done: true, value: undefined }) },
-              throw(...args) { return gen.throw ? gen.throw(...args) : Promise.reject(args[0]) },
+              // After abort, return() must resolve immediately — don't wait
+              // for the stuck generator. Without this, for-await's implicit
+              // .return() call on break/done hangs forever.
+              return() {
+                if (aborted) return Promise.resolve({ done: true, value: undefined })
+                return gen.return ? gen.return() : Promise.resolve({ done: true, value: undefined })
+              },
+              throw(...args) {
+                if (aborted) return Promise.resolve({ done: true, value: undefined })
+                return gen.throw ? gen.throw(...args) : Promise.reject(args[0])
+              },
             }
           }
 
