@@ -461,6 +461,9 @@
     }
 
     const instance = {
+      /** Session id */
+      get id() { return _metadata.id },
+
       /** Add a message */
       async add(role, content) {
         _messages.push({ role, content })
