@@ -166,6 +166,8 @@
     function _createSignal(sessionId, chatOpts) {
       // If caller provides their own signal, use it (they manage lifecycle)
       if (chatOpts.signal) return chatOpts.signal
+      // Reuse existing controller if already created (e.g. by _chatThenableGen)
+      if (_controllers.has(sessionId)) return _controllers.get(sessionId).signal
       // Otherwise create an internal controller so session.abort() works
       const controller = new AbortController()
       _controllers.set(sessionId, controller)
@@ -487,20 +489,26 @@
     function _chatThenableGen(sessionMem, input, chatOpts) {
       const gen = _chatGenerator(sessionMem, input, chatOpts)
       const sessionId = sessionMem.id || 'default'
-      // Wrap gen with abort-awareness so external for-await consumers
-      // get { done: true } immediately on abort, even if _chatGenerator
-      // is stuck in its finally block (persist partial answer).
-      function _getAbortableGen() {
-        const signal = _controllers.get(sessionId)?.signal
-        return _abortableIterator(gen, signal)
+
+      // Eagerly create the abort controller so it's available BEFORE
+      // the generator starts executing (generator body runs lazily on first .next()).
+      if (!chatOpts.signal && !_controllers.has(sessionId)) {
+        const controller = new AbortController()
+        _controllers.set(sessionId, controller)
       }
+
+      // Cache the signal reference NOW — abort() deletes from _controllers,
+      // but we still need the signal to check .aborted in _abortableIterator.
+      const signal = chatOpts.signal || _controllers.get(sessionId)?.signal
+
+      const abortableGen = _abortableIterator(gen, signal)
       const wrapper = {
-        [Symbol.asyncIterator]() { return _getAbortableGen() },
+        [Symbol.asyncIterator]() { return abortableGen },
         then(resolve, reject) {
           // Consume the generator, return final result
           return (async () => {
             let lastDone = null
-            for await (const event of _getAbortableGen()) {
+            for await (const event of abortableGen) {
               if (event.type === 'done') lastDone = event
             }
             if (lastDone) {
