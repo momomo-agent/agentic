@@ -594,6 +594,19 @@ async function* _agenticAskGen(prompt, config) {
   let finalAnswer = null
   const state = { toolCallHistory: [] }
 
+  // Abort-aware promise helper: races any promise against the abort signal.
+  // When signal fires, the returned promise rejects with AbortError immediately.
+  function raceAbort(promise) {
+    if (!signal) return promise
+    if (signal.aborted) return Promise.reject(new DOMException('Aborted', 'AbortError'))
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+      }),
+    ])
+  }
+
   const t_start = Date.now()
 
   console.log('[agenticAsk] Starting with prompt:', prompt.slice(0, 50))
@@ -688,7 +701,7 @@ async function* _agenticAskGen(prompt, config) {
     } else {
       // Non-streaming path — await complete response
       try {
-        response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, maxTokens })
+        response = await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, maxTokens }))
       } catch (err) {
         const cls = classifyError(err)
         yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
@@ -788,41 +801,52 @@ async function* _agenticAskGen(prompt, config) {
         console.log(`[Round ${round}] ${eagerResults.size}/${validCalls.length} tools started eagerly during LLM stream`)
       }
 
-      const results = await Promise.all(validCalls.map(async (call) => {
-        try {
-          // Use eager result if available, otherwise execute now
-          let result
-          if (eagerResults.has(call.id)) {
-            const eager = await eagerResults.get(call.id)
-            recordToolCallOutcome(state, call.name, call.input, eager.result, eager.error)
-            return eager
-          }
-
-          result = await executeTool(call.name, call.input, { searchApiKey, customTools, signal })
-
-          // Streaming tool: async generator → collect progress, return final
-          if (result && typeof result[Symbol.asyncIterator] === 'function') {
-            let finalResult = null
-            for await (const delta of result) {
-              if (delta._final) {
-                finalResult = delta.result ?? delta
-              } else {
-                streamEvents.push({ type: 'tool_progress', id: call.id, name: call.name, delta })
-              }
+      let results
+      try {
+        results = await raceAbort(Promise.all(validCalls.map(async (call) => {
+          try {
+            // Use eager result if available, otherwise execute now
+            let result
+            if (eagerResults.has(call.id)) {
+              const eager = await eagerResults.get(call.id)
+              recordToolCallOutcome(state, call.name, call.input, eager.result, eager.error)
+              return eager
             }
-            const out = finalResult ?? { streamed: true }
-            recordToolCallOutcome(state, call.name, call.input, out, null)
-            return { call, result: out, error: null }
-          }
 
-          recordToolCallOutcome(state, call.name, call.input, result, null)
-          return { call, result, error: null }
-        } catch (toolErr) {
-          const errMsg = toolErr instanceof Error ? toolErr.message : String(toolErr)
-          recordToolCallOutcome(state, call.name, call.input, null, errMsg)
-          return { call, result: null, error: errMsg }
+            result = await executeTool(call.name, call.input, { searchApiKey, customTools, signal })
+
+            // Streaming tool: async generator → collect progress, return final
+            if (result && typeof result[Symbol.asyncIterator] === 'function') {
+              let finalResult = null
+              for await (const delta of result) {
+                if (signal?.aborted) break
+                if (delta._final) {
+                  finalResult = delta.result ?? delta
+                } else {
+                  streamEvents.push({ type: 'tool_progress', id: call.id, name: call.name, delta })
+                }
+              }
+              const out = finalResult ?? { streamed: true }
+              recordToolCallOutcome(state, call.name, call.input, out, null)
+              return { call, result: out, error: null }
+            }
+
+            recordToolCallOutcome(state, call.name, call.input, result, null)
+            return { call, result, error: null }
+          } catch (toolErr) {
+            const errMsg = toolErr instanceof Error ? toolErr.message : String(toolErr)
+            recordToolCallOutcome(state, call.name, call.input, null, errMsg)
+            return { call, result: null, error: errMsg }
+          }
+        })))
+      } catch (abortErr) {
+        if (abortErr?.name === 'AbortError') {
+          console.log(`[Round ${round}] Aborted during tool execution`)
+          yield { type: 'error', error: 'aborted', category: 'network', retryable: false }
+          return
         }
-      }))
+        throw abortErr
+      }
       console.log(`[Round ${round}] All ${validCalls.length} tools done in ${Date.now() - t0}ms${hasEager ? ' (eager+parallel)' : ' (parallel)'}`)
 
       // Yield timing event for this round
