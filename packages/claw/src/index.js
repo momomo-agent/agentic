@@ -486,13 +486,21 @@
     // Wraps the async generator so it's also thenable (backward compat with await)
     function _chatThenableGen(sessionMem, input, chatOpts) {
       const gen = _chatGenerator(sessionMem, input, chatOpts)
+      const sessionId = sessionMem.id || 'default'
+      // Wrap gen with abort-awareness so external for-await consumers
+      // get { done: true } immediately on abort, even if _chatGenerator
+      // is stuck in its finally block (persist partial answer).
+      function _getAbortableGen() {
+        const signal = _controllers.get(sessionId)?.signal
+        return _abortableIterator(gen, signal)
+      }
       const wrapper = {
-        [Symbol.asyncIterator]() { return gen },
+        [Symbol.asyncIterator]() { return _getAbortableGen() },
         then(resolve, reject) {
           // Consume the generator, return final result
           return (async () => {
             let lastDone = null
-            for await (const event of gen) {
+            for await (const event of _getAbortableGen()) {
               if (event.type === 'done') lastDone = event
             }
             if (lastDone) {
@@ -553,6 +561,37 @@
         throw error
       } finally {
         _clearController(sessionMem.id || 'default')
+      }
+    }
+
+        // Abort-aware async iterator wrapper (shared utility).
+    // When abort fires, next()/return()/throw() resolve immediately with { done: true }.
+    // This prevents for-await from hanging when the underlying generator is stuck.
+    function _abortableIterator(gen, signal) {
+      if (!signal) return gen
+      let aborted = signal.aborted
+      if (!aborted) {
+        signal.addEventListener('abort', () => { aborted = true }, { once: true })
+      }
+      const abortDone = { done: true, value: undefined }
+      const abortPromise = new Promise(resolve => {
+        if (aborted) { resolve(abortDone); return }
+        signal.addEventListener('abort', () => resolve(abortDone), { once: true })
+      })
+      return {
+        [Symbol.asyncIterator]() { return this },
+        next() {
+          if (aborted) return Promise.resolve(abortDone)
+          return Promise.race([gen.next(), abortPromise])
+        },
+        return() {
+          if (aborted) return Promise.resolve(abortDone)
+          return gen.return ? gen.return() : Promise.resolve(abortDone)
+        },
+        throw(...args) {
+          if (aborted) return Promise.resolve(abortDone)
+          return gen.throw ? gen.throw(...args) : Promise.reject(args[0])
+        },
       }
     }
 
@@ -617,38 +656,7 @@
           const sessionId = sessionMem.id || 'default'
           const abortSignal = _controllers.get(sessionId)?.signal
 
-          // Create an abort-aware async iterator wrapper.
-          // When abort fires, the wrapper resolves the current pending next()
-          // with { done: true } so the for-await loop exits immediately,
-          // even if the underlying generator is stuck in a long await.
-          function abortableIterator(gen, signal) {
-            if (!signal) return gen
-            let aborted = false
-            const abortPromise = new Promise(resolve => {
-              if (signal.aborted) { aborted = true; resolve({ done: true, value: undefined }); return }
-              signal.addEventListener('abort', () => { aborted = true; resolve({ done: true, value: undefined }) }, { once: true })
-            })
-            return {
-              [Symbol.asyncIterator]() { return this },
-              next() {
-                if (aborted) return Promise.resolve({ done: true, value: undefined })
-                return Promise.race([gen.next(), abortPromise])
-              },
-              // After abort, return() must resolve immediately — don't wait
-              // for the stuck generator. Without this, for-await's implicit
-              // .return() call on break/done hangs forever.
-              return() {
-                if (aborted) return Promise.resolve({ done: true, value: undefined })
-                return gen.return ? gen.return() : Promise.resolve({ done: true, value: undefined })
-              },
-              throw(...args) {
-                if (aborted) return Promise.resolve({ done: true, value: undefined })
-                return gen.throw ? gen.throw(...args) : Promise.reject(args[0])
-              },
-            }
-          }
-
-          for await (const event of abortableIterator(result, abortSignal)) {
+          for await (const event of _abortableIterator(result, abortSignal)) {
             // Guard: stop emitting after abort
             if (abortSignal?.aborted) break
             if (event.type === 'text_delta') {
