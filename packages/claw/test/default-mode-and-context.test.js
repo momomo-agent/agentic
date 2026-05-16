@@ -28,6 +28,17 @@ globalThis.AgenticConductor = {
         yield { type: 'done', reply: 'ack: ' + input, intents: [], usage: {} }
         _talker.push({ role: 'assistant', content: 'ack: ' + input })
       },
+      hydrate: vi.fn((history) => {
+        _talker.length = 0
+        if (Array.isArray(history)) {
+          for (const m of history) {
+            if (!m || typeof m !== 'object') continue
+            if (m.role !== 'user' && m.role !== 'assistant') continue
+            if (typeof m.content !== 'string') continue
+            _talker.push({ role: m.role, content: m.content })
+          }
+        }
+      }),
       destroy: vi.fn(),
       on: vi.fn(() => () => {}),
       getState: () => ({ strategy: opts.strategy || 'dispatch' }),
@@ -121,8 +132,8 @@ describe('context recording (dispatch path)', () => {
 })
 
 describe('persistence wiring', () => {
-  it('_loadHistory is never invoked on startup (context lost across restarts)', async () => {
-    // Mock agentic-store so we can watch reads/writes
+  it('_loadHistory is read on startup and replays history into both sessionMem and conductor', async () => {
+    // Shared kv across two createClaw() calls simulates a process restart.
     const kv = new Map()
     const kvGet = vi.fn(async (k) => kv.get(k))
     const kvSet = vi.fn(async (k, v) => { kv.set(k, v) })
@@ -130,17 +141,36 @@ describe('persistence wiring', () => {
       createStore: vi.fn(() => ({ kvGet, kvSet })),
     }
 
-    const claw = createClaw({ apiKey: 'test', persist: '/tmp/claw-test-ctx' })
-    await claw.chat('persisted-hi')
-    claw.destroy()
+    // First boot: write history
+    const claw1 = createClaw({ apiKey: 'test', persist: '/tmp/claw-test-ctx' })
+    await claw1.chat('persisted-hi')
+    claw1.destroy()
 
-    // We WROTE history
     expect(kvSet).toHaveBeenCalled()
     const writeKey = kvSet.mock.calls[0][0]
     expect(writeKey).toMatch(/^history:/)
 
-    // But we NEVER read it back during createClaw / first chat.
-    // This is the bug I flagged: _loadHistory is defined but not wired.
-    expect(kvGet).not.toHaveBeenCalled()
+    // Second boot: same persist path → _loadHistory must hydrate the new session.
+    kvGet.mockClear()
+    const claw2 = createClaw({ apiKey: 'test', persist: '/tmp/claw-test-ctx' })
+    // Touch the session through chat so we await __hydration on the user-facing path.
+    await claw2.chat('after-restart')
+
+    expect(kvGet).toHaveBeenCalledWith('history:default')
+
+    // sessionMem should contain the prior turn(s) + new turn.
+    const sess = claw2.memory.messages()
+    const userContents = sess.filter(m => m.role === 'user').map(m => m.content)
+    expect(userContents).toContain('persisted-hi')
+    expect(userContents).toContain('after-restart')
+
+    // Conductor must also see the restored history — otherwise the LLM still
+    // gets an empty wire even though sessionMem looks correct.
+    const talker = claw2.conductor._talker
+    const talkerUsers = talker.filter(m => m.role === 'user').map(m => m.content)
+    expect(talkerUsers).toContain('persisted-hi')
+    expect(talkerUsers).toContain('after-restart')
+
+    claw2.destroy()
   })
 })

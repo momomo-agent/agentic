@@ -98,6 +98,23 @@ Rules:
 
           return { reply: answer, intents: [], usage: result.usage }
         },
+        /**
+         * Replace the talker history (used when restoring persisted context).
+         * Only well-formed { role, content } entries are kept; tool/system
+         * entries are ignored to keep the wire shape simple.
+         */
+        hydrate(history) {
+          messages.length = 0
+          if (Array.isArray(history)) {
+            for (const m of history) {
+              if (!m || typeof m !== 'object') continue
+              if (m.role !== 'user' && m.role !== 'assistant') continue
+              if (typeof m.content !== 'string') continue
+              messages.push({ role: m.role, content: m.content })
+            }
+          }
+        },
+        getMessages() { return messages.slice() },
         getState() { return { strategy: 'single', messages: messages.length } },
         getIntents() { return [] },
         cancel() {},
@@ -304,6 +321,25 @@ Rules:
       _listeners.length = 0
     }
 
+    /**
+     * Replace the talker history (used when restoring persisted context).
+     * Only user/assistant string entries survive; richer types are dropped
+     * to keep the wire shape predictable across restarts.
+     */
+    function hydrate(history) {
+      _talkerMessages.length = 0
+      if (Array.isArray(history)) {
+        for (const m of history) {
+          if (!m || typeof m !== 'object') continue
+          if (m.role !== 'user' && m.role !== 'assistant') continue
+          if (typeof m.content !== 'string') continue
+          _talkerMessages.push({ role: m.role, content: m.content })
+        }
+      }
+    }
+
+    function getMessages() { return _talkerMessages.slice() }
+
     return {
       // High-level
       chat,
@@ -327,6 +363,8 @@ Rules:
       // State
       getState,
       getIntents,
+      hydrate,
+      getMessages,
 
       // Events & lifecycle
       on,

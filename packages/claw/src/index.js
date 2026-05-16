@@ -329,11 +329,59 @@
       })
     }
 
+    /**
+     * Replay a list of {role, content} messages into a fresh memory instance.
+     * Only user/assistant string entries are restored — these are the only
+     * shapes both _persistHistory and conductor.hydrate round-trip safely.
+     */
+    async function _replayHistoryInto(mem, messages) {
+      if (!Array.isArray(messages)) return 0
+      let restored = 0
+      for (const m of messages) {
+        if (!m || typeof m !== 'object') continue
+        if (typeof m.content !== 'string') continue
+        if (m.role === 'user') { await mem.user(m.content); restored++ }
+        else if (m.role === 'assistant') { await mem.assistant(m.content); restored++ }
+      }
+      return restored
+    }
+
     function _getSession(sessionId) {
       if (sessions.has(sessionId)) return sessions.get(sessionId)
       const mem = _createSessionMemory(sessionId)
       sessions.set(sessionId, mem)
+      // Hydrate from persisted history when a store is configured.
+      // The promise is attached to the memory so any chat() can await it
+      // before reading history — this prevents races where the first turn
+      // is sent to the LLM with empty context while the read is in-flight.
+      mem.__hydration = (async () => {
+        if (!persist) return
+        try {
+          const saved = await _loadHistory(sessionId)
+          if (!saved || !saved.length) return
+          // Only replay if the in-memory session is still empty — this avoids
+          // clobbering messages added by races or by callers that warm the
+          // session manually before the first chat.
+          const current = typeof mem.messages === 'function' ? mem.messages() : []
+          if (current.length > 1) return // > 1 because system prompt may already be there
+          await _replayHistoryInto(mem, saved)
+          // Mirror into conductor's internal talker history so the LLM also
+          // sees the restored context, not just sessionMem.
+          if (_conductor && typeof _conductor.hydrate === 'function') {
+            _conductor.hydrate(saved)
+          }
+        } catch (_) { /* best-effort restore */ }
+      })()
       return mem
+    }
+
+    /** Await any in-flight hydration on a session memory. Safe to call repeatedly. */
+    async function _ensureHydrated(mem) {
+      if (mem && mem.__hydration) {
+        try { await mem.__hydration } catch (_) {}
+        // Clear so we don't await a settled promise on every chat.
+        mem.__hydration = null
+      }
     }
 
     // ── Persistence helpers ────────────────────────────────────────
@@ -616,6 +664,7 @@
     async function* _chatGenerator(sessionMem, input, chatOpts) {
       const _mySid = sessionMem.id || 'default'
       const _myCtrl = _controllers.get(_mySid)
+      await _ensureHydrated(sessionMem)
       events.emit('message', { role: 'user', content: input })
       await sessionMem.user(input)
       await _compactIfNeeded(sessionMem)
@@ -718,6 +767,7 @@
 
     // ── Retry ─────────────────────────────────────────────────────
     async function* _retry(sessionMem, chatOpts = {}) {
+      await _ensureHydrated(sessionMem)
       const msgs = sessionMem.messages()
       if (msgs.length === 0) {
         yield { type: 'error', error: 'No messages to retry', category: 'usage', retryable: false }
