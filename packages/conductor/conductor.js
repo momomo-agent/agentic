@@ -58,6 +58,23 @@ Rules:
 - Sequential tasks → use dependsOn with the ID of the prerequisite
 - Always include a natural language reply before/after the intents block`
 
+  function normalizeHistory(history) {
+    if (!Array.isArray(history)) return null
+    return history
+      .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+      .map(m => ({ role: m.role, content: m.content }))
+  }
+
+  function replaceMessages(messages, history) {
+    messages.length = 0
+    for (const m of history) messages.push({ role: m.role, content: m.content })
+  }
+
+  function syncExternalHistory(messages, chatOpts) {
+    const history = normalizeHistory(chatOpts.history)
+    if (history) replaceMessages(messages, history)
+  }
+
   function createConductor(opts = {}) {
     const {
       ai,                          // LLM instance: { chat(messages, opts) → { answer, usage } }
@@ -84,6 +101,7 @@ Rules:
 
       return {
         async chat(input, chatOpts = {}) {
+          syncExternalHistory(messages, chatOpts)
           messages.push({ role: 'user', content: input })
 
           const sys = systemPrompt + (formatContext ? '\n\n' + formatContext() : '')
@@ -204,6 +222,7 @@ Rules:
     // --- Talker ---
 
     async function chat(input, chatOpts = {}) {
+      syncExternalHistory(_talkerMessages, chatOpts)
       _talkerMessages.push({ role: 'user', content: input })
 
       // Build system prompt

@@ -41,12 +41,17 @@ globalThis.agenticAsk = vi.fn(async function* (input, config) {
 })
 
 const { createClaw } = await import('../src/index.js')
+const { createConductor } = await import('../../conductor/src/index.js')
+
+function createDirectClaw() {
+  return createClaw({ apiKey: 'test', conductorModule: {} })
+}
 
 beforeEach(() => { llmCallHistory.length = 0 })
 
 describe('direct askFn path: no user message duplication', () => {
   it('first message: history is empty, input is the user message', async () => {
-    const claw = createClaw({ apiKey: 'test' })
+    const claw = createDirectClaw()
     await claw.chat('hello')
 
     expect(llmCallHistory).toHaveLength(1)
@@ -56,7 +61,7 @@ describe('direct askFn path: no user message duplication', () => {
   })
 
   it('second message: history has [user+assistant] from first turn, no duplicate', async () => {
-    const claw = createClaw({ apiKey: 'test' })
+    const claw = createDirectClaw()
     await claw.chat('first')
     await claw.chat('second')
 
@@ -73,7 +78,7 @@ describe('direct askFn path: no user message duplication', () => {
   })
 
   it('three turns: each turn has correct history without duplication', async () => {
-    const claw = createClaw({ apiKey: 'test' })
+    const claw = createDirectClaw()
     await claw.chat('A')
     await claw.chat('B')
     await claw.chat('C')
@@ -90,7 +95,7 @@ describe('direct askFn path: no user message duplication', () => {
   })
 
   it('generator consumer that breaks on done still preserves assistant history', async () => {
-    const claw = createClaw({ apiKey: 'test' })
+    const claw = createDirectClaw()
 
     for await (const event of claw.chat('first')) {
       if (event.type === 'done') break
@@ -109,6 +114,48 @@ describe('direct askFn path: no user message duplication', () => {
       { role: 'user', content: 'second' },
       { role: 'assistant', content: 're: second' },
     ])
+    claw.destroy()
+  })
+
+  it('opts.history overrides session memory when building the LLM request', async () => {
+    const claw = createDirectClaw()
+    await claw.chat('ignored in-memory turn')
+
+    await claw.chat('fresh question', {
+      history: [
+        { role: 'user', content: 'persisted question' },
+        { role: 'assistant', content: 'persisted answer' },
+        { role: 'system', content: 'not allowed here' },
+        { role: 'assistant', content: '' },
+      ],
+    })
+
+    expect(llmCallHistory.at(-1).history).toEqual([
+      { role: 'user', content: 'persisted question' },
+      { role: 'assistant', content: 'persisted answer' },
+    ])
+    expect(llmCallHistory.at(-1).history.some(m => m.content === 'ignored in-memory turn')).toBe(false)
+    expect(llmCallHistory.at(-1).input).toBe('fresh question')
+    claw.destroy()
+  })
+
+  it('opts.history also overrides conductor talker memory', async () => {
+    const claw = createClaw({ apiKey: 'test', conductorModule: { createConductor } })
+    await claw.chat('ignored conductor turn')
+
+    await claw.chat('fresh conductor question', {
+      history: [
+        { role: 'user', content: 'persisted conductor question' },
+        { role: 'assistant', content: 'persisted conductor answer' },
+      ],
+    })
+
+    expect(llmCallHistory.at(-1).history).toEqual([
+      { role: 'user', content: 'persisted conductor question' },
+      { role: 'assistant', content: 'persisted conductor answer' },
+    ])
+    expect(llmCallHistory.at(-1).history.some(m => m.content === 'ignored conductor turn')).toBe(false)
+    expect(llmCallHistory.at(-1).input).toBe('fresh conductor question')
     claw.destroy()
   })
 })

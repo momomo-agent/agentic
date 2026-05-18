@@ -281,6 +281,13 @@
       }
     }
 
+    function _normalizeHistory(history) {
+      if (!Array.isArray(history)) return null
+      return history
+        .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+        .map(m => ({ role: m.role, content: m.content }))
+    }
+
     // ── Build askFn config ─────────────────────────────────────────
     function _buildAskConfig(sessionMem, chatOpts) {
       let sys = systemPrompt || ''
@@ -290,7 +297,7 @@
         baseUrl: baseUrl || undefined,
         model: model || undefined,
         proxyUrl: proxyUrl || undefined,
-        history: sessionMem.history(),
+        history: _normalizeHistory(chatOpts.history) || sessionMem.history(),
         system: sys || undefined,
         tools: chatOpts.tools || allTools,
         stream,

@@ -441,13 +441,20 @@
       }
     }
 
+    function _normalizeHistory(history) {
+      if (!Array.isArray(history)) return null
+      return history
+        .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+        .map(m => ({ role: m.role, content: m.content }))
+    }
+
     // ── Build askFn config ─────────────────────────────────────────
     function _buildAskConfig(sessionMem, chatOpts) {
       const sys = chatOpts.system ?? chatOpts.systemPrompt ?? cfg.systemPrompt ?? ''
       // Exclude the last message (current user input) from history
       // because askFn will add it as the prompt parameter
       const fullHistory = sessionMem.history()
-      const history = fullHistory.slice(0, -1)
+      const history = _normalizeHistory(chatOpts.history) || fullHistory.slice(0, -1)
       const effProviders = chatOpts.providers || cfg.providers
       return {
         provider: chatOpts.provider || cfg.provider,

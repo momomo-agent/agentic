@@ -103,6 +103,23 @@ function buildCapabilityList(tools) {
   return `\n## Your Capabilities\nYou can do these things (via background workers):\n${lines.join('\n')}`
 }
 
+function normalizeHistory(history) {
+  if (!Array.isArray(history)) return null
+  return history
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+    .map(m => ({ role: m.role, content: m.content }))
+}
+
+function replaceMessages(messages, history) {
+  messages.length = 0
+  for (const m of history) messages.push({ role: m.role, content: m.content })
+}
+
+function syncExternalHistory(messages, chatOpts) {
+  const history = normalizeHistory(chatOpts.history)
+  if (history) replaceMessages(messages, history)
+}
+
 export function createConductor(opts = {}) {
   const {
     ai, tools = [], systemPrompt = '', formatContext = null,
@@ -120,6 +137,7 @@ export function createConductor(opts = {}) {
     const messages = []
     return {
       async* chat(input, chatOpts = {}) {
+        syncExternalHistory(messages, chatOpts)
         messages.push({ role: 'user', content: input })
         const sys = systemPrompt + (formatContext ? '\n\n' + formatContext() : '')
         const callOpts = { system: sys || undefined, tools: chatOpts.tools || tools, ...chatOpts }
@@ -205,6 +223,7 @@ export function createConductor(opts = {}) {
   scheduler.on((event, data) => _emit(`scheduler.${event}`, data))
 
   async function* chat(input, chatOpts = {}) {
+    syncExternalHistory(_talkerMessages, chatOpts)
     _talkerMessages.push({ role: 'user', content: input })
 
     // Build Talker system prompt
