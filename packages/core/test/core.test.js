@@ -1,7 +1,26 @@
-import { describe, it, expect } from 'vitest'
-import { classifyError, buildToolResults, toolRegistry } from '../src/index.js'
+import { describe, it, expect, afterEach } from 'vitest'
+import { agenticAsk, classifyError, buildToolResults, toolRegistry, registerProvider, unregisterProvider } from '../src/index.js'
+
+async function collect(gen) {
+  const events = []
+  for await (const event of gen) events.push(event)
+  return events
+}
+
+function streamEvents(events) {
+  return (async function* () {
+    for (const event of events) {
+      if (event instanceof Error) throw event
+      yield event
+    }
+  })()
+}
 
 describe('agentic-core', () => {
+  afterEach(() => {
+    unregisterProvider('test-retry')
+  })
+
   describe('classifyError', () => {
     it('should classify auth errors', () => {
       expect(classifyError({ message: 'Unauthorized', status: 401 })).toEqual({ category: 'auth', retryable: false })
@@ -46,6 +65,52 @@ describe('agentic-core', () => {
 
     it('should handle string errors', () => {
       expect(classifyError('rate limit').category).toBe('rate_limit')
+    })
+  })
+
+  describe('model retry', () => {
+    it('retries retryable streaming failures before visible progress', async () => {
+      let calls = 0
+      registerProvider('test-retry', () => {
+        calls++
+        if (calls === 1) return streamEvents([new Error('fetch failed')])
+        return streamEvents([{ type: 'text_delta', text: 'ok' }])
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-retry',
+        tools: [],
+        stream: true,
+        retries: 1,
+        retryDelayMs: 0,
+      }))
+
+      expect(calls).toBe(2)
+      expect(events.some(e => e.type === 'status' && /Retrying model request/.test(e.message))).toBe(true)
+      expect(events.find(e => e.type === 'done')?.answer).toBe('ok')
+    })
+
+    it('does not retry streaming failures after visible progress', async () => {
+      let calls = 0
+      registerProvider('test-retry', () => {
+        calls++
+        return streamEvents([{ type: 'text_delta', text: 'partial' }, new Error('fetch failed')])
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-retry',
+        tools: [],
+        stream: true,
+        retries: 1,
+        retryDelayMs: 0,
+      }))
+
+      expect(calls).toBe(1)
+      expect(events.find(e => e.type === 'text_delta')?.text).toBe('partial')
+      const error = events.find(e => e.type === 'error')
+      expect(error).toMatchObject({ category: 'network', retryable: true, attempts: 1, retries: 1 })
     })
   })
 

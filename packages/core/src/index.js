@@ -311,6 +311,62 @@ function classifyError(err) {
   return { category: 'unknown', retryable: false }
 }
 
+const DEFAULT_MODEL_RETRIES = 2
+const DEFAULT_MODEL_RETRY_DELAY_MS = 500
+const MAX_MODEL_RETRY_DELAY_MS = 4000
+
+function normalizeRetryCount(retries) {
+  const n = Number(retries)
+  if (!Number.isFinite(n) || n <= 0) return 0
+  return Math.floor(n)
+}
+
+function isAbortError(err, signal) {
+  return !!signal?.aborted || err?.name === 'AbortError'
+}
+
+function getModelRetryDelayMs(attempt, retryDelayMs) {
+  if (typeof retryDelayMs === 'function') {
+    const ms = Number(retryDelayMs(attempt))
+    return Number.isFinite(ms) && ms > 0 ? ms : 0
+  }
+  const base = Number.isFinite(Number(retryDelayMs)) ? Number(retryDelayMs) : DEFAULT_MODEL_RETRY_DELAY_MS
+  if (base <= 0) return 0
+  const delay = Math.min(base * Math.pow(2, Math.max(0, attempt - 1)), MAX_MODEL_RETRY_DELAY_MS)
+  const jitter = Math.floor(Math.random() * Math.min(250, Math.max(1, Math.floor(delay * 0.25))))
+  return delay + jitter
+}
+
+async function waitForModelRetry(attempt, retryDelayMs, signal) {
+  const delay = getModelRetryDelayMs(attempt, retryDelayMs)
+  if (delay <= 0) return
+  await new Promise((resolve, reject) => {
+    let onAbort
+    const cleanup = () => {
+      if (signal && onAbort) signal.removeEventListener('abort', onAbort)
+    }
+    const t = setTimeout(() => {
+      cleanup()
+      resolve()
+    }, delay)
+    if (typeof t.unref === 'function') t.unref()
+    if (signal) {
+      if (signal.aborted) {
+        clearTimeout(t)
+        cleanup()
+        reject(new DOMException('Aborted', 'AbortError'))
+        return
+      }
+      onAbort = () => {
+        clearTimeout(t)
+        cleanup()
+        reject(new DOMException('Aborted', 'AbortError'))
+      }
+      signal.addEventListener('abort', onAbort, { once: true })
+    }
+  })
+}
+
 const MAX_ROUNDS = 200  // 安全兜底，实际由循环检测控制（与 OpenClaw 一致）
 
 // ── agenticAsk: backward-compat wrapper ──
@@ -548,7 +604,7 @@ async function* _streamCallWithFailover(opts) {
 // ── Core async generator ──
 
 async function* _agenticAskGen(prompt, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = 2, system, images, audio, signal, providers, maxTokens, steer } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, maxTokens, steer } = config
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
 
@@ -621,6 +677,7 @@ async function* _agenticAskGen(prompt, config) {
   const effectiveSystem = eagerEnabled
     ? (system ? EAGER_HINT + '\n\n' + system : EAGER_HINT)
     : system
+  const maxModelRetries = normalizeRetryCount(retries)
 
   yield { type: 'config', eager: eagerEnabled, tools: toolDefs.length, provider }
 
@@ -671,44 +728,70 @@ async function* _agenticAskGen(prompt, config) {
 
     if (isStreamRound) {
       // True streaming path — yield text_delta tokens as they arrive
-      try {
-        const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers, maxTokens })
-        for await (const evt of streamGen) {
-          if (evt.type === 'text_delta') {
-            if (!t_firstToken) t_firstToken = Date.now()
-            yield evt // Forward token-level events to consumer
-          } else if (evt.type === 'tool_input_delta') {
-            yield evt // Forward tool argument streaming to consumer
-          } else if (evt.type === 'tool_ready') {
-            // Start eager tool execution
-            const toolCall = evt.toolCall
-            const promise = (async () => {
-              const t0 = Date.now()
-              try {
-                const result = await executeTool(toolCall.name, toolCall.input, { searchApiKey, customTools, signal })
-                return { call: toolCall, result, error: null, ms: Date.now() - t0 }
-              } catch (err) {
-                return { call: toolCall, result: null, error: err.message || String(err), ms: Date.now() - t0 }
-              }
-            })()
-            eagerResults.set(toolCall.id, promise)
-          } else if (evt.type === 'response') {
-            response = evt
+      let attempt = 0
+      while (true) {
+        let progressed = false
+        try {
+          const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers, maxTokens })
+          for await (const evt of streamGen) {
+            if (evt.type === 'text_delta') {
+              progressed = true
+              if (!t_firstToken) t_firstToken = Date.now()
+              yield evt // Forward token-level events to consumer
+            } else if (evt.type === 'tool_input_delta') {
+              progressed = true
+              yield evt // Forward tool argument streaming to consumer
+            } else if (evt.type === 'tool_ready') {
+              progressed = true
+              // Start eager tool execution
+              const toolCall = evt.toolCall
+              const promise = (async () => {
+                const t0 = Date.now()
+                try {
+                  const result = await executeTool(toolCall.name, toolCall.input, { searchApiKey, customTools, signal })
+                  return { call: toolCall, result, error: null, ms: Date.now() - t0 }
+                } catch (err) {
+                  return { call: toolCall, result: null, error: err.message || String(err), ms: Date.now() - t0 }
+                }
+              })()
+              eagerResults.set(toolCall.id, promise)
+            } else if (evt.type === 'response') {
+              response = evt
+            }
           }
+          break
+        } catch (err) {
+          const cls = classifyError(err)
+          if (!progressed && !isAbortError(err, signal) && cls.retryable && attempt < maxModelRetries) {
+            attempt++
+            console.warn(`[agenticAsk] LLM ${cls.category} error: ${err.message}. Retry ${attempt}/${maxModelRetries}`)
+            yield { type: 'status', message: `Retrying model request (${attempt}/${maxModelRetries})`, category: cls.category, retryable: true, attempt }
+            await waitForModelRetry(attempt, retryDelayMs, signal)
+            continue
+          }
+          yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable, attempts: attempt + 1, retries: maxModelRetries }
+          return
         }
-      } catch (err) {
-        const cls = classifyError(err)
-        yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
-        return
       }
     } else {
       // Non-streaming path — await complete response
-      try {
-        response = await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, maxTokens }))
-      } catch (err) {
-        const cls = classifyError(err)
-        yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
-        return
+      let attempt = 0
+      while (true) {
+        try {
+          response = await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, maxTokens }))
+          break
+        } catch (err) {
+          const cls = classifyError(err)
+          if (!isAbortError(err, signal) && cls.retryable && attempt < maxModelRetries) {
+            attempt++
+            console.warn(`[agenticAsk] LLM ${cls.category} error: ${err.message}. Retry ${attempt}/${maxModelRetries}`)
+            yield { type: 'status', message: `Retrying model request (${attempt}/${maxModelRetries})`, category: cls.category, retryable: true, attempt }
+            await waitForModelRetry(attempt, retryDelayMs, signal)
+            continue
+          }
+          yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable, attempts: attempt + 1, retries: maxModelRetries }
+          return
+        }
       }
       // Yield text content as text_delta (single chunk for non-streaming)
       if (response.content) {
@@ -883,24 +966,57 @@ async function* _agenticAskGen(prompt, config) {
   if (!finalAnswer) {
     console.log('[agenticAsk] Generating final answer (no tools)...')
     yield { type: 'status', message: 'Generating final answer...' }
-    try {
-      if (stream) {
-        // Stream the final answer too
+    if (stream) {
+      // Stream the final answer too. Retry only before any final-answer text
+      // has been emitted, so consumers never see duplicated tokens.
+      let attempt = 0
+      while (true) {
         let content = ''
-        for await (const evt of _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers })) {
-          if (evt.type === 'text_delta') { content += evt.text; yield evt }
-          else if (evt.type === 'response') { /* done */ }
+        let progressed = false
+        try {
+          for await (const evt of _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, maxTokens })) {
+            if (evt.type === 'text_delta') {
+              progressed = true
+              content += evt.text
+              yield evt
+            }
+            else if (evt.type === 'response') { /* done */ }
+          }
+          finalAnswer = content || '(no response)'
+          break
+        } catch (err) {
+          const cls = classifyError(err)
+          if (!progressed && !isAbortError(err, signal) && cls.retryable && attempt < maxModelRetries) {
+            attempt++
+            console.warn(`[agenticAsk] final LLM ${cls.category} error: ${err.message}. Retry ${attempt}/${maxModelRetries}`)
+            yield { type: 'status', message: `Retrying model request (${attempt}/${maxModelRetries})`, category: cls.category, retryable: true, attempt }
+            await waitForModelRetry(attempt, retryDelayMs, signal)
+            continue
+          }
+          yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable, attempts: attempt + 1, retries: maxModelRetries }
+          return
         }
-        finalAnswer = content || '(no response)'
-      } else {
-        const chatFn = provider === 'anthropic' ? anthropicChat : provider === 'openai-responses' ? openaiResponsesChat : openaiChat
-        const finalResponse = await chatFn({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit: function noop(){}, system, signal })
-        finalAnswer = finalResponse.content || '(no response)'
       }
-    } catch (err) {
-      const cls = classifyError(err)
-      yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable }
-      return
+    } else {
+      let attempt = 0
+      while (true) {
+        try {
+          const finalResponse = await raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, maxTokens }))
+          finalAnswer = finalResponse.content || '(no response)'
+          break
+        } catch (err) {
+          const cls = classifyError(err)
+          if (!isAbortError(err, signal) && cls.retryable && attempt < maxModelRetries) {
+            attempt++
+            console.warn(`[agenticAsk] final LLM ${cls.category} error: ${err.message}. Retry ${attempt}/${maxModelRetries}`)
+            yield { type: 'status', message: `Retrying model request (${attempt}/${maxModelRetries})`, category: cls.category, retryable: true, attempt }
+            await waitForModelRetry(attempt, retryDelayMs, signal)
+            continue
+          }
+          yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable, attempts: attempt + 1, retries: maxModelRetries }
+          return
+        }
+      }
     }
     console.log('[agenticAsk] Final answer:', finalAnswer.slice(0, 100))
   }

@@ -500,6 +500,8 @@
         ...(chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {}),
         ...(chatOpts.images ? { images: chatOpts.images } : {}),
         ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
+        ...(chatOpts.retries != null ? { retries: chatOpts.retries } : {}),
+        ...(chatOpts.retryDelayMs != null ? { retryDelayMs: chatOpts.retryDelayMs } : {}),
         maxTokens: chatOpts.maxTokens || cfg.maxTokens || undefined,
         steer: {
           drain: () => _drainSteerQueue(sessionMem.id || 'default'),

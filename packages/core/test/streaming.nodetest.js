@@ -130,7 +130,7 @@ describe('generator mode', () => {
       types.push(event.type)
     }
 
-    assert.deepEqual(types, ['status', 'text_delta', 'done'])
+    assert.deepEqual(types.filter(t => !['config', 'timing'].includes(t)), ['status', 'text_delta', 'done'])
   })
 })
 
@@ -257,6 +257,7 @@ describe('provider failover', () => {
         { provider: 'anthropic', apiKey: 'sk-a', model: 'claude-test' },
         { provider: 'anthropic', apiKey: 'sk-b', model: 'claude-test' },
       ],
+      retries: 0,
     })) {
       events.push(event)
     }
