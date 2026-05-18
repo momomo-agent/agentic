@@ -88,4 +88,27 @@ describe('direct askFn path: no user message duplication', () => {
     ])
     claw.destroy()
   })
+
+  it('generator consumer that breaks on done still preserves assistant history', async () => {
+    const claw = createClaw({ apiKey: 'test' })
+
+    for await (const event of claw.chat('first')) {
+      if (event.type === 'done') break
+    }
+    for await (const event of claw.chat('second')) {
+      if (event.type === 'done') break
+    }
+
+    expect(llmCallHistory[1].history).toEqual([
+      { role: 'user', content: 'first' },
+      { role: 'assistant', content: 're: first' },
+    ])
+    expect(claw.memory.messages()).toEqual([
+      { role: 'user', content: 'first' },
+      { role: 'assistant', content: 're: first' },
+      { role: 'user', content: 'second' },
+      { role: 'assistant', content: 're: second' },
+    ])
+    claw.destroy()
+  })
 })

@@ -399,6 +399,7 @@
       const config = _buildAskConfig(sessionMem, chatOpts)
       await _appendKnowledge(input, config)
 
+      let partialAnswer = ''
       try {
         const result = askFn(input, config) // no emit → generator (or legacy Promise)
 
@@ -417,18 +418,21 @@
 
         for await (const event of result) {
           // Forward events to claw event emitter
-          if (event.type === 'text_delta') events.emit('token', { text: event.text })
+          if (event.type === 'text_delta') {
+            partialAnswer += event.text || ''
+            events.emit('token', { text: event.text })
+          }
           else if (event.type === 'status') events.emit('status', event)
           else if (event.type === 'tool_use') events.emit('tool_call', event)
 
-          yield event
-
           if (event.type === 'done') {
-            const answer = event.answer || ''
+            const answer = event.answer || partialAnswer || ''
             await sessionMem.assistant(answer)
             events.emit('message', { role: 'assistant', content: answer })
             await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
           }
+
+          yield event
         }
       } catch (error) {
         events.emit('error', error)

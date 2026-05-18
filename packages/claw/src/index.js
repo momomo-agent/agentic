@@ -732,14 +732,14 @@
             else if (event.type === 'status') events.emit('status', event)
             else if (event.type === 'tool_use') events.emit('tool_call', event)
             else if (event.type === 'tool_input_delta') events.emit('tool_input_delta', event)
-            yield event
             if (event.type === 'done') {
-              const answer = event.answer || ''
+              const answer = event.answer || partialAnswer || ''
               await sessionMem.assistant(answer)
               events.emit('message', { role: 'assistant', content: answer })
               await _persistHistory(sessionMem.id || 'default', sessionMem.messages())
               success = true
             }
+            yield event
           }
         }
       } catch (error) {
