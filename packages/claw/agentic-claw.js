@@ -283,9 +283,38 @@
 
     function _normalizeHistory(history) {
       if (!Array.isArray(history)) return null
-      return history
-        .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
-        .map(m => ({ role: m.role, content: m.content }))
+      const normalized = []
+      for (const m of history) {
+        if (!m || typeof m !== 'object') continue
+        if (m.role === 'user') {
+          if (typeof m.content === 'string' && m.content.trim()) normalized.push({ role: 'user', content: m.content })
+          continue
+        }
+        if (m.role === 'assistant') {
+          const content = typeof m.content === 'string' ? m.content : ''
+          const toolCalls = Array.isArray(m.tool_calls)
+            ? m.tool_calls
+                .filter(tc => tc && tc.id && tc.name)
+                .map(tc => ({ id: String(tc.id), name: String(tc.name), input: tc.input ?? {} }))
+            : []
+          if (!content.trim() && toolCalls.length === 0) continue
+          const item = { role: 'assistant', content }
+          if (toolCalls.length) item.tool_calls = toolCalls
+          normalized.push(item)
+          continue
+        }
+        if (m.role === 'tool' && m.tool_call_id) {
+          const item = {
+            role: 'tool',
+            tool_call_id: String(m.tool_call_id),
+            content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? ''),
+          }
+          if (Array.isArray(m.blocks) && m.blocks.length) item.blocks = m.blocks
+          if (m.is_error || m.isError) item.is_error = true
+          normalized.push(item)
+        }
+      }
+      return normalized
     }
 
     // ── Build askFn config ─────────────────────────────────────────

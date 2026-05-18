@@ -139,6 +139,27 @@ describe('direct askFn path: no user message duplication', () => {
     claw.destroy()
   })
 
+  it('opts.history preserves structured tool replay messages', async () => {
+    const claw = createDirectClaw()
+
+    await claw.chat('fresh question', {
+      history: [
+        { role: 'user', content: 'list files' },
+        { role: 'assistant', content: '', tool_calls: [{ id: 'tc1', name: 'shell', input: { cmd: 'ls' } }] },
+        { role: 'tool', tool_call_id: 'tc1', content: 'file.txt', blocks: [{ type: 'text', text: 'file.txt' }] },
+        { role: 'assistant', content: 'Done.' },
+      ],
+    })
+
+    expect(llmCallHistory.at(-1).history).toEqual([
+      { role: 'user', content: 'list files' },
+      { role: 'assistant', content: '', tool_calls: [{ id: 'tc1', name: 'shell', input: { cmd: 'ls' } }] },
+      { role: 'tool', tool_call_id: 'tc1', content: 'file.txt', blocks: [{ type: 'text', text: 'file.txt' }] },
+      { role: 'assistant', content: 'Done.' },
+    ])
+    claw.destroy()
+  })
+
   it('opts.history also overrides conductor talker memory', async () => {
     const claw = createClaw({ apiKey: 'test', conductorModule: { createConductor } })
     await claw.chat('ignored conductor turn')
