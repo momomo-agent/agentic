@@ -363,7 +363,7 @@
     '--ar-code-header-bg': '#1f1f23',
     '--ar-inline-code-bg': '#27272a',
     '--ar-bq-border': '#3f3f46',
-    '--ar-bq-bg': '#18181b',
+    '--ar-bq-bg': 'rgba(0,0,0,.32)',
     '--ar-hr': '#27272a',
     '--ar-table-header-bg': '#1f1f23',
     '--ar-table-border': '#27272a',

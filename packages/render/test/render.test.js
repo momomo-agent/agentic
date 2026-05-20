@@ -245,6 +245,11 @@ describe('AgenticRender', () => {
       const css = AgenticRender.getCSS()
       expect(css).toContain('--ar-')
     })
+
+    it('should use translucent black blockquote background in dark theme', () => {
+      const css = AgenticRender.getCSS()
+      expect(css).toContain('--ar-bq-bg: rgba(0,0,0,.32);')
+    })
   })
 
   describe('edge cases', () => {
