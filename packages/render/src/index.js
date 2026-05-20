@@ -113,6 +113,10 @@
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   }
 
+  function escAttr(s) {
+    return escHtml(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+  }
+
   // ── Markdown parser (streaming-safe) ─────────────────────────────
 
   function parseMarkdown(src) {
@@ -132,6 +136,24 @@
     let blockquoteContent = ''
     let inTable = false
     let tableRows = []
+    let orderedListNextStart = 1
+
+    function nextNonEmptyLine(start) {
+      for (let j = start; j < lines.length; j++) {
+        if (lines[j].trim() !== '') return lines[j]
+      }
+      return ''
+    }
+
+    function isListLine(type, value) {
+      if (type === 'ul') return /^(\s*)[-*+]\s+(.+)$/.test(value)
+      if (type === 'ol') return /^(\s*)\d+[.)]\s+(.+)$/.test(value)
+      return false
+    }
+
+    function resetOrderedList() {
+      orderedListNextStart = 1
+    }
 
     function flushBlockquote() {
       if (inBlockquote) {
@@ -176,6 +198,7 @@
         const fenceIndent = line.match(/^(\s*)/)[1].length
         const fenceLine = line.slice(fenceIndent)
         if (!inCodeBlock) {
+          resetOrderedList()
           flushBlockquote(); flushList(); flushTable()
           inCodeBlock = true
           codeIndent = fenceIndent
@@ -206,6 +229,7 @@
 
       // Table detection: line starts with | and contains at least one more |
       if (/^\|.+/.test(line) && line.indexOf('|', 1) > 0) {
+        resetOrderedList()
         // Strip trailing | if present, then split on |
         const trimmed = line.replace(/\|\s*$/, '').slice(1)
         const cells = trimmed.split('|')
@@ -229,6 +253,7 @@
 
       // Blockquote
       if (/^>\s?/.test(line)) {
+        resetOrderedList()
         flushList(); flushTable()
         inBlockquote = true
         blockquoteContent += line.replace(/^>\s?/, '') + '\n'
@@ -241,6 +266,7 @@
       // Headings
       const headingMatch = line.match(/^(#{1,6})\s+(.+)$/)
       if (headingMatch) {
+        resetOrderedList()
         flushList(); flushTable(); flushBlockquote()
         const level = headingMatch[1].length
         html += `<h${level} class="ar-h ar-h${level}">${inlineMarkdown(headingMatch[2])}</h${level}>`
@@ -250,6 +276,7 @@
 
       // Horizontal rule
       if (/^(-{3,}|_{3,}|\*{3,})\s*$/.test(line)) {
+        resetOrderedList()
         flushList(); flushTable(); flushBlockquote()
         html += '<hr class="ar-hr">'
         i++
@@ -261,6 +288,7 @@
       if (ulMatch) {
         flushTable(); flushBlockquote()
         if (!inList || listType !== 'ul') {
+          resetOrderedList()
           flushList()
           html += '<ul class="ar-ul">'
           inList = true
@@ -279,21 +307,31 @@
       }
 
       // Ordered list
-      const olMatch = line.match(/^(\s*)\d+[.)]\s+(.+)$/)
+      const olMatch = line.match(/^(\s*)(\d+)[.)]\s+(.+)$/)
       if (olMatch) {
         flushTable(); flushBlockquote()
         if (!inList || listType !== 'ol') {
           flushList()
-          html += '<ol class="ar-ol">'
+          const markerNumber = Number(olMatch[2])
+          const startNumber = orderedListNextStart > 1 && markerNumber === 1
+            ? orderedListNextStart
+            : markerNumber
+          html += `<ol class="ar-ol"${startNumber !== 1 ? ` start="${startNumber}"` : ''}>`
+          orderedListNextStart = startNumber
           inList = true
           listType = 'ol'
         }
-        html += `<li class="ar-li">${inlineMarkdown(olMatch[2])}</li>`
+        html += `<li class="ar-li">${inlineMarkdown(olMatch[3])}</li>`
+        orderedListNextStart += 1
         i++
         continue
       }
 
       if (inList && line.trim() === '') {
+        if (isListLine(listType, nextNonEmptyLine(i + 1))) {
+          i++
+          continue
+        }
         flushList()
         i++
         continue
@@ -327,12 +365,35 @@
   // ── Inline markdown ──────────────────────────────────────────────
 
   function inlineMarkdown(text) {
-    let s = escHtml(text)
+    const placeholders = []
+    const stash = (html) => {
+      const token = `\uE000AR${placeholders.length}\uE000`
+      placeholders.push({ token, html })
+      return token
+    }
+
+    let raw = text
 
     // Images
-    s = s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img class="ar-img" src="$2" alt="$1" loading="lazy">')
+    raw = raw.replace(/!\[([^\]]*)\]\(([^)\n]+)\)/g, (_match, alt, target) => {
+      const src = parseMarkdownTarget(target)
+      if (!isRenderableImageSrc(src)) {
+        return stash(`<code class="ar-inline-code">${escHtml(alt || src)}</code>`)
+      }
+      return stash(`<img class="ar-img" src="${escAttr(src)}" alt="${escAttr(alt)}" loading="lazy">`)
+    })
+
     // Links
-    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a class="ar-a" href="$2" target="_blank" rel="noopener">$1</a>')
+    raw = raw.replace(/(^|[^!])\[([^\]\n]+)\]\(([^)\n]+)\)/g, (_match, prefix, label, target) => {
+      const href = parseMarkdownTarget(target)
+      if (!isSafeExternalHref(href)) {
+        return prefix + stash(`<code class="ar-inline-code">${escHtml(label)}</code>`)
+      }
+      return prefix + stash(`<a class="ar-a" href="${escAttr(href)}" target="_blank" rel="noopener">${escHtml(label)}</a>`)
+    })
+
+    let s = escHtml(raw)
+
     // Bold + italic
     s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong class="ar-strong"><em>$1</em></strong>')
     // Bold
@@ -346,7 +407,28 @@
     // Inline code
     s = s.replace(/`([^`]+?)`/g, '<code class="ar-inline-code">$1</code>')
 
+    for (const { token, html } of placeholders) {
+      s = s.replace(token, html)
+    }
+
     return s
+  }
+
+  function parseMarkdownTarget(target) {
+    const trimmed = target.trim()
+    if (trimmed.startsWith('<') && trimmed.endsWith('>')) {
+      return trimmed.slice(1, -1).trim()
+    }
+    const targetMatch = trimmed.match(/^(\S+)(?:\s+["'][\s\S]*["'])?\s*$/)
+    return targetMatch ? targetMatch[1] : trimmed
+  }
+
+  function isSafeExternalHref(href) {
+    return /^(https?:|mailto:|tel:)/i.test(href)
+  }
+
+  function isRenderableImageSrc(src) {
+    return /^(https?:|data:image\/|blob:)/i.test(src)
   }
 
   // ── Default styles ───────────────────────────────────────────────

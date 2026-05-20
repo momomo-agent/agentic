@@ -1,15 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { JSDOM } from 'jsdom'
-
-// Setup DOM environment
-const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>')
-global.document = dom.window.document
-global.window = dom.window
 global.requestAnimationFrame = vi.fn((fn) => { fn(); return 1 })
 global.cancelAnimationFrame = vi.fn()
 
 // Import after DOM setup
-const AgenticRender = await import('../agentic-render.js').then(m => m.default || m)
+const AgenticRender = await import('../src/index.js')
 
 describe('AgenticRender', () => {
   let container
@@ -143,6 +137,41 @@ describe('AgenticRender', () => {
       expect(html).toContain('<a')
       expect(html).toContain('href="https://openai.com"')
       expect(html).toContain('OpenAI')
+    })
+
+    it('should continue ordered list numbering across loose AI markdown', () => {
+      const md = '1. **连接设备**\n\n用 `adb` 做截图。\n\n1. **内置 AI Chat**\n\n不是普通聊天窗口。'
+      const html = AgenticRender.render(md)
+      expect(html).toContain('<ol class="ar-ol">')
+      expect(html).toContain('<ol class="ar-ol" start="2">')
+      expect(html).toContain('连接设备')
+      expect(html).toContain('内置 AI Chat')
+    })
+
+    it('should keep blank-line separated ordered items in one list', () => {
+      const html = AgenticRender.render('1. alpha\n\n1. beta')
+      expect(html.match(/<ol/g) || []).toHaveLength(1)
+      expect(html.match(/<li/g) || []).toHaveLength(2)
+    })
+
+    it('should not render local or relative file links as anchors', () => {
+      const html = AgenticRender.render('[funnelchart.png](/Users/foo/Desktop/funnelchart.png)\n\n[other.png](other.png)')
+      expect(html).not.toContain('<a')
+      expect(html).toContain('<code class="ar-inline-code">funnelchart.png</code>')
+      expect(html).toContain('<code class="ar-inline-code">other.png</code>')
+    })
+
+    it('should not render local images as broken image tags', () => {
+      const html = AgenticRender.render('![funnelchart.png](/Users/foo/Desktop/funnelchart.png)')
+      expect(html).not.toContain('<img')
+      expect(html).toContain('<code class="ar-inline-code">funnelchart.png</code>')
+    })
+
+    it('should still render remote images', () => {
+      const html = AgenticRender.render('![chart](https://example.com/chart.png)')
+      expect(html).toContain('<img')
+      expect(html).toContain('src="https://example.com/chart.png"')
+      expect(html).toContain('alt="chart"')
     })
 
     it('should escape HTML entities', () => {
