@@ -56,6 +56,9 @@ describe('agentic-core', () => {
       expect(classifyError({ message: 'ECONNREFUSED' }).category).toBe('network')
       expect(classifyError({ message: 'fetch failed' }).category).toBe('network')
       expect(classifyError({ message: 'ETIMEDOUT' }).retryable).toBe(true)
+      expect(classifyError({ message: 'terminated' })).toEqual({ category: 'network', retryable: true })
+      expect(classifyError({ message: 'other side closed' })).toEqual({ category: 'network', retryable: true })
+      expect(classifyError({ message: 'UND_ERR_SOCKET' })).toEqual({ category: 'network', retryable: true })
     })
 
     it('should classify unknown errors', () => {
@@ -111,6 +114,43 @@ describe('agentic-core', () => {
       expect(events.find(e => e.type === 'text_delta')?.text).toBe('partial')
       const error = events.find(e => e.type === 'error')
       expect(error).toMatchObject({ category: 'network', retryable: true, attempts: 1, retries: 1 })
+    })
+
+    it('adds safe diagnostics to model error events', async () => {
+      registerProvider('test-retry', () => {
+        const error = new Error('terminated')
+        error.cause = { code: 'UND_ERR_SOCKET', name: 'SocketError', message: 'other side closed' }
+        error.provider = 'openai'
+        error.baseUrlHost = 'node-hk.sssaicode.com'
+        error.urlHost = 'node-hk.sssaicode.com'
+        error.requestBytes = 2048
+        return streamEvents([error])
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-retry',
+        tools: [],
+        stream: true,
+        retries: 0,
+        retryDelayMs: 0,
+      }))
+
+      expect(events.find(e => e.type === 'error')).toMatchObject({
+        type: 'error',
+        error: 'terminated',
+        category: 'network',
+        retryable: true,
+        attempts: 1,
+        retries: 0,
+        causeCode: 'UND_ERR_SOCKET',
+        causeName: 'SocketError',
+        causeMessage: 'other side closed',
+        provider: 'openai',
+        baseUrlHost: 'node-hk.sssaicode.com',
+        urlHost: 'node-hk.sssaicode.com',
+        requestBytes: 2048,
+      })
     })
   })
 

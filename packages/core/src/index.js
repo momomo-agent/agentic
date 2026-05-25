@@ -306,12 +306,12 @@ function classifyError(err) {
     return { category: 'context_overflow', retryable: false }
   if (status >= 500 || status === 529 || /server.?error|internal.?error|bad.?gateway|service.?unavailable/i.test(msg))
     return { category: 'server', retryable: true }
-  if (/network|econnrefused|econnreset|etimedout|fetch.?failed|dns|socket/i.test(msg))
+  if (/network|econnrefused|econnreset|etimedout|fetch.?failed|dns|socket|terminated|connection.?closed|other.?side.?closed|und_err_/i.test(msg))
     return { category: 'network', retryable: true }
   return { category: 'unknown', retryable: false }
 }
 
-const DEFAULT_MODEL_RETRIES = 2
+const DEFAULT_MODEL_RETRIES = 5
 const DEFAULT_MODEL_RETRY_DELAY_MS = 500
 const MAX_MODEL_RETRY_DELAY_MS = 4000
 
@@ -323,6 +323,52 @@ function normalizeRetryCount(retries) {
 
 function isAbortError(err, signal) {
   return !!signal?.aborted || err?.name === 'AbortError'
+}
+
+function annotateModelError(err, meta = {}) {
+  if (!err || typeof err !== 'object') return err
+  err.provider = err.provider || meta.provider
+  err.baseUrl = err.baseUrl || meta.baseUrl
+  err.baseUrlHost = err.baseUrlHost || safeUrlHost(meta.baseUrl)
+  err.url = err.url || meta.url
+  err.urlHost = err.urlHost || safeUrlHost(meta.url)
+  if (meta.requestBytes != null && err.requestBytes == null) err.requestBytes = meta.requestBytes
+  return err
+}
+
+function modelErrorEvent(err, cls, attempt, maxModelRetries) {
+  return compactEvent({
+    type: 'error',
+    error: err?.message || String(err),
+    category: cls.category,
+    retryable: cls.retryable,
+    attempts: attempt + 1,
+    retries: maxModelRetries,
+    causeCode: err?.cause?.code || err?.code,
+    causeName: err?.cause?.name || err?.name,
+    causeMessage: err?.cause?.message,
+    status: err?.status || err?.statusCode,
+    provider: err?.provider,
+    baseUrlHost: err?.baseUrlHost,
+    urlHost: err?.urlHost,
+    requestBytes: err?.requestBytes,
+  })
+}
+
+function compactEvent(event) {
+  return Object.fromEntries(Object.entries(event).filter(([, value]) => value !== undefined && value !== ''))
+}
+
+function safeUrlHost(value) {
+  if (!value) return undefined
+  try { return new URL(String(value)).host }
+  catch { return undefined }
+}
+
+function byteLength(value) {
+  const text = String(value || '')
+  if (typeof Buffer !== 'undefined') return Buffer.byteLength(text, 'utf8')
+  return new TextEncoder().encode(text).length
 }
 
 function getModelRetryDelayMs(attempt, retryDelayMs) {
@@ -443,11 +489,14 @@ async function _callWithFailover(opts) {
         onToolReady: opts.onToolReady,
       })
     } catch (err) {
-      lastErr = err
+      lastErr = annotateModelError(err, {
+        provider: prov,
+        baseUrl: p.baseUrl || baseUrl,
+      })
       // Don't try next provider if already aborted
       if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
       if (i < providerList.length - 1) continue
-      throw err
+      throw lastErr
     }
   }
   throw lastErr
@@ -497,14 +546,15 @@ async function* _streamCallWithFailover(opts) {
           yield { type: 'response', content: response.content, tool_calls: response.tool_calls || [], stop_reason: response.stop_reason }
         }
         return
-      } catch (err) { lastErr = err; if (signal?.aborted) throw new DOMException('Aborted', 'AbortError'); if (i < providerList.length - 1) continue; throw err }
+      } catch (err) { lastErr = annotateModelError(err, { provider: prov, baseUrl: pBaseUrl }); if (signal?.aborted) throw new DOMException('Aborted', 'AbortError'); if (i < providerList.length - 1) continue; throw lastErr }
     }
 
+    let url, requestBytes
     try {
       const isAnthropic = prov === 'anthropic'
       const base = (pBaseUrl || (isAnthropic ? 'https://api.anthropic.com' : 'https://api.openai.com')).replace(/\/+$/, '')
 
-      let url, headers, body
+      let headers, body
       if (isAnthropic) {
         url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
         headers = { 'content-type': 'application/json', 'x-api-key': pApiKey, 'anthropic-version': '2023-06-01' }
@@ -547,6 +597,7 @@ async function* _streamCallWithFailover(opts) {
 
       // Use the appropriate generator
       const isResponses = prov === 'openai-responses'
+      requestBytes = byteLength(JSON.stringify(body))
       const gen = isAnthropic ? _streamAnthropicGen(url, headers, body, signal)
         : isResponses ? _streamOpenAIResponsesGen(url, headers, body, signal)
         : _streamOpenAIGen(url, headers, body, signal)
@@ -592,10 +643,15 @@ async function* _streamCallWithFailover(opts) {
       yield { type: 'response', content, tool_calls: toolCalls, stop_reason: stopReason }
       return
     } catch (err) {
-      lastErr = err
+      lastErr = annotateModelError(err, {
+        provider: prov,
+        baseUrl: pBaseUrl,
+        url,
+        requestBytes,
+      })
       if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
       if (i < providerList.length - 1) continue
-      throw err
+      throw lastErr
     }
   }
   throw lastErr
@@ -769,7 +825,7 @@ async function* _agenticAskGen(prompt, config) {
             await waitForModelRetry(attempt, retryDelayMs, signal)
             continue
           }
-          yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable, attempts: attempt + 1, retries: maxModelRetries }
+          yield modelErrorEvent(err, cls, attempt, maxModelRetries)
           return
         }
       }
@@ -789,7 +845,7 @@ async function* _agenticAskGen(prompt, config) {
             await waitForModelRetry(attempt, retryDelayMs, signal)
             continue
           }
-          yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable, attempts: attempt + 1, retries: maxModelRetries }
+          yield modelErrorEvent(err, cls, attempt, maxModelRetries)
           return
         }
       }
@@ -993,7 +1049,7 @@ async function* _agenticAskGen(prompt, config) {
             await waitForModelRetry(attempt, retryDelayMs, signal)
             continue
           }
-          yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable, attempts: attempt + 1, retries: maxModelRetries }
+          yield modelErrorEvent(err, cls, attempt, maxModelRetries)
           return
         }
       }
@@ -1013,7 +1069,7 @@ async function* _agenticAskGen(prompt, config) {
             await waitForModelRetry(attempt, retryDelayMs, signal)
             continue
           }
-          yield { type: 'error', error: err.message, category: cls.category, retryable: cls.retryable, attempts: attempt + 1, retries: maxModelRetries }
+          yield modelErrorEvent(err, cls, attempt, maxModelRetries)
           return
         }
       }
@@ -1171,16 +1227,23 @@ async function openaiResponsesChat({ messages, tools, model = 'gpt-4.1-mini', ba
   }
 
   // Non-streaming path: plain POST.
-  const res = await fetch(url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-    ...(signal ? { signal } : {}),
-  })
+  const fetchBody = JSON.stringify(body)
+  let res
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: fetchBody,
+      ...(signal ? { signal } : {}),
+    })
+  } catch (err) {
+    throw annotateModelError(err, { url, requestBytes: byteLength(fetchBody) })
+  }
   if (!res.ok) {
     const errText = await res.text()
     const e = new Error(`API error ${res.status}: ${errText.slice(0, 300)}`)
     e.status = res.status
+    annotateModelError(e, { url, requestBytes: byteLength(fetchBody) })
     throw e
   }
   const resp = await res.json()
@@ -1219,11 +1282,17 @@ async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
 async function* _streamAnthropicGen(url, headers, body, signal) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
-  const res = await fetch(url, fetchOpts)
+  let res
+  try {
+    res = await fetch(url, fetchOpts)
+  } catch (err) {
+    throw annotateModelError(err, { url, requestBytes: byteLength(fetchOpts.body) })
+  }
   if (!res.ok) {
     const err = await res.text()
     const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
     e.status = res.status
+    annotateModelError(e, { url, requestBytes: byteLength(fetchOpts.body) })
     throw e
   }
 
@@ -1396,11 +1465,17 @@ async function streamOpenAI(url, headers, body, emit, signal, onToolReady) {
 async function* _streamOpenAIGen(url, headers, body, signal) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
-  const res = await fetch(url, fetchOpts)
+  let res
+  try {
+    res = await fetch(url, fetchOpts)
+  } catch (err) {
+    throw annotateModelError(err, { url, requestBytes: byteLength(fetchOpts.body) })
+  }
   if (!res.ok) {
     const err = await res.text()
     const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
     e.status = res.status
+    annotateModelError(e, { url, requestBytes: byteLength(fetchOpts.body) })
     throw e
   }
 
@@ -1473,11 +1548,17 @@ async function* _streamOpenAIGen(url, headers, body, signal) {
 async function* _streamOpenAIResponsesGen(url, headers, body, signal) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
-  const res = await fetch(url, fetchOpts)
+  let res
+  try {
+    res = await fetch(url, fetchOpts)
+  } catch (err) {
+    throw annotateModelError(err, { url, requestBytes: byteLength(fetchOpts.body) })
+  }
   if (!res.ok) {
     const err = await res.text()
     const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
     e.status = res.status
+    annotateModelError(e, { url, requestBytes: byteLength(fetchOpts.body) })
     throw e
   }
 
@@ -1617,22 +1698,34 @@ async function callLLM(url, apiKey, body, proxyUrl, isAnthropic = false, signal)
     }
     const fetchOpts = { method: 'POST', headers: proxyHeaders, body: JSON.stringify(body) }
     if (signal) fetchOpts.signal = signal
-    const response = await fetch(proxyUrl, fetchOpts)
+    let response
+    try {
+      response = await fetch(proxyUrl, fetchOpts)
+    } catch (err) {
+      throw annotateModelError(err, { url: proxyUrl, baseUrl: url, requestBytes: byteLength(fetchOpts.body) })
+    }
     if (!response.ok) {
       const text = await response.text()
       const e = new Error(`API error ${response.status}: ${text.slice(0, 300)}`)
       e.status = response.status
+      annotateModelError(e, { url: proxyUrl, baseUrl: url, requestBytes: byteLength(fetchOpts.body) })
       throw e
     }
     return await response.json()
   } else {
     const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
     if (signal) fetchOpts.signal = signal
-    const response = await fetch(url, fetchOpts)
+    let response
+    try {
+      response = await fetch(url, fetchOpts)
+    } catch (err) {
+      throw annotateModelError(err, { url, requestBytes: byteLength(fetchOpts.body) })
+    }
     if (!response.ok) {
       const text = await response.text()
       const e = new Error(`API error ${response.status}: ${text}`)
       e.status = response.status
+      annotateModelError(e, { url, requestBytes: byteLength(fetchOpts.body) })
       throw e
     }
     const text = await response.text()
