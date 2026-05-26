@@ -87,6 +87,18 @@ describe('AgenticClaw', () => {
       expect(ids).toContain('alice')
       expect(ids).toContain('bob')
     })
+
+    it('should remove one named session without destroying the runtime', async () => {
+      const alice = claw.session('alice')
+      await alice.memory.add('user', 'hello')
+
+      claw.removeSession('alice')
+
+      expect(claw.sessions()).not.toContain('alice')
+      expect(claw.sessions()).toContain('default')
+      expect(claw.session('alice').memory).not.toBe(alice.memory)
+      expect(claw.session('alice').memory.messages()).toEqual([])
+    })
   })
 
   describe('chat', () => {

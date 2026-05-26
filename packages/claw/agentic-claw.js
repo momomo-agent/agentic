@@ -627,6 +627,15 @@
       /** List active sessions */
       sessions() { return [...sessions.keys()] },
 
+      /** Remove one named session and its transient memory. No-op if missing. */
+      removeSession(id = 'default') {
+        const sessionId = id || 'default'
+        const mem = sessions.get(sessionId)
+        if (mem && typeof mem.destroy === 'function') mem.destroy()
+        sessions.delete(sessionId)
+        return this
+      },
+
       /** Get default memory instance */
       get memory() { return defaultSession },
 

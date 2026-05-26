@@ -1108,6 +1108,25 @@
       /** List active sessions */
       sessions() { return [...sessions.keys()] },
 
+      /** Remove one named session and its transient memory. No-op if missing. */
+      removeSession(id = 'default') {
+        const sessionId = id || 'default'
+        const controller = _controllers.get(sessionId)
+        if (controller) {
+          controller.abort()
+          _controllers.delete(sessionId)
+          events.emit('abort', { sessionId })
+        }
+        const q = _steerQueues.get(sessionId)
+        if (q) q.length = 0
+        _steerQueues.delete(sessionId)
+        _queueModes.delete(sessionId)
+        const mem = sessions.get(sessionId)
+        if (mem && typeof mem.destroy === 'function') mem.destroy()
+        sessions.delete(sessionId)
+        return this
+      },
+
       /** Get default memory instance */
       get memory() { return defaultSession },
 
