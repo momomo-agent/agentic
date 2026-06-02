@@ -26,6 +26,7 @@ describe('AgenticRender', () => {
       expect(AgenticRender).toBeDefined()
       expect(typeof AgenticRender.create).toBe('function')
       expect(typeof AgenticRender.render).toBe('function')
+      expect(typeof AgenticRender.selectionMarkdown).toBe('function')
       expect(typeof AgenticRender.getCSS).toBe('function')
     })
 
@@ -178,6 +179,50 @@ describe('AgenticRender', () => {
       const html = AgenticRender.render('<script>alert("xss")</script>')
       expect(html).not.toContain('<script>')
       expect(html).toContain('&lt;script&gt;')
+    })
+
+    it('should annotate top-level source ranges when requested', () => {
+      const md = '# Title\n\n```js\nconsole.log(1)\n```\n\n| Name | Value |\n| --- | --- |\n| A | 1 |'
+      const html = AgenticRender.render(md, { sourceMap: true })
+      expect(html).toContain('data-ar-source-start="0" data-ar-source-end="0"')
+      expect(html).toContain('data-ar-source-start="2" data-ar-source-end="4"')
+      expect(html).toContain('data-ar-source-start="6" data-ar-source-end="8"')
+    })
+  })
+
+  describe('source-aware selection', () => {
+    it('should copy selected source markdown for code blocks and tables', () => {
+      const md = '# Title\n\n```js\nconsole.log(1)\n```\n\n| Name | Value |\n| --- | --- |\n| A | 1 |'
+      container.innerHTML = AgenticRender.render(md, { sourceMap: true })
+      const codeText = container.querySelector('.ar-code').firstChild
+      const tableText = container.querySelector('.ar-table td').firstChild
+      const selection = {
+        rangeCount: 1,
+        getRangeAt: () => ({
+          startContainer: codeText,
+          endContainer: tableText,
+          commonAncestorContainer: container,
+        }),
+      }
+      expect(AgenticRender.selectionMarkdown(selection, md, { root: container })).toBe(
+        '```js\nconsole.log(1)\n```\n\n| Name | Value |\n| --- | --- |\n| A | 1 |'
+      )
+    })
+
+    it('should include source blocks intersecting the selection range', () => {
+      const md = 'first\nsecond\nthird'
+      container.innerHTML = AgenticRender.render(md, { sourceMap: true })
+      const sourceNodes = [...container.querySelectorAll('[data-ar-source-start]')]
+      const selection = {
+        rangeCount: 1,
+        getRangeAt: () => ({
+          startContainer: sourceNodes[0].firstChild,
+          endContainer: sourceNodes[2].firstChild,
+          commonAncestorContainer: container,
+          intersectsNode: node => sourceNodes.includes(node),
+        }),
+      }
+      expect(AgenticRender.selectionMarkdown(selection, md, { root: container })).toBe('first\n\nsecond\n\nthird')
     })
   })
 

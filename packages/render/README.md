@@ -79,6 +79,29 @@ const html = AgenticRender.render('**Hello** world')
 // → '<p class="ar-p"><strong class="ar-strong">Hello</strong> world</p>'
 ```
 
+Pass `sourceMap: true` to annotate rendered top-level blocks with source line
+ranges. This lets an app copy the original Markdown for selected rendered
+content instead of reconstructing Markdown from the DOM.
+
+```js
+const markdown = '```js\nconsole.log("hi")\n```'
+const html = AgenticRender.render(markdown, { sourceMap: true })
+```
+
+### `AgenticRender.selectionMarkdown(selection, markdown, { root })`
+
+Returns the original Markdown covered by a browser `Selection`, using source
+metadata emitted by `render(..., { sourceMap: true })`.
+
+```js
+const root = document.querySelector('.ar-root')
+const selectedMarkdown = AgenticRender.selectionMarkdown(
+  window.getSelection(),
+  markdown,
+  { root }
+)
+```
+
 ### `AgenticRender.getCSS(theme?)`
 
 Get the full CSS string for embedding in your own stylesheet.

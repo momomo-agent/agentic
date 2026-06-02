@@ -119,7 +119,12 @@
 
   // ── Markdown parser (streaming-safe) ─────────────────────────────
 
-  function parseMarkdown(src) {
+  function sourceAttrs(options, start, end = start) {
+    if (!options?.sourceMap) return ''
+    return ` data-ar-source-start="${start}" data-ar-source-end="${end}"`
+  }
+
+  function parseMarkdown(src, options = {}) {
     // Normalize line endings
     src = src.replace(/\r\n?/g, '\n')
 
@@ -136,7 +141,12 @@
     let blockquoteContent = ''
     let inTable = false
     let tableRows = []
+    let tableStartLine = 0
+    let tableEndLine = 0
     let orderedListNextStart = 1
+    let codeStartLine = 0
+    let blockquoteStartLine = 0
+    let blockquoteEndLine = 0
 
     function nextNonEmptyLine(start) {
       for (let j = start; j < lines.length; j++) {
@@ -157,7 +167,7 @@
 
     function flushBlockquote() {
       if (inBlockquote) {
-        html += `<blockquote class="ar-bq">${inlineMarkdown(blockquoteContent.trim())}</blockquote>`
+        html += `<blockquote class="ar-bq"${sourceAttrs(options, blockquoteStartLine, blockquoteEndLine)}>${inlineMarkdown(blockquoteContent.trim())}</blockquote>`
         blockquoteContent = ''
         inBlockquote = false
       }
@@ -172,7 +182,7 @@
 
     function flushTable() {
       if (inTable && tableRows.length > 0) {
-        let t = '<table class="ar-table"><thead><tr>'
+        let t = `<table class="ar-table"${sourceAttrs(options, tableStartLine, tableEndLine)}><thead><tr>`
         const headers = tableRows[0]
         for (const h of headers) t += `<th>${inlineMarkdown(h.trim())}</th>`
         t += '</tr></thead><tbody>'
@@ -201,6 +211,7 @@
           resetOrderedList()
           flushBlockquote(); flushList(); flushTable()
           inCodeBlock = true
+          codeStartLine = i
           codeIndent = fenceIndent
           codeLang = fenceLine.slice(3).trim()
           codeContent = ''
@@ -208,7 +219,7 @@
           continue
         } else {
           // Close code block
-          html += `<div class="ar-code-wrap"><div class="ar-code-header">${escHtml(codeLang || 'code')}<button class="ar-copy" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div><pre class="ar-pre"><code class="ar-code">${highlightCode(codeContent, codeLang)}</code></pre></div>`
+          html += `<div class="ar-code-wrap"${sourceAttrs(options, codeStartLine, i)}><div class="ar-code-header">${escHtml(codeLang || 'code')}<button class="ar-copy" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div><pre class="ar-pre"><code class="ar-code">${highlightCode(codeContent, codeLang)}</code></pre></div>`
           inCodeBlock = false
           codeLang = ''
           codeContent = ''
@@ -236,6 +247,7 @@
         if (!inTable) {
           flushBlockquote(); flushList()
           inTable = true
+          tableStartLine = i
           tableRows = [cells]
         } else {
           // Skip separator row
@@ -245,6 +257,7 @@
             tableRows.push(cells)
           }
         }
+        tableEndLine = i
         i++
         continue
       } else if (inTable) {
@@ -255,7 +268,9 @@
       if (/^>\s?/.test(line)) {
         resetOrderedList()
         flushList(); flushTable()
+        if (!inBlockquote) blockquoteStartLine = i
         inBlockquote = true
+        blockquoteEndLine = i
         blockquoteContent += line.replace(/^>\s?/, '') + '\n'
         i++
         continue
@@ -269,7 +284,7 @@
         resetOrderedList()
         flushList(); flushTable(); flushBlockquote()
         const level = headingMatch[1].length
-        html += `<h${level} class="ar-h ar-h${level}">${inlineMarkdown(headingMatch[2])}</h${level}>`
+        html += `<h${level} class="ar-h ar-h${level}"${sourceAttrs(options, i)}>${inlineMarkdown(headingMatch[2])}</h${level}>`
         i++
         continue
       }
@@ -278,7 +293,7 @@
       if (/^(-{3,}|_{3,}|\*{3,})\s*$/.test(line)) {
         resetOrderedList()
         flushList(); flushTable(); flushBlockquote()
-        html += '<hr class="ar-hr">'
+        html += `<hr class="ar-hr"${sourceAttrs(options, i)}>`
         i++
         continue
       }
@@ -298,9 +313,9 @@
         const taskMatch = ulMatch[2].match(/^\[([ xX])\]\s*(.*)$/)
         if (taskMatch) {
           const checked = taskMatch[1] !== ' '
-          html += `<li class="ar-li ar-task"><span class="ar-checkbox ${checked ? 'ar-checked' : ''}">${checked ? '✓' : ''}</span>${inlineMarkdown(taskMatch[2])}</li>`
+          html += `<li class="ar-li ar-task"${sourceAttrs(options, i)}><span class="ar-checkbox ${checked ? 'ar-checked' : ''}">${checked ? '✓' : ''}</span>${inlineMarkdown(taskMatch[2])}</li>`
         } else {
-          html += `<li class="ar-li">${inlineMarkdown(ulMatch[2])}</li>`
+          html += `<li class="ar-li"${sourceAttrs(options, i)}>${inlineMarkdown(ulMatch[2])}</li>`
         }
         i++
         continue
@@ -321,7 +336,7 @@
           inList = true
           listType = 'ol'
         }
-        html += `<li class="ar-li">${inlineMarkdown(olMatch[3])}</li>`
+        html += `<li class="ar-li"${sourceAttrs(options, i)}>${inlineMarkdown(olMatch[3])}</li>`
         orderedListNextStart += 1
         i++
         continue
@@ -346,13 +361,13 @@
 
       // Paragraph
       flushList(); flushTable(); flushBlockquote()
-      html += `<p class="ar-p">${inlineMarkdown(line)}</p>`
+      html += `<p class="ar-p"${sourceAttrs(options, i)}>${inlineMarkdown(line)}</p>`
       i++
     }
 
     // Handle unterminated code block (streaming!)
     if (inCodeBlock) {
-      html += `<div class="ar-code-wrap"><div class="ar-code-header">${escHtml(codeLang || 'code')}<span class="ar-streaming-dot"></span></div><pre class="ar-pre"><code class="ar-code">${highlightCode(codeContent, codeLang)}</code></pre></div>`
+      html += `<div class="ar-code-wrap"${sourceAttrs(options, codeStartLine, Math.max(codeStartLine, lines.length - 1))}><div class="ar-code-header">${escHtml(codeLang || 'code')}<span class="ar-streaming-dot"></span></div><pre class="ar-pre"><code class="ar-code">${highlightCode(codeContent, codeLang)}</code></pre></div>`
     }
 
     flushBlockquote()
@@ -652,7 +667,7 @@
     let rafId = null
 
     function render() {
-      root.innerHTML = parseMarkdown(content)
+      root.innerHTML = parseMarkdown(content, options)
       rafId = null
     }
 
@@ -711,7 +726,89 @@
    * One-shot render — returns HTML string
    */
   function render(markdown, options = {}) {
-    return parseMarkdown(markdown)
+    return parseMarkdown(markdown, options)
+  }
+
+  function selectionIntersectsRoot(selection, root) {
+    if (!selection || !root || selection.rangeCount <= 0) return false
+    for (let i = 0; i < selection.rangeCount; i++) {
+      const range = selection.getRangeAt(i)
+      if (typeof range?.intersectsNode === 'function' && range.intersectsNode(root)) return true
+      if (root.contains?.(range?.startContainer) || root.contains?.(range?.endContainer)) return true
+      const ancestor = range?.commonAncestorContainer
+      if (!ancestor) continue
+      const node = ancestor.nodeType === 1 ? ancestor : ancestor.parentElement || ancestor.parentNode || ancestor
+      if (node && root.contains?.(node)) return true
+    }
+    return false
+  }
+
+  function closestSourceNode(node, root) {
+    const el = node?.nodeType === 1 ? node : node?.parentElement || node?.parentNode
+    const sourceNode = el?.closest?.('[data-ar-source-start]')
+    return sourceNode && root?.contains?.(sourceNode) ? sourceNode : null
+  }
+
+  function sourceRangeForNode(node, root) {
+    const sourceNode = closestSourceNode(node, root)
+    const start = Number(sourceNode?.getAttribute?.('data-ar-source-start'))
+    const end = Number(sourceNode?.getAttribute?.('data-ar-source-end') ?? start)
+    if (!Number.isInteger(start) || start < 0) return null
+    return {
+      start,
+      end: Number.isInteger(end) && end >= start ? end : start,
+    }
+  }
+
+  function sourceRangeFromElement(sourceNode) {
+    const start = Number(sourceNode?.getAttribute?.('data-ar-source-start'))
+    const end = Number(sourceNode?.getAttribute?.('data-ar-source-end') ?? start)
+    if (!Number.isInteger(start) || start < 0) return null
+    return {
+      start,
+      end: Number.isInteger(end) && end >= start ? end : start,
+    }
+  }
+
+  function rangeIntersectsNode(range, node) {
+    if (!range || !node) return false
+    if (typeof range.intersectsNode === 'function') return range.intersectsNode(node)
+    return node.contains?.(range.startContainer) || node.contains?.(range.endContainer)
+  }
+
+  function pushUniqueRange(ranges, sourceRange) {
+    if (!sourceRange) return
+    if (!ranges.some(range => range.start === sourceRange.start && range.end === sourceRange.end)) {
+      ranges.push(sourceRange)
+    }
+  }
+
+  function markdownFromRanges(markdown, ranges) {
+    const lines = String(markdown || '').replace(/\r\n?/g, '\n').split('\n')
+    return ranges
+      .map(range => lines.slice(range.start, range.end + 1).join('\n').trim())
+      .filter(Boolean)
+      .join('\n\n')
+      .trim()
+  }
+
+  function selectionMarkdown(selection, markdown, options = {}) {
+    const root = options.root || options.element || null
+    if (!selectionIntersectsRoot(selection, root)) return ''
+    const ranges = []
+    for (let i = 0; i < selection.rangeCount; i++) {
+      const range = selection.getRangeAt(i)
+      for (const sourceNode of root?.querySelectorAll?.('[data-ar-source-start]') || []) {
+        if (rangeIntersectsNode(range, sourceNode)) {
+          pushUniqueRange(ranges, sourceRangeFromElement(sourceNode))
+        }
+      }
+      for (const node of [range?.startContainer, range?.endContainer, range?.commonAncestorContainer]) {
+        pushUniqueRange(ranges, sourceRangeForNode(node, root))
+      }
+    }
+    ranges.sort((a, b) => a.start - b.start || a.end - b.end)
+    return markdownFromRanges(markdown, ranges)
   }
 
   /**
@@ -723,4 +820,4 @@
     return `.ar-root {\n${varBlock}\n}\n${BASE_CSS}`
   }
 
-export { create, render, getCSS, THEME_DARK, THEME_LIGHT }
+export { create, render, selectionMarkdown, getCSS, THEME_DARK, THEME_LIGHT }
