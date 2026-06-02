@@ -172,7 +172,15 @@
   }
 
   function tableCellsForColumns(row, count) {
-    const cells = (row || []).slice(0, count)
+    const source = row || []
+    if (count <= 0) return []
+    const cells = source.slice(0, count)
+    if (source.length > count) {
+      cells[count - 1] = [cells[count - 1], ...source.slice(count)]
+        .map(cell => String(cell || '').trim())
+        .filter(Boolean)
+        .join(' ')
+    }
     while (cells.length < count) cells.push('')
     return cells
   }

@@ -189,13 +189,12 @@ describe('AgenticRender', () => {
       expect(html).toContain('data-ar-source-start="6" data-ar-source-end="8"')
     })
 
-    it('should keep table body rows aligned to the header column count', () => {
+    it('should keep table body rows aligned without dropping overflow cells', () => {
       const md = '| # | Layer | Z区域 (LTRB) | 尺寸 | 合成方式 | 说明 |\n|---|---|---|---|---|---|\n| 1 | Wallpaper | 1 | 0,0 -> 1200,2670 | 全屏 | DEVICE | 壁纸 |'
       const html = AgenticRender.render(md)
       expect(html.match(/<th[ >]/g) || []).toHaveLength(6)
       expect(html.match(/<td[ >]/g) || []).toHaveLength(6)
-      expect(html).toContain('<td>DEVICE</td>')
-      expect(html).not.toContain('<td>壁纸</td>')
+      expect(html).toContain('<td>DEVICE 壁纸</td>')
     })
 
     it('should not split escaped pipes or inline-code pipes in table cells', () => {
