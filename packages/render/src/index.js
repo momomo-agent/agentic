@@ -124,6 +124,59 @@
     return ` data-ar-source-start="${start}" data-ar-source-end="${end}"`
   }
 
+  function splitTableRow(line) {
+    const cells = []
+    let cell = ''
+    let inCodeSpan = false
+    let codeSpanTicks = 0
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i]
+
+      if (ch === '\\' && line[i + 1] === '|') {
+        cell += '|'
+        i++
+        continue
+      }
+
+      if (ch === '`') {
+        let ticks = 1
+        while (line[i + ticks] === '`') ticks++
+        if (!inCodeSpan) {
+          inCodeSpan = true
+          codeSpanTicks = ticks
+        } else if (ticks === codeSpanTicks) {
+          inCodeSpan = false
+          codeSpanTicks = 0
+        }
+        cell += line.slice(i, i + ticks)
+        i += ticks - 1
+        continue
+      }
+
+      if (ch === '|' && !inCodeSpan) {
+        cells.push(cell)
+        cell = ''
+        continue
+      }
+
+      cell += ch
+    }
+
+    cells.push(cell)
+
+    if (cells.length > 0 && cells[0].trim() === '') cells.shift()
+    if (cells.length > 0 && cells[cells.length - 1].trim() === '') cells.pop()
+
+    return cells
+  }
+
+  function tableCellsForColumns(row, count) {
+    const cells = (row || []).slice(0, count)
+    while (cells.length < count) cells.push('')
+    return cells
+  }
+
   function parseMarkdown(src, options = {}) {
     // Normalize line endings
     src = src.replace(/\r\n?/g, '\n')
@@ -184,12 +237,13 @@
       if (inTable && tableRows.length > 0) {
         let t = `<table class="ar-table"${sourceAttrs(options, tableStartLine, tableEndLine)}><thead><tr>`
         const headers = tableRows[0]
+        const columnCount = headers.length
         for (const h of headers) t += `<th>${inlineMarkdown(h.trim())}</th>`
         t += '</tr></thead><tbody>'
         for (let r = 2; r < tableRows.length; r++) {
           t += '<tr>'
-          for (let c = 0; c < tableRows[r].length; c++) {
-            t += `<td>${inlineMarkdown((tableRows[r][c] || '').trim())}</td>`
+          for (const cell of tableCellsForColumns(tableRows[r], columnCount)) {
+            t += `<td>${inlineMarkdown((cell || '').trim())}</td>`
           }
           t += '</tr>'
         }
@@ -241,9 +295,7 @@
       // Table detection: line starts with | and contains at least one more |
       if (/^\|.+/.test(line) && line.indexOf('|', 1) > 0) {
         resetOrderedList()
-        // Strip trailing | if present, then split on |
-        const trimmed = line.replace(/\|\s*$/, '').slice(1)
-        const cells = trimmed.split('|')
+        const cells = splitTableRow(line)
         if (!inTable) {
           flushBlockquote(); flushList()
           inTable = true

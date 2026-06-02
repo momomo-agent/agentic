@@ -188,6 +188,23 @@ describe('AgenticRender', () => {
       expect(html).toContain('data-ar-source-start="2" data-ar-source-end="4"')
       expect(html).toContain('data-ar-source-start="6" data-ar-source-end="8"')
     })
+
+    it('should keep table body rows aligned to the header column count', () => {
+      const md = '| # | Layer | Z区域 (LTRB) | 尺寸 | 合成方式 | 说明 |\n|---|---|---|---|---|---|\n| 1 | Wallpaper | 1 | 0,0 -> 1200,2670 | 全屏 | DEVICE | 壁纸 |'
+      const html = AgenticRender.render(md)
+      expect(html.match(/<th[ >]/g) || []).toHaveLength(6)
+      expect(html.match(/<td[ >]/g) || []).toHaveLength(6)
+      expect(html).toContain('<td>DEVICE</td>')
+      expect(html).not.toContain('<td>壁纸</td>')
+    })
+
+    it('should not split escaped pipes or inline-code pipes in table cells', () => {
+      const md = '| Pattern | Description |\n|---|---|\n| `a|b` | uses escaped \\| delimiter |'
+      const html = AgenticRender.render(md)
+      expect(html.match(/<td[ >]/g) || []).toHaveLength(2)
+      expect(html).toContain('<code class="ar-inline-code">a|b</code>')
+      expect(html).toContain('<td>uses escaped | delimiter</td>')
+    })
   })
 
   describe('source-aware selection', () => {
