@@ -1,6 +1,6 @@
 {
   "name": "agentic-render",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "type": "module",
   "description": "Streaming Markdown renderer",
   "main": "./dist/agentic-render.cjs",

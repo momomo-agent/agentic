@@ -172,17 +172,14 @@
   }
 
   function tableCellsForColumns(row, count) {
-    const source = row || []
     if (count <= 0) return []
-    const cells = source.slice(0, count)
-    if (source.length > count) {
-      cells[count - 1] = [cells[count - 1], ...source.slice(count)]
-        .map(cell => String(cell || '').trim())
-        .filter(Boolean)
-        .join(' ')
-    }
+    const cells = (row || []).slice(0, count)
     while (cells.length < count) cells.push('')
     return cells
+  }
+
+  function tableColumnCount(rows) {
+    return rows.reduce((max, row) => Math.max(max, row?.length || 0), 0)
   }
 
   function parseMarkdown(src, options = {}) {
@@ -245,8 +242,8 @@
       if (inTable && tableRows.length > 0) {
         let t = `<table class="ar-table"${sourceAttrs(options, tableStartLine, tableEndLine)}><thead><tr>`
         const headers = tableRows[0]
-        const columnCount = headers.length
-        for (const h of headers) t += `<th>${inlineMarkdown(h.trim())}</th>`
+        const columnCount = tableColumnCount(tableRows)
+        for (const h of tableCellsForColumns(headers, columnCount)) t += `<th>${inlineMarkdown((h || '').trim())}</th>`
         t += '</tr></thead><tbody>'
         for (let r = 2; r < tableRows.length; r++) {
           t += '<tr>'

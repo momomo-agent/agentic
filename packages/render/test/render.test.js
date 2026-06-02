@@ -189,12 +189,21 @@ describe('AgenticRender', () => {
       expect(html).toContain('data-ar-source-start="6" data-ar-source-end="8"')
     })
 
-    it('should keep table body rows aligned without dropping overflow cells', () => {
+    it('should pad table rows to the widest row without dropping cells', () => {
       const md = '| # | Layer | Z区域 (LTRB) | 尺寸 | 合成方式 | 说明 |\n|---|---|---|---|---|---|\n| 1 | Wallpaper | 1 | 0,0 -> 1200,2670 | 全屏 | DEVICE | 壁纸 |'
       const html = AgenticRender.render(md)
-      expect(html.match(/<th[ >]/g) || []).toHaveLength(6)
-      expect(html.match(/<td[ >]/g) || []).toHaveLength(6)
-      expect(html).toContain('<td>DEVICE 壁纸</td>')
+      expect(html.match(/<th[ >]/g) || []).toHaveLength(7)
+      expect(html.match(/<td[ >]/g) || []).toHaveLength(7)
+      expect(html).toContain('<th></th>')
+      expect(html).toContain('<td>DEVICE</td><td>壁纸</td>')
+    })
+
+    it('should pad short table body rows with empty cells', () => {
+      const md = '| A | B | C |\n|---|---|---|\n| 1 | 2 |'
+      const html = AgenticRender.render(md)
+      expect(html.match(/<th[ >]/g) || []).toHaveLength(3)
+      expect(html.match(/<td[ >]/g) || []).toHaveLength(3)
+      expect(html).toContain('<td>1</td><td>2</td><td></td>')
     })
 
     it('should not split escaped pipes or inline-code pipes in table cells', () => {
