@@ -246,6 +246,17 @@ describe('claw streaming upgrade', () => {
       assert.ok(msgs.length <= 10, `Expected compacted messages, got ${msgs.length}`)
       claw.destroy()
     })
+
+    it('can disable memory compaction when an app owns explicit history', async () => {
+      const claw = createClaw({ apiKey: 'test-key', maxTokens: 50, disableMemoryCompaction: true })
+      for (let i = 0; i < 5; i++) {
+        for await (const _ of claw.chat('This is a long message number ' + i + ' with lots of content to fill up tokens')) {}
+      }
+      const msgs = claw.memory.messages()
+      assert.equal(msgs.filter(m => m.role === 'user').length, 5)
+      assert.ok(!msgs.some(m => String(m.content || '').includes('[Conversation summary]')))
+      claw.destroy()
+    })
   })
 
   describe('session persistence', () => {

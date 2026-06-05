@@ -134,6 +134,7 @@
       embedBaseUrl = null,
       persist = null,
       maxTokens = 8000,
+      disableMemoryCompaction = false,
     } = options
 
     if (!cfg.apiKey && (!cfg.providers || !cfg.providers.length)) throw new Error('apiKey is required')
@@ -423,6 +424,7 @@
     }
 
     async function _compactIfNeeded(sessionMem) {
+      if (disableMemoryCompaction) return
       const msgs = sessionMem.messages()
       const est = _estimateTokens(msgs)
       if (est <= maxTokens || msgs.length <= 4) return
