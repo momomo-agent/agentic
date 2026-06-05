@@ -212,14 +212,16 @@ describe('agentic-core', () => {
         stream: false,
       }))
 
-      expect(calls).toBe(4)
+      expect(calls).toBe(6)
       expect(events.filter(e => e.type === 'text_delta').map(e => e.text)).toEqual([
         'chunk 1 ',
         'chunk 2 ',
         'chunk 3 ',
         'chunk 4 ',
+        'chunk 5 ',
+        'chunk 6 ',
       ])
-      expect(events.find(e => e.type === 'done')?.answer).toBe('chunk 1 chunk 2 chunk 3 chunk 4 ')
+      expect(events.find(e => e.type === 'done')?.answer).toBe('chunk 1 chunk 2 chunk 3 chunk 4 chunk 5 chunk 6 ')
     })
   })
 

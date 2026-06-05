@@ -414,7 +414,7 @@ async function waitForModelRetry(attempt, retryDelayMs, signal) {
 }
 
 const MAX_ROUNDS = 200  // 安全兜底，实际由循环检测控制（与 OpenClaw 一致）
-const MAX_CONTINUATIONS = 3
+const MAX_CONTINUATIONS = 5
 const CONTINUE_PROMPT = 'Continue from where you left off.'
 
 function contentToText(content) {
@@ -897,7 +897,6 @@ async function* _agenticAskGen(prompt, config) {
         messages.push({ role: 'assistant', content })
         messages.push({ role: 'user', content: CONTINUE_PROMPT })
         console.log(`[Round ${round}] Output truncated by max_tokens; continuing (${continuationCount}/${MAX_CONTINUATIONS})`)
-        yield { type: 'status', message: `Continuing truncated response (${continuationCount}/${MAX_CONTINUATIONS})` }
         continue
       }
 
