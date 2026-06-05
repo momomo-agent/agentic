@@ -414,6 +414,23 @@ async function waitForModelRetry(attempt, retryDelayMs, signal) {
 }
 
 const MAX_ROUNDS = 200  // 安全兜底，实际由循环检测控制（与 OpenClaw 一致）
+const MAX_CONTINUATIONS = 3
+const CONTINUE_PROMPT = 'Continue from where you left off.'
+
+function contentToText(content) {
+  if (content == null) return ''
+  if (typeof content === 'string') return content
+  if (Array.isArray(content)) {
+    return content.map(part => {
+      if (part == null) return ''
+      if (typeof part === 'string') return part
+      if (typeof part.text === 'string') return part.text
+      if (typeof part.content === 'string') return part.content
+      return ''
+    }).join('')
+  }
+  return String(content)
+}
 
 // ── agenticAsk: backward-compat wrapper ──
 // If emit (3rd arg) is a function → legacy mode, returns Promise<{answer, rounds, messages}>
@@ -707,6 +724,9 @@ async function* _agenticAskGen(prompt, config) {
 
   let round = 0
   let finalAnswer = null
+  let finalAnswerReady = false
+  let continuationCount = 0
+  let continuedAnswer = ''
   const state = { toolCallHistory: [] }
 
   // Abort-aware promise helper: races any promise against the abort signal.
@@ -866,8 +886,29 @@ async function* _agenticAskGen(prompt, config) {
     console.log(`  - content:`, response.content)
     console.log(`  - tool_calls: ${response.tool_calls?.length || 0}`)
 
+    const toolCallCount = response.tool_calls?.length || 0
+
+    if (response.stop_reason === 'max_tokens' && toolCallCount === 0) {
+      const content = response.content ?? ''
+      continuedAnswer += contentToText(content)
+
+      if (continuationCount < MAX_CONTINUATIONS) {
+        continuationCount++
+        messages.push({ role: 'assistant', content })
+        messages.push({ role: 'user', content: CONTINUE_PROMPT })
+        console.log(`[Round ${round}] Output truncated by max_tokens; continuing (${continuationCount}/${MAX_CONTINUATIONS})`)
+        yield { type: 'status', message: `Continuing truncated response (${continuationCount}/${MAX_CONTINUATIONS})` }
+        continue
+      }
+
+      console.log(`[Round ${round}] Output still truncated after ${MAX_CONTINUATIONS} continuation(s); returning accumulated content`)
+      finalAnswer = continuedAnswer
+      finalAnswerReady = true
+      break
+    }
+
     // Check if done
-    if (['end_turn', 'stop'].includes(response.stop_reason) || !response.tool_calls?.length) {
+    if (['end_turn', 'stop'].includes(response.stop_reason) || !toolCallCount) {
       // Before breaking, check if there are steered messages waiting.
       // If so, inject them and continue the loop instead of exiting.
       if (steer && typeof steer.drain === 'function') {
@@ -885,6 +926,8 @@ async function* _agenticAskGen(prompt, config) {
             injected.push(text)
           }
           if (injected.length) {
+            continuedAnswer = ''
+            continuationCount = 0
             yield { type: 'steered', round, count: injected.length, messages: injected }
             if (typeof steer.onInjected === 'function') {
               try { steer.onInjected({ round, messages: injected }) } catch {}
@@ -894,8 +937,14 @@ async function* _agenticAskGen(prompt, config) {
           }
         }
       }
-      console.log(`[Round ${round}] Done: stop_reason=${response.stop_reason}, tool_calls=${response.tool_calls?.length || 0}`)
-      finalAnswer = response.content
+      console.log(`[Round ${round}] Done: stop_reason=${response.stop_reason}, tool_calls=${toolCallCount}`)
+      if (continuationCount > 0) {
+        finalAnswer = continuedAnswer + contentToText(response.content)
+        finalAnswerReady = true
+      } else {
+        finalAnswer = response.content
+        finalAnswerReady = Boolean(finalAnswer)
+      }
       break
     }
 
@@ -918,6 +967,7 @@ async function* _agenticAskGen(prompt, config) {
         yield { type: 'warning', level: loopDetection.level, message: loopDetection.message }
         if (loopDetection.level === 'critical') {
           finalAnswer = `[Loop Detection] ${loopDetection.message}`
+          finalAnswerReady = true
           break
         }
         messages.push({ role: 'tool', tool_call_id: call.id, content: JSON.stringify({ error: `LOOP_DETECTED: ${loopDetection.message}` }) })
@@ -1019,7 +1069,7 @@ async function* _agenticAskGen(prompt, config) {
 
   console.log(`\n[agenticAsk] Loop ended at round ${round}`)
 
-  if (!finalAnswer) {
+  if (!finalAnswerReady && !finalAnswer) {
     console.log('[agenticAsk] Generating final answer (no tools)...')
     yield { type: 'status', message: 'Generating final answer...' }
     if (stream) {
@@ -1039,6 +1089,7 @@ async function* _agenticAskGen(prompt, config) {
             else if (evt.type === 'response') { /* done */ }
           }
           finalAnswer = content || '(no response)'
+          finalAnswerReady = true
           break
         } catch (err) {
           const cls = classifyError(err)
@@ -1059,6 +1110,7 @@ async function* _agenticAskGen(prompt, config) {
         try {
           const finalResponse = await raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, maxTokens }))
           finalAnswer = finalResponse.content || '(no response)'
+          finalAnswerReady = true
           break
         } catch (err) {
           const cls = classifyError(err)

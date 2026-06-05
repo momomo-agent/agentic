@@ -19,6 +19,7 @@ function streamEvents(events) {
 describe('agentic-core', () => {
   afterEach(() => {
     unregisterProvider('test-retry')
+    unregisterProvider('test-continuation')
   })
 
   describe('classifyError', () => {
@@ -151,6 +152,74 @@ describe('agentic-core', () => {
         urlHost: 'node-hk.sssaicode.com',
         requestBytes: 2048,
       })
+    })
+  })
+
+  describe('max_tokens continuation', () => {
+    it('continues truncated responses and concatenates the final answer', async () => {
+      const calls = []
+      registerProvider('test-continuation', ({ messages }) => {
+        calls.push(messages.map(m => ({ role: m.role, content: m.content })))
+        if (calls.length === 1) return { content: 'part one ', tool_calls: [], stop_reason: 'max_tokens' }
+        return { content: 'part two', tool_calls: [], stop_reason: 'stop' }
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-continuation',
+        tools: [],
+        stream: false,
+      }))
+
+      expect(calls).toHaveLength(2)
+      expect(calls[1].at(-2)).toEqual({ role: 'assistant', content: 'part one ' })
+      expect(calls[1].at(-1)).toEqual({ role: 'user', content: 'Continue from where you left off.' })
+      expect(events.filter(e => e.type === 'text_delta').map(e => e.text)).toEqual(['part one ', 'part two'])
+      expect(events.find(e => e.type === 'done')?.answer).toBe('part one part two')
+    })
+
+    it('continues truncated streaming responses while yielding each text_delta', async () => {
+      let calls = 0
+      registerProvider('test-continuation', () => {
+        calls++
+        if (calls === 1) return { content: 'stream one ', tool_calls: [], stop_reason: 'max_tokens' }
+        return { content: 'stream two', tool_calls: [], stop_reason: 'stop' }
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-continuation',
+        tools: [],
+        stream: true,
+      }))
+
+      expect(calls).toBe(2)
+      expect(events.filter(e => e.type === 'text_delta').map(e => e.text)).toEqual(['stream one ', 'stream two'])
+      expect(events.find(e => e.type === 'done')?.answer).toBe('stream one stream two')
+    })
+
+    it('stops after the continuation limit and returns accumulated content', async () => {
+      let calls = 0
+      registerProvider('test-continuation', () => {
+        calls++
+        return { content: `chunk ${calls} `, tool_calls: [], stop_reason: 'max_tokens' }
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-continuation',
+        tools: [],
+        stream: false,
+      }))
+
+      expect(calls).toBe(4)
+      expect(events.filter(e => e.type === 'text_delta').map(e => e.text)).toEqual([
+        'chunk 1 ',
+        'chunk 2 ',
+        'chunk 3 ',
+        'chunk 4 ',
+      ])
+      expect(events.find(e => e.type === 'done')?.answer).toBe('chunk 1 chunk 2 chunk 3 chunk 4 ')
     })
   })
 
