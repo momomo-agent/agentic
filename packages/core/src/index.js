@@ -676,8 +676,20 @@ async function* _streamCallWithFailover(opts) {
 
 // ── Core async generator ──
 
+async function transformToolPromptContent(transformToolContent, args) {
+  if (typeof transformToolContent !== 'function') return args.content
+  const transformed = await transformToolContent(args)
+  return typeof transformed === 'string' ? transformed : String(transformed ?? '')
+}
+
+function blocksForTransformedToolContent(blocks, rawContent, content) {
+  if (content === rawContent || !Array.isArray(blocks) || !blocks.length) return blocks
+  if (!blocks.every(block => block?.type === 'text')) return blocks
+  return [{ type: 'text', text: content }]
+}
+
 async function* _agenticAskGen(prompt, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, maxTokens, steer } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, maxTokens, steer, transformToolContent } = config
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
 
@@ -1053,11 +1065,17 @@ async function* _agenticAskGen(prompt, config) {
       for (const { call, result, error } of results) {
         if (error) {
           const { blocks, is_error } = await normalizeToolResultBlocks({ error })
-          messages.push({ role: 'tool', tool_call_id: call.id, blocks, is_error: is_error || true, content: JSON.stringify({ error }) })
+          const rawContent = JSON.stringify({ error })
+          const content = await transformToolPromptContent(transformToolContent, { id: call.id, name: call.name, content: rawContent })
+          const promptBlocks = blocksForTransformedToolContent(blocks, rawContent, content)
+          messages.push({ role: 'tool', tool_call_id: call.id, blocks: promptBlocks, is_error: is_error || true, content })
           yield { type: 'tool_error', id: call.id, name: call.name, error }
         } else {
           const { blocks, is_error } = await normalizeToolResultBlocks(result)
-          messages.push({ role: 'tool', tool_call_id: call.id, blocks, is_error, content: JSON.stringify(result) })
+          const rawContent = JSON.stringify(result)
+          const content = await transformToolPromptContent(transformToolContent, { id: call.id, name: call.name, content: rawContent })
+          const promptBlocks = blocksForTransformedToolContent(blocks, rawContent, content)
+          messages.push({ role: 'tool', tool_call_id: call.id, blocks: promptBlocks, is_error, content })
           yield { type: 'tool_result', id: call.id, name: call.name, output: result, blocks }
         }
       }

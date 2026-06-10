@@ -20,6 +20,7 @@ describe('agentic-core', () => {
   afterEach(() => {
     unregisterProvider('test-retry')
     unregisterProvider('test-continuation')
+    unregisterProvider('test-transform-tool-content')
   })
 
   describe('classifyError', () => {
@@ -222,6 +223,75 @@ describe('agentic-core', () => {
         'chunk 6 ',
       ])
       expect(events.find(e => e.type === 'done')?.answer).toBe('chunk 1 chunk 2 chunk 3 chunk 4 chunk 5 chunk 6 ')
+    })
+  })
+
+  describe('transformToolContent', () => {
+    async function runToolTransformCase({ output, marker }) {
+      const providerMessages = []
+      let calls = 0
+      const transformCalls = []
+
+      registerProvider('test-transform-tool-content', ({ messages }) => {
+        calls++
+        providerMessages.push(JSON.parse(JSON.stringify(messages)))
+        if (calls === 1) {
+          return {
+            content: 'calling tool',
+            tool_calls: [{ id: 'tc_transform', name: 'capture_output', input: {} }],
+            stop_reason: 'tool_use',
+          }
+        }
+        return { content: 'done', tool_calls: [], stop_reason: 'stop' }
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-transform-tool-content',
+        tools: [{
+          name: 'capture_output',
+          description: 'Capture test output',
+          input_schema: { type: 'object', properties: {} },
+          execute: async () => output,
+        }],
+        stream: false,
+        transformToolContent: async args => {
+          transformCalls.push(args)
+          return marker && args.content.length > 8000 ? marker : args.content
+        },
+      }))
+
+      return { events, providerMessages, transformCalls }
+    }
+
+    it('passes small tool result content through unchanged', async () => {
+      const { providerMessages, transformCalls } = await runToolTransformCase({ output: 'short output' })
+      const toolMessage = providerMessages[1].find(msg => msg.role === 'tool')
+
+      expect(transformCalls).toEqual([{
+        id: 'tc_transform',
+        name: 'capture_output',
+        content: JSON.stringify('short output'),
+      }])
+      expect(toolMessage.content).toBe(JSON.stringify('short output'))
+      expect(toolMessage.blocks).toEqual([{ type: 'text', text: 'short output' }])
+    })
+
+    it('uses transformed content for large text-only tool messages without changing emitted output', async () => {
+      const output = 'x'.repeat(20000)
+      const marker = '<persisted-output id="po_test">Use read_persisted_output(id="po_test") to read the full output.</persisted-output>'
+      const { events, providerMessages, transformCalls } = await runToolTransformCase({ output, marker })
+      const toolMessage = providerMessages[1].find(msg => msg.role === 'tool')
+
+      expect(transformCalls[0]).toMatchObject({
+        id: 'tc_transform',
+        name: 'capture_output',
+        content: JSON.stringify(output),
+      })
+      expect(toolMessage.content).toBe(marker)
+      expect(toolMessage.blocks).toEqual([{ type: 'text', text: marker }])
+      expect(JSON.stringify(toolMessage).length).toBeLessThan(12000)
+      expect(events.find(event => event.type === 'tool_result')?.output).toBe(output)
     })
   })
 
