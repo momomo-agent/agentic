@@ -2210,6 +2210,16 @@ function buildOpenAIMessages(messages, system) {
   const out = []
   if (system) out.push({ role: 'system', content: system })
   for (const m of messages) {
+    if (m.role === 'assistant') {
+      const msg = {
+        role: 'assistant',
+        content: typeof m.content === 'string' ? m.content : (m.content ?? ''),
+      }
+      const toolCalls = normalizeOpenAIToolCalls(m.tool_calls)
+      if (toolCalls.length) msg.tool_calls = toolCalls
+      out.push(msg)
+      continue
+    }
     if (m.role === 'tool' && Array.isArray(m.blocks) && m.blocks.length > 0) {
       const { text, parts } = blocksForOpenAIToolResult(m.blocks)
       const prefix = m.is_error ? '[tool error]\n' : ''
@@ -2233,6 +2243,25 @@ function buildOpenAIMessages(messages, system) {
     }
   }
   return out
+}
+
+function normalizeOpenAIToolCalls(toolCalls) {
+  if (!Array.isArray(toolCalls)) return []
+  return toolCalls
+    .filter(tc => tc && (tc.id || tc.call_id) && (tc.name || tc.function?.name))
+    .map(tc => {
+      const existingArgs = tc.function?.arguments ?? tc.arguments
+      return {
+        id: String(tc.id || tc.call_id),
+        type: 'function',
+        function: {
+          name: String(tc.name || tc.function?.name),
+          arguments: typeof existingArgs === 'string'
+            ? existingArgs
+            : JSON.stringify(tc.input ?? existingArgs ?? {}),
+        },
+      }
+    })
 }
 
 // Convert canonical tool-result blocks into OpenAI Responses API `output` items.

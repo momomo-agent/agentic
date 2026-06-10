@@ -339,6 +339,10 @@ describe('OpenAI provider mapping for tool results', () => {
     ]
     await collect(chat(appendUserPrompt(messages), { provider: 'openai', apiKey: 'k', baseUrl: 'https://example.test', model: 'gpt-test', stream: true }))
     const body = capturedRequests[0].body
+    const assistantMsg = body.messages.find(m => m.role === 'assistant' && Array.isArray(m.tool_calls))
+    assert.equal(assistantMsg.tool_calls[0].type, 'function')
+    assert.equal(assistantMsg.tool_calls[0].function.name, 'screenshot')
+    assert.equal(assistantMsg.tool_calls[0].function.arguments, '{}')
     const toolIdx = body.messages.findIndex(m => m.role === 'tool' && m.tool_call_id === 't1')
     assert.ok(toolIdx >= 0, 'expected a tool-role message')
     assert.equal(typeof body.messages[toolIdx].content, 'string', 'tool role content must be string for Chat Completions')
