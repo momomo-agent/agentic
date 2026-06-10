@@ -140,6 +140,7 @@
     let inCodeBlock = false
     let codeLang = ''
     let codeContent = ''
+    let codeIndent = ''
     let inList = false
     let listType = ''
     let inBlockquote = false
@@ -182,15 +183,27 @@
       }
     }
 
+    function codeFenceInfo(line) {
+      const match = line.match(/^([ \t]*)(`{3,})(.*)$/)
+      if (!match) return null
+      return {
+        indent: match[1],
+        info: match[3].trim(),
+      }
+    }
+
     while (i < lines.length) {
       const line = lines[i]
 
-      // Code blocks
-      if (/^```/.test(line)) {
+      // Code blocks. AI output often nests fences under list continuations,
+      // so accept arbitrary leading whitespace as long as it is only indentation.
+      const fence = codeFenceInfo(line)
+      if (fence) {
         if (!inCodeBlock) {
           flushBlockquote(); flushList(); flushTable()
           inCodeBlock = true
-          codeLang = line.slice(3).trim()
+          codeIndent = fence.indent
+          codeLang = fence.info
           codeContent = ''
           i++
           continue
@@ -200,13 +213,17 @@
           inCodeBlock = false
           codeLang = ''
           codeContent = ''
+          codeIndent = ''
           i++
           continue
         }
       }
 
       if (inCodeBlock) {
-        codeContent += (codeContent ? '\n' : '') + line
+        const stripped = codeIndent && line.startsWith(codeIndent)
+          ? line.slice(codeIndent.length)
+          : line
+        codeContent += (codeContent ? '\n' : '') + stripped
         i++
         continue
       }

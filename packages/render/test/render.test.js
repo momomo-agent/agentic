@@ -102,6 +102,25 @@ describe('AgenticRender', () => {
       expect(html).toContain('python')
     })
 
+    it('should render indented code fences from nested AI output', () => {
+      const md = '    ```text\n    UV producer -> HDRPipeline.runSync(... uvMapImage:) -> GainMapPipeline parent:<uvMap\n    ```'
+      const html = AgenticRender.render(md, { sourceMap: true })
+      expect(html).toContain('ar-code-wrap')
+      expect(html).toContain('text')
+      expect(html).toContain('UV producer')
+      expect(html).toContain('parent:&lt;uvMap')
+      expect(html).not.toContain('```text')
+    })
+
+    it('should render indented code fences after list items', () => {
+      const md = '- 闭环\n\n    ```text\n    UV producer -> HDRPipeline.runSync(... uvMapImage:) -> GainMapPipeline parent:<uvMap\n    ```'
+      const html = AgenticRender.render(md, { sourceMap: true })
+      expect(html).toContain('<ul')
+      expect(html).toContain('ar-code-wrap')
+      expect(html).toContain('text')
+      expect(html).not.toContain('```text')
+    })
+
     it('should render unordered lists with dash', () => {
       const md = '- item one\n- item two'
       const html = AgenticRender.render(md)

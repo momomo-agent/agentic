@@ -182,6 +182,15 @@
     return rows.reduce((max, row) => Math.max(max, row?.length || 0), 0)
   }
 
+  function codeFenceInfo(line) {
+    const match = line.match(/^([ \t]*)(`{3,})(.*)$/)
+    if (!match) return null
+    return {
+      indent: match[1],
+      info: match[3].trim(),
+    }
+  }
+
   function parseMarkdown(src, options = {}) {
     // Normalize line endings
     src = src.replace(/\r\n?/g, '\n')
@@ -192,7 +201,7 @@
     let inCodeBlock = false
     let codeLang = ''
     let codeContent = ''
-    let codeIndent = 0
+    let codeIndent = ''
     let inList = false
     let listType = ''
     let inBlockquote = false
@@ -262,17 +271,17 @@
     while (i < lines.length) {
       const line = lines[i]
 
-      // Code blocks (allow up to 3 leading spaces per CommonMark spec)
-      if (/^\s{0,3}```/.test(line)) {
-        const fenceIndent = line.match(/^(\s*)/)[1].length
-        const fenceLine = line.slice(fenceIndent)
+      // Code blocks. AI output often nests fences under list continuations,
+      // so accept arbitrary leading whitespace as long as it is only indentation.
+      const fence = codeFenceInfo(line)
+      if (fence) {
         if (!inCodeBlock) {
           resetOrderedList()
           flushBlockquote(); flushList(); flushTable()
           inCodeBlock = true
           codeStartLine = i
-          codeIndent = fenceIndent
-          codeLang = fenceLine.slice(3).trim()
+          codeIndent = fence.indent
+          codeLang = fence.info
           codeContent = ''
           i++
           continue
@@ -282,6 +291,7 @@
           inCodeBlock = false
           codeLang = ''
           codeContent = ''
+          codeIndent = ''
           i++
           continue
         }
@@ -289,8 +299,8 @@
 
       if (inCodeBlock) {
         // Strip the same indentation as the opening fence
-        const stripped = codeIndent > 0 && line.startsWith(' '.repeat(codeIndent))
-          ? line.slice(codeIndent)
+        const stripped = codeIndent && line.startsWith(codeIndent)
+          ? line.slice(codeIndent.length)
           : line
         codeContent += (codeContent ? '\n' : '') + stripped
         i++
