@@ -61,6 +61,35 @@ describe('agenticAsk steer hook', () => {
     expect(drained).toEqual(['hold on, also do X'])
   })
 
+  it('awaits async drain so callers can settle rapid queued messages', async () => {
+    const queue = ['+2']
+    let releaseIngress
+    let markDrainStarted
+    const ingressSettled = new Promise(resolve => { releaseIngress = resolve })
+    const drainStarted = new Promise(resolve => { markDrainStarted = resolve })
+
+    const eventsPromise = drain(core.agenticAsk('1+1', {
+      ...baseConfig,
+      steer: {
+        drain: async () => {
+          markDrainStarted()
+          await ingressSettled
+          return queue.splice(0)
+        },
+      },
+    }))
+
+    await drainStarted
+    queue.push('+3')
+    releaseIngress()
+    const events = await eventsPromise
+
+    const steered = events.find(e => e.type === 'steered')
+    expect(steered).toBeDefined()
+    expect(steered.count).toBe(2)
+    expect(steered.messages).toEqual(['+2', '+3'])
+  })
+
   it('skips empty queue and produces no steered event', async () => {
     const events = await drain(core.agenticAsk('hi', {
       ...baseConfig,

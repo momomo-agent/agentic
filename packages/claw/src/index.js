@@ -193,7 +193,10 @@
     function _getQueueMode(sessionId) {
       return _queueModes.get(sessionId) || _defaultQueueMode
     }
-    function _drainSteerQueue(sessionId) {
+    async function _drainSteerQueue(sessionId, settleSteerQueue) {
+      if (typeof settleSteerQueue === 'function') {
+        try { await settleSteerQueue() } catch (e) {}
+      }
       const q = _steerQueues.get(sessionId)
       if (!q || !q.length) return []
       const out = q.slice()
@@ -513,7 +516,7 @@
         ...(typeof chatOpts.modelGatewayOnStatus === 'function' ? { modelGatewayOnStatus: chatOpts.modelGatewayOnStatus } : {}),
         maxTokens: chatOpts.maxTokens || cfg.maxTokens || undefined,
         steer: {
-          drain: () => _drainSteerQueue(sessionMem.id || 'default'),
+          drain: () => _drainSteerQueue(sessionMem.id || 'default', chatOpts.settleSteerQueue),
         },
       }
     }

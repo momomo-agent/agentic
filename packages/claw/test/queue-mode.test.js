@@ -41,7 +41,7 @@ function setupAsk() {
       if (askGate) await askGate
       // Mimic core's turn-boundary drain to verify injection
       if (config.steer && typeof config.steer.drain === 'function') {
-        const queued = config.steer.drain()
+        const queued = await config.steer.drain()
         if (queued.length && askInjectionCheck) askInjectionCheck(queued)
       }
       yield { type: 'done', answer: `final:${input}`, rounds: 1, messages: [] }
@@ -59,11 +59,11 @@ function makeClaw(opts = {}) {
   return createClaw({ apiKey: 'k', conductorModule: {}, ...opts })
 }
 
-async function startAndPause(session, input, releaseRef) {
+async function startAndPause(session, input, releaseRef, opts) {
   let release
   askGate = new Promise(r => { release = r })
   releaseRef.release = release
-  const gen = session.chat(input)
+  const gen = session.chat(input, opts)
   const iter = gen[Symbol.asyncIterator]()
   await iter.next() // status
   await iter.next() // text_delta
@@ -84,6 +84,34 @@ describe('claw session.setQueueMode + steer queue', () => {
   it('createClaw({ queueMode: "steer" }) becomes the default', () => {
     const claw = makeClaw({ queueMode: 'steer' })
     expect(claw.session().getQueueMode()).toBe('steer')
+    claw.destroy()
+  })
+
+  it('awaits settleSteerQueue before draining queued steer messages', async () => {
+    const claw = makeClaw({ queueMode: 'steer' })
+    const session = claw.session()
+    const ref = {}
+    let releaseSettle
+    let markSettleStarted
+    const settleStarted = new Promise(resolve => { markSettleStarted = resolve })
+    const injected = []
+    const iter = await startAndPause(session, 'first', ref, {
+      settleSteerQueue: async () => {
+        markSettleStarted()
+        await new Promise(resolve => { releaseSettle = resolve })
+      },
+    })
+    askInjectionCheck = queued => injected.push(...queued)
+
+    session.chat('queued')
+
+    const drainPromise = drain(iter)
+    ref.release()
+    await settleStarted
+    expect(injected).toEqual([])
+    releaseSettle()
+    await drainPromise
+    expect(injected).toEqual(['queued'])
     claw.destroy()
   })
 

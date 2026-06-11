@@ -323,6 +323,11 @@ function normalizeRetryCount(retries) {
   return Math.floor(n)
 }
 
+async function drainSteerQueue(steer) {
+  if (!steer || typeof steer.drain !== 'function') return null
+  try { return await steer.drain() } catch (e) { return null }
+}
+
 function isAbortError(err, signal) {
   return !!signal?.aborted || err?.name === 'AbortError'
 }
@@ -924,7 +929,7 @@ async function* _agenticAskGen(prompt, config) {
     // This is the single hook that turns agenticAsk into a steerable loop.
     if (steer && typeof steer.drain === 'function') {
       let queued
-      try { queued = steer.drain() } catch (e) { queued = null }
+      queued = await drainSteerQueue(steer)
       if (queued && queued.length) {
         const injected = []
         for (const item of queued) {
@@ -1064,7 +1069,7 @@ async function* _agenticAskGen(prompt, config) {
       // If so, inject them and continue the loop instead of exiting.
       if (steer && typeof steer.drain === 'function') {
         let lateQueued
-        try { lateQueued = steer.drain() } catch (e) { lateQueued = null }
+        lateQueued = await drainSteerQueue(steer)
         if (lateQueued && lateQueued.length) {
           // Push the assistant's current answer, then inject user messages
           messages.push({ role: 'assistant', content: response.content })
