@@ -249,15 +249,37 @@
 
     function flushTable() {
       if (inTable && tableRows.length > 0) {
-        let t = `<table class="ar-table"${sourceAttrs(options, tableStartLine, tableEndLine)}><thead><tr>`
         const headers = tableRows[0]
         const columnCount = tableColumnCount(tableRows)
-        for (const h of tableCellsForColumns(headers, columnCount)) t += `<th>${inlineMarkdown((h || '').trim())}</th>`
+
+        // Analyze column widths: find max text length per column (excluding separator row)
+        const colMaxLen = Array(columnCount).fill(0)
+        for (let r = 0; r < tableRows.length; r++) {
+          if (r === 1) continue // skip separator
+          const row = tableRows[r]
+          if (!row) continue
+          for (let c = 0; c < columnCount; c++) {
+            const cellText = (row[c] || '').trim()
+            if (cellText.length > colMaxLen[c]) colMaxLen[c] = cellText.length
+          }
+        }
+
+        // Columns with short content get nowrap to prevent unnecessary wrapping
+        const SHORT_THRESHOLD = 16
+        const colNowrap = colMaxLen.map(len => len <= SHORT_THRESHOLD)
+
+        let t = `<table class="ar-table"${sourceAttrs(options, tableStartLine, tableEndLine)}><thead><tr>`
+        const headerCells = tableCellsForColumns(headers, columnCount)
+        for (let c = 0; c < headerCells.length; c++) {
+          t += `<th>${inlineMarkdown((headerCells[c] || '').trim())}</th>`
+        }
         t += '</tr></thead><tbody>'
         for (let r = 2; r < tableRows.length; r++) {
           t += '<tr>'
-          for (const cell of tableCellsForColumns(tableRows[r], columnCount)) {
-            t += `<td>${inlineMarkdown((cell || '').trim())}</td>`
+          const cells = tableCellsForColumns(tableRows[r], columnCount)
+          for (let c = 0; c < cells.length; c++) {
+            const nw = colNowrap[c] ? ' style="white-space:nowrap"' : ''
+            t += `<td${nw}>${inlineMarkdown((cells[c] || '').trim())}</td>`
           }
           t += '</tr>'
         }
@@ -675,12 +697,16 @@
 .ar-table {
   width: 100%; border-collapse: collapse; margin: 1em 0;
   font-size: 14px;
+  table-layout: auto;
 }
 .ar-table th, .ar-table td {
   padding: 8px 12px; text-align: left;
   border: 1px solid var(--ar-table-border);
 }
-.ar-table th { background: var(--ar-table-header-bg); font-weight: 600; }
+.ar-table th {
+  background: var(--ar-table-header-bg); font-weight: 600;
+  white-space: nowrap;
+}
 .ar-table tr:nth-child(even) td { background: var(--ar-table-stripe); }
 
 /* ── Image ── */
