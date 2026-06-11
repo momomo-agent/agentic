@@ -314,6 +314,8 @@ function classifyError(err) {
 const DEFAULT_MODEL_RETRIES = 5
 const DEFAULT_MODEL_RETRY_DELAY_MS = 500
 const MAX_MODEL_RETRY_DELAY_MS = 4000
+const DEFAULT_RATE_LIMIT_RETRY_DELAY_MS = 5000
+const MAX_RATE_LIMIT_RETRY_DELAY_MS = 60000
 
 function normalizeRetryCount(retries) {
   const n = Number(retries)
@@ -328,11 +330,16 @@ function isAbortError(err, signal) {
 function annotateModelError(err, meta = {}) {
   if (!err || typeof err !== 'object') return err
   err.provider = err.provider || meta.provider
+  err.model = err.model || meta.model
   err.baseUrl = err.baseUrl || meta.baseUrl
   err.baseUrlHost = err.baseUrlHost || safeUrlHost(meta.baseUrl)
   err.url = err.url || meta.url
   err.urlHost = err.urlHost || safeUrlHost(meta.url)
   if (meta.requestBytes != null && err.requestBytes == null) err.requestBytes = meta.requestBytes
+  const rateLimitHeaders = meta.rateLimitHeaders || sanitizeRateLimitHeaders(meta.headers || meta.responseHeaders)
+  if (rateLimitHeaders && Object.keys(rateLimitHeaders).length && err.rateLimitHeaders == null) err.rateLimitHeaders = rateLimitHeaders
+  const retryAfterMs = meta.retryAfterMs ?? retryAfterMsFromHeaders(meta.headers || meta.responseHeaders)
+  if (retryAfterMs != null && err.retryAfterMs == null) err.retryAfterMs = retryAfterMs
   return err
 }
 
@@ -349,9 +356,12 @@ function modelErrorEvent(err, cls, attempt, maxModelRetries) {
     causeMessage: err?.cause?.message,
     status: err?.status || err?.statusCode,
     provider: err?.provider,
+    model: err?.model,
     baseUrlHost: err?.baseUrlHost,
     urlHost: err?.urlHost,
     requestBytes: err?.requestBytes,
+    retryAfterMs: err?.retryAfterMs,
+    rateLimitHeaders: err?.rateLimitHeaders,
   })
 }
 
@@ -371,20 +381,139 @@ function byteLength(value) {
   return new TextEncoder().encode(text).length
 }
 
-function getModelRetryDelayMs(attempt, retryDelayMs) {
+function headerEntries(headers) {
+  if (!headers) return []
+  if (typeof headers.forEach === 'function') {
+    const entries = []
+    headers.forEach((value, key) => entries.push([String(key).toLowerCase(), String(value)]))
+    return entries
+  }
+  if (Array.isArray(headers)) {
+    return headers.filter(item => Array.isArray(item) && item.length >= 2).map(([key, value]) => [String(key).toLowerCase(), String(value)])
+  }
+  if (typeof headers === 'object') return Object.entries(headers).map(([key, value]) => [String(key).toLowerCase(), String(value)])
+  return []
+}
+
+function sanitizeRateLimitHeaders(headers) {
+  const out = {}
+  for (const [key, value] of headerEntries(headers)) {
+    if (key === 'retry-after' || key.includes('ratelimit') || key.includes('rate-limit')) out[key] = String(value)
+  }
+  return out
+}
+
+function parseDurationMs(value) {
+  const text = String(value || '').trim().toLowerCase()
+  if (!text || /^\d+(?:\.\d+)?$/.test(text)) return undefined
+  let total = 0
+  let matched = false
+  const re = /(\d+(?:\.\d+)?)\s*(ms|s|m|h)\b/g
+  let match
+  while ((match = re.exec(text))) {
+    matched = true
+    const n = Number(match[1])
+    if (!Number.isFinite(n)) continue
+    const unit = match[2]
+    if (unit === 'ms') total += n
+    else if (unit === 's') total += n * 1000
+    else if (unit === 'm') total += n * 60000
+    else if (unit === 'h') total += n * 3600000
+  }
+  return matched ? Math.max(0, total) : undefined
+}
+
+function parseResetHeaderMs(value, nowMs = Date.now()) {
+  const text = String(value || '').trim()
+  if (!text) return undefined
+  const duration = parseDurationMs(text)
+  if (duration !== undefined) return duration
+  const numeric = Number(text)
+  if (Number.isFinite(numeric)) {
+    if (numeric >= 1000000000000) return Math.max(0, numeric - nowMs)
+    if (numeric >= 1000000000) return Math.max(0, numeric * 1000 - nowMs)
+    return Math.max(0, numeric * 1000)
+  }
+  const ts = Date.parse(text)
+  return Number.isFinite(ts) ? Math.max(0, ts - nowMs) : undefined
+}
+
+function retryAfterMsFromHeaders(headers, nowMs = Date.now()) {
+  const candidates = []
+  for (const [key, value] of headerEntries(headers)) {
+    if (key === 'retry-after') {
+      const seconds = Number(value)
+      if (Number.isFinite(seconds)) candidates.push(Math.max(0, seconds * 1000))
+      else {
+        const ts = Date.parse(String(value))
+        if (Number.isFinite(ts)) candidates.push(Math.max(0, ts - nowMs))
+      }
+      continue
+    }
+    if ((key.includes('ratelimit') || key.includes('rate-limit')) && key.includes('reset')) {
+      const delay = parseResetHeaderMs(value, nowMs)
+      if (delay !== undefined) candidates.push(delay)
+    }
+  }
+  return candidates.length ? Math.ceil(Math.max(...candidates)) : undefined
+}
+
+function gatewayMeta(base = {}, extra = {}) {
+  return {
+    provider: base.provider,
+    model: base.model,
+    baseUrl: base.baseUrl,
+    apiKey: base.apiKey,
+    proxyUrl: base.proxyUrl,
+    priority: base.modelGatewayPriority ?? base.priority,
+    source: base.modelGatewaySource ?? base.source,
+    silent: base.modelGatewaySilent ?? base.silent,
+    requestId: base.modelGatewayRequestId ?? base.requestId,
+    maxWaitMs: base.modelGatewayMaxWaitMs ?? base.maxWaitMs,
+    concurrency: base.modelGatewayConcurrency ?? base.concurrency,
+    modelGatewayOnStatus: base.modelGatewayOnStatus,
+    ...extra,
+  }
+}
+
+async function modelFetch(url, fetchOpts = {}, meta = {}) {
+  const gateway = globalThis && globalThis.__BRICK_MODEL_GATEWAY__
+  if (gateway && typeof gateway.fetch === 'function') return gateway.fetch(url, fetchOpts, { ...meta, url, signal: fetchOpts.signal || meta.signal })
+  return fetch(url, fetchOpts)
+}
+
+function annotateHttpResponseError(error, response, meta = {}) {
+  error.status = response?.status
+  return annotateModelError(error, {
+    ...meta,
+    responseHeaders: response?.headers,
+    rateLimitHeaders: sanitizeRateLimitHeaders(response?.headers),
+    retryAfterMs: retryAfterMsFromHeaders(response?.headers),
+  })
+}
+
+function getModelRetryDelayMs(attempt, retryDelayMs, err) {
+  if (err?.retryAfterMs != null) {
+    const retryAfterMs = Number(err.retryAfterMs)
+    if (Number.isFinite(retryAfterMs) && retryAfterMs > 0) return Math.ceil(retryAfterMs)
+  }
   if (typeof retryDelayMs === 'function') {
     const ms = Number(retryDelayMs(attempt))
     return Number.isFinite(ms) && ms > 0 ? ms : 0
   }
-  const base = Number.isFinite(Number(retryDelayMs)) ? Number(retryDelayMs) : DEFAULT_MODEL_RETRY_DELAY_MS
+  const cls = classifyError(err)
+  const rateLimit = cls.category === 'rate_limit'
+  const baseDefault = rateLimit ? DEFAULT_RATE_LIMIT_RETRY_DELAY_MS : DEFAULT_MODEL_RETRY_DELAY_MS
+  const maxDelay = rateLimit ? MAX_RATE_LIMIT_RETRY_DELAY_MS : MAX_MODEL_RETRY_DELAY_MS
+  const base = Number.isFinite(Number(retryDelayMs)) ? Number(retryDelayMs) : baseDefault
   if (base <= 0) return 0
-  const delay = Math.min(base * Math.pow(2, Math.max(0, attempt - 1)), MAX_MODEL_RETRY_DELAY_MS)
+  const delay = Math.min(base * Math.pow(2, Math.max(0, attempt - 1)), maxDelay)
   const jitter = Math.floor(Math.random() * Math.min(250, Math.max(1, Math.floor(delay * 0.25))))
   return delay + jitter
 }
 
-async function waitForModelRetry(attempt, retryDelayMs, signal) {
-  const delay = getModelRetryDelayMs(attempt, retryDelayMs)
+async function waitForModelRetry(attempt, retryDelayMs, signal, err) {
+  const delay = getModelRetryDelayMs(attempt, retryDelayMs, err)
   if (delay <= 0) return
   await new Promise((resolve, reject) => {
     let onAbort
@@ -504,10 +633,18 @@ async function _callWithFailover(opts) {
         proxyUrl: p.proxyUrl || proxyUrl,
         stream, emit: function noop(){}, system, signal, maxTokens,
         onToolReady: opts.onToolReady,
+        modelGatewayPriority: opts.modelGatewayPriority,
+        modelGatewaySource: opts.modelGatewaySource,
+        modelGatewaySilent: opts.modelGatewaySilent,
+        modelGatewayRequestId: opts.modelGatewayRequestId,
+        modelGatewayMaxWaitMs: opts.modelGatewayMaxWaitMs,
+        modelGatewayConcurrency: opts.modelGatewayConcurrency,
+        modelGatewayOnStatus: opts.modelGatewayOnStatus,
       })
     } catch (err) {
       lastErr = annotateModelError(err, {
         provider: prov,
+        model: p.model || model,
         baseUrl: p.baseUrl || baseUrl,
       })
       // Don't try next provider if already aborted
@@ -563,7 +700,7 @@ async function* _streamCallWithFailover(opts) {
           yield { type: 'response', content: response.content, tool_calls: response.tool_calls || [], stop_reason: response.stop_reason }
         }
         return
-      } catch (err) { lastErr = annotateModelError(err, { provider: prov, baseUrl: pBaseUrl }); if (signal?.aborted) throw new DOMException('Aborted', 'AbortError'); if (i < providerList.length - 1) continue; throw lastErr }
+      } catch (err) { lastErr = annotateModelError(err, { provider: prov, model: pModel, baseUrl: pBaseUrl }); if (signal?.aborted) throw new DOMException('Aborted', 'AbortError'); if (i < providerList.length - 1) continue; throw lastErr }
     }
 
     let url, requestBytes
@@ -615,9 +752,10 @@ async function* _streamCallWithFailover(opts) {
       // Use the appropriate generator
       const isResponses = prov === 'openai-responses'
       requestBytes = byteLength(JSON.stringify(body))
-      const gen = isAnthropic ? _streamAnthropicGen(url, headers, body, signal)
-        : isResponses ? _streamOpenAIResponsesGen(url, headers, body, signal)
-        : _streamOpenAIGen(url, headers, body, signal)
+      const meta = gatewayMeta(opts, { provider: prov, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, url, requestBytes })
+      const gen = isAnthropic ? _streamAnthropicGen(url, headers, body, signal, meta)
+        : isResponses ? _streamOpenAIResponsesGen(url, headers, body, signal, meta)
+        : _streamOpenAIGen(url, headers, body, signal, meta)
 
       let content = '', toolCalls = [], stopReason = 'end_turn'
       const oaiToolMap = {} // for OpenAI incremental tool_delta assembly
@@ -662,6 +800,7 @@ async function* _streamCallWithFailover(opts) {
     } catch (err) {
       lastErr = annotateModelError(err, {
         provider: prov,
+        model: pModel,
         baseUrl: pBaseUrl,
         url,
         requestBytes,
@@ -689,7 +828,8 @@ function blocksForTransformedToolContent(blocks, rawContent, content) {
 }
 
 async function* _agenticAskGen(prompt, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, maxTokens, steer, transformToolContent } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, maxTokens, steer, transformToolContent, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
+  const modelGateway = { modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
 
@@ -820,7 +960,7 @@ async function* _agenticAskGen(prompt, config) {
       while (true) {
         let progressed = false
         try {
-          const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers, maxTokens })
+          const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers, maxTokens, ...modelGateway })
           for await (const evt of streamGen) {
             if (evt.type === 'text_delta') {
               progressed = true
@@ -854,7 +994,7 @@ async function* _agenticAskGen(prompt, config) {
             attempt++
             console.warn(`[agenticAsk] LLM ${cls.category} error: ${err.message}. Retry ${attempt}/${maxModelRetries}`)
             yield { type: 'status', message: `Retrying model request (${attempt}/${maxModelRetries})`, category: cls.category, retryable: true, attempt }
-            await waitForModelRetry(attempt, retryDelayMs, signal)
+            await waitForModelRetry(attempt, retryDelayMs, signal, err)
             continue
           }
           yield modelErrorEvent(err, cls, attempt, maxModelRetries)
@@ -866,7 +1006,7 @@ async function* _agenticAskGen(prompt, config) {
       let attempt = 0
       while (true) {
         try {
-          response = await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, maxTokens }))
+          response = await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, maxTokens, ...modelGateway }))
           break
         } catch (err) {
           const cls = classifyError(err)
@@ -874,7 +1014,7 @@ async function* _agenticAskGen(prompt, config) {
             attempt++
             console.warn(`[agenticAsk] LLM ${cls.category} error: ${err.message}. Retry ${attempt}/${maxModelRetries}`)
             yield { type: 'status', message: `Retrying model request (${attempt}/${maxModelRetries})`, category: cls.category, retryable: true, attempt }
-            await waitForModelRetry(attempt, retryDelayMs, signal)
+            await waitForModelRetry(attempt, retryDelayMs, signal, err)
             continue
           }
           yield modelErrorEvent(err, cls, attempt, maxModelRetries)
@@ -1097,7 +1237,7 @@ async function* _agenticAskGen(prompt, config) {
         let content = ''
         let progressed = false
         try {
-          for await (const evt of _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, maxTokens })) {
+          for await (const evt of _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, maxTokens, ...modelGateway })) {
             if (evt.type === 'text_delta') {
               progressed = true
               content += evt.text
@@ -1114,7 +1254,7 @@ async function* _agenticAskGen(prompt, config) {
             attempt++
             console.warn(`[agenticAsk] final LLM ${cls.category} error: ${err.message}. Retry ${attempt}/${maxModelRetries}`)
             yield { type: 'status', message: `Retrying model request (${attempt}/${maxModelRetries})`, category: cls.category, retryable: true, attempt }
-            await waitForModelRetry(attempt, retryDelayMs, signal)
+            await waitForModelRetry(attempt, retryDelayMs, signal, err)
             continue
           }
           yield modelErrorEvent(err, cls, attempt, maxModelRetries)
@@ -1125,7 +1265,7 @@ async function* _agenticAskGen(prompt, config) {
       let attempt = 0
       while (true) {
         try {
-          const finalResponse = await raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, maxTokens }))
+          const finalResponse = await raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, maxTokens, ...modelGateway }))
           finalAnswer = finalResponse.content || '(no response)'
           finalAnswerReady = true
           break
@@ -1135,7 +1275,7 @@ async function* _agenticAskGen(prompt, config) {
             attempt++
             console.warn(`[agenticAsk] final LLM ${cls.category} error: ${err.message}. Retry ${attempt}/${maxModelRetries}`)
             yield { type: 'status', message: `Retrying model request (${attempt}/${maxModelRetries})`, category: cls.category, retryable: true, attempt }
-            await waitForModelRetry(attempt, retryDelayMs, signal)
+            await waitForModelRetry(attempt, retryDelayMs, signal, err)
             continue
           }
           yield modelErrorEvent(err, cls, attempt, maxModelRetries)
@@ -1152,9 +1292,10 @@ async function* _agenticAskGen(prompt, config) {
 
 // ── LLM Chat Functions ──
 
-async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady, maxTokens }) {
+async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady, maxTokens, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
+  const baseMeta = { provider: 'anthropic', model, baseUrl, apiKey, proxyUrl, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
 
   // Convert messages to Anthropic format (handles multimodal tool_result blocks + companion user messages)
   const anthropicMessages = buildAnthropicMessages(messages)
@@ -1193,17 +1334,17 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
 
   if (stream && !proxyUrl) {
     // Stream mode — direct SSE
-    return await streamAnthropic(url, headers, body, emit, signal, onToolReady)
+    return await streamAnthropic(url, headers, body, emit, signal, onToolReady, gatewayMeta(baseMeta, { url, requestBytes: byteLength(JSON.stringify(body)) }))
   }
 
   if (stream && proxyUrl) {
     // Stream via transparent proxy (Vercel Edge / similar)
     // Send stream:true request through proxy with custom headers
     const proxyHeaders = { ...headers, 'x-base-url': baseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }
-    return await streamAnthropic(proxyUrl, proxyHeaders, body, emit, signal, onToolReady)
+    return await streamAnthropic(proxyUrl, proxyHeaders, body, emit, signal, onToolReady, gatewayMeta(baseMeta, { url: proxyUrl, baseUrl, requestBytes: byteLength(JSON.stringify(body)) }))
   }
 
-  const response = await callLLM(url, apiKey, body, proxyUrl, true, signal)
+  const response = await callLLM(url, apiKey, body, proxyUrl, true, signal, baseMeta)
   
   const text = response.content.find(c => c.type === 'text')?.text || ''
   
@@ -1216,9 +1357,10 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
   }
 }
 
-async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady }) {
+async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
+  const baseMeta = { provider: 'openai', model, baseUrl, apiKey, proxyUrl, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
   const oaiMessages = buildOpenAIMessages(messages, system)
   const body = { model, messages: oaiMessages, stream }
   if (tools?.length) {
@@ -1228,15 +1370,15 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   const headers = { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` }
 
   if (stream && !proxyUrl) {
-    return await streamOpenAI(url, headers, body, emit, signal, onToolReady)
+    return await streamOpenAI(url, headers, body, emit, signal, onToolReady, gatewayMeta(baseMeta, { url, requestBytes: byteLength(JSON.stringify(body)) }))
   }
 
   if (stream && proxyUrl) {
     const proxyHeaders = { ...headers, 'x-base-url': baseUrl || 'https://api.openai.com', 'x-provider': 'openai', 'x-api-key': apiKey }
-    return await streamOpenAI(proxyUrl, proxyHeaders, body, emit, signal, onToolReady)
+    return await streamOpenAI(proxyUrl, proxyHeaders, body, emit, signal, onToolReady, gatewayMeta(baseMeta, { url: proxyUrl, baseUrl, requestBytes: byteLength(JSON.stringify(body)) }))
   }
 
-  const response = await callLLM(url, apiKey, body, proxyUrl, false, signal)
+  const response = await callLLM(url, apiKey, body, proxyUrl, false, signal, baseMeta)
   
   // Handle SSE response from non-stream endpoints
   if (typeof response === 'string' && response.includes('chat.completion.chunk')) {
@@ -1261,9 +1403,10 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
 
 // ── Streaming Functions ──
 
-async function openaiResponsesChat({ messages, tools, model = 'gpt-4.1-mini', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady }) {
+async function openaiResponsesChat({ messages, tools, model = 'gpt-4.1-mini', baseUrl = 'https://api.openai.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.includes('/v1') ? `${base}/responses` : `${base}/v1/responses`
+  const baseMeta = { provider: 'openai-responses', model, baseUrl, apiKey, proxyUrl, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
   const input = buildOpenAIResponsesInput(messages)
   const body = { model, input, stream }
   if (system) body.instructions = system
@@ -1287,7 +1430,7 @@ async function openaiResponsesChat({ messages, tools, model = 'gpt-4.1-mini', ba
       reqUrl = proxyUrl
     }
     let content = '', toolCalls = [], stopReason = 'end_turn'
-    for await (const evt of _streamOpenAIResponsesGen(reqUrl, reqHeaders, body, signal)) {
+    for await (const evt of _streamOpenAIResponsesGen(reqUrl, reqHeaders, body, signal, gatewayMeta(baseMeta, { url: reqUrl, requestBytes: byteLength(JSON.stringify(body)) }))) {
       if (evt.type === 'text_delta') { content += evt.text; if (emit) emit('token', { text: evt.text }) }
       else if (evt.type === 'tool_ready') { toolCalls.push(evt.toolCall); if (onToolReady) onToolReady(evt.toolCall) }
       else if (evt.type === 'stop') { stopReason = evt.stop_reason }
@@ -1299,20 +1442,19 @@ async function openaiResponsesChat({ messages, tools, model = 'gpt-4.1-mini', ba
   const fetchBody = JSON.stringify(body)
   let res
   try {
-    res = await fetch(url, {
+    res = await modelFetch(url, {
       method: 'POST',
       headers,
       body: fetchBody,
       ...(signal ? { signal } : {}),
-    })
+    }, gatewayMeta(baseMeta, { url, requestBytes: byteLength(fetchBody) }))
   } catch (err) {
-    throw annotateModelError(err, { url, requestBytes: byteLength(fetchBody) })
+    throw annotateModelError(err, gatewayMeta(baseMeta, { url, requestBytes: byteLength(fetchBody) }))
   }
   if (!res.ok) {
     const errText = await res.text()
     const e = new Error(`API error ${res.status}: ${errText.slice(0, 300)}`)
-    e.status = res.status
-    annotateModelError(e, { url, requestBytes: byteLength(fetchBody) })
+    annotateHttpResponseError(e, res, gatewayMeta(baseMeta, { url, requestBytes: byteLength(fetchBody) }))
     throw e
   }
   const resp = await res.json()
@@ -1333,9 +1475,9 @@ async function openaiResponsesChat({ messages, tools, model = 'gpt-4.1-mini', ba
 }
 
 // streamAnthropic — legacy (non-generator), kept for backward compat
-async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
+async function streamAnthropic(url, headers, body, emit, signal, onToolReady, meta) {
   let content = '', toolCalls = [], stopReason = 'end_turn'
-  for await (const evt of _streamAnthropicGen(url, headers, body, signal)) {
+  for await (const evt of _streamAnthropicGen(url, headers, body, signal, meta)) {
     if (evt.type === 'text_delta') { content += evt.text; emit('token', { text: evt.text }) }
     else if (evt.type === 'tool_ready') { toolCalls.push(evt.toolCall); if (onToolReady) onToolReady(evt.toolCall) }
     else if (evt.type === 'stop') { stopReason = evt.stop_reason }
@@ -1348,20 +1490,19 @@ async function streamAnthropic(url, headers, body, emit, signal, onToolReady) {
 // events (event: + data:), Anthropic `ping`/`error` control events, and proxies that
 // only emit the event body (JSON without a `type` field, using the `event:` line).
 // Set AGENTIC_DEBUG_STREAM=1 to surface otherwise-swallowed parse errors on stderr.
-async function* _streamAnthropicGen(url, headers, body, signal) {
+async function* _streamAnthropicGen(url, headers, body, signal, meta = {}) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
   let res
   try {
-    res = await fetch(url, fetchOpts)
+    res = await modelFetch(url, fetchOpts, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
   } catch (err) {
-    throw annotateModelError(err, { url, requestBytes: byteLength(fetchOpts.body) })
+    throw annotateModelError(err, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
   }
   if (!res.ok) {
     const err = await res.text()
     const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
-    e.status = res.status
-    annotateModelError(e, { url, requestBytes: byteLength(fetchOpts.body) })
+    annotateHttpResponseError(e, res, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
     throw e
   }
 
@@ -1508,10 +1649,10 @@ async function* _streamAnthropicGen(url, headers, body, signal) {
 }
 
 // streamOpenAI — legacy (non-generator), kept for backward compat
-async function streamOpenAI(url, headers, body, emit, signal, onToolReady) {
+async function streamOpenAI(url, headers, body, emit, signal, onToolReady, meta) {
   let content = '', finishReason = 'stop'
   const toolCallsMap = {}
-  for await (const evt of _streamOpenAIGen(url, headers, body, signal)) {
+  for await (const evt of _streamOpenAIGen(url, headers, body, signal, meta)) {
     if (evt.type === 'text_delta') { content += evt.text; emit('token', { text: evt.text }) }
     else if (evt.type === 'tool_delta') {
       const tc = evt.toolDelta
@@ -1531,20 +1672,19 @@ async function streamOpenAI(url, headers, body, emit, signal, onToolReady) {
 }
 
 // True streaming generator for OpenAI SSE
-async function* _streamOpenAIGen(url, headers, body, signal) {
+async function* _streamOpenAIGen(url, headers, body, signal, meta = {}) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
   let res
   try {
-    res = await fetch(url, fetchOpts)
+    res = await modelFetch(url, fetchOpts, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
   } catch (err) {
-    throw annotateModelError(err, { url, requestBytes: byteLength(fetchOpts.body) })
+    throw annotateModelError(err, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
   }
   if (!res.ok) {
     const err = await res.text()
     const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
-    e.status = res.status
-    annotateModelError(e, { url, requestBytes: byteLength(fetchOpts.body) })
+    annotateHttpResponseError(e, res, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
     throw e
   }
 
@@ -1614,20 +1754,19 @@ async function* _streamOpenAIGen(url, headers, body, signal) {
 // instead of the choices/delta shape of Chat Completions.
 // Normalises them to the same internal event types this package already uses
 // so downstream code doesn't need to care which transport ran.
-async function* _streamOpenAIResponsesGen(url, headers, body, signal) {
+async function* _streamOpenAIResponsesGen(url, headers, body, signal, meta = {}) {
   const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
   if (signal) fetchOpts.signal = signal
   let res
   try {
-    res = await fetch(url, fetchOpts)
+    res = await modelFetch(url, fetchOpts, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
   } catch (err) {
-    throw annotateModelError(err, { url, requestBytes: byteLength(fetchOpts.body) })
+    throw annotateModelError(err, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
   }
   if (!res.ok) {
     const err = await res.text()
     const e = new Error(`API error ${res.status}: ${err.slice(0, 300)}`)
-    e.status = res.status
-    annotateModelError(e, { url, requestBytes: byteLength(fetchOpts.body) })
+    annotateHttpResponseError(e, res, { ...meta, url, requestBytes: byteLength(fetchOpts.body) })
     throw e
   }
 
@@ -1749,8 +1888,11 @@ async function* _streamOpenAIResponsesGen(url, headers, body, signal) {
 
 // ── Non-stream Proxy/Direct Call ──
 
-async function callLLM(url, apiKey, body, proxyUrl, isAnthropic = false, signal) {
+async function callLLM(url, apiKey, body, proxyUrl, isAnthropic = false, signal, meta = {}) {
   const headers = { 'content-type': 'application/json' }
+  const provider = meta.provider || (isAnthropic ? 'anthropic' : 'openai')
+  const baseUrl = meta.baseUrl || url.replace(/\/v1\/.*$/, '')
+  const baseMeta = gatewayMeta(meta, { provider, baseUrl, apiKey, proxyUrl })
   if (isAnthropic) {
     headers['x-api-key'] = apiKey
     headers['anthropic-version'] = '2023-06-01'
@@ -1767,34 +1909,34 @@ async function callLLM(url, apiKey, body, proxyUrl, isAnthropic = false, signal)
     }
     const fetchOpts = { method: 'POST', headers: proxyHeaders, body: JSON.stringify(body) }
     if (signal) fetchOpts.signal = signal
+    const requestMeta = gatewayMeta(baseMeta, { url: proxyUrl, baseUrl, requestBytes: byteLength(fetchOpts.body) })
     let response
     try {
-      response = await fetch(proxyUrl, fetchOpts)
+      response = await modelFetch(proxyUrl, fetchOpts, requestMeta)
     } catch (err) {
-      throw annotateModelError(err, { url: proxyUrl, baseUrl: url, requestBytes: byteLength(fetchOpts.body) })
+      throw annotateModelError(err, requestMeta)
     }
     if (!response.ok) {
       const text = await response.text()
       const e = new Error(`API error ${response.status}: ${text.slice(0, 300)}`)
-      e.status = response.status
-      annotateModelError(e, { url: proxyUrl, baseUrl: url, requestBytes: byteLength(fetchOpts.body) })
+      annotateHttpResponseError(e, response, requestMeta)
       throw e
     }
     return await response.json()
   } else {
     const fetchOpts = { method: 'POST', headers, body: JSON.stringify(body) }
     if (signal) fetchOpts.signal = signal
+    const requestMeta = gatewayMeta(baseMeta, { url, requestBytes: byteLength(fetchOpts.body) })
     let response
     try {
-      response = await fetch(url, fetchOpts)
+      response = await modelFetch(url, fetchOpts, requestMeta)
     } catch (err) {
-      throw annotateModelError(err, { url, requestBytes: byteLength(fetchOpts.body) })
+      throw annotateModelError(err, requestMeta)
     }
     if (!response.ok) {
       const text = await response.text()
       const e = new Error(`API error ${response.status}: ${text}`)
-      e.status = response.status
-      annotateModelError(e, { url, requestBytes: byteLength(fetchOpts.body) })
+      annotateHttpResponseError(e, response, requestMeta)
       throw e
     }
     const text = await response.text()
@@ -2507,7 +2649,7 @@ async function searchWeb(query, apiKey) {
 // ── Schema Mode (Structured Output) ──
 
 async function schemaAsk(prompt, config, emit) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, history, proxyUrl, schema, retries = 2, images } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, history, proxyUrl, schema, retries = 2, images, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
   
   const schemaStr = JSON.stringify(schema, null, 2)
   const systemPrompt = `You must respond with valid JSON that matches this schema:\n${schemaStr}\n\nRules:\n- Output ONLY the JSON object, no markdown, no explanation, no code fences\n- All required fields must be present\n- Types must match exactly`
@@ -2548,7 +2690,14 @@ async function schemaAsk(prompt, config, emit) {
     const chatFn = provider === 'anthropic' ? anthropicChat : provider === 'openai-responses' ? openaiResponsesChat : openaiChat
     const response = await chatFn({
       messages: [{ role: 'user', content: userContent }],
-      tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit
+      tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit,
+      modelGatewayPriority,
+      modelGatewaySource: modelGatewaySource || 'schema',
+      modelGatewaySilent,
+      modelGatewayRequestId,
+      modelGatewayMaxWaitMs,
+      modelGatewayConcurrency,
+      modelGatewayOnStatus,
     })
     
     const raw = response.content.trim()
@@ -2811,7 +2960,7 @@ async function _audioFetch(url, opts, retries = 3) {
 
 // ── Warmup: pre-heat connection + prompt cache ──
 async function warmup(config = {}) {
-  const { provider = 'anthropic', apiKey, baseUrl, model, system, tools = [], proxyUrl, providers } = config
+  const { provider = 'anthropic', apiKey, baseUrl, model, system, tools = [], proxyUrl, providers, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
   if (!apiKey && (!providers || !providers.length)) {
     console.warn('[warmup] No API key, skipping')
     return { ok: false, reason: 'no_api_key' }
@@ -2855,12 +3004,26 @@ async function warmup(config = {}) {
       const fetchHeaders = proxyUrl
         ? { ...headers, 'x-base-url': baseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }
         : headers
+      const fetchBody = JSON.stringify(body)
 
-      const resp = await fetch(fetchUrl, {
+      const resp = await modelFetch(fetchUrl, {
         method: 'POST',
         headers: fetchHeaders,
-        body: JSON.stringify(body),
-      })
+        body: fetchBody,
+      }, gatewayMeta({
+        provider: 'anthropic',
+        model: body.model,
+        baseUrl: baseUrl || 'https://api.anthropic.com',
+        apiKey,
+        proxyUrl,
+        modelGatewayPriority: modelGatewayPriority || 'background',
+        modelGatewaySource: modelGatewaySource || 'warmup',
+        modelGatewaySilent: modelGatewaySilent !== false,
+        modelGatewayRequestId,
+        modelGatewayMaxWaitMs,
+        modelGatewayConcurrency,
+        modelGatewayOnStatus,
+      }, { url: fetchUrl, requestBytes: byteLength(fetchBody) }))
       const data = await resp.json()
       const ms = Date.now() - t0
       const cacheCreated = data.usage?.cache_creation_input_tokens || 0
@@ -2877,11 +3040,25 @@ async function warmup(config = {}) {
         messages: [{ role: 'user', content: 'hi' }],
         stream: false,
       }
-      const resp = await fetch(url, {
+      const fetchBody = JSON.stringify(body)
+      const resp = await modelFetch(url, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify(body),
-      })
+        body: fetchBody,
+      }, gatewayMeta({
+        provider: 'openai',
+        model: body.model,
+        baseUrl: baseUrl || 'https://api.openai.com',
+        apiKey,
+        proxyUrl,
+        modelGatewayPriority: modelGatewayPriority || 'background',
+        modelGatewaySource: modelGatewaySource || 'warmup',
+        modelGatewaySilent: modelGatewaySilent !== false,
+        modelGatewayRequestId,
+        modelGatewayMaxWaitMs,
+        modelGatewayConcurrency,
+        modelGatewayOnStatus,
+      }, { url, requestBytes: byteLength(fetchBody) }))
       await resp.json()
       const ms = Date.now() - t0
       console.log(`[warmup] OpenAI ${ms}ms (connection only)`)
@@ -2897,7 +3074,8 @@ async function warmup(config = {}) {
 // ── agenticStep: single-turn LLM call, caller controls tool loop ──
 // Returns { text, toolCalls, messages, done } — caller executes tools and calls step() again
 async function agenticStep(messages, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = [], proxyUrl, stream = false, system, signal, providers, emit: emitFn } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = [], proxyUrl, stream = false, system, signal, providers, emit: emitFn, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
+  const modelGateway = { modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
 
@@ -2924,7 +3102,7 @@ async function agenticStep(messages, config) {
   if (stream) {
     // Streaming: yield tokens, collect response
     try {
-      const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers })
+      const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, ...modelGateway })
       for await (const evt of streamGen) {
         if (evt.type === 'text_delta') {
           text += evt.text
@@ -2938,7 +3116,7 @@ async function agenticStep(messages, config) {
     }
   } else {
     try {
-      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers })
+      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, ...modelGateway })
       text = response.content || ''
     } catch (err) {
       throw err
@@ -3016,7 +3194,7 @@ async function buildToolResultsAsync(toolCalls, results, options) {
 //   const result = await chatResult(messages, opts) // convenience wrapper
 
 function chat(messages, opts = {}) {
-  const { system, tools, stream = true, provider, apiKey, baseUrl, model, proxyUrl, signal, providers, images, audio, schema, searchApiKey } = opts
+  const { system, tools, stream = true, provider, apiKey, baseUrl, model, proxyUrl, signal, providers, images, audio, schema, searchApiKey, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = opts
 
   // Extract last user message as prompt, rest as history
   const lastMsg = messages[messages.length - 1]
@@ -3026,6 +3204,7 @@ function chat(messages, opts = {}) {
   const config = {
     provider, apiKey, baseUrl, model, proxyUrl, signal, providers,
     history, system, tools, stream, images, audio, schema, searchApiKey,
+    modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus,
   }
 
   // Clean undefined values

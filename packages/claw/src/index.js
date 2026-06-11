@@ -504,6 +504,13 @@
         ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
         ...(chatOpts.retries != null ? { retries: chatOpts.retries } : {}),
         ...(chatOpts.retryDelayMs != null ? { retryDelayMs: chatOpts.retryDelayMs } : {}),
+        ...(chatOpts.modelGatewayPriority != null ? { modelGatewayPriority: chatOpts.modelGatewayPriority } : {}),
+        ...(chatOpts.modelGatewaySource != null ? { modelGatewaySource: chatOpts.modelGatewaySource } : {}),
+        ...(chatOpts.modelGatewaySilent != null ? { modelGatewaySilent: chatOpts.modelGatewaySilent } : {}),
+        ...(chatOpts.modelGatewayRequestId != null ? { modelGatewayRequestId: chatOpts.modelGatewayRequestId } : {}),
+        ...(chatOpts.modelGatewayMaxWaitMs != null ? { modelGatewayMaxWaitMs: chatOpts.modelGatewayMaxWaitMs } : {}),
+        ...(chatOpts.modelGatewayConcurrency != null ? { modelGatewayConcurrency: chatOpts.modelGatewayConcurrency } : {}),
+        ...(typeof chatOpts.modelGatewayOnStatus === 'function' ? { modelGatewayOnStatus: chatOpts.modelGatewayOnStatus } : {}),
         maxTokens: chatOpts.maxTokens || cfg.maxTokens || undefined,
         steer: {
           drain: () => _drainSteerQueue(sessionMem.id || 'default'),
@@ -1104,6 +1111,9 @@
           tools: allTools,
           proxyUrl: cfg.proxyUrl,
           providers: cfg.providers,
+          modelGatewayPriority: 'background',
+          modelGatewaySource: 'claw.warmup',
+          modelGatewaySilent: true,
         })
       },
 
