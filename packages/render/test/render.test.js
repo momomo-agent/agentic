@@ -112,6 +112,16 @@ describe('AgenticRender', () => {
       expect(html).not.toContain('ar-code-wrap')
     })
 
+    it('should render streaming mermaid fences before the closing fence arrives', () => {
+      const md = '```mermaid\ngraph TD\n  A --> B'
+      const html = AgenticRender.render(md, { sourceMap: true })
+      expect(html).toContain('ar-mermaid-wrap')
+      expect(html).toContain('data-ar-source-start="0" data-ar-source-end="2"')
+      expect(html).toContain('<pre class="ar-mermaid-source">graph TD\n  A --&gt; B</pre>')
+      expect(html).not.toContain('ar-code-wrap')
+      expect(html).not.toContain('ar-streaming-dot')
+    })
+
     it('should render indented code fences from nested AI output', () => {
       const md = '    ```text\n    UV producer -> HDRPipeline.runSync(... uvMapImage:) -> GainMapPipeline parent:<uvMap\n    ```'
       const html = AgenticRender.render(md, { sourceMap: true })

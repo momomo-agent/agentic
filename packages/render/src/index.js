@@ -134,7 +134,7 @@
   }
 
   function renderCodeBlock(codeContent, codeLang, options, start, end, { streaming = false } = {}) {
-    if (!streaming && isMermaidLanguage(codeLang)) {
+    if (isMermaidLanguage(codeLang)) {
       return `<div class="ar-mermaid-wrap"${sourceAttrs(options, start, end)}><div class="ar-mermaid-header">${escHtml(codeLang || 'mermaid')}</div><div class="ar-mermaid" data-ar-mermaid-state="pending"><pre class="ar-mermaid-source">${escHtml(codeContent)}</pre><div class="ar-mermaid-diagram"></div></div></div>`
     }
     const action = streaming
