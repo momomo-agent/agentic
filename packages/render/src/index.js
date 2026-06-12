@@ -124,6 +124,25 @@
     return ` data-ar-source-start="${start}" data-ar-source-end="${end}"`
   }
 
+  function codeLanguage(info = '') {
+    return String(info || '').trim().split(/\s+/)[0].toLowerCase()
+  }
+
+  function isMermaidLanguage(info = '') {
+    const lang = codeLanguage(info)
+    return lang === 'mermaid' || lang === 'mmd'
+  }
+
+  function renderCodeBlock(codeContent, codeLang, options, start, end, { streaming = false } = {}) {
+    if (!streaming && isMermaidLanguage(codeLang)) {
+      return `<div class="ar-mermaid-wrap"${sourceAttrs(options, start, end)}><div class="ar-mermaid-header">${escHtml(codeLang || 'mermaid')}</div><div class="ar-mermaid" data-ar-mermaid-state="pending"><pre class="ar-mermaid-source">${escHtml(codeContent)}</pre><div class="ar-mermaid-diagram"></div></div></div>`
+    }
+    const action = streaming
+      ? '<span class="ar-streaming-dot"></span>'
+      : '<button class="ar-copy" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent).then(()=>{this.textContent=\'Copied!\';setTimeout(()=>this.textContent=\'Copy\',1500)})">Copy</button>'
+    return `<div class="ar-code-wrap"${sourceAttrs(options, start, end)}><div class="ar-code-header">${escHtml(codeLang || 'code')}${action}</div><pre class="ar-pre"><code class="ar-code">${highlightCode(codeContent, codeLang)}</code></pre></div>`
+  }
+
   function splitTableRow(line) {
     const cells = []
     let cell = ''
@@ -309,7 +328,7 @@
           continue
         } else {
           // Close code block
-          html += `<div class="ar-code-wrap"${sourceAttrs(options, codeStartLine, i)}><div class="ar-code-header">${escHtml(codeLang || 'code')}<button class="ar-copy" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)})">Copy</button></div><pre class="ar-pre"><code class="ar-code">${highlightCode(codeContent, codeLang)}</code></pre></div>`
+          html += renderCodeBlock(codeContent, codeLang, options, codeStartLine, i)
           inCodeBlock = false
           codeLang = ''
           codeContent = ''
@@ -456,7 +475,7 @@
 
     // Handle unterminated code block (streaming!)
     if (inCodeBlock) {
-      html += `<div class="ar-code-wrap"${sourceAttrs(options, codeStartLine, Math.max(codeStartLine, lines.length - 1))}><div class="ar-code-header">${escHtml(codeLang || 'code')}<span class="ar-streaming-dot"></span></div><pre class="ar-pre"><code class="ar-code">${highlightCode(codeContent, codeLang)}</code></pre></div>`
+      html += renderCodeBlock(codeContent, codeLang, options, codeStartLine, Math.max(codeStartLine, lines.length - 1), { streaming: true })
     }
 
     flushBlockquote()
@@ -651,6 +670,50 @@
   font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
   background: none;
   padding: 0;
+}
+.ar-mermaid-wrap {
+  margin: 1em 0;
+  border: 1px solid var(--ar-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ar-code-bg);
+}
+.ar-mermaid-header {
+  padding: 6px 14px;
+  background: var(--ar-code-header-bg);
+  font-size: 12px;
+  color: var(--ar-text-3);
+  font-family: inherit;
+}
+.ar-mermaid {
+  padding: 16px 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ar-mermaid::-webkit-scrollbar { display: none; }
+.ar-mermaid-source {
+  display: none;
+}
+.ar-mermaid-diagram {
+  min-width: 240px;
+  min-height: 80px;
+}
+.ar-mermaid[data-ar-mermaid-state="error"] .ar-mermaid-source,
+.ar-mermaid[data-ar-mermaid-state="pending"] .ar-mermaid-source,
+.ar-mermaid[data-ar-mermaid-state="rendering"] .ar-mermaid-source {
+  display: block;
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ar-text-2);
+}
+.ar-mermaid[data-ar-mermaid-state="error"] .ar-mermaid-diagram,
+.ar-mermaid[data-ar-mermaid-state="pending"] .ar-mermaid-diagram,
+.ar-mermaid[data-ar-mermaid-state="rendering"] .ar-mermaid-diagram {
+  display: none;
 }
 .ar-inline-code {
   font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
