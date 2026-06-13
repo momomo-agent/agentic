@@ -11,13 +11,28 @@
       "import": "./src/index.js",
       "require": "./dist/agentic-render.cjs",
       "browser": "./dist/agentic-render.umd.js"
+    },
+    "./editor": {
+      "import": "./src/editor.js"
     }
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "vite build",
     "test": "vitest run"
   },
   "license": "MIT",
-  "devDependencies": { "vite": "catalog:" }
+  "devDependencies": {
+    "vite": "catalog:"
+  },
+  "dependencies": {
+    "@milkdown/core": "^7.6.0",
+    "@milkdown/ctx": "^7.6.0",
+    "@milkdown/plugin-listener": "^7.6.0",
+    "@milkdown/preset-commonmark": "^7.6.0",
+    "@milkdown/preset-gfm": "^7.6.0"
+  }
 }
