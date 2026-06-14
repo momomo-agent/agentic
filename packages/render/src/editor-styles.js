@@ -21,9 +21,14 @@ const EDITOR_CSS = `
 .ar-editor-content .editor,
 .ar-editor-content .ProseMirror {
   outline: none;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
   color: var(--ar-text);
   caret-color: var(--ar-accent);
   white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .ar-editor-content .editor[contenteditable="false"],
@@ -80,7 +85,7 @@ const EDITOR_CSS = `
 .ar-editor-content h3 { font-size: 1.15em; line-height: 1.3; }
 .ar-editor-content h4,
 .ar-editor-content h5,
-.ar-editor-content h6 { font-size: 1em; line-height: 1.3; }
+.ar-editor-content h6 { font-size: 1em; }
 
 .ar-editor-content p {
   margin: 0.75em 0;
