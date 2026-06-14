@@ -4,6 +4,13 @@ const EDITOR_CSS = `
   min-height: 1.75em;
 }
 
+.ar-editor-content {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--ar-text);
+}
+
 .ar-editor-content,
 .ar-editor-content .milkdown,
 .ar-editor-content .editor,
