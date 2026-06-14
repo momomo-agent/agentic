@@ -303,7 +303,7 @@
           t += '</tr>'
         }
         t += '</tbody></table>'
-        html += t
+        html += `<div class="ar-table-scroll">${t}</div>`
         tableRows = []
         inTable = false
       }
@@ -757,8 +757,11 @@
 .ar-hr { border: none; border-top: 1px solid var(--ar-hr); margin: 2em 0; }
 
 /* ── Table ── */
+.ar-table-scroll {
+  max-width: 100%; overflow-x: auto; margin: 1em 0;
+}
 .ar-table {
-  width: 100%; border-collapse: collapse; margin: 1em 0;
+  width: max-content; min-width: 100%; border-collapse: collapse;
   font-size: 14px;
   table-layout: auto;
 }
