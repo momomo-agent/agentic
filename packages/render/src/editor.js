@@ -13,6 +13,7 @@ import { listener, listenerCtx } from '@milkdown/plugin-listener'
 import { prism, prismConfig } from '@milkdown/plugin-prism'
 import { refractor } from 'refractor'
 import { getCSS, THEME_DARK, THEME_LIGHT } from './index.js'
+import { syncInlineHtmlBreakNodes } from './editor-html-breaks.js'
 import { EDITOR_CSS, getEditorCSS } from './editor-styles.js'
 
 const CHANGE_DEBOUNCE_MS = 300
@@ -138,6 +139,7 @@ function createEditor(target, options = {}) {
 
   function updatePlaceholderState() {
     if (!view) return
+    syncInlineHtmlBreakNodes(view.dom)
     view.dom.setAttribute('data-placeholder', placeholder)
 
     const firstBlock = view.dom.firstElementChild
