@@ -10,6 +10,8 @@ import {
 import { commonmark, headingIdGenerator } from '@milkdown/preset-commonmark'
 import { gfm } from '@milkdown/preset-gfm'
 import { listener, listenerCtx } from '@milkdown/plugin-listener'
+import { prism, prismConfig } from '@milkdown/plugin-prism'
+import { refractor } from 'refractor'
 import { getCSS, THEME_DARK, THEME_LIGHT } from './index.js'
 import { EDITOR_CSS, getEditorCSS } from './editor-styles.js'
 
@@ -197,6 +199,7 @@ function createEditor(target, options = {}) {
         ctx.set(rootCtx, content)
         ctx.set(defaultValueCtx, markdown)
         ctx.set(headingIdGenerator.key, (node) => slugHeadingText(node.textContent))
+        ctx.set(prismConfig.key, { configureRefractor: () => refractor })
         ctx.update(editorViewOptionsCtx, (prev) => ({
           ...prev,
           ...getViewProps(),
@@ -230,6 +233,7 @@ function createEditor(target, options = {}) {
       })
       .use(commonmark)
       .use(gfm)
+      .use(prism)
       .use(listener)
       .create()
 

@@ -231,6 +231,27 @@ const EDITOR_CSS = `
   border-radius: 8px;
   margin: 0.5em 0;
 }
+
+/* Prism syntax highlighting (aligned with chat flow colors) */
+.ar-editor-content .token.keyword,
+.ar-editor-content .token.tag,
+.ar-editor-content .token.attr-name { color: #c792ea; }
+.ar-editor-content .token.string,
+.ar-editor-content .token.attr-value { color: #c3e88d; }
+.ar-editor-content .token.number,
+.ar-editor-content .token.boolean { color: #f78c6c; }
+.ar-editor-content .token.comment,
+.ar-editor-content .token.prolog,
+.ar-editor-content .token.doctype { color: #546e7a; font-style: italic; }
+.ar-editor-content .token.function,
+.ar-editor-content .token.class-name { color: #82aaff; }
+.ar-editor-content .token.operator { color: #89ddff; }
+.ar-editor-content .token.punctuation { color: #babed8; }
+.ar-editor-content .token.property { color: #f07178; }
+.ar-editor-content .token.selector { color: #c3e88d; }
+.ar-editor-content .token.variable { color: #f07178; }
+.ar-editor-content .token.builtin { color: #ffcb6b; }
+.ar-editor-content .token.regex { color: #89ddff; }
 `
 
 function getEditorCSS() {
