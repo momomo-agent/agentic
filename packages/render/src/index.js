@@ -290,7 +290,9 @@
         let t = `<table class="ar-table"${sourceAttrs(options, tableStartLine, tableEndLine)}><thead><tr>`
         const headerCells = tableCellsForColumns(headers, columnCount)
         for (let c = 0; c < headerCells.length; c++) {
-          t += `<th>${inlineMarkdown((headerCells[c] || '').trim())}</th>`
+          let cellHtml = inlineMarkdown((headerCells[c] || '').trim())
+          cellHtml = cellHtml.replace(/&lt;br\s*\/?&gt;/gi, '<br>')
+          t += `<th>${cellHtml}</th>`
         }
         t += '</tr></thead><tbody>'
         for (let r = 2; r < tableRows.length; r++) {
@@ -298,7 +300,10 @@
           const cells = tableCellsForColumns(tableRows[r], columnCount)
           for (let c = 0; c < cells.length; c++) {
             const nw = colNowrap[c] ? ' style="white-space:nowrap"' : ''
-            t += `<td${nw}>${inlineMarkdown((cells[c] || '').trim())}</td>`
+            let cellHtml = inlineMarkdown((cells[c] || '').trim())
+            // Restore <br> line breaks inside table cells
+            cellHtml = cellHtml.replace(/&lt;br\s*\/?&gt;/gi, '<br>')
+            t += `<td${nw}>${cellHtml}</td>`
           }
           t += '</tr>'
         }

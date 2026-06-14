@@ -197,16 +197,16 @@ const EDITOR_CSS = `
 }
 
 .ar-editor-content .ProseMirror table {
-  width: max-content;
-  min-width: 100%;
-  table-layout: auto;
-  overflow: visible;
+  width: max-content !important;
+  min-width: 100% !important;
+  table-layout: auto !important;
+  overflow: visible !important;
 }
 
 .ar-editor-content .ProseMirror .tableWrapper {
-  width: 0;
-  min-width: 100%;
-  overflow-x: auto;
+  width: 0 !important;
+  min-width: 100% !important;
+  overflow-x: auto !important;
 }
 
 .ar-editor-content th,
