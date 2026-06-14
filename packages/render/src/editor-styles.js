@@ -201,22 +201,19 @@ const EDITOR_CSS = `
   overflow: visible;
 }
 
-.ar-editor-content .tableWrapper {
-  max-width: 100%;
-  overflow-x: auto;
-  margin: 1em 0;
-}
-
 .ar-editor-content .ProseMirror table {
-  width: max-content !important;
+  display: block !important;
+  width: 100% !important;
   min-width: 100% !important;
   table-layout: auto !important;
-  overflow: visible !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
 }
 
-.ar-editor-content .ProseMirror .tableWrapper {
-  max-width: 100% !important;
-  overflow-x: auto !important;
+.ar-editor-content .ProseMirror table tbody {
+  display: table;
+  width: max-content;
+  min-width: 100%;
 }
 
 .ar-editor-content th,
