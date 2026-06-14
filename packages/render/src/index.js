@@ -763,7 +763,7 @@
 
 /* ── Table ── */
 .ar-table-scroll {
-  width: 0; min-width: 100%; overflow-x: auto; margin: 1em 0;
+  max-width: 100%; overflow-x: auto; margin: 1em 0;
 }
 .ar-table {
   width: max-content; min-width: 100%; border-collapse: collapse;
