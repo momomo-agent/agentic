@@ -22,19 +22,22 @@ const EDITOR_STYLE_ID = 'agentic-render-editor-styles'
 function injectStyles() {
   if (typeof document === 'undefined') return
 
-  if (!document.getElementById(BASE_STYLE_ID)) {
-    const style = document.createElement('style')
-    style.id = BASE_STYLE_ID
-    style.textContent = getCSS('dark')
-    document.head.appendChild(style)
-  }
+  upsertStyle(BASE_STYLE_ID, getCSS('dark'))
+  upsertStyle(EDITOR_STYLE_ID, EDITOR_CSS)
+}
 
-  if (!document.getElementById(EDITOR_STYLE_ID)) {
-    const style = document.createElement('style')
-    style.id = EDITOR_STYLE_ID
-    style.textContent = EDITOR_CSS
-    document.head.appendChild(style)
+function upsertStyle(id, cssText) {
+  if (!cssText) return
+
+  let style = document.getElementById(id)
+  if (!(style instanceof HTMLStyleElement)) {
+    style = document.createElement('style')
+    style.id = id
   }
+  if (style.textContent !== cssText) {
+    style.textContent = cssText
+  }
+  document.head.appendChild(style)
 }
 
 function resolveTarget(target) {

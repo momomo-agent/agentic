@@ -190,15 +190,14 @@ const EDITOR_CSS = `
   width: max-content;
   min-width: 100%;
   border-collapse: collapse;
-  margin: 1em 0;
+  margin: 0;
   font-size: 14px;
   table-layout: auto;
   overflow: visible;
 }
 
 .ar-editor-content .tableWrapper {
-  width: 0;
-  min-width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   margin: 1em 0;
 }
@@ -211,8 +210,7 @@ const EDITOR_CSS = `
 }
 
 .ar-editor-content .ProseMirror .tableWrapper {
-  width: 0 !important;
-  min-width: 100% !important;
+  max-width: 100% !important;
   overflow-x: auto !important;
 }
 
