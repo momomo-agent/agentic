@@ -698,14 +698,20 @@
   -ms-overflow-style: none;
   position: relative;
   cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .ar-mermaid.is-panning {
   cursor: grabbing;
 }
 .ar-mermaid-diagram {
+  min-width: 240px;
+  min-height: 80px;
   transform-origin: 0 0;
   transition: transform 0.1s ease-out;
   will-change: transform;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .ar-mermaid::-webkit-scrollbar { display: none; }
 .ar-mermaid-source {
