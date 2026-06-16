@@ -15,6 +15,8 @@ import {
 import {
   extendListItemSchemaForTask,
   strikethroughSchema,
+  tableCellSchema,
+  tableHeaderSchema,
   tableSchema,
 } from '@milkdown/preset-gfm'
 
@@ -111,6 +113,18 @@ function listItemTaskSpec(baseSpec, node) {
       ]]),
     ...content,
   ]
+}
+
+function normalizeTableAlign(value) {
+  return ['left', 'center', 'right'].includes(value) ? value : 'left'
+}
+
+function tableCellAlignAttrs(node) {
+  const align = normalizeTableAlign(node.attrs?.alignment)
+  return {
+    'data-align': align,
+    style: `text-align: ${align}`,
+  }
 }
 
 function renderCodeBlock(node) {
@@ -292,6 +306,28 @@ export const tableContractSchema = tableSchema.extendSchema((prev) => (ctx) => {
   }
 })
 
+export const tableCellContractSchema = tableCellSchema.extendSchema((prev) => (ctx) => {
+  const base = prev(ctx)
+  return {
+    ...base,
+    toDOM: (node) => withDomAttrs(
+      renderBaseDom(base, node, ['td', 0]),
+      tableCellAlignAttrs(node),
+    ),
+  }
+})
+
+export const tableHeaderContractSchema = tableHeaderSchema.extendSchema((prev) => (ctx) => {
+  const base = prev(ctx)
+  return {
+    ...base,
+    toDOM: (node) => withDomAttrs(
+      renderBaseDom(base, node, ['th', 0]),
+      tableCellAlignAttrs(node),
+    ),
+  }
+})
+
 export const EDITOR_CONTRACT_PLUGINS = [
   headingContractSchema,
   paragraphContractSchema,
@@ -308,4 +344,6 @@ export const EDITOR_CONTRACT_PLUGINS = [
   linkContractSchema,
   inlineCodeContractSchema,
   tableContractSchema,
+  tableCellContractSchema,
+  tableHeaderContractSchema,
 ]

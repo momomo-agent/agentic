@@ -99,6 +99,32 @@ describe('AgenticRender editor', () => {
     })
   })
 
+  it('aligns editor and preview table cell alignment contract', async () => {
+    const markdown = [
+      '| Left | Center | Right |',
+      '| :--- | :---: | ---: |',
+      '| a | b | c |',
+    ].join('\n')
+
+    editor = createEditor(container, { value: markdown })
+    await editor.ready
+
+    const previewHost = document.createElement('div')
+    previewHost.innerHTML = render(markdown, { theme: 'dark' })
+
+    const previewHeaders = [...previewHost.querySelectorAll('th')]
+    const previewCells = [...previewHost.querySelectorAll('td')]
+    const editorHeaders = [...editor.element.querySelectorAll('th')]
+    const editorCells = [...editor.element.querySelectorAll('td')]
+
+    expect(previewHeaders.map((node) => node.dataset.align)).toEqual(['left', 'center', 'right'])
+    expect(previewCells.map((node) => node.dataset.align)).toEqual(['left', 'center', 'right'])
+    expect(editorHeaders.map((node) => node.dataset.align)).toEqual(['left', 'center', 'right'])
+    expect(editorCells.map((node) => node.dataset.align)).toEqual(['left', 'center', 'right'])
+
+    expect(editor.getValue()).toContain('| :--- | :---: | ---: |')
+  })
+
   it('gets and sets markdown value', async () => {
     editor = createEditor(container, { value: '# Initial' })
     await editor.ready
@@ -109,6 +135,52 @@ describe('AgenticRender editor', () => {
 
     expect(editor.getValue()).toContain('## Updated')
     expect(editor.getValue()).toContain('Body')
+  })
+
+  it('supports undo and redo keyboard shortcuts through ProseMirror history', async () => {
+    editor = createEditor(container, { value: 'Initial' })
+    await editor.ready
+
+    const view = editor.element.querySelector('.ProseMirror')
+    view.focus()
+    document.execCommand?.('selectAll')
+
+    view.dispatchEvent(new InputEvent('beforeinput', {
+      bubbles: true,
+      cancelable: true,
+      inputType: 'insertText',
+      data: 'Changed',
+    }))
+
+    if (!editor.getValue().includes('Changed')) {
+      view.textContent = 'Changed'
+      view.dispatchEvent(new InputEvent('input', {
+        bubbles: true,
+        inputType: 'insertText',
+        data: 'Changed',
+      }))
+    }
+
+    expect(editor.getValue()).toContain('Changed')
+
+    view.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'z',
+      metaKey: true,
+      bubbles: true,
+      cancelable: true,
+    }))
+
+    expect(editor.getValue()).toContain('Initial')
+
+    view.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'z',
+      metaKey: true,
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    }))
+
+    expect(editor.getValue()).toContain('Changed')
   })
 
   it('toggles editable state', async () => {

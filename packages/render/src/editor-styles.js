@@ -65,6 +65,31 @@ const EDITOR_CSS = `
   margin: 0;
 }
 
+.ar-editor-content .ar-table th,
+.ar-editor-content .ar-table td {
+  vertical-align: top;
+}
+
+.ar-editor-content .ar-table th[data-align],
+.ar-editor-content .ar-table td[data-align] {
+  text-align: inherit;
+}
+
+.ar-editor-content .ar-table th[data-align="left"],
+.ar-editor-content .ar-table td[data-align="left"] {
+  text-align: left;
+}
+
+.ar-editor-content .ar-table th[data-align="center"],
+.ar-editor-content .ar-table td[data-align="center"] {
+  text-align: center;
+}
+
+.ar-editor-content .ar-table th[data-align="right"],
+.ar-editor-content .ar-table td[data-align="right"] {
+  text-align: right;
+}
+
 .ar-editor-content .ar-task > .ar-p {
   flex: 1 1 auto;
   min-width: 0;

@@ -201,6 +201,33 @@
     return rows.reduce((max, row) => Math.max(max, row?.length || 0), 0)
   }
 
+  function tableAlignForSeparator(cell = '') {
+    const value = String(cell || '').trim()
+    if (!/^:?-{3,}:?$/.test(value)) return ''
+    const left = value.startsWith(':')
+    const right = value.endsWith(':')
+    if (left && right) return 'center'
+    if (right) return 'right'
+    if (left) return 'left'
+    return ''
+  }
+
+  function tableAlignsForColumns(separatorRow, count) {
+    const cells = tableCellsForColumns(separatorRow, count)
+    return cells.map(tableAlignForSeparator)
+  }
+
+  function tableCellAttrs(align, { nowrap = false } = {}) {
+    const styles = []
+    if (align) styles.push(`text-align:${align}`)
+    if (nowrap) styles.push('white-space:nowrap')
+
+    const attrs = []
+    if (align) attrs.push(`data-align="${align}"`)
+    if (styles.length) attrs.push(`style="${styles.join(';')}"`)
+    return attrs.length ? ` ${attrs.join(' ')}` : ''
+  }
+
   function codeFenceInfo(line) {
     const match = line.match(/^([ \t]*)(`{3,})(.*)$/)
     if (!match) return null
@@ -270,6 +297,7 @@
       if (inTable && tableRows.length > 0) {
         const headers = tableRows[0]
         const columnCount = tableColumnCount(tableRows)
+        const columnAligns = tableAlignsForColumns(tableRows[1], columnCount)
 
         // Analyze column widths: find max text length per column (excluding separator row)
         const colMaxLen = Array(columnCount).fill(0)
@@ -292,18 +320,17 @@
         for (let c = 0; c < headerCells.length; c++) {
           let cellHtml = inlineMarkdown((headerCells[c] || '').trim())
           cellHtml = cellHtml.replace(/&lt;br\s*\/?&gt;/gi, '<br>')
-          t += `<th>${cellHtml}</th>`
+          t += `<th${tableCellAttrs(columnAligns[c])}>${cellHtml}</th>`
         }
         t += '</tr></thead><tbody>'
         for (let r = 2; r < tableRows.length; r++) {
           t += '<tr>'
           const cells = tableCellsForColumns(tableRows[r], columnCount)
           for (let c = 0; c < cells.length; c++) {
-            const nw = colNowrap[c] ? ' style="white-space:nowrap"' : ''
             let cellHtml = inlineMarkdown((cells[c] || '').trim())
             // Restore <br> line breaks inside table cells
             cellHtml = cellHtml.replace(/&lt;br\s*\/?&gt;/gi, '<br>')
-            t += `<td${nw}>${cellHtml}</td>`
+            t += `<td${tableCellAttrs(columnAligns[c], { nowrap: colNowrap[c] })}>${cellHtml}</td>`
           }
           t += '</tr>'
         }
@@ -365,7 +392,7 @@
         } else {
           // Skip separator row
           if (/^[\s|:-]+$/.test(line)) {
-            tableRows.push(null) // placeholder for separator
+            tableRows.push(cells)
           } else {
             tableRows.push(cells)
           }

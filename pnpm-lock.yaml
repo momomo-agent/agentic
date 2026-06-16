@@ -224,12 +224,21 @@ importers:
       '@milkdown/plugin-listener':
         specifier: ^7.6.0
         version: 7.21.2
+      '@milkdown/plugin-prism':
+        specifier: ^7.6.0
+        version: 7.21.2
+      '@milkdown/prose':
+        specifier: ^7.6.0
+        version: 7.21.2
       '@milkdown/preset-commonmark':
         specifier: ^7.6.0
         version: 7.21.2
       '@milkdown/preset-gfm':
         specifier: ^7.6.0
         version: 7.21.2
+      refractor:
+        specifier: ^5.0.0
+        version: 5.0.0
     devDependencies:
       vite:
         specifier: 'catalog:'

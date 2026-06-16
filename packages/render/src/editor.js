@@ -4,6 +4,7 @@ import {
   editorViewCtx,
   editorViewOptionsCtx,
   parserCtx,
+  prosePluginsCtx,
   rootCtx,
   serializerCtx,
 } from '@milkdown/core'
@@ -12,6 +13,8 @@ import { gfm } from '@milkdown/preset-gfm'
 import { listener, listenerCtx } from '@milkdown/plugin-listener'
 import { prism, prismConfig } from '@milkdown/plugin-prism'
 import { refractor } from 'refractor'
+import { history, undo, redo } from '@milkdown/prose/history'
+import { keymap } from '@milkdown/prose/keymap'
 import { getCSS, THEME_DARK, THEME_LIGHT } from './index.js'
 import { EDITOR_CONTRACT_PLUGINS } from './editor-contract.js'
 import { syncInlineHtmlBreakNodes } from './editor-html-breaks.js'
@@ -83,6 +86,20 @@ function headingIdForNode(node, usedIds) {
 
 function cssAttributeValue(value) {
   return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
+function createHistoryKeymap() {
+  return keymap({
+    'Mod-z': undo,
+    'Shift-Mod-z': redo,
+    'Mod-y': redo,
+  })
+}
+
+function isUndoRedoShortcut(event) {
+  const key = String(event.key || '').toLowerCase()
+  if (!key || !(event.metaKey || event.ctrlKey)) return false
+  return key === 'z' || key === 'y'
 }
 
 function createEditor(target, options = {}) {
@@ -197,7 +214,15 @@ function createEditor(target, options = {}) {
     }
   }
 
+  function handleEditorShortcutPropagation(event) {
+    if (!isUndoRedoShortcut(event)) return
+    if (event.defaultPrevented || editable) {
+      event.stopPropagation()
+    }
+  }
+
   root.addEventListener('keydown', handleSave)
+  root.addEventListener('keydown', handleEditorShortcutPropagation)
 
   async function initialize() {
     milkdownEditor = await Editor.make()
@@ -206,6 +231,11 @@ function createEditor(target, options = {}) {
         ctx.set(defaultValueCtx, markdown)
         ctx.set(headingIdGenerator.key, (node) => slugHeadingText(node.textContent))
         ctx.set(prismConfig.key, { configureRefractor: () => refractor })
+        ctx.update(prosePluginsCtx, (plugins) => [
+          history(),
+          createHistoryKeymap(),
+          ...plugins,
+        ])
         ctx.update(editorViewOptionsCtx, (prev) => ({
           ...prev,
           ...getViewProps(),
@@ -322,6 +352,7 @@ function createEditor(target, options = {}) {
       destroyed = true
       clearChangeTimer()
       root.removeEventListener('keydown', handleSave)
+      root.removeEventListener('keydown', handleEditorShortcutPropagation)
       root.remove()
       view = null
       const destroyPromise = milkdownEditor?.destroy(true)
