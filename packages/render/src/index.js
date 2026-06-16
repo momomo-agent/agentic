@@ -740,6 +740,63 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+.ar-mermaid-diagram svg text,
+.ar-mermaid-diagram svg tspan,
+.ar-mermaid-diagram svg .label,
+.ar-mermaid-diagram svg .nodeLabel,
+.ar-mermaid-diagram svg .edgeLabel,
+.ar-mermaid-diagram svg .edgeLabel text,
+.ar-mermaid-diagram svg .messageText,
+.ar-mermaid-diagram svg .loopText,
+.ar-mermaid-diagram svg .labelText,
+.ar-mermaid-diagram svg .stateLabel,
+.ar-mermaid-diagram svg .state-title,
+.ar-mermaid-diagram svg .transition text,
+.ar-mermaid-diagram svg .classText,
+.ar-mermaid-diagram svg .pieTitleText,
+.ar-mermaid-diagram svg .legend text {
+  fill: #e4e4e7 !important;
+  color: #e4e4e7 !important;
+}
+.ar-mermaid-diagram svg .node rect,
+.ar-mermaid-diagram svg .node polygon,
+.ar-mermaid-diagram svg .node circle,
+.ar-mermaid-diagram svg .node ellipse,
+.ar-mermaid-diagram svg .state,
+.ar-mermaid-diagram svg .stateGroup,
+.ar-mermaid-diagram svg .classBox,
+.ar-mermaid-diagram svg .actor {
+  fill: #27272a !important;
+  stroke: #52525b !important;
+}
+.ar-mermaid-diagram svg .messageLine0,
+.ar-mermaid-diagram svg .messageLine1,
+.ar-mermaid-diagram svg .flowchart-link,
+.ar-mermaid-diagram svg .transition,
+.ar-mermaid-diagram svg path,
+.ar-mermaid-diagram svg line {
+  stroke: #a1a1aa !important;
+}
+.ar-mermaid-diagram svg marker path,
+.ar-mermaid-diagram svg .marker {
+  fill: #a1a1aa !important;
+  stroke: #a1a1aa !important;
+}
+.ar-mermaid-diagram svg .edgeLabel rect,
+.ar-mermaid-diagram svg .labelBkg {
+  fill: #18181b !important;
+  opacity: 0.92 !important;
+}
+.ar-mermaid-diagram svg .noteText {
+  fill: #18181b !important;
+  color: #18181b !important;
+}
+.ar-mermaid-diagram svg .note,
+.ar-mermaid-diagram svg .note rect {
+  fill: #fde68a !important;
+  stroke: #f59e0b !important;
+}
 .ar-mermaid::-webkit-scrollbar { display: none; }
 .ar-mermaid-source {
   display: none;
