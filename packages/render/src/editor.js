@@ -13,6 +13,7 @@ import { listener, listenerCtx } from '@milkdown/plugin-listener'
 import { prism, prismConfig } from '@milkdown/plugin-prism'
 import { refractor } from 'refractor'
 import { getCSS, THEME_DARK, THEME_LIGHT } from './index.js'
+import { EDITOR_CONTRACT_PLUGINS } from './editor-contract.js'
 import { syncInlineHtmlBreakNodes } from './editor-html-breaks.js'
 import { EDITOR_CSS, getEditorCSS } from './editor-styles.js'
 
@@ -238,6 +239,7 @@ function createEditor(target, options = {}) {
       })
       .use(commonmark)
       .use(gfm)
+      .use(EDITOR_CONTRACT_PLUGINS)
       .use(prism)
       .use(listener)
       .create()

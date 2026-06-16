@@ -11,6 +11,7 @@ if (!Element.prototype.scrollIntoView) {
 }
 
 const { createEditor } = await import('../src/editor.js')
+const { render } = await import('../src/index.js')
 
 describe('AgenticRender editor', () => {
   let container
@@ -42,6 +43,60 @@ describe('AgenticRender editor', () => {
     expect(typeof editor.getValue).toBe('function')
     expect(typeof editor.setValue).toBe('function')
     expect(container.querySelector('.ar-editor-content')).toBeTruthy()
+  })
+
+  it('aligns editor DOM contract with preview classes', async () => {
+    const markdown = [
+      '# Title',
+      '',
+      'Body with **strong**, *emphasis*, ~~strike~~, [link](https://example.com), and `inline`.',
+      '',
+      '> Quote',
+      '',
+      '- [x] Done task',
+      '- Plain item',
+      '',
+      '1. Ordered item',
+      '',
+      '![Alt](https://example.com/image.png)',
+      '',
+      '```js',
+      'const value = 1',
+      '```',
+      '',
+      '| Name | Value |',
+      '| --- | --- |',
+      '| a | b |',
+    ].join('\n')
+
+    editor = createEditor(container, { value: markdown })
+    await editor.ready
+
+    const previewHost = document.createElement('div')
+    previewHost.innerHTML = render(markdown, { theme: 'dark' })
+
+    const selectors = [
+      'h1.ar-h.ar-h1',
+      'p.ar-p',
+      'strong.ar-strong',
+      'em.ar-em',
+      'del.ar-del',
+      'a.ar-a',
+      'code.ar-inline-code',
+      'blockquote.ar-bq',
+      'ul.ar-ul',
+      'ol.ar-ol',
+      'li.ar-li.ar-task > .ar-checkbox.ar-checked',
+      'div.ar-code-wrap > .ar-code-header',
+      'div.ar-code-wrap > pre.ar-pre > code.ar-code',
+      'div.ar-table-scroll > table.ar-table',
+      'img.ar-img',
+    ]
+
+    selectors.forEach((selector) => {
+      expect(previewHost.querySelector(selector), `preview missing ${selector}`).toBeTruthy()
+      expect(editor.element.querySelector(selector), `editor missing ${selector}`).toBeTruthy()
+    })
   })
 
   it('gets and sets markdown value', async () => {
