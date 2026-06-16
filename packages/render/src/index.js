@@ -840,11 +840,15 @@
 .ar-task { list-style: none; margin-left: -1.5em; padding-left: 0; display: flex; align-items: flex-start; gap: 8px; }
 .ar-checkbox {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 18px; height: 18px; min-width: 18px;
-  border: 1.5px solid var(--ar-border); border-radius: 4px;
-  font-size: 12px; margin-top: 3px;
+  width: 16px; height: 16px; min-width: 16px;
+  color: var(--ar-text-1);
+  border-radius: 4px;
+  font-size: 12px; line-height: 1; margin-top: 3px;
+  opacity: 0.48;
+  transition: opacity .15s ease, background-color .15s ease, color .15s ease;
 }
-.ar-checked { background: var(--ar-accent); border-color: var(--ar-accent); color: #000; }
+.ar-checkbox::before { content: ''; }
+.ar-checkbox.ar-checked { opacity: 1; background: #facc15; color: #18181b; }
 
 /* ── Blockquote ── */
 .ar-bq {

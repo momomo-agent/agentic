@@ -19,8 +19,7 @@ const EDITOR_CSS = `
   caret-color: var(--ar-accent);
   word-wrap: break-word;
   overflow-wrap: break-word;
-  white-space: pre-wrap;
-  white-space: break-spaces;
+  white-space: normal;
   -webkit-font-variant-ligatures: none;
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0;
@@ -59,6 +58,31 @@ const EDITOR_CSS = `
   white-space: pre;
 }
 
+.ar-editor-content .ProseMirror .ar-code-wrap {
+  position: relative;
+}
+
+.ar-editor-content .ProseMirror .ar-code-wrap > pre.ar-pre {
+  margin-top: 0;
+}
+
+.ar-editor-content .ProseMirror .ar-code-header {
+  user-select: none;
+}
+
+.ar-editor-content .ProseMirror .tableWrapper,
+.ar-editor-content .ProseMirror .ar-table-scroll {
+  width: 0;
+  min-width: 100%;
+  overflow-x: auto;
+}
+
+.ar-editor-content .ProseMirror .tableWrapper > table,
+.ar-editor-content .ProseMirror .ar-table {
+  width: max-content;
+  min-width: 100%;
+}
+
 .ar-editor-content .ar-li > .ar-p,
 .ar-editor-content .ar-table th > .ar-p,
 .ar-editor-content .ar-table td > .ar-p {
@@ -93,6 +117,12 @@ const EDITOR_CSS = `
 .ar-editor-content .ar-task > .ar-p {
   flex: 1 1 auto;
   min-width: 0;
+  margin: 0;
+}
+
+.ar-editor-content .ProseMirror .ar-checkbox[data-editor-chrome="true"] {
+  flex: 0 0 auto;
+  cursor: pointer;
 }
 
 .ar-editor-content .ar-bq > :first-child {
