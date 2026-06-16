@@ -692,18 +692,26 @@
 }
 .ar-mermaid {
   padding: 16px 18px;
-  overflow-x: auto;
+  overflow: hidden;
+  touch-action: none;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  position: relative;
+  cursor: grab;
+}
+.ar-mermaid.is-panning {
+  cursor: grabbing;
+}
+.ar-mermaid-diagram {
+  transform-origin: 0 0;
+  transition: transform 0.1s ease-out;
+  will-change: transform;
 }
 .ar-mermaid::-webkit-scrollbar { display: none; }
 .ar-mermaid-source {
   display: none;
 }
-.ar-mermaid-diagram {
-  min-width: 240px;
-  min-height: 80px;
-}
+
 .ar-mermaid[data-ar-mermaid-state="error"] .ar-mermaid-source,
 .ar-mermaid[data-ar-mermaid-state="pending"] .ar-mermaid-source,
 .ar-mermaid[data-ar-mermaid-state="rendering"] .ar-mermaid-source {
