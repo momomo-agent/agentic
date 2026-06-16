@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 global.requestAnimationFrame = vi.fn((fn) => {
@@ -45,7 +46,7 @@ describe('AgenticRender editor', () => {
     expect(container.querySelector('.ar-editor-content')).toBeTruthy()
   })
 
-  it('aligns editor DOM contract with preview classes', async () => {
+  it('keeps editor DOM semantic while moving edit chrome outside schema content', async () => {
     const markdown = [
       '# Title',
       '',
@@ -75,7 +76,7 @@ describe('AgenticRender editor', () => {
     const previewHost = document.createElement('div')
     previewHost.innerHTML = render(markdown, { theme: 'dark' })
 
-    const selectors = [
+    const sharedSelectors = [
       'h1.ar-h.ar-h1',
       'p.ar-p',
       'strong.ar-strong',
@@ -86,17 +87,25 @@ describe('AgenticRender editor', () => {
       'blockquote.ar-bq',
       'ul.ar-ul',
       'ol.ar-ol',
-      'li.ar-li.ar-task > .ar-checkbox.ar-checked',
-      'div.ar-code-wrap > .ar-code-header',
-      'div.ar-code-wrap > pre.ar-pre > code.ar-code',
-      'div.ar-table-scroll > table.ar-table',
       'img.ar-img',
     ]
 
-    selectors.forEach((selector) => {
+    sharedSelectors.forEach((selector) => {
       expect(previewHost.querySelector(selector), `preview missing ${selector}`).toBeTruthy()
       expect(editor.element.querySelector(selector), `editor missing ${selector}`).toBeTruthy()
     })
+
+    expect(previewHost.querySelector('li.ar-li.ar-task > .ar-checkbox.ar-checked')).toBeTruthy()
+    const editorCheckbox = editor.element.querySelector('li.ar-li.ar-task .ar-checkbox[data-editor-chrome="true"].ar-checked')
+    expect(editorCheckbox).toBeTruthy()
+    expect(editorCheckbox.classList.contains('ProseMirror-widget')).toBe(true)
+
+    expect(previewHost.querySelector('div.ar-code-wrap > .ar-code-header')).toBeTruthy()
+    expect(editor.element.querySelector('div.ar-code-wrap > .ar-code-header[data-editor-chrome="true"]')).toBeTruthy()
+    expect(editor.element.querySelector('div.ar-code-wrap > pre.ar-pre > code.ar-code')).toBeTruthy()
+
+    expect(previewHost.querySelector('div.ar-table-scroll > table.ar-table')).toBeTruthy()
+    expect(editor.element.querySelector('div.ar-table-scroll > table.ar-table')).toBeTruthy()
   })
 
   it('aligns editor and preview table cell alignment contract', async () => {
@@ -181,6 +190,78 @@ describe('AgenticRender editor', () => {
     }))
 
     expect(editor.getValue()).toContain('Changed')
+  })
+
+  it('keeps code block transaction edits and selection stable across undo', async () => {
+    editor = createEditor(container, {
+      value: [
+        '```js',
+        'const value = 1',
+        '```',
+      ].join('\n'),
+    })
+    await editor.ready
+
+    const view = editor.view
+    expect(view).toBeTruthy()
+    expect(editor.element.querySelector('.ar-code-header')?.getAttribute('contenteditable')).toBe('false')
+
+    const originalText = 'const value = 1'
+    const inserted = '\nconsole.log(value)'
+    const insertPos = 1 + originalText.length
+    view.dispatch(view.state.tr.insertText(inserted, insertPos))
+
+    expect(editor.getValue()).toContain('console.log(value)')
+    expect(view.state.selection.from).toBe(insertPos + inserted.length)
+
+    view.dom.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'z',
+      metaKey: true,
+      bubbles: true,
+      cancelable: true,
+    }))
+
+    expect(editor.getValue()).toContain(originalText)
+    expect(editor.getValue()).not.toContain('console.log(value)')
+    expect(view.state.selection.from).toBeGreaterThan(0)
+  })
+
+  it('keeps task checkbox chrome out of text and toggles checked through transactions', async () => {
+    editor = createEditor(container, { value: '- [ ] Todo' })
+    await editor.ready
+
+    const checkbox = editor.element.querySelector('.ar-checkbox[data-editor-chrome="true"]')
+    const taskItem = editor.element.querySelector('li.ar-task')
+
+    expect(checkbox).toBeTruthy()
+    expect(checkbox.classList.contains('ProseMirror-widget')).toBe(true)
+    expect(taskItem?.textContent).toBe('Todo')
+    expect(editor.getValue()).toMatch(/[*-] \[ \] Todo/)
+
+    checkbox.dispatchEvent(new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+    }))
+
+    expect(editor.getValue()).toMatch(/[*-] \[x\] Todo/)
+
+    editor.view.dom.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'z',
+      metaKey: true,
+      bubbles: true,
+      cancelable: true,
+    }))
+
+    expect(editor.getValue()).toMatch(/[*-] \[ \] Todo/)
+  })
+
+  it('renders inline html break nodes without update-time DOM mutation', async () => {
+    editor = createEditor(container, { value: 'a<br>b' })
+    await editor.ready
+
+    const htmlBreak = editor.element.querySelector('span[data-type="html"][data-value="<br>"]')
+    expect(htmlBreak?.querySelector('br')).toBeTruthy()
+    expect(editor.getValue()).toContain('<br>')
   })
 
   it('toggles editable state', async () => {

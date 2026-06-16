@@ -17,7 +17,7 @@ import { history, undo, redo } from '@milkdown/prose/history'
 import { keymap } from '@milkdown/prose/keymap'
 import { getCSS, THEME_DARK, THEME_LIGHT } from './index.js'
 import { EDITOR_CONTRACT_PLUGINS } from './editor-contract.js'
-import { syncInlineHtmlBreakNodes } from './editor-html-breaks.js'
+import { createEditorChromePlugin } from './editor-chrome.js'
 import { EDITOR_CSS, getEditorCSS } from './editor-styles.js'
 
 const CHANGE_DEBOUNCE_MS = 300
@@ -157,7 +157,6 @@ function createEditor(target, options = {}) {
 
   function updatePlaceholderState() {
     if (!view) return
-    syncInlineHtmlBreakNodes(view.dom)
     view.dom.setAttribute('data-placeholder', placeholder)
 
     const firstBlock = view.dom.firstElementChild
@@ -235,6 +234,7 @@ function createEditor(target, options = {}) {
           history(),
           createHistoryKeymap(),
           ...plugins,
+          createEditorChromePlugin(),
         ])
         ctx.update(editorViewOptionsCtx, (prev) => ({
           ...prev,
@@ -362,6 +362,10 @@ function createEditor(target, options = {}) {
 
     get element() {
       return root
+    },
+
+    get view() {
+      return view
     },
 
     ready,

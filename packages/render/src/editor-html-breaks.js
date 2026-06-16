@@ -4,28 +4,16 @@ function isHtmlBreakValue(value) {
   return HTML_BREAK_VALUE_RE.test(String(value || '').trim())
 }
 
-function syncInlineHtmlBreakNodes(root) {
-  if (!root?.querySelectorAll) return
-
-  const ownerDocument = root.ownerDocument
-  if (!ownerDocument?.createElement) return
-
-  root.querySelectorAll('span[data-type="html"][data-value]').forEach((node) => {
-    const value = node.getAttribute('data-value')
-    if (!isHtmlBreakValue(value)) return
-
-    const hasRenderedBreak = (
-      node.childNodes.length === 1
-      && node.firstChild?.nodeName === 'BR'
-    )
-    if (hasRenderedBreak) return
-
-    node.replaceChildren(ownerDocument.createElement('br'))
-  })
+function inlineHtmlDomSpec(value) {
+  const attrs = {
+    'data-value': value,
+    'data-type': 'html',
+  }
+  return isHtmlBreakValue(value) ? ['span', attrs, ['br']] : ['span', attrs, value]
 }
 
 export {
   HTML_BREAK_VALUE_RE,
+  inlineHtmlDomSpec,
   isHtmlBreakValue,
-  syncInlineHtmlBreakNodes,
 }

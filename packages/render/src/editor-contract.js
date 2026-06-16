@@ -6,6 +6,7 @@ import {
   headingSchema,
   hrSchema,
   imageSchema,
+  htmlSchema,
   inlineCodeSchema,
   linkSchema,
   orderedListSchema,
@@ -19,6 +20,7 @@ import {
   tableHeaderSchema,
   tableSchema,
 } from '@milkdown/preset-gfm'
+import { inlineHtmlDomSpec } from './editor-html-breaks.js'
 
 function dataAttrs(attrs = {}) {
   const out = {}
@@ -100,17 +102,6 @@ function listItemTaskSpec(baseSpec, node) {
       'data-item-type': node.attrs.checked == null ? undefined : 'task',
       'data-checked': node.attrs.checked == null ? undefined : String(Boolean(node.attrs.checked)),
     }),
-    ...(node.attrs.checked == null
-      ? []
-      : [[
-        'span',
-        {
-          class: `ar-checkbox${node.attrs.checked ? ' ar-checked' : ''}`,
-          contenteditable: 'false',
-          'aria-hidden': 'true',
-        },
-        node.attrs.checked ? '✓' : '',
-      ]]),
     ...content,
   ]
 }
@@ -130,16 +121,12 @@ function tableCellAlignAttrs(node) {
 function renderCodeBlock(node) {
   const language = String(node.attrs.language || '').trim()
   return [
-    'div',
+    'pre',
     {
-      class: 'ar-code-wrap',
-      ...(language ? { 'data-language': language } : {}),
-    },
-    ['div', { class: 'ar-code-header', contenteditable: 'false' }, language || 'code'],
-    ['pre', {
       class: 'ar-pre',
       ...(language ? { 'data-language': language } : {}),
-    }, ['code', { class: 'ar-code' }, 0]],
+    },
+    ['code', { class: 'ar-code' }, 0],
   ]
 }
 
@@ -245,6 +232,17 @@ export const codeBlockContractSchema = codeBlockSchema.extendSchema((prev) => (c
   toDOM: (node) => renderCodeBlock(node),
 }))
 
+export const htmlBreakContractSchema = htmlSchema.extendSchema((prev) => (ctx) => {
+  const base = prev(ctx)
+  return {
+    ...base,
+    toDOM: (node) => {
+      const value = String(node.attrs.value || '')
+      return inlineHtmlDomSpec(value)
+    },
+  }
+})
+
 export const strongContractSchema = strongSchema.extendSchema((prev) => (ctx) => {
   const base = prev(ctx)
   return {
@@ -296,13 +294,10 @@ export const tableContractSchema = tableSchema.extendSchema((prev) => (ctx) => {
   const base = prev(ctx)
   return {
     ...base,
-    toDOM: (node) => {
-      const tableSpec = withDomAttrs(
-        renderBaseDom(base, node, ['table', ['tbody', 0]]),
-        { class: 'ar-table' },
-      )
-      return ['div', { class: 'ar-table-scroll' }, tableSpec]
-    },
+    toDOM: (node) => withDomAttrs(
+      renderBaseDom(base, node, ['table', ['tbody', 0]]),
+      { class: 'ar-table' },
+    ),
   }
 })
 
@@ -338,6 +333,7 @@ export const EDITOR_CONTRACT_PLUGINS = [
   hrContractSchema,
   imageContractSchema,
   codeBlockContractSchema,
+  htmlBreakContractSchema,
   strongContractSchema,
   emphasisContractSchema,
   strikethroughContractSchema,
