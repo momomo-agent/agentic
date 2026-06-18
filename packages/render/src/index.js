@@ -793,6 +793,10 @@
 .ar-mermaid-diagram svg foreignObject * {
   fill: #e4e4e7 !important;
   color: #e4e4e7 !important;
+  stroke: none !important;
+  stroke-width: 0 !important;
+  filter: none !important;
+  text-shadow: none !important;
   line-height: 1.25 !important;
 }
 .ar-mermaid-diagram svg .node rect,
@@ -803,7 +807,7 @@
 .ar-mermaid-diagram svg .state,
 .ar-mermaid-diagram svg .stateGroup,
 .ar-mermaid-diagram svg .classBox,
-.ar-mermaid-diagram svg .actor {
+.ar-mermaid-diagram svg rect.actor {
   fill: #27272a !important;
   stroke: #52525b !important;
 }
@@ -813,6 +817,10 @@
 .ar-mermaid-diagram svg .actor tspan {
   fill: #e4e4e7 !important;
   color: #e4e4e7 !important;
+  stroke: none !important;
+  stroke-width: 0 !important;
+  filter: none !important;
+  text-shadow: none !important;
 }
 .ar-mermaid-diagram svg .messageLine0,
 .ar-mermaid-diagram svg .messageLine1,
@@ -820,7 +828,14 @@
 .ar-mermaid-diagram svg .edgePath path,
 .ar-mermaid-diagram svg path.transition,
 .ar-mermaid-diagram svg .transition path,
-.ar-mermaid-diagram svg line {
+.ar-mermaid-diagram svg .actor-line,
+.ar-mermaid-diagram svg .messageLine0,
+.ar-mermaid-diagram svg .messageLine1,
+.ar-mermaid-diagram svg .loopLine,
+.ar-mermaid-diagram svg .note-line,
+.ar-mermaid-diagram svg .edge-pattern-solid,
+.ar-mermaid-diagram svg .edge-pattern-dashed,
+.ar-mermaid-diagram svg .edge-pattern-dotted {
   stroke: #a1a1aa !important;
   fill: none !important;
 }
