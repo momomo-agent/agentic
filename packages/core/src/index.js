@@ -12,10 +12,13 @@ const CRITICAL_THRESHOLD = 20
 const GLOBAL_CIRCUIT_BREAKER_THRESHOLD = 30
 const TOOL_CALL_HISTORY_SIZE = 30
 const EAGER_HINT = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
+const DEFAULT_OUTPUT_MAX_TOKENS = 4096
+const MAX_ANTHROPIC_OUTPUT_TOKENS = 32000
 
 // ── Hash helpers (browser-safe) ──
 
-function simpleHash(str) {
+function simpleHash(value) {
+  const str = typeof value === 'string' ? value : stableStringify(value)
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)
@@ -25,11 +28,28 @@ function simpleHash(str) {
   return Math.abs(hash).toString(16)
 }
 
-function stableStringify(value) {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value)
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`
+function stableStringify(value, seen = new WeakSet()) {
+  if (value === undefined) return 'undefined'
+  if (value === null) return 'null'
+  if (typeof value !== 'object') {
+    try {
+      const json = JSON.stringify(value)
+      return typeof json === 'string' ? json : String(value)
+    } catch {
+      return String(value)
+    }
+  }
+  if (seen.has(value)) return '"[Circular]"'
+  seen.add(value)
+  if (Array.isArray(value)) {
+    const out = `[${Array.from(value, item => stableStringify(item, seen)).join(',')}]`
+    seen.delete(value)
+    return out
+  }
   const keys = Object.keys(value).sort()
-  return `{${keys.map(k => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(',')}}`
+  const out = `{${keys.map(k => `${JSON.stringify(k)}:${stableStringify(value[k], seen)}`).join(',')}}`
+  seen.delete(value)
+  return out
 }
 
 function hashToolCall(toolName, params) {
@@ -481,6 +501,53 @@ function gatewayMeta(base = {}, extra = {}) {
   }
 }
 
+function normalizeOutputMaxTokens({ outputMaxTokens, maxTokens, provider } = {}) {
+  let value = outputMaxTokens ?? maxTokens
+  let n = Number(value)
+  if (!Number.isFinite(n) || n <= 0) n = DEFAULT_OUTPUT_MAX_TOKENS
+  n = Math.floor(n)
+  if (provider === 'anthropic') n = Math.min(n, MAX_ANTHROPIC_OUTPUT_TOKENS)
+  return n
+}
+
+function normalizeAnthropicSystem(system) {
+  if (!system) return undefined
+  const blocks = Array.isArray(system) ? system : [system]
+  const out = []
+  for (const block of blocks) {
+    if (typeof block === 'string') {
+      if (block) out.push({ type: 'text', text: block, cache_control: { type: 'ephemeral' } })
+      continue
+    }
+    if (!block || typeof block !== 'object') continue
+    const text = block.text != null ? stringifyPromptText(block.text) : stringifyPromptText(block)
+    if (!text) continue
+    const normalized = { type: 'text', text }
+    if (block.cache_control) normalized.cache_control = block.cache_control
+    out.push(normalized)
+  }
+  return out.length ? out : undefined
+}
+
+function systemToText(system) {
+  if (!system) return ''
+  if (Array.isArray(system)) {
+    return system.map(block => {
+      if (typeof block === 'string') return block
+      if (block?.text != null) return stringifyPromptText(block.text)
+      return stringifyPromptText(block)
+    }).filter(Boolean).join('\n\n')
+  }
+  return stringifyPromptText(system)
+}
+
+function prependSystemText(system, text) {
+  if (!text) return system
+  if (!system) return text
+  if (Array.isArray(system)) return [{ type: 'text', text }, ...system]
+  return `${text}\n\n${stringifyPromptText(system)}`
+}
+
 async function modelFetch(url, fetchOpts = {}, meta = {}) {
   const gateway = globalThis && globalThis.__BRICK_MODEL_GATEWAY__
   if (gateway && typeof gateway.fetch === 'function') return gateway.fetch(url, fetchOpts, { ...meta, url, signal: fetchOpts.signal || meta.signal })
@@ -560,10 +627,56 @@ function contentToText(content) {
       if (typeof part === 'string') return part
       if (typeof part.text === 'string') return part.text
       if (typeof part.content === 'string') return part.content
-      return ''
+      return stringifyPromptText(part)
     }).join('')
   }
-  return String(content)
+  return stringifyPromptText(content)
+}
+
+function stringifyPromptText(value) {
+  if (typeof value === 'string') return value
+  if (value === undefined || value === null) return ''
+  try {
+    const json = JSON.stringify(value)
+    if (typeof json === 'string') return json
+  } catch {}
+  return String(value ?? '')
+}
+
+function normalizePromptMessages(history) {
+  if (!Array.isArray(history)) return []
+  const out = []
+  for (const message of history) {
+    if (!message || typeof message !== 'object') continue
+    const role = stringifyPromptText(message.role).trim()
+    if (!role) continue
+    if (role === 'assistant') {
+      const item = { ...message, role, content: stringifyPromptText(message.content) }
+      if (Array.isArray(message.tool_calls)) {
+        item.tool_calls = message.tool_calls
+          .filter(call => call && (call.id || call.call_id) && (call.name || call.function?.name))
+          .map(call => ({
+            ...call,
+            id: String(call.id || call.call_id),
+            name: String(call.name || call.function?.name),
+            input: call.input ?? call.arguments ?? call.function?.arguments ?? {},
+          }))
+      }
+      out.push(item)
+      continue
+    }
+    if (role === 'tool') {
+      out.push({
+        ...message,
+        role,
+        tool_call_id: stringifyPromptText(message.tool_call_id),
+        content: stringifyPromptText(message.content),
+      })
+      continue
+    }
+    out.push({ ...message, role, content: stringifyPromptText(message.content) })
+  }
+  return out
 }
 
 // ── agenticAsk: backward-compat wrapper ──
@@ -616,7 +729,7 @@ function unregisterProvider(name) {
 // ── Provider failover ──
 
 async function _callWithFailover(opts) {
-  const { messages, tools, model, baseUrl, apiKey, proxyUrl, stream, system, provider, signal, providers, maxTokens } = opts
+  const { messages, tools, model, baseUrl, apiKey, proxyUrl, stream, system, provider, signal, providers, outputMaxTokens, maxTokens } = opts
   const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
 
   let lastErr
@@ -636,7 +749,7 @@ async function _callWithFailover(opts) {
         baseUrl: p.baseUrl || baseUrl,
         apiKey: p.apiKey || apiKey,
         proxyUrl: p.proxyUrl || proxyUrl,
-        stream, emit: function noop(){}, system, signal, maxTokens,
+        stream, emit: function noop(){}, system, signal, outputMaxTokens, maxTokens,
         onToolReady: opts.onToolReady,
         modelGatewayPriority: opts.modelGatewayPriority,
         modelGatewaySource: opts.modelGatewaySource,
@@ -667,7 +780,7 @@ async function _callWithFailover(opts) {
  * then yields { type: 'response', content, tool_calls, stop_reason } at the end.
  */
 async function* _streamCallWithFailover(opts) {
-  const { messages, tools, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, maxTokens } = opts
+  const { messages, tools, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, outputMaxTokens, maxTokens } = opts
   const providerList = (providers && providers.length) ? providers : [{ provider, apiKey, baseUrl, model, proxyUrl }]
 
   let lastErr
@@ -683,7 +796,7 @@ async function* _streamCallWithFailover(opts) {
     const custom = _customProviders.get(prov)
     if (custom) {
       try {
-        const result = custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system, signal })
+        const result = custom({ messages, tools, model: pModel, baseUrl: pBaseUrl, apiKey: pApiKey, proxyUrl: pProxyUrl, stream: true, emit: function noop(){}, system, signal, outputMaxTokens, maxTokens })
         if (result && typeof result[Symbol.asyncIterator] === 'function') {
           // Streaming custom provider
           let content = ''; const tool_calls = []
@@ -719,10 +832,14 @@ async function* _streamCallWithFailover(opts) {
         headers = { 'content-type': 'application/json', 'x-api-key': pApiKey, 'anthropic-version': '2023-06-01' }
         // Build Anthropic messages format (handles multimodal tool_result blocks)
         const anthropicMessages = buildAnthropicMessages(messages)
-        body = { model: pModel || 'claude-sonnet-4', max_tokens: maxTokens || 4096, messages: anthropicMessages, stream: true }
-        if (system) body.system = Array.isArray(system)
-          ? system.map(s => typeof s === 'string' ? { type: 'text', text: s, cache_control: { type: 'ephemeral' } } : { type: 'text', ...s })
-          : [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
+        body = {
+          model: pModel || 'claude-sonnet-4',
+          max_tokens: normalizeOutputMaxTokens({ outputMaxTokens, maxTokens, provider: 'anthropic' }),
+          messages: anthropicMessages,
+          stream: true,
+        }
+        const normalizedSystem = normalizeAnthropicSystem(system)
+        if (normalizedSystem) body.system = normalizedSystem
         if (tools?.length) {
           body.tools = tools.map((t, i) => i === tools.length - 1
             ? { ...t, cache_control: { type: 'ephemeral' } }
@@ -737,7 +854,8 @@ async function* _streamCallWithFailover(opts) {
         headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
         const input = buildOpenAIResponsesInput(messages)
         body = { model: pModel || 'gpt-4.1-mini', input, stream: true }
-        if (system) body.instructions = system
+        const instructions = systemToText(system)
+        if (instructions) body.instructions = instructions
         if (tools?.length) {
           body.tools = tools.map(t => ({ type: 'function', name: t.name, description: t.description, parameters: t.input_schema || t.parameters }))
           body.tool_choice = 'auto'
@@ -746,7 +864,7 @@ async function* _streamCallWithFailover(opts) {
       } else {
         url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
         headers = { 'content-type': 'application/json', 'authorization': `Bearer ${pApiKey}` }
-        const oaiMessages = buildOpenAIMessages(messages, system)
+        const oaiMessages = buildOpenAIMessages(messages, systemToText(system))
         body = { model: pModel || 'gpt-4', messages: oaiMessages, stream: true }
         if (tools?.length) {
           body.tools = tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } })); body.tool_choice = 'auto'
@@ -833,14 +951,16 @@ function blocksForTransformedToolContent(blocks, rawContent, content) {
 }
 
 async function* _agenticAskGen(prompt, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, maxTokens, steer, transformToolContent, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, outputMaxTokens, maxTokens, steer, transformToolContent, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
+  const promptText = stringifyPromptText(prompt)
   const modelGateway = { modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
+  const normalizedSystem = Array.isArray(system) ? system : systemToText(system)
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
 
   // Schema mode
   if (schema) {
-    const result = await schemaAsk(prompt, config, function noop(){})
+    const result = await schemaAsk(promptText, { ...config, system: normalizedSystem }, function noop(){})
     yield { type: 'done', answer: result.answer, rounds: 1, stopReason: 'end_turn', messages: [] }
     return
   }
@@ -850,7 +970,7 @@ async function* _agenticAskGen(prompt, config) {
   // Build messages
   const messages = []
   if (history?.length) {
-    messages.push(...history)
+    messages.push(...normalizePromptMessages(history))
   }
 
   // Build user message — support vision (images) and audio
@@ -873,10 +993,10 @@ async function* _agenticAskGen(prompt, config) {
         content.push({ type: 'input_audio', input_audio: { data: audio.data, format: audio.format || 'wav' } })
       }
     }
-    content.push({ type: 'text', text: prompt })
+    content.push({ type: 'text', text: promptText })
     messages.push({ role: 'user', content })
   } else {
-    messages.push({ role: 'user', content: prompt })
+    messages.push({ role: 'user', content: promptText })
   }
 
   let round = 0
@@ -901,15 +1021,15 @@ async function* _agenticAskGen(prompt, config) {
 
   const t_start = Date.now()
 
-  console.log('[agenticAsk] Starting with prompt:', prompt.slice(0, 50))
+  console.log('[agenticAsk] Starting with prompt:', promptText.slice(0, 50))
   console.log('[agenticAsk] Tools available:', tools, 'Stream:', stream)
   console.log('[agenticAsk] Provider:', provider)
 
   // Eager execution hint at core level: prepend to system when tools are available
   const eagerEnabled = toolDefs.length > 0
   const effectiveSystem = eagerEnabled
-    ? (system ? EAGER_HINT + '\n\n' + system : EAGER_HINT)
-    : system
+    ? prependSystemText(normalizedSystem, EAGER_HINT)
+    : normalizedSystem
   const maxModelRetries = normalizeRetryCount(retries)
 
   yield { type: 'config', eager: eagerEnabled, tools: toolDefs.length, provider }
@@ -931,10 +1051,10 @@ async function* _agenticAskGen(prompt, config) {
       let queued
       queued = await drainSteerQueue(steer)
       if (queued && queued.length) {
-        const injected = []
-        for (const item of queued) {
-          if (item == null) continue
-          const text = typeof item === 'string' ? item : (item.content ?? '')
+          const injected = []
+          for (const item of queued) {
+            if (item == null) continue
+          const text = typeof item === 'string' ? item : stringifyPromptText(item.content ?? item)
           if (!text) continue
           messages.push({ role: 'user', content: text })
           injected.push(text)
@@ -965,7 +1085,7 @@ async function* _agenticAskGen(prompt, config) {
       while (true) {
         let progressed = false
         try {
-          const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers, maxTokens, ...modelGateway })
+          const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })
           for await (const evt of streamGen) {
             if (evt.type === 'text_delta') {
               progressed = true
@@ -1011,7 +1131,7 @@ async function* _agenticAskGen(prompt, config) {
       let attempt = 0
       while (true) {
         try {
-          response = await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, maxTokens, ...modelGateway }))
+          response = await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway }))
           break
         } catch (err) {
           const cls = classifyError(err)
@@ -1242,7 +1362,7 @@ async function* _agenticAskGen(prompt, config) {
         let content = ''
         let progressed = false
         try {
-          for await (const evt of _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, maxTokens, ...modelGateway })) {
+          for await (const evt of _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })) {
             if (evt.type === 'text_delta') {
               progressed = true
               content += evt.text
@@ -1270,7 +1390,7 @@ async function* _agenticAskGen(prompt, config) {
       let attempt = 0
       while (true) {
         try {
-          const finalResponse = await raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, maxTokens, ...modelGateway }))
+          const finalResponse = await raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway }))
           finalAnswer = finalResponse.content || '(no response)'
           finalAnswerReady = true
           break
@@ -1297,7 +1417,7 @@ async function* _agenticAskGen(prompt, config) {
 
 // ── LLM Chat Functions ──
 
-async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady, maxTokens, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }) {
+async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseUrl = 'https://api.anthropic.com', apiKey, proxyUrl, stream = false, emit, system, signal, onToolReady, outputMaxTokens, maxTokens, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }) {
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.endsWith('/v1') ? `${base}/messages` : `${base}/v1/messages`
   const baseMeta = { provider: 'anthropic', model, baseUrl, apiKey, proxyUrl, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
@@ -1307,7 +1427,7 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
 
   const body = {
     model,
-    max_tokens: maxTokens || 4096,
+    max_tokens: normalizeOutputMaxTokens({ outputMaxTokens, maxTokens, provider: 'anthropic' }),
     messages: anthropicMessages,
     stream,
   }
@@ -1323,11 +1443,8 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
   }
 
   // Apply cache_control to system prompt
-  if (system) {
-    body.system = Array.isArray(system)
-      ? system.map(s => typeof s === 'string' ? { type: 'text', text: s, cache_control: { type: 'ephemeral' } } : { type: 'text', ...s })
-      : [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
-  }
+  const normalizedSystem = normalizeAnthropicSystem(system)
+  if (normalizedSystem) body.system = normalizedSystem
 
   // Apply cache_control to last tool definition (caches all tools up to that point)
   if (tools?.length) {
@@ -1366,7 +1483,7 @@ async function openaiChat({ messages, tools, model = 'gpt-4', baseUrl = 'https:/
   const base = baseUrl.replace(/\/+$/, '')
   const url = base.includes('/v1') ? `${base}/chat/completions` : `${base}/v1/chat/completions`
   const baseMeta = { provider: 'openai', model, baseUrl, apiKey, proxyUrl, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
-  const oaiMessages = buildOpenAIMessages(messages, system)
+  const oaiMessages = buildOpenAIMessages(messages, systemToText(system))
   const body = { model, messages: oaiMessages, stream }
   if (tools?.length) {
     body.tools = tools.map(t => ({ type: 'function', function: t }))
@@ -1414,7 +1531,8 @@ async function openaiResponsesChat({ messages, tools, model = 'gpt-4.1-mini', ba
   const baseMeta = { provider: 'openai-responses', model, baseUrl, apiKey, proxyUrl, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
   const input = buildOpenAIResponsesInput(messages)
   const body = { model, input, stream }
-  if (system) body.instructions = system
+  const instructions = systemToText(system)
+  if (instructions) body.instructions = instructions
   if (tools?.length) {
     // Responses API tools are flat (no `function` wrapper)
     body.tools = tools.map(t => ({
@@ -2654,7 +2772,7 @@ async function searchWeb(query, apiKey) {
 // ── Schema Mode (Structured Output) ──
 
 async function schemaAsk(prompt, config, emit) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, history, proxyUrl, schema, retries = 2, images, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, history, proxyUrl, schema, retries = 2, images, outputMaxTokens, maxTokens, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
   
   const schemaStr = JSON.stringify(schema, null, 2)
   const systemPrompt = `You must respond with valid JSON that matches this schema:\n${schemaStr}\n\nRules:\n- Output ONLY the JSON object, no markdown, no explanation, no code fences\n- All required fields must be present\n- Types must match exactly`
@@ -2695,7 +2813,7 @@ async function schemaAsk(prompt, config, emit) {
     const chatFn = provider === 'anthropic' ? anthropicChat : provider === 'openai-responses' ? openaiResponsesChat : openaiChat
     const response = await chatFn({
       messages: [{ role: 'user', content: userContent }],
-      tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit,
+      tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, emit, outputMaxTokens, maxTokens,
       modelGatewayPriority,
       modelGatewaySource: modelGatewaySource || 'schema',
       modelGatewaySilent,
@@ -3079,7 +3197,7 @@ async function warmup(config = {}) {
 // ── agenticStep: single-turn LLM call, caller controls tool loop ──
 // Returns { text, toolCalls, messages, done } — caller executes tools and calls step() again
 async function agenticStep(messages, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = [], proxyUrl, stream = false, system, signal, providers, emit: emitFn, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = [], proxyUrl, stream = false, system, signal, providers, outputMaxTokens, maxTokens, emit: emitFn, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
   const modelGateway = { modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
@@ -3107,7 +3225,7 @@ async function agenticStep(messages, config) {
   if (stream) {
     // Streaming: yield tokens, collect response
     try {
-      const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, ...modelGateway })
+      const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })
       for await (const evt of streamGen) {
         if (evt.type === 'text_delta') {
           text += evt.text
@@ -3121,7 +3239,7 @@ async function agenticStep(messages, config) {
     }
   } else {
     try {
-      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, ...modelGateway })
+      response = await _callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })
       text = response.content || ''
     } catch (err) {
       throw err
@@ -3199,7 +3317,7 @@ async function buildToolResultsAsync(toolCalls, results, options) {
 //   const result = await chatResult(messages, opts) // convenience wrapper
 
 function chat(messages, opts = {}) {
-  const { system, tools, stream = true, provider, apiKey, baseUrl, model, proxyUrl, signal, providers, images, audio, schema, searchApiKey, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = opts
+  const { system, tools, stream = true, provider, apiKey, baseUrl, model, proxyUrl, signal, providers, images, audio, schema, searchApiKey, outputMaxTokens, maxTokens, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = opts
 
   // Extract last user message as prompt, rest as history
   const lastMsg = messages[messages.length - 1]
@@ -3208,7 +3326,7 @@ function chat(messages, opts = {}) {
 
   const config = {
     provider, apiKey, baseUrl, model, proxyUrl, signal, providers,
-    history, system, tools, stream, images, audio, schema, searchApiKey,
+    history, system, tools, stream, images, audio, schema, searchApiKey, outputMaxTokens, maxTokens,
     modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus,
   }
 

@@ -109,6 +109,24 @@ describe('claw streaming upgrade', () => {
       assert.equal(msgs[1].content, 'Hello world')
       claw.destroy()
     })
+
+    it('separates context budget from output budget', async () => {
+      mockAskCalls = []
+      const claw = createClaw({ apiKey: 'test-key', contextMaxTokens: 200000, outputMaxTokens: 4096 })
+      for await (const _ of claw.session('split-budget').chat('Hello')) {}
+      assert.equal(mockAskCalls[0].config.outputMaxTokens, 4096)
+      assert.equal(mockAskCalls[0].config.maxTokens, undefined)
+      claw.destroy()
+    })
+
+    it('keeps per-call maxTokens as output budget alias', async () => {
+      mockAskCalls = []
+      const claw = createClaw({ apiKey: 'test-key' })
+      for await (const _ of claw.session('alias-budget').chat('Hello', { maxTokens: 50 })) {}
+      assert.equal(mockAskCalls[0].config.outputMaxTokens, 50)
+      assert.equal(mockAskCalls[0].config.maxTokens, undefined)
+      claw.destroy()
+    })
   })
 
   describe('chat() legacy emit mode', () => {

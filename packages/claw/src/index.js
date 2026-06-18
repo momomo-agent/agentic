@@ -109,6 +109,34 @@
     return expanded
   }
 
+  function normalizePositiveInt(value, fallback) {
+    const n = Number(value)
+    if (Number.isFinite(n) && n > 0) return Math.floor(n)
+    return fallback
+  }
+
+  function stringifyMemoryText(value) {
+    if (typeof value === 'string') return value
+    if (value === undefined || value === null) return ''
+    try {
+      const json = JSON.stringify(value)
+      if (typeof json === 'string') return json
+    } catch {}
+    return String(value ?? '')
+  }
+
+  function normalizeHistoryToolCalls(toolCalls) {
+    if (!Array.isArray(toolCalls)) return []
+    return toolCalls
+      .filter(tc => tc && (tc.id || tc.call_id) && (tc.name || tc.function?.name))
+      .map(tc => ({
+        ...tc,
+        id: String(tc.id || tc.call_id),
+        name: String(tc.name || tc.function?.name),
+        input: tc.input ?? tc.arguments ?? tc.function?.arguments ?? {},
+      }))
+  }
+
   // ── createClaw ───────────────────────────────────────────────────
 
   function createClaw(options = {}) {
@@ -123,6 +151,8 @@
       systemPrompt: options.systemPrompt || null,
       providers: options.providers || null,
       stream: options.stream !== false,
+      contextMaxTokens: normalizePositiveInt(options.contextMaxTokens ?? options.memoryMaxTokens ?? options.maxTokens, 8000),
+      outputMaxTokens: normalizePositiveInt(options.outputMaxTokens, 4096),
     }
     const {
       tools = [],
@@ -133,7 +163,6 @@
       embedApiKey = null,
       embedBaseUrl = null,
       persist = null,
-      maxTokens = 8000,
       disableMemoryCompaction = false,
     } = options
 
@@ -228,6 +257,7 @@
             history: messages.slice(0, -1),
             system: chatOpts.system, tools: chatOpts.tools || allTools,
             stream: true,
+            outputMaxTokens: normalizePositiveInt(chatOpts.outputMaxTokens ?? chatOpts.maxTokens, cfg.outputMaxTokens),
             ...(cfg.providers ? { providers: cfg.providers } : {}),
             ...(chatOpts.images ? { images: chatOpts.images } : {}),
             ...(chatOpts.audio ? { audio: chatOpts.audio } : {}),
@@ -252,6 +282,7 @@
           system: workerSystem,
           tools: workerTools,
           stream: true,
+          outputMaxTokens: normalizePositiveInt(taskOpts.outputMaxTokens ?? taskOpts.maxTokens, cfg.outputMaxTokens),
           ...(cfg.providers ? { providers: cfg.providers } : {}),
         }
 
@@ -326,7 +357,7 @@
 
     function _createSessionMemory(sessionId) {
       return memory.createMemory({
-        maxTokens,
+        maxTokens: cfg.contextMaxTokens,
         systemPrompt: cfg.systemPrompt,
         storage: persist ? (persist + ':' + sessionId) : null,
         id: sessionId,
@@ -343,9 +374,11 @@
       let restored = 0
       for (const m of messages) {
         if (!m || typeof m !== 'object') continue
-        if (typeof m.content !== 'string') continue
-        if (m.role === 'user') { await mem.user(m.content); restored++ }
-        else if (m.role === 'assistant') { await mem.assistant(m.content); restored++ }
+        const role = stringifyMemoryText(m.role).trim()
+        const content = stringifyMemoryText(m.content)
+        if (!content) continue
+        if (role === 'user') { await mem.user(content); restored++ }
+        else if (role === 'assistant') { await mem.assistant(content); restored++ }
       }
       return restored
     }
@@ -421,28 +454,29 @@
     function _estimateTokens(messages) {
       let chars = 0
       for (const m of messages) {
-        chars += (typeof m.content === 'string' ? m.content.length : JSON.stringify(m.content).length) + 10
+        chars += stringifyMemoryText(m?.content).length + 10
       }
       return Math.ceil(chars / 4) // ~4 chars per token
     }
 
-    async function _compactIfNeeded(sessionMem) {
+    async function _compactIfNeeded(sessionMem, contextMaxTokensOverride) {
       if (disableMemoryCompaction) return
       const msgs = sessionMem.messages()
       const est = _estimateTokens(msgs)
-      if (est <= maxTokens || msgs.length <= 4) return
+      const contextMaxTokens = normalizePositiveInt(contextMaxTokensOverride, cfg.contextMaxTokens)
+      if (est <= contextMaxTokens || msgs.length <= 4) return
       // Keep last 4 messages, summarize the rest
       const keepCount = 4
       const older = msgs.slice(0, msgs.length - keepCount)
       const recent = msgs.slice(msgs.length - keepCount)
-      const summaryText = older.map(m => `${m.role}: ${typeof m.content === 'string' ? m.content.slice(0, 200) : '[complex]'}`).join('\n')
-      const summary = { role: 'system', content: `[Conversation summary]\n${summaryText.slice(0, maxTokens)}` }
+      const summaryText = older.map(m => `${m.role}: ${stringifyMemoryText(m.content).slice(0, 200)}`).join('\n')
+      const summary = { role: 'system', content: `[Conversation summary]\n${summaryText.slice(0, contextMaxTokens)}` }
       sessionMem.clear()
       await sessionMem.user(summary.content)
       // Re-add recent messages
       for (const m of recent) {
-        if (m.role === 'user') await sessionMem.user(m.content)
-        else if (m.role === 'assistant') await sessionMem.assistant(m.content)
+        if (m.role === 'user') await sessionMem.user(stringifyMemoryText(m.content))
+        else if (m.role === 'assistant') await sessionMem.assistant(stringifyMemoryText(m.content))
       }
     }
 
@@ -451,28 +485,26 @@
       const normalized = []
       for (const m of history) {
         if (!m || typeof m !== 'object') continue
-        if (m.role === 'user') {
-          if (typeof m.content === 'string' && m.content.trim()) normalized.push({ role: 'user', content: m.content })
+        const role = stringifyMemoryText(m.role).trim()
+        if (role === 'user') {
+          const content = stringifyMemoryText(m.content)
+          if (content.trim()) normalized.push({ role: 'user', content })
           continue
         }
-        if (m.role === 'assistant') {
-          const content = typeof m.content === 'string' ? m.content : ''
-          const toolCalls = Array.isArray(m.tool_calls)
-            ? m.tool_calls
-                .filter(tc => tc && tc.id && tc.name)
-                .map(tc => ({ id: String(tc.id), name: String(tc.name), input: tc.input ?? {} }))
-            : []
+        if (role === 'assistant') {
+          const content = stringifyMemoryText(m.content)
+          const toolCalls = normalizeHistoryToolCalls(m.tool_calls)
           if (!content.trim() && toolCalls.length === 0) continue
           const item = { role: 'assistant', content }
           if (toolCalls.length) item.tool_calls = toolCalls
           normalized.push(item)
           continue
         }
-        if (m.role === 'tool' && m.tool_call_id) {
+        if (role === 'tool' && m.tool_call_id) {
           const item = {
             role: 'tool',
-            tool_call_id: String(m.tool_call_id),
-            content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content ?? ''),
+            tool_call_id: stringifyMemoryText(m.tool_call_id),
+            content: stringifyMemoryText(m.content),
           }
           if (Array.isArray(m.blocks) && m.blocks.length) item.blocks = m.blocks
           if (m.is_error || m.isError) item.is_error = true
@@ -514,7 +546,7 @@
         ...(chatOpts.modelGatewayMaxWaitMs != null ? { modelGatewayMaxWaitMs: chatOpts.modelGatewayMaxWaitMs } : {}),
         ...(chatOpts.modelGatewayConcurrency != null ? { modelGatewayConcurrency: chatOpts.modelGatewayConcurrency } : {}),
         ...(typeof chatOpts.modelGatewayOnStatus === 'function' ? { modelGatewayOnStatus: chatOpts.modelGatewayOnStatus } : {}),
-        maxTokens: chatOpts.maxTokens || cfg.maxTokens || undefined,
+        outputMaxTokens: normalizePositiveInt(chatOpts.outputMaxTokens ?? chatOpts.maxTokens, cfg.outputMaxTokens),
         steer: {
           drain: () => _drainSteerQueue(sessionMem.id || 'default', chatOpts.settleSteerQueue),
         },
@@ -537,6 +569,7 @@
 
     // ── Chat (dual mode) ──────────────────────────────────────────
     function _chat(sessionMem, input, emitOrOpts, maybeEmit) {
+      const normalizedInput = stringifyMemoryText(input)
       let chatOpts = {}
       let emit
       if (typeof emitOrOpts === 'function') {
@@ -552,13 +585,13 @@
       if (_controllers.has(sid)) {
         const mode = chatOpts.queueMode || _getQueueMode(sid)
         if (mode === 'steer') {
-          const depth = _enqueueSteer(sid, input)
-          events.emit('queued', { sessionId: sid, content: input, depth })
+          const depth = _enqueueSteer(sid, normalizedInput)
+          events.emit('queued', { sessionId: sid, content: normalizedInput, depth })
           if (emit) {
             return Promise.resolve({ queued: true, depth, answer: '', rounds: 0, messages: sessionMem.messages() })
           }
           const noop = (async function* () {
-            yield { type: 'queued', sessionId: sid, content: input, depth }
+            yield { type: 'queued', sessionId: sid, content: normalizedInput, depth }
           })()
           return {
             [Symbol.asyncIterator]() { return noop },
@@ -581,11 +614,11 @@
 
       // If emit callback provided -> legacy Promise mode (returns Promise)
       if (emit) {
-        return _chatLegacy(sessionMem, input, chatOpts, emit)
+        return _chatLegacy(sessionMem, normalizedInput, chatOpts, emit)
       }
       // Otherwise → return thenable async generator
       // This allows both: for await (const e of claw.chat(...)) AND await claw.chat(...)
-      return _chatThenableGen(sessionMem, input, chatOpts)
+      return _chatThenableGen(sessionMem, normalizedInput, chatOpts)
     }
 
     // Wraps the async generator so it's also thenable (backward compat with await)
@@ -628,9 +661,10 @@
     async function _chatLegacy(sessionMem, input, chatOpts, emit) {
       const _mySid = sessionMem.id || 'default'
       const _myCtrl = _controllers.get(_mySid)
-      events.emit('message', { role: 'user', content: input })
-      await sessionMem.user(input)
-      await _compactIfNeeded(sessionMem)
+      const normalizedInput = stringifyMemoryText(input)
+      events.emit('message', { role: 'user', content: normalizedInput })
+      await sessionMem.user(normalizedInput)
+      await _compactIfNeeded(sessionMem, chatOpts.contextMaxTokens ?? chatOpts.memoryMaxTokens)
 
       const emitFn = (event, data) => {
         if (emit) emit(event, data)
@@ -644,7 +678,7 @@
           // Conductor path: consume async generator, emit tokens
           let answer = '', intents = []
           const abortSignal = _myCtrl?.signal
-          for await (const chunk of _abortableIterator(_conductor.chat(input, chatOpts), abortSignal)) {
+          for await (const chunk of _abortableIterator(_conductor.chat(normalizedInput, chatOpts), abortSignal)) {
             if (chunk.type === 'text' && chunk.text) {
               answer += chunk.text
               emitFn('token', { text: chunk.text })
@@ -662,8 +696,8 @@
         } else {
           // Direct askFn path
           const config = _buildAskConfig(sessionMem, chatOpts)
-          await _appendKnowledge(input, config)
-          const result = await askFn(input, config, emitFn)
+          await _appendKnowledge(normalizedInput, config)
+          const result = await askFn(normalizedInput, config, emitFn)
           const answer = result.answer || result.content || ''
           await sessionMem.assistant(answer)
           events.emit('message', { role: 'assistant', content: answer })
@@ -714,10 +748,11 @@
     async function* _chatGenerator(sessionMem, input, chatOpts) {
       const _mySid = sessionMem.id || 'default'
       const _myCtrl = _controllers.get(_mySid)
+      const normalizedInput = stringifyMemoryText(input)
       await _ensureHydrated(sessionMem)
-      events.emit('message', { role: 'user', content: input })
-      await sessionMem.user(input)
-      await _compactIfNeeded(sessionMem)
+      events.emit('message', { role: 'user', content: normalizedInput })
+      await sessionMem.user(normalizedInput)
+      await _compactIfNeeded(sessionMem, chatOpts.contextMaxTokens ?? chatOpts.memoryMaxTokens)
 
       let success = false
       let partialAnswer = ''
@@ -727,7 +762,7 @@
           const sessionId = sessionMem.id || 'default'
           const abortSignal = _myCtrl?.signal
           let answer = ''
-          for await (const chunk of _abortableIterator(_conductor.chat(input, chatOpts), abortSignal)) {
+          for await (const chunk of _abortableIterator(_conductor.chat(normalizedInput, chatOpts), abortSignal)) {
             if (abortSignal?.aborted) break
             if (chunk.type === 'text' && chunk.text) {
               answer += chunk.text
@@ -752,9 +787,9 @@
         } else {
           // ── Direct askFn path (no conductor) ──
           const config = _buildAskConfig(sessionMem, chatOpts)
-          await _appendKnowledge(input, config)
+          await _appendKnowledge(normalizedInput, config)
 
-          const result = askFn(input, config)
+          const result = askFn(normalizedInput, config)
 
           // Handle legacy askFn that returns a Promise instead of AsyncGenerator
           if (result && typeof result.then === 'function' && !result[Symbol.asyncIterator]) {
@@ -838,11 +873,11 @@
       const keep = msgs.slice(0, lastUserIdx)
       sessionMem.clear()
       for (const m of keep) {
-        if (m.role === 'user') await sessionMem.user(m.content)
-        else if (m.role === 'assistant') await sessionMem.assistant(m.content)
+        if (m.role === 'user') await sessionMem.user(stringifyMemoryText(m.content))
+        else if (m.role === 'assistant') await sessionMem.assistant(stringifyMemoryText(m.content))
       }
       // Re-send the last user message through the generator path
-      yield* _chatGenerator(sessionMem, lastUserMsg, chatOpts)
+      yield* _chatGenerator(sessionMem, stringifyMemoryText(lastUserMsg), chatOpts)
     }
 
     const defaultSession = _getSession('default')
@@ -1012,6 +1047,12 @@
         if (!patch || typeof patch !== 'object') return this
         for (const k of ['apiKey', 'provider', 'baseUrl', 'model', 'proxyUrl', 'systemPrompt', 'providers', 'stream']) {
           if (k in patch) cfg[k] = patch[k]
+        }
+        if ('contextMaxTokens' in patch || 'memoryMaxTokens' in patch) {
+          cfg.contextMaxTokens = normalizePositiveInt(patch.contextMaxTokens ?? patch.memoryMaxTokens, cfg.contextMaxTokens)
+        }
+        if ('outputMaxTokens' in patch || 'maxTokens' in patch) {
+          cfg.outputMaxTokens = normalizePositiveInt(patch.outputMaxTokens ?? patch.maxTokens, cfg.outputMaxTokens)
         }
         events.emit('configure', { ...cfg })
         return this

@@ -160,9 +160,13 @@ describe('AgenticMemory', () => {
         expect(cnTokens).toBeGreaterThan(0)
       })
 
-      it('should return 0 for empty text', () => {
+    it('should return 0 for empty text', () => {
         expect(estimateTokens('')).toBe(0)
         expect(estimateTokens(null)).toBe(0)
+      })
+
+      it('should stringify object values before token estimation', () => {
+        expect(estimateTokens({ kind: 'event', body: 'hello' })).toBeGreaterThan(0)
       })
     })
 
@@ -192,6 +196,10 @@ describe('AgenticMemory', () => {
       it('should handle empty text', () => {
         const chunks = chunkText('')
         expect(chunks).toEqual([''])
+      })
+
+      it('should stringify object inputs deterministically', () => {
+        expect(chunkText({ kind: 'chunk', body: 'hello' })[0]).toContain('"kind":"chunk"')
       })
     })
 

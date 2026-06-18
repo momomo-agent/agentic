@@ -4,11 +4,33 @@
 
 // ── Token estimation ─────────────────────────────────────────────
 
+  function stringifyMemoryText(value) {
+    if (typeof value === 'string') return value
+    if (value === undefined || value === null) return ''
+    try {
+      const json = JSON.stringify(value)
+      if (typeof json === 'string') return json
+    } catch {}
+    return String(value ?? '')
+  }
+
+  function normalizeMessage(message = {}) {
+    if (!message || typeof message !== 'object') return null
+    const role = stringifyMemoryText(message.role || '').trim()
+    if (!role) return null
+    return {
+      ...message,
+      role,
+      content: stringifyMemoryText(message.content),
+    }
+  }
+
   function estimateTokens(text) {
-    if (!text) return 0
+    const value = stringifyMemoryText(text)
+    if (!value) return 0
     let tokens = 0
-    for (let i = 0; i < text.length; i++) {
-      const code = text.charCodeAt(i)
+    for (let i = 0; i < value.length; i++) {
+      const code = value.charCodeAt(i)
       if (code >= 0x4E00 && code <= 0x9FFF ||
           code >= 0x3400 && code <= 0x4DBF ||
           code >= 0xF900 && code <= 0xFAFF ||
@@ -23,8 +45,10 @@
   }
 
   function estimateMessagesTokens(messages) {
+    if (!Array.isArray(messages)) return 0
     let total = 0
     for (const msg of messages) {
+      if (!msg || typeof msg !== 'object') continue
       total += 4
       total += estimateTokens(msg.content)
       if (msg.name) total += estimateTokens(msg.name)
@@ -38,7 +62,7 @@
   function defaultSummarize(messages) {
     const lines = []
     for (const msg of messages) {
-      const first = msg.content.split('\n')[0].slice(0, 120)
+      const first = stringifyMemoryText(msg?.content).split('\n')[0].slice(0, 120)
       const role = msg.role === 'user' ? 'User' : 'Assistant'
       lines.push(`${role}: ${first}`)
     }
@@ -102,6 +126,7 @@
   // ── Knowledge layer (vector search) ──────────────────────────────
 
   function chunkText(text, options = {}) {
+    text = stringifyMemoryText(text)
     const { maxChunkSize = 500, overlap = 50, separator = null } = options
     if (!text || text.length <= maxChunkSize) return [text]
 
@@ -164,6 +189,7 @@
   }
 
   function localEmbed(texts, vocabSize = 512) {
+    texts = Array.isArray(texts) ? texts.map(stringifyMemoryText) : []
     const vocab = new Map()
     const allTokens = texts.map(t => tokenize(t))
 
@@ -202,13 +228,14 @@
   }
 
   function tokenize(text) {
-    return text.toLowerCase()
+    return stringifyMemoryText(text).toLowerCase()
       .replace(/[^\w\s\u4e00-\u9fff]/g, ' ')
       .split(/\s+/)
       .filter(t => t.length > 1)
   }
 
   function hashStr(s) {
+    s = stringifyMemoryText(s)
     let h = 0
     for (let i = 0; i < s.length; i++) {
       h = ((h << 5) - h + s.charCodeAt(i)) | 0
@@ -387,7 +414,7 @@
     let _messages = []
     let _summary = null
     let _metadata = { id: id || generateId(), created: Date.now(), turns: 0 }
-    let _systemPrompt = systemPrompt
+    let _systemPrompt = systemPrompt == null ? null : stringifyMemoryText(systemPrompt)
 
     // Initialize knowledge store if enabled
     const _knowledge = knowledge
@@ -404,8 +431,8 @@
     if (store) {
       const saved = store.load()
       if (saved) {
-        _messages = saved.messages || []
-        _summary = saved.summary || null
+        _messages = Array.isArray(saved.messages) ? saved.messages.map(normalizeMessage).filter(Boolean) : []
+        _summary = saved.summary == null ? null : stringifyMemoryText(saved.summary)
         _metadata = { ..._metadata, ...saved.metadata }
         if (saved.knowledge && _knowledge) _knowledge.import(saved.knowledge)
       }
@@ -466,8 +493,10 @@
 
       /** Add a message */
       async add(role, content) {
-        _messages.push({ role, content })
-        if (role === 'user') _metadata.turns++
+        const normalizedRole = stringifyMemoryText(role).trim()
+        const normalizedContent = stringifyMemoryText(content)
+        _messages.push({ role: normalizedRole, content: normalizedContent })
+        if (normalizedRole === 'user') _metadata.turns++
         await _trim()
         _save()
         return this
@@ -517,7 +546,7 @@
       },
 
       setSystem(prompt) {
-        _systemPrompt = prompt
+        _systemPrompt = prompt == null ? null : stringifyMemoryText(prompt)
         _save()
         return this
       },
@@ -560,8 +589,8 @@
       },
 
       import(data) {
-        _messages = (data.messages || []).map(m => ({ ...m }))
-        _summary = data.summary || null
+        _messages = Array.isArray(data.messages) ? data.messages.map(normalizeMessage).filter(Boolean) : []
+        _summary = data.summary == null ? null : stringifyMemoryText(data.summary)
         if (data.metadata) _metadata = { ..._metadata, ...data.metadata }
         if (data.knowledge && _knowledge) _knowledge.import(data.knowledge)
         _save()

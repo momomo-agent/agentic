@@ -12,6 +12,33 @@ globalThis.agenticAsk = vi.fn(async (input, config, emit) => {
   return mockAskResult
 })
 
+globalThis.AgenticMemory = {
+  createMemory(opts = {}) {
+    let msgs = []
+    const knowledge = new Map()
+    return {
+      id: opts.id || 'default',
+      async add(role, content) { msgs.push({ role, content }) },
+      async user(content) { msgs.push({ role: 'user', content }) },
+      async assistant(content) { msgs.push({ role: 'assistant', content }) },
+      messages() { return [...msgs] },
+      history() { return msgs.map(m => ({ role: m.role, content: m.content })) },
+      info() { return { turns: msgs.length, messageCount: msgs.length, tokens: 0, maxTokens: opts.maxTokens || 8000 } },
+      clear() { msgs = [] },
+      destroy() { msgs = []; knowledge.clear() },
+      async learn(id, text, metadata = {}) { knowledge.set(id, { id, text, chunk: text, metadata }) },
+      async recall(query) {
+        const q = String(query || '').toLowerCase()
+        return [...knowledge.values()].filter(item =>
+          item.text.toLowerCase().includes(q) || item.id.toLowerCase().includes(q)
+        )
+      },
+      async forget(id) { knowledge.delete(id) },
+      knowledgeInfo() { return { count: knowledge.size } },
+    }
+  },
+}
+
 // Import after mocking
 const { createClaw } = await import('../agentic-claw.js')
 
@@ -137,6 +164,26 @@ describe('AgenticClaw', () => {
       expect(config.model).toBe('gpt-4')
       expect(config.baseUrl).toBe('https://custom.api')
       c.destroy()
+    })
+
+    it('splits context and output token budgets', async () => {
+      const c = createClaw({
+        apiKey: 'my-key',
+        maxTokens: 1234,
+        outputMaxTokens: 4096,
+      })
+      await c.chat('test')
+      const config = mockAskCalls[0].config
+      expect(config.outputMaxTokens).toBe(4096)
+      expect(config.maxTokens).toBeUndefined()
+      c.destroy()
+    })
+
+    it('keeps per-call maxTokens as an output budget alias', async () => {
+      await claw.session('budget-alias').chat('hello', { maxTokens: 50 })
+      const config = mockAskCalls[0].config
+      expect(config.outputMaxTokens).toBe(50)
+      expect(config.maxTokens).toBeUndefined()
     })
 
     it('should handle emit callback', async () => {

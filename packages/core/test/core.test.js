@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { agenticAsk, classifyError, buildToolResults, toolRegistry, registerProvider, unregisterProvider } from '../src/index.js'
 
 async function collect(gen) {
@@ -17,10 +17,23 @@ function streamEvents(events) {
 }
 
 describe('agentic-core', () => {
+  let originalFetch
+  let originalGateway
+
   afterEach(() => {
     unregisterProvider('test-retry')
     unregisterProvider('test-continuation')
     unregisterProvider('test-transform-tool-content')
+    unregisterProvider('test-tool-input')
+    unregisterProvider('test-object-prompt')
+    globalThis.fetch = originalFetch
+    globalThis.__BRICK_MODEL_GATEWAY__ = originalGateway
+  })
+
+  beforeEach(() => {
+    originalFetch = globalThis.fetch
+    originalGateway = globalThis.__BRICK_MODEL_GATEWAY__
+    globalThis.__BRICK_MODEL_GATEWAY__ = null
   })
 
   describe('classifyError', () => {
@@ -153,6 +166,183 @@ describe('agentic-core', () => {
         urlHost: 'node-hk.sssaicode.com',
         requestBytes: 2048,
       })
+    })
+  })
+
+  describe('token budgets and Anthropic system blocks', () => {
+    function mockAnthropicFetch(calls) {
+      globalThis.fetch = async (url, opts) => {
+        calls.push({ url, opts, body: JSON.parse(opts.body) })
+        return {
+          ok: true,
+          status: 200,
+          headers: {},
+          text: async () => JSON.stringify({
+            content: [{ type: 'text', text: 'ok' }],
+            stop_reason: 'end_turn',
+          }),
+          json: async () => ({
+            content: [{ type: 'text', text: 'ok' }],
+            stop_reason: 'end_turn',
+          }),
+        }
+      }
+    }
+
+    it('uses outputMaxTokens for Anthropic max_tokens and clamps excessive values', async () => {
+      const calls = []
+      mockAnthropicFetch(calls)
+
+      await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'anthropic',
+        model: 'claude-test',
+        tools: [],
+        stream: false,
+        outputMaxTokens: 4096,
+        maxTokens: 200000,
+      }))
+
+      await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'anthropic',
+        model: 'claude-test',
+        tools: [],
+        stream: false,
+        outputMaxTokens: 200000,
+      }))
+
+      expect(calls[0].body.max_tokens).toBe(4096)
+      expect(calls[1].body.max_tokens).toBe(32000)
+      expect(calls.map(call => call.body.max_tokens)).not.toContain(200000)
+    })
+
+    it('keeps maxTokens as a legacy output budget alias', async () => {
+      const calls = []
+      mockAnthropicFetch(calls)
+
+      await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'anthropic',
+        model: 'claude-test',
+        tools: [],
+        stream: false,
+        maxTokens: 50,
+      }))
+
+      expect(calls[0].body.max_tokens).toBe(50)
+    })
+
+    it('normalizes Anthropic system strings and structured blocks without adding cache_control', async () => {
+      const calls = []
+      mockAnthropicFetch(calls)
+
+      await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'anthropic',
+        model: 'claude-test',
+        tools: [],
+        stream: false,
+        system: 'legacy system',
+      }))
+
+      await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'anthropic',
+        model: 'claude-test',
+        tools: [],
+        stream: false,
+        system: [
+          { type: 'text', text: 'stable', cache_control: { type: 'ephemeral' }, name: 'debug-stable' },
+          { type: 'text', text: 'dynamic', stability: 'dynamic' },
+        ],
+      }))
+
+      expect(calls[0].body.system).toEqual([
+        { type: 'text', text: 'legacy system', cache_control: { type: 'ephemeral' } },
+      ])
+      expect(calls[1].body.system).toEqual([
+        { type: 'text', text: 'stable', cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: 'dynamic' },
+      ])
+      expect(calls[1].body.system[0].name).toBeUndefined()
+      expect(calls[1].body.system[1].stability).toBeUndefined()
+      expect(calls[1].body.system[1].cache_control).toBeUndefined()
+    })
+  })
+
+  describe('tool input hashing', () => {
+    it('does not crash loop detection when a model returns a tool call with missing input', async () => {
+      let calls = 0
+      const seenInputs = []
+      registerProvider('test-tool-input', () => {
+        calls++
+        if (calls === 1) {
+          return {
+            content: 'calling tool',
+            tool_calls: [{ id: 'tc_missing_input', name: 'no_args' }],
+            stop_reason: 'tool_use',
+          }
+        }
+        return { content: 'done', tool_calls: [], stop_reason: 'stop' }
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-tool-input',
+        tools: [{
+          name: 'no_args',
+          description: 'Tool with no input from the model',
+          input_schema: { type: 'object', properties: {} },
+          execute: async input => {
+            seenInputs.push(input)
+            return 'ok'
+          },
+        }],
+        stream: false,
+      }))
+
+      expect(seenInputs).toEqual([undefined])
+      expect(events.find(e => e.type === 'tool_use')).toMatchObject({
+        id: 'tc_missing_input',
+        name: 'no_args',
+      })
+      expect(events.find(e => e.type === 'done')?.answer).toBe('done')
+      expect(events.find(e => /charCodeAt/.test(String(e.error || e.message || '')))).toBeUndefined()
+    })
+
+    it('stringifies object prompts and object history before provider calls', async () => {
+      const calls = []
+      registerProvider('test-object-prompt', ({ messages, system }) => {
+        calls.push({
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          system,
+        })
+        return { content: 'done', tool_calls: [], stop_reason: 'stop' }
+      })
+
+      const events = await collect(agenticAsk({ kind: 'event', body: 'hello' }, {
+        apiKey: 'sk-test',
+        provider: 'test-object-prompt',
+        tools: [],
+        stream: false,
+        history: [
+          { role: 'user', content: { kind: 'history', body: 'prev user' } },
+          { role: 'assistant', content: { kind: 'history', body: 'prev assistant' } },
+          { role: 'tool', tool_call_id: 'tool-1', content: { kind: 'tool', value: 1 } },
+        ],
+        system: { kind: 'system', scope: 'runtime' },
+      }))
+
+      expect(calls).toHaveLength(1)
+      expect(calls[0].messages).toEqual([
+        { role: 'user', content: '{"kind":"history","body":"prev user"}' },
+        { role: 'assistant', content: '{"kind":"history","body":"prev assistant"}' },
+        { role: 'tool', content: '{"kind":"tool","value":1}' },
+        { role: 'user', content: '{"kind":"event","body":"hello"}' },
+      ])
+      expect(calls[0].system).toBe('{"kind":"system","scope":"runtime"}')
+      expect(events.find(e => /charCodeAt/.test(String(e.error || e.message || '')))).toBeUndefined()
     })
   })
 

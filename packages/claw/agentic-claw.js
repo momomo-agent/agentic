@@ -139,9 +139,17 @@
     return expanded
   }
 
+  function normalizePositiveInt(value, fallback) {
+    const n = Number(value)
+    if (Number.isFinite(n) && n > 0) return Math.floor(n)
+    return fallback
+  }
+
   // ── createClaw ───────────────────────────────────────────────────
 
   function createClaw(options = {}) {
+    const contextMaxTokens = normalizePositiveInt(options.contextMaxTokens ?? options.memoryMaxTokens ?? options.maxTokens, 8000)
+    const outputMaxTokens = normalizePositiveInt(options.outputMaxTokens, 4096)
     const {
       apiKey,
       provider = 'anthropic',
@@ -157,7 +165,6 @@
       embedApiKey = null,
       embedBaseUrl = null,
       persist = null,
-      maxTokens = 8000,
       stream = true,
       providers = null,
     } = options
@@ -210,7 +217,7 @@
 
     function _createSessionMemory(sessionId) {
       return memory.createMemory({
-        maxTokens,
+        maxTokens: contextMaxTokens,
         systemPrompt,
         storage: persist ? (persist + ':' + sessionId) : null,
         id: sessionId,
@@ -262,16 +269,17 @@
       return Math.ceil(chars / 4) // ~4 chars per token
     }
 
-    async function _compactIfNeeded(sessionMem) {
+    async function _compactIfNeeded(sessionMem, contextMaxTokensOverride) {
       const msgs = sessionMem.messages()
       const est = _estimateTokens(msgs)
-      if (est <= maxTokens || msgs.length <= 4) return
+      const effectiveContextMaxTokens = normalizePositiveInt(contextMaxTokensOverride, contextMaxTokens)
+      if (est <= effectiveContextMaxTokens || msgs.length <= 4) return
       // Keep last 4 messages, summarize the rest
       const keepCount = 4
       const older = msgs.slice(0, msgs.length - keepCount)
       const recent = msgs.slice(msgs.length - keepCount)
       const summaryText = older.map(m => `${m.role}: ${typeof m.content === 'string' ? m.content.slice(0, 200) : '[complex]'}`).join('\n')
-      const summary = { role: 'system', content: `[Conversation summary]\n${summaryText.slice(0, maxTokens)}` }
+      const summary = { role: 'system', content: `[Conversation summary]\n${summaryText.slice(0, effectiveContextMaxTokens)}` }
       sessionMem.clear()
       await sessionMem.user(summary.content)
       // Re-add recent messages
@@ -333,6 +341,7 @@
         ...(providers ? { providers } : {}),
         ...(chatOpts.signal ? { signal: chatOpts.signal } : {}),
         ...(chatOpts.searchApiKey ? { searchApiKey: chatOpts.searchApiKey } : {}),
+        outputMaxTokens: normalizePositiveInt(chatOpts.outputMaxTokens ?? chatOpts.maxTokens, outputMaxTokens),
       }
     }
 
@@ -396,7 +405,7 @@
     async function _chatLegacy(sessionMem, input, chatOpts, emit) {
       events.emit('message', { role: 'user', content: input })
       await sessionMem.user(input)
-      await _compactIfNeeded(sessionMem)
+      await _compactIfNeeded(sessionMem, chatOpts.contextMaxTokens ?? chatOpts.memoryMaxTokens)
 
       const config = _buildAskConfig(sessionMem, chatOpts)
       await _appendKnowledge(input, config)
@@ -430,7 +439,7 @@
     async function* _chatGenerator(sessionMem, input, chatOpts) {
       events.emit('message', { role: 'user', content: input })
       await sessionMem.user(input)
-      await _compactIfNeeded(sessionMem)
+      await _compactIfNeeded(sessionMem, chatOpts.contextMaxTokens ?? chatOpts.memoryMaxTokens)
 
       const config = _buildAskConfig(sessionMem, chatOpts)
       await _appendKnowledge(input, config)
