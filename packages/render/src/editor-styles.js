@@ -115,12 +115,24 @@ const EDITOR_CSS = `
 }
 
 .ar-editor-content .ar-task > .ar-p {
+  grid-column-start: 2;
+  grid-column-end: 3;
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
 }
 
+.ar-editor-content .ar-task > .ar-ul,
+.ar-editor-content .ar-task > .ar-ol {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  min-width: 0;
+}
+
 .ar-editor-content .ProseMirror .ar-checkbox[data-editor-chrome="true"] {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row: 1;
   flex: 0 0 auto;
   cursor: pointer;
 }

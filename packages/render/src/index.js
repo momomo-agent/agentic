@@ -744,6 +744,7 @@
   width: max-content;
   max-width: none;
   min-width: 240px;
+  margin: 0 auto;
   min-height: 80px;
   overflow: visible;
   transform-origin: 0 0;
@@ -757,7 +758,7 @@
   width: auto;
   max-width: none !important;
   height: auto;
-  margin: 0;
+  margin: 0 auto;
   overflow: visible;
 }
 .ar-mermaid-diagram svg g,
@@ -798,6 +799,7 @@
 .ar-mermaid-diagram svg .node polygon,
 .ar-mermaid-diagram svg .node circle,
 .ar-mermaid-diagram svg .node ellipse,
+.ar-mermaid-diagram svg .node path,
 .ar-mermaid-diagram svg .state,
 .ar-mermaid-diagram svg .stateGroup,
 .ar-mermaid-diagram svg .classBox,
@@ -815,10 +817,12 @@
 .ar-mermaid-diagram svg .messageLine0,
 .ar-mermaid-diagram svg .messageLine1,
 .ar-mermaid-diagram svg .flowchart-link,
-.ar-mermaid-diagram svg .transition,
-.ar-mermaid-diagram svg path,
+.ar-mermaid-diagram svg .edgePath path,
+.ar-mermaid-diagram svg path.transition,
+.ar-mermaid-diagram svg .transition path,
 .ar-mermaid-diagram svg line {
   stroke: #a1a1aa !important;
+  fill: none !important;
 }
 .ar-mermaid-diagram svg marker path,
 .ar-mermaid-diagram svg .marker {
@@ -879,7 +883,37 @@
 .ar-ul, .ar-ol { padding-left: 1.5em; margin: 0.75em 0; }
 .ar-li { margin: 0.3em 0; }
 .ar-li::marker { color: var(--ar-text-3); }
-.ar-task { list-style: none; margin-left: -1.5em; padding-left: 0; display: flex; align-items: flex-start; gap: 8px; }
+.ar-task {
+  list-style: none;
+  margin-left: -1.5em;
+  padding-left: 0;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 8px;
+  row-gap: 0.35em;
+}
+.ar-task > .ar-checkbox {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row: 1;
+}
+.ar-task > .ar-task-content,
+.ar-task > .ar-p {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  min-width: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.ar-task > .ar-ul,
+.ar-task > .ar-ol {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  min-width: 0;
+  margin-top: 0;
+  margin-bottom: 0.35em;
+}
 .ar-checkbox {
   display: inline-flex; align-items: center; justify-content: center;
   width: 16px; height: 16px; min-width: 16px;
