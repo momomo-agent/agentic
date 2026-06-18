@@ -99,6 +99,8 @@ describe('AgenticRender editor', () => {
     const editorCheckbox = editor.element.querySelector('li.ar-li.ar-task .ar-checkbox[data-editor-chrome="true"].ar-checked')
     expect(editorCheckbox).toBeTruthy()
     expect(editorCheckbox.classList.contains('ProseMirror-widget')).toBe(true)
+    expect(editorCheckbox.textContent).toBe('')
+    expect(editorCheckbox.querySelector('svg.ar-checkbox-icon path')?.getAttribute('fill')).toBe('currentColor')
 
     expect(previewHost.querySelector('div.ar-code-wrap > .ar-code-header')).toBeTruthy()
     expect(editor.element.querySelector('div.ar-code-wrap > .ar-code-header[data-editor-chrome="true"]')).toBeTruthy()
@@ -235,6 +237,8 @@ describe('AgenticRender editor', () => {
 
     expect(checkbox).toBeTruthy()
     expect(checkbox.classList.contains('ProseMirror-widget')).toBe(true)
+    expect(checkbox.textContent).toBe('')
+    expect(checkbox.querySelector('svg.ar-checkbox-icon path')?.getAttribute('fill')).toBe('currentColor')
     expect(taskItem?.textContent).toBe('Todo')
     expect(editor.getValue()).toMatch(/[*-] \[ \] Todo/)
 

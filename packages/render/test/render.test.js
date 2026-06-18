@@ -124,6 +124,20 @@ describe('AgenticRender', () => {
       expect(html).not.toContain('ar-streaming-dot')
     })
 
+    it('should render task checkboxes as Settings-style SVG icons', () => {
+      const html = AgenticRender.render('- [ ] Todo\n- [x] Done')
+      container.innerHTML = html
+      const checkboxes = container.querySelectorAll('.ar-checkbox')
+      const checked = container.querySelector('.ar-checkbox.ar-checked')
+      const unchecked = [...checkboxes].find((node) => !node.classList.contains('ar-checked'))
+
+      expect(checkboxes.length).toBe(2)
+      expect(unchecked?.textContent).toBe('')
+      expect(checked?.textContent).toBe('')
+      expect(unchecked?.querySelector('svg.ar-checkbox-icon path')?.getAttribute('fill')).toBe('currentColor')
+      expect(checked?.querySelector('svg.ar-checkbox-icon path')?.getAttribute('fill')).toBe('currentColor')
+    })
+
     it('should render indented code fences from nested AI output', () => {
       const md = '    ```text\n    UV producer -> HDRPipeline.runSync(... uvMapImage:) -> GainMapPipeline parent:<uvMap\n    ```'
       const html = AgenticRender.render(md, { sourceMap: true })
@@ -393,6 +407,18 @@ describe('AgenticRender', () => {
     it('should use translucent black blockquote background in dark theme', () => {
       const css = AgenticRender.getCSS()
       expect(css).toContain('--ar-bq-bg: rgba(0,0,0,.32);')
+    })
+
+    it('should keep Mermaid labels visible and task checkboxes free of accent square chrome', () => {
+      const css = AgenticRender.getCSS()
+      expect(css).toContain('.ar-mermaid-diagram svg foreignObject')
+      expect(css).toContain('.ar-mermaid-diagram svg .nodeLabel p')
+      expect(css).toContain('.ar-mermaid-diagram svg text.actor')
+      expect(css).toContain('overflow: visible !important')
+      expect(css).toContain('line-height: 1.25 !important')
+      expect(css).toContain('color: var(--col-primary, #f4f4f5)')
+      expect(css).toContain('.ar-checkbox-icon path')
+      expect(css).not.toContain('#facc15')
     })
   })
 

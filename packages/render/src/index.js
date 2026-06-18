@@ -727,7 +727,8 @@
 }
 .ar-mermaid {
   padding: 16px 18px;
-  overflow: hidden;
+  overflow: auto;
+  overscroll-behavior: contain;
   touch-action: none;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -740,20 +741,43 @@
   cursor: grabbing;
 }
 .ar-mermaid-diagram {
+  width: max-content;
+  max-width: none;
   min-width: 240px;
   min-height: 80px;
+  overflow: visible;
   transform-origin: 0 0;
   transition: transform 0.1s ease-out;
   will-change: transform;
   user-select: none;
   -webkit-user-select: none;
 }
+.ar-mermaid-diagram svg {
+  display: block;
+  width: auto;
+  max-width: none !important;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+}
+.ar-mermaid-diagram svg g,
+.ar-mermaid-diagram svg foreignObject,
+.ar-mermaid-diagram svg .label,
+.ar-mermaid-diagram svg .nodeLabel,
+.ar-mermaid-diagram svg .edgeLabel,
+.ar-mermaid-diagram svg .cluster-label {
+  overflow: visible !important;
+}
 
 .ar-mermaid-diagram svg text,
 .ar-mermaid-diagram svg tspan,
 .ar-mermaid-diagram svg .label,
 .ar-mermaid-diagram svg .nodeLabel,
+.ar-mermaid-diagram svg .nodeLabel p,
+.ar-mermaid-diagram svg .nodeLabel span,
 .ar-mermaid-diagram svg .edgeLabel,
+.ar-mermaid-diagram svg .edgeLabel p,
+.ar-mermaid-diagram svg .edgeLabel span,
 .ar-mermaid-diagram svg .edgeLabel text,
 .ar-mermaid-diagram svg .messageText,
 .ar-mermaid-diagram svg .loopText,
@@ -763,9 +787,12 @@
 .ar-mermaid-diagram svg .transition text,
 .ar-mermaid-diagram svg .classText,
 .ar-mermaid-diagram svg .pieTitleText,
-.ar-mermaid-diagram svg .legend text {
+.ar-mermaid-diagram svg .legend text,
+.ar-mermaid-diagram svg foreignObject,
+.ar-mermaid-diagram svg foreignObject * {
   fill: #e4e4e7 !important;
   color: #e4e4e7 !important;
+  line-height: 1.25 !important;
 }
 .ar-mermaid-diagram svg .node rect,
 .ar-mermaid-diagram svg .node polygon,
@@ -777,6 +804,13 @@
 .ar-mermaid-diagram svg .actor {
   fill: #27272a !important;
   stroke: #52525b !important;
+}
+.ar-mermaid-diagram svg text.actor,
+.ar-mermaid-diagram svg tspan.actor,
+.ar-mermaid-diagram svg .actor > text,
+.ar-mermaid-diagram svg .actor tspan {
+  fill: #e4e4e7 !important;
+  color: #e4e4e7 !important;
 }
 .ar-mermaid-diagram svg .messageLine0,
 .ar-mermaid-diagram svg .messageLine1,
@@ -849,7 +883,7 @@
 .ar-checkbox {
   display: inline-flex; align-items: center; justify-content: center;
   width: 16px; height: 16px; min-width: 16px;
-  color: var(--col-primary, var(--ar-accent));
+  color: var(--col-primary, #f4f4f5);
   margin-top: 3px;
   opacity: var(--opacity-inactive, 0.55);
   transition: opacity .15s ease;
@@ -860,6 +894,9 @@
   height: 16px;
   display: block;
   flex: 0 0 16px;
+}
+.ar-checkbox-icon path {
+  fill: currentColor;
 }
 
 /* ── Blockquote ── */
