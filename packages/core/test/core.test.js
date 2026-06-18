@@ -26,6 +26,9 @@ describe('agentic-core', () => {
     unregisterProvider('test-transform-tool-content')
     unregisterProvider('test-tool-input')
     unregisterProvider('test-object-prompt')
+    unregisterProvider('test-model-lifecycle')
+    unregisterProvider('test-model-lifecycle-idle')
+    unregisterProvider('test-model-lifecycle-ok')
     globalThis.fetch = originalFetch
     globalThis.__BRICK_MODEL_GATEWAY__ = originalGateway
   })
@@ -482,6 +485,149 @@ describe('agentic-core', () => {
       expect(toolMessage.blocks).toEqual([{ type: 'text', text: marker }])
       expect(JSON.stringify(toolMessage).length).toBeLessThan(12000)
       expect(events.find(event => event.type === 'tool_result')?.output).toBe(output)
+    })
+  })
+
+
+  describe('model request lifecycle', () => {
+    const largeOutput = 'x'.repeat(1024 * 1024)
+
+    it('emits a first-event timeout for a post-tool continuation with no provider event', async () => {
+      let calls = 0
+      registerProvider('test-model-lifecycle', () => {
+        calls++
+        if (calls === 1) {
+          return {
+            content: 'calling tool',
+            tool_calls: [{ id: 'tc_lifecycle', name: 'large_output', input: {} }],
+            stop_reason: 'tool_use',
+          }
+        }
+        return (async function* () {
+          await new Promise(() => {})
+        })()
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-model-lifecycle',
+        tools: [{
+          name: 'large_output',
+          description: 'Return a large tool result',
+          input_schema: { type: 'object', properties: {} },
+          execute: async () => largeOutput,
+        }],
+        stream: true,
+        retries: 0,
+        modelRequestFirstEventTimeoutMs: 10,
+        modelStreamIdleTimeoutMs: 0,
+        transformToolContent: async args => args.content.length > 8000 ? '<persisted-output id="po_test" />' : args.content,
+      }))
+
+      expect(calls).toBe(2)
+      expect(events.find(e => e.type === 'tool_result')?.output).toBe(largeOutput)
+      expect(events.filter(e => e.type === 'modelRequestStart').map(e => e.stage)).toEqual([
+        'model_request',
+        'model_request_after_tool',
+      ])
+      expect(events.find(e => e.type === 'modelRequestTimeout')).toMatchObject({
+        stage: 'model_request_after_tool',
+        errorType: 'model_request_first_event_timeout',
+      })
+      expect(events.find(e => e.type === 'error')).toMatchObject({
+        category: 'model_request_first_event_timeout',
+        causeCode: 'model_request_first_event_timeout',
+        requestStage: 'model_request_after_tool',
+      })
+      expect(events.find(e => e.type === 'done')).toBeUndefined()
+    })
+
+    it('emits a stream-idle timeout after a post-tool continuation starts streaming', async () => {
+      let calls = 0
+      registerProvider('test-model-lifecycle-idle', () => {
+        calls++
+        if (calls === 1) {
+          return {
+            content: 'calling tool',
+            tool_calls: [{ id: 'tc_idle', name: 'large_output', input: {} }],
+            stop_reason: 'tool_use',
+          }
+        }
+        return (async function* () {
+          yield { type: 'text_delta', text: 'partial' }
+          await new Promise(() => {})
+        })()
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-model-lifecycle-idle',
+        tools: [{
+          name: 'large_output',
+          description: 'Return a large tool result',
+          input_schema: { type: 'object', properties: {} },
+          execute: async () => largeOutput,
+        }],
+        stream: true,
+        retries: 0,
+        modelRequestFirstEventTimeoutMs: 20,
+        modelStreamIdleTimeoutMs: 10,
+        transformToolContent: async args => args.content.length > 8000 ? '<persisted-output id="po_test" />' : args.content,
+      }))
+
+      expect(events.find(e => e.type === 'modelRequestFirstEvent' && e.stage === 'model_request_after_tool')).toMatchObject({
+        firstEventType: 'text_delta',
+      })
+      expect(events.filter(e => e.type === 'text_delta').map(e => e.text)).toContain('partial')
+      expect(events.find(e => e.type === 'modelRequestTimeout')).toMatchObject({
+        stage: 'model_request_after_tool',
+        errorType: 'model_stream_idle_timeout',
+        firstEventType: 'text_delta',
+      })
+      expect(events.find(e => e.type === 'error')).toMatchObject({
+        category: 'model_stream_idle_timeout',
+        causeCode: 'model_stream_idle_timeout',
+        firstEventType: 'text_delta',
+      })
+    })
+
+    it('emits start, first-event, and end for a normal post-tool continuation', async () => {
+      let calls = 0
+      registerProvider('test-model-lifecycle-ok', () => {
+        calls++
+        if (calls === 1) {
+          return {
+            content: 'calling tool',
+            tool_calls: [{ id: 'tc_ok', name: 'large_output', input: {} }],
+            stop_reason: 'tool_use',
+          }
+        }
+        return (async function* () {
+          yield { type: 'text_delta', text: 'done' }
+        })()
+      })
+
+      const events = await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'test-model-lifecycle-ok',
+        tools: [{
+          name: 'large_output',
+          description: 'Return a large tool result',
+          input_schema: { type: 'object', properties: {} },
+          execute: async () => largeOutput,
+        }],
+        stream: true,
+        retries: 0,
+        modelRequestFirstEventTimeoutMs: 20,
+        modelStreamIdleTimeoutMs: 20,
+        transformToolContent: async args => args.content.length > 8000 ? '<persisted-output id="po_test" />' : args.content,
+      }))
+
+      expect(events.find(e => e.type === 'modelRequestStart' && e.stage === 'model_request_after_tool')).toBeTruthy()
+      expect(events.find(e => e.type === 'modelRequestFirstEvent' && e.stage === 'model_request_after_tool')).toMatchObject({ firstEventType: 'text_delta' })
+      expect(events.find(e => e.type === 'modelRequestEnd' && e.stage === 'model_request_after_tool')).toMatchObject({ firstEventType: 'text_delta' })
+      expect(events.find(e => e.type === 'modelRequestTimeout')).toBeUndefined()
+      expect(events.find(e => e.type === 'done')?.answer).toBe('done')
     })
   })
 

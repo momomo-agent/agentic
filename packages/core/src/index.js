@@ -324,6 +324,8 @@ function classifyError(err) {
     return { category: 'rate_limit', retryable: true }
   if (/context.?length|token.?limit|maximum.?context|too.?long/i.test(msg))
     return { category: 'context_overflow', retryable: false }
+  if (err?.code === MODEL_REQUEST_FIRST_EVENT_TIMEOUT || err?.code === MODEL_STREAM_IDLE_TIMEOUT)
+    return { category: err.code, retryable: false }
   if (status >= 500 || status === 529 || /server.?error|internal.?error|bad.?gateway|service.?unavailable/i.test(msg))
     return { category: 'server', retryable: true }
   if (/network|econnrefused|econnreset|etimedout|fetch.?failed|dns|socket|terminated|connection.?closed|other.?side.?closed|und_err_/i.test(msg))
@@ -336,6 +338,8 @@ const DEFAULT_MODEL_RETRY_DELAY_MS = 500
 const MAX_MODEL_RETRY_DELAY_MS = 4000
 const DEFAULT_RATE_LIMIT_RETRY_DELAY_MS = 5000
 const MAX_RATE_LIMIT_RETRY_DELAY_MS = 60000
+const MODEL_REQUEST_FIRST_EVENT_TIMEOUT = 'model_request_first_event_timeout'
+const MODEL_STREAM_IDLE_TIMEOUT = 'model_stream_idle_timeout'
 
 function normalizeRetryCount(retries) {
   const n = Number(retries)
@@ -387,11 +391,149 @@ function modelErrorEvent(err, cls, attempt, maxModelRetries) {
     requestBytes: err?.requestBytes,
     retryAfterMs: err?.retryAfterMs,
     rateLimitHeaders: err?.rateLimitHeaders,
+    requestId: err?.requestId,
+    requestSeq: err?.requestSeq,
+    requestReason: err?.requestReason,
+    requestStage: err?.requestStage,
+    firstEventType: err?.firstEventType,
+    timeoutMs: err?.timeoutMs,
   })
 }
 
 function compactEvent(event) {
   return Object.fromEntries(Object.entries(event).filter(([, value]) => value !== undefined && value !== ''))
+}
+
+function modelRequestStageForReason(reason) {
+  if (reason === 'after_tool') return 'model_request_after_tool'
+  if (reason === 'final_answer') return 'model_request_final_answer'
+  if (reason === 'continuation') return 'model_request_continuation'
+  return 'model_request'
+}
+
+function createModelRequest({ requestSeq, reason = 'initial', provider, model }) {
+  return {
+    type: 'modelRequestStart',
+    requestId: `model_request:${requestSeq}`,
+    requestSeq,
+    reason,
+    stage: modelRequestStageForReason(reason),
+    provider,
+    model,
+    timestamp: Date.now(),
+  }
+}
+
+function createModelRequestTimeoutError({ request, timeoutMs, kind, afterEventType }) {
+  const firstEvent = kind === 'first_event'
+  const code = firstEvent ? MODEL_REQUEST_FIRST_EVENT_TIMEOUT : MODEL_STREAM_IDLE_TIMEOUT
+  const ms = Math.max(0, Number(timeoutMs) || 0)
+  const error = new Error(firstEvent
+    ? `Model request did not produce a first event within ${ms}ms.`
+    : `Model stream did not produce another event within ${ms}ms after ${afterEventType || 'last_event'}.`)
+  error.name = firstEvent ? 'ModelRequestFirstEventTimeout' : 'ModelStreamIdleTimeout'
+  error.code = code
+  error.timeoutMs = ms
+  error.requestId = request?.requestId
+  error.requestSeq = request?.requestSeq
+  error.requestReason = request?.reason
+  error.requestStage = request?.stage
+  error.firstEventType = request?.firstEventType
+  return error
+}
+
+function timeoutRace(promise, { request, timeoutMs, kind, afterEventType } = {}) {
+  if (!timeoutMs || timeoutMs <= 0) return promise
+  let timer = null
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(() => reject(createModelRequestTimeoutError({ request, timeoutMs, kind, afterEventType })), Math.max(1, timeoutMs))
+      timer.unref?.()
+    }),
+  ]).finally(() => {
+    if (timer) clearTimeout(timer)
+  })
+}
+
+function isModelRequestEventType(type) {
+  return type === 'modelRequestStart'
+    || type === 'modelRequestFirstEvent'
+    || type === 'modelRequestEnd'
+    || type === 'modelRequestError'
+    || type === 'modelRequestTimeout'
+}
+
+async function* runModelRequest(gen, request, { firstEventTimeoutMs = 0, streamIdleTimeoutMs = 0 } = {}) {
+  const iterator = gen?.[Symbol.asyncIterator]?.() || gen
+  if (!iterator || typeof iterator.next !== 'function') return
+  const startedAt = Date.now()
+  let sawFirstEvent = false
+  let lastEventType = ''
+  yield request
+  while (true) {
+    const timeoutKind = sawFirstEvent ? 'stream_idle' : 'first_event'
+    const timeoutMs = sawFirstEvent ? streamIdleTimeoutMs : firstEventTimeoutMs
+    let step
+    try {
+      step = await timeoutRace(iterator.next(), { request, timeoutMs, kind: timeoutKind, afterEventType: lastEventType })
+    } catch (error) {
+      const event = {
+        ...(error?.code === MODEL_REQUEST_FIRST_EVENT_TIMEOUT || error?.code === MODEL_STREAM_IDLE_TIMEOUT
+          ? { type: 'modelRequestTimeout', timeoutMs: error.timeoutMs }
+          : { type: 'modelRequestError' }),
+        requestId: request.requestId,
+        requestSeq: request.requestSeq,
+        reason: request.reason,
+        stage: request.stage,
+        provider: request.provider,
+        model: request.model,
+        durationMs: Math.max(0, Date.now() - startedAt),
+        errorType: error?.code || error?.name || 'model_request_failed',
+        errorMessage: error?.message || String(error),
+        firstEventType: request.firstEventType,
+        timestamp: Date.now(),
+      }
+      yield compactEvent(event)
+      throw error
+    }
+    if (!step || step.done) {
+      yield compactEvent({
+        type: 'modelRequestEnd',
+        requestId: request.requestId,
+        requestSeq: request.requestSeq,
+        reason: request.reason,
+        stage: request.stage,
+        provider: request.provider,
+        model: request.model,
+        firstEventType: request.firstEventType,
+        outcome: 'stream_end',
+        durationMs: Math.max(0, Date.now() - startedAt),
+        timestamp: Date.now(),
+      })
+      return
+    }
+    const event = step.value
+    const eventType = event?.type || ''
+    if (!sawFirstEvent) {
+      sawFirstEvent = true
+      request.firstEventType = eventType
+      yield compactEvent({
+        type: 'modelRequestFirstEvent',
+        requestId: request.requestId,
+        requestSeq: request.requestSeq,
+        reason: request.reason,
+        stage: request.stage,
+        provider: request.provider,
+        model: request.model,
+        firstEventType: eventType,
+        durationMs: Math.max(0, Date.now() - startedAt),
+        timestamp: Date.now(),
+      })
+    }
+    yield event
+    lastEventType = eventType
+  }
 }
 
 function safeUrlHost(value) {
@@ -951,9 +1093,21 @@ function blocksForTransformedToolContent(blocks, rawContent, content) {
 }
 
 async function* _agenticAskGen(prompt, config) {
-  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, outputMaxTokens, maxTokens, steer, transformToolContent, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
+  const { provider = 'anthropic', baseUrl, apiKey, model, tools = ['search', 'code'], searchApiKey, history, proxyUrl, stream = true, schema, retries = DEFAULT_MODEL_RETRIES, retryDelayMs = DEFAULT_MODEL_RETRY_DELAY_MS, system, images, audio, signal, providers, outputMaxTokens, maxTokens, steer, transformToolContent, modelRequestLifecycle = false, modelRequestFirstEventTimeoutMs = 0, modelStreamIdleTimeoutMs = 0, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = config
   const promptText = stringifyPromptText(prompt)
   const modelGateway = { modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus }
+  const modelRequestLifecycleEnabled = modelRequestLifecycle === true
+    || Number(modelRequestFirstEventTimeoutMs) > 0
+    || Number(modelStreamIdleTimeoutMs) > 0
+  let modelRequestSeq = 0
+  let nextModelRequestReason = 'initial'
+  const nextModelRequest = (reason) => createModelRequest({
+    requestSeq: ++modelRequestSeq,
+    reason: reason || nextModelRequestReason || 'initial',
+    provider,
+    model,
+  })
+  const modelRequestTimeouts = { firstEventTimeoutMs: modelRequestFirstEventTimeoutMs, streamIdleTimeoutMs: modelStreamIdleTimeoutMs }
   const normalizedSystem = Array.isArray(system) ? system : systemToText(system)
 
   if (!apiKey && (!providers || !providers.length)) throw new Error('API Key required')
@@ -1085,9 +1239,13 @@ async function* _agenticAskGen(prompt, config) {
       while (true) {
         let progressed = false
         try {
+          const request = modelRequestLifecycleEnabled ? nextModelRequest() : null
           const streamGen = _streamCallWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, system: effectiveSystem, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })
-          for await (const evt of streamGen) {
-            if (evt.type === 'text_delta') {
+          const requestGen = modelRequestLifecycleEnabled ? runModelRequest(streamGen, request, modelRequestTimeouts) : streamGen
+          for await (const evt of requestGen) {
+            if (isModelRequestEventType(evt.type)) {
+              yield evt
+            } else if (evt.type === 'text_delta') {
               progressed = true
               if (!t_firstToken) t_firstToken = Date.now()
               yield evt // Forward token-level events to consumer
@@ -1112,6 +1270,7 @@ async function* _agenticAskGen(prompt, config) {
               response = evt
             }
           }
+          nextModelRequestReason = 'initial'
           break
         } catch (err) {
           const cls = classifyError(err)
@@ -1130,10 +1289,38 @@ async function* _agenticAskGen(prompt, config) {
       // Non-streaming path — await complete response
       let attempt = 0
       while (true) {
+        let request
         try {
-          response = await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway }))
+          request = modelRequestLifecycleEnabled ? nextModelRequest() : null
+          const startedAt = Date.now()
+          if (request) yield request
+          response = request
+            ? await timeoutRace(raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })), { request, timeoutMs: modelRequestFirstEventTimeoutMs, kind: 'first_event' })
+            : await raceAbort(_callWithFailover({ messages, tools: toolDefs, model, baseUrl, apiKey, proxyUrl, stream: false, system: effectiveSystem, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway }))
+          if (request) {
+            request.firstEventType = 'response'
+            yield compactEvent({ type: 'modelRequestFirstEvent', requestId: request.requestId, requestSeq: request.requestSeq, reason: request.reason, stage: request.stage, provider: request.provider, model: request.model, firstEventType: 'response', durationMs: Math.max(0, Date.now() - startedAt), timestamp: Date.now() })
+            yield compactEvent({ type: 'modelRequestEnd', requestId: request.requestId, requestSeq: request.requestSeq, reason: request.reason, stage: request.stage, provider: request.provider, model: request.model, firstEventType: 'response', outcome: 'response', durationMs: Math.max(0, Date.now() - startedAt), timestamp: Date.now() })
+          }
+          nextModelRequestReason = 'initial'
           break
         } catch (err) {
+          if (request) {
+            const timeout = err?.code === MODEL_REQUEST_FIRST_EVENT_TIMEOUT || err?.code === MODEL_STREAM_IDLE_TIMEOUT
+            yield compactEvent({
+              type: timeout ? 'modelRequestTimeout' : 'modelRequestError',
+              requestId: request.requestId,
+              requestSeq: request.requestSeq,
+              reason: request.reason,
+              stage: request.stage,
+              provider: request.provider,
+              model: request.model,
+              errorType: err?.code || err?.name || 'model_request_failed',
+              errorMessage: err?.message || String(err),
+              timeoutMs: err?.timeoutMs,
+              timestamp: Date.now(),
+            })
+          }
           const cls = classifyError(err)
           if (!isAbortError(err, signal) && cls.retryable && attempt < maxModelRetries) {
             attempt++
@@ -1174,6 +1361,7 @@ async function* _agenticAskGen(prompt, config) {
         messages.push({ role: 'assistant', content })
         messages.push({ role: 'user', content: CONTINUE_PROMPT })
         console.log(`[Round ${round}] Output truncated by max_tokens; continuing (${continuationCount}/${MAX_CONTINUATIONS})`)
+        nextModelRequestReason = 'continuation'
         continue
       }
 
@@ -1209,6 +1397,7 @@ async function* _agenticAskGen(prompt, config) {
               try { steer.onInjected({ round, messages: injected }) } catch {}
             }
             console.log(`[Round ${round}] Steered ${injected.length} message(s) at end_turn, continuing loop`)
+            nextModelRequestReason = 'steer'
             continue // back to top of while loop for another LLM call
           }
         }
@@ -1344,6 +1533,7 @@ async function* _agenticAskGen(prompt, config) {
           yield { type: 'tool_result', id: call.id, name: call.name, output: result, blocks }
         }
       }
+      if (results?.length) nextModelRequestReason = 'after_tool'
     }
 
     if (finalAnswer) break
@@ -1362,8 +1552,13 @@ async function* _agenticAskGen(prompt, config) {
         let content = ''
         let progressed = false
         try {
-          for await (const evt of _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })) {
-            if (evt.type === 'text_delta') {
+          const request = modelRequestLifecycleEnabled ? nextModelRequest('final_answer') : null
+          const streamGen = _streamCallWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })
+          const requestGen = modelRequestLifecycleEnabled ? runModelRequest(streamGen, request, modelRequestTimeouts) : streamGen
+          for await (const evt of requestGen) {
+            if (isModelRequestEventType(evt.type)) {
+              yield evt
+            } else if (evt.type === 'text_delta') {
               progressed = true
               content += evt.text
               yield evt
@@ -1389,12 +1584,39 @@ async function* _agenticAskGen(prompt, config) {
     } else {
       let attempt = 0
       while (true) {
+        let request
         try {
-          const finalResponse = await raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway }))
+          request = modelRequestLifecycleEnabled ? nextModelRequest('final_answer') : null
+          const startedAt = Date.now()
+          if (request) yield request
+          const finalResponse = request
+            ? await timeoutRace(raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway })), { request, timeoutMs: modelRequestFirstEventTimeoutMs, kind: 'first_event' })
+            : await raceAbort(_callWithFailover({ messages, tools: [], model, baseUrl, apiKey, proxyUrl, stream: false, system, provider, signal, providers, outputMaxTokens, maxTokens, ...modelGateway }))
+          if (request) {
+            request.firstEventType = 'response'
+            yield compactEvent({ type: 'modelRequestFirstEvent', requestId: request.requestId, requestSeq: request.requestSeq, reason: request.reason, stage: request.stage, provider: request.provider, model: request.model, firstEventType: 'response', durationMs: Math.max(0, Date.now() - startedAt), timestamp: Date.now() })
+            yield compactEvent({ type: 'modelRequestEnd', requestId: request.requestId, requestSeq: request.requestSeq, reason: request.reason, stage: request.stage, provider: request.provider, model: request.model, firstEventType: 'response', outcome: 'response', durationMs: Math.max(0, Date.now() - startedAt), timestamp: Date.now() })
+          }
           finalAnswer = finalResponse.content || '(no response)'
           finalAnswerReady = true
           break
         } catch (err) {
+          if (request) {
+            const timeout = err?.code === MODEL_REQUEST_FIRST_EVENT_TIMEOUT || err?.code === MODEL_STREAM_IDLE_TIMEOUT
+            yield compactEvent({
+              type: timeout ? 'modelRequestTimeout' : 'modelRequestError',
+              requestId: request.requestId,
+              requestSeq: request.requestSeq,
+              reason: request.reason,
+              stage: request.stage,
+              provider: request.provider,
+              model: request.model,
+              errorType: err?.code || err?.name || 'model_request_failed',
+              errorMessage: err?.message || String(err),
+              timeoutMs: err?.timeoutMs,
+              timestamp: Date.now(),
+            })
+          }
           const cls = classifyError(err)
           if (!isAbortError(err, signal) && cls.retryable && attempt < maxModelRetries) {
             attempt++
@@ -3317,7 +3539,7 @@ async function buildToolResultsAsync(toolCalls, results, options) {
 //   const result = await chatResult(messages, opts) // convenience wrapper
 
 function chat(messages, opts = {}) {
-  const { system, tools, stream = true, provider, apiKey, baseUrl, model, proxyUrl, signal, providers, images, audio, schema, searchApiKey, outputMaxTokens, maxTokens, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = opts
+  const { system, tools, stream = true, provider, apiKey, baseUrl, model, proxyUrl, signal, providers, images, audio, schema, searchApiKey, outputMaxTokens, maxTokens, modelRequestLifecycle, modelRequestFirstEventTimeoutMs, modelStreamIdleTimeoutMs, modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus } = opts
 
   // Extract last user message as prompt, rest as history
   const lastMsg = messages[messages.length - 1]
@@ -3327,6 +3549,7 @@ function chat(messages, opts = {}) {
   const config = {
     provider, apiKey, baseUrl, model, proxyUrl, signal, providers,
     history, system, tools, stream, images, audio, schema, searchApiKey, outputMaxTokens, maxTokens,
+    modelRequestLifecycle, modelRequestFirstEventTimeoutMs, modelStreamIdleTimeoutMs,
     modelGatewayPriority, modelGatewaySource, modelGatewaySilent, modelGatewayRequestId, modelGatewayMaxWaitMs, modelGatewayConcurrency, modelGatewayOnStatus,
   }
 
