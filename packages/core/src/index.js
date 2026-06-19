@@ -2942,6 +2942,15 @@ function buildToolDefs(tools) {
 }
 
 async function executeTool(name, input, config) {
+  // ─── Required argument validation ───
+  // Catch empty/missing required params before entering execute.
+  // Returns a structured error the model can immediately act on.
+  const spec = toolRegistry.get(name) || (config.customTools || []).find(t => t.name === name);
+  if (spec && spec.parameters) {
+    const missing = validateRequiredArgs(spec.parameters, input);
+    if (missing) return missing;
+  }
+
   // Build context object passed as second argument to tool execute functions.
   // This gives tools access to signal, session info, and other runtime state
   // without polluting the input schema.
@@ -3118,6 +3127,33 @@ function validateSchema(data, schema) {
 }
 
 // ── Tool Registry ──
+
+/**
+ * Validate that required arguments are present before tool execution.
+ * Returns a structured error object if validation fails, null otherwise.
+ */
+function validateRequiredArgs(schema, input) {
+  if (!schema || schema.type !== 'object') return null;
+  const required = schema.required;
+  if (!Array.isArray(required) || required.length === 0) return null;
+  const args = input && typeof input === 'object' ? input : {};
+  const missing = required.filter(key => {
+    const val = args[key];
+    return val === undefined || val === null || val === '';
+  });
+  if (missing.length === 0) return null;
+  const props = schema.properties || {};
+  const hints = missing.map(key => {
+    const p = props[key] || {};
+    const type = p.type || 'string';
+    const desc = p.description ? ` — ${p.description}` : '';
+    return `  • ${key} (${type})${desc}`;
+  });
+  return {
+    error: `Missing required parameter${missing.length > 1 ? 's' : ''}:\n${hints.join('\n')}`,
+    is_error: true,
+  };
+}
 
 const toolRegistry = {
   _tools: new Map(),
@@ -3576,4 +3612,4 @@ async function chatResult(messages, opts = {}) {
   return { answer, tool_calls: toolCalls, usage, rounds }
 }
 
-export { agenticAsk, agenticStep, buildToolResults, buildToolResultsAsync, normalizeToolResultBlocks, warmup, classifyError, toolRegistry, synthesize, transcribe, registerProvider, unregisterProvider, chat, chatResult }
+export { agenticAsk, agenticStep, buildToolResults, buildToolResultsAsync, normalizeToolResultBlocks, warmup, classifyError, toolRegistry, validateRequiredArgs, synthesize, transcribe, registerProvider, unregisterProvider, chat, chatResult }
