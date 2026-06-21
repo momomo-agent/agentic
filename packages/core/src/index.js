@@ -1430,7 +1430,7 @@ async function* _agenticAskGen(prompt, config) {
         return
       }
       messages.push({ role: 'assistant', content: contentToText(response.content).trim() ? response.content : '[invalid tool call omitted]' })
-      messages.push({ role: 'user', content: buildToolContractRepairMessage(contractRepair, { attempt: toolContractRepairCount, maxAttempts: MAX_TOOL_CONTRACT_REPAIRS }) })
+      messages.push({ role: 'system', content: buildToolContractRepairMessage(contractRepair, { attempt: toolContractRepairCount, maxAttempts: MAX_TOOL_CONTRACT_REPAIRS }), metadata: { internal: true, kind: 'tool_contract_repair' } })
       nextModelRequestReason = 'tool_contract_repair'
       eagerResults.clear()
       continue
@@ -3100,8 +3100,8 @@ function exampleValueForSchema(def = {}, field = 'value') {
 
 function buildToolContractRepairMessage(repair, { attempt = 1, maxAttempts = MAX_TOOL_CONTRACT_REPAIRS } = {}) {
   const lines = [
-    'Internal tool contract repair. The previous assistant message contained tool call arguments that do not satisfy the declared schema.',
-    'Do not mention this repair message to the user. Retry with a valid tool call, or answer without tools if no valid call is needed.',
+    'Tool call arguments failed schema validation.',
+    'Retry with a valid tool call that satisfies the declared schema, or answer without tools if no valid call is needed.',
     `Repair attempt: ${attempt}/${maxAttempts}.`,
     '',
   ]

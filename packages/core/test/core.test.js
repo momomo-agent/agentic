@@ -339,8 +339,8 @@ describe('agentic-core', () => {
           expect(messages.at(-1)).toMatchObject({ role: 'tool', tool_call_id: 'tc_bash_ok' })
           return { content: 'done', tool_calls: [], stop_reason: 'stop' }
         }
-        expect(messages.at(-1)).toMatchObject({ role: 'user' })
-        expect(messages.at(-1).content).toContain('Internal tool contract repair')
+        expect(messages.at(-1)).toMatchObject({ role: 'system', metadata: { internal: true, kind: 'tool_contract_repair' } })
+        expect(messages.at(-1).content).toContain('Tool call arguments failed schema validation')
         expect(messages.at(-1).content).toContain('Tool: bash')
         expect(messages.at(-1).content).toContain('Minimal valid call')
         return {
@@ -418,7 +418,7 @@ describe('agentic-core', () => {
       let executed = 0
       registerProvider('test-tool-contract-valid-direct', ({ messages }) => {
         calls++
-        expect(messages.map(m => String(m.content || '')).join('\n')).not.toContain('Internal tool contract repair')
+        expect(messages.map(m => String(m.content || '')).join('\n')).not.toContain('Tool call arguments failed schema validation')
         if (calls === 1) {
           return {
             content: '',
@@ -459,8 +459,8 @@ describe('agentic-core', () => {
       registerProvider('test-tool-contract-repair-limit', ({ messages }) => {
         calls++
         if (calls > 1) {
-          expect(messages.at(-1)).toMatchObject({ role: 'user' })
-          expect(messages.at(-1).content).toContain('Internal tool contract repair')
+          expect(messages.at(-1)).toMatchObject({ role: 'system', metadata: { internal: true, kind: 'tool_contract_repair' } })
+          expect(messages.at(-1).content).toContain('Tool call arguments failed schema validation')
         }
         return {
           content: '',
