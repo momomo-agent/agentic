@@ -759,6 +759,7 @@ async function waitForModelRetry(attempt, retryDelayMs, signal, err) {
 const MAX_ROUNDS = 200  // 安全兜底，实际由循环检测控制（与 OpenClaw 一致）
 const MAX_CONTINUATIONS = 5
 const CONTINUE_PROMPT = 'Continue from where you left off.'
+const MAX_TOOL_CONTRACT_REPAIRS = 2
 
 function contentToText(content) {
   if (content == null) return ''
@@ -1158,6 +1159,7 @@ async function* _agenticAskGen(prompt, config) {
   let finalAnswerReady = false
   let continuationCount = 0
   let continuedAnswer = ''
+  let toolContractRepairCount = 0
   const state = { toolCallHistory: [] }
 
   // Abort-aware promise helper: races any promise against the abort signal.
@@ -1256,6 +1258,8 @@ async function* _agenticAskGen(prompt, config) {
               progressed = true
               // Start eager tool execution
               const toolCall = evt.toolCall
+              const contractError = validateToolCallContract(toolCall, { customTools, toolDefs })
+              if (contractError) continue
               const promise = (async () => {
                 const t0 = Date.now()
                 try {
@@ -1415,6 +1419,24 @@ async function* _agenticAskGen(prompt, config) {
 
     // Execute tools
     console.log(`[Round ${round}] Executing ${response.tool_calls.length} tool calls...`)
+
+    const contractRepair = validateToolCallsContract(response.tool_calls, { customTools, toolDefs })
+    if (contractRepair) {
+      toolContractRepairCount++
+      console.warn(`[Round ${round}] Tool contract repair ${toolContractRepairCount}/${MAX_TOOL_CONTRACT_REPAIRS}: ${contractRepair.summary}`)
+      if (toolContractRepairCount > MAX_TOOL_CONTRACT_REPAIRS) {
+        const error = `Invalid tool calls after contract repair attempts: ${contractRepair.summary}`
+        yield { type: 'failed', error, category: 'tool_contract', retryable: false, round }
+        return
+      }
+      messages.push({ role: 'assistant', content: contentToText(response.content).trim() ? response.content : '[invalid tool call omitted]' })
+      messages.push({ role: 'user', content: buildToolContractRepairMessage(contractRepair, { attempt: toolContractRepairCount, maxAttempts: MAX_TOOL_CONTRACT_REPAIRS }) })
+      nextModelRequestReason = 'tool_contract_repair'
+      eagerResults.clear()
+      continue
+    }
+
+    toolContractRepairCount = 0
     messages.push({ role: 'assistant', content: response.content, tool_calls: response.tool_calls })
 
     // Pre-check: abort signal + loop detection
@@ -2941,13 +2963,166 @@ function buildToolDefs(tools) {
   return { defs, customTools }
 }
 
+function findToolContractSpec(name, { customTools = [], toolDefs = [] } = {}) {
+  const toolName = stringifyPromptText(name)
+  const registered = toolRegistry.get(toolName)
+  if (registered) return registered
+  const custom = customTools.find(t => t?.name === toolName)
+  if (custom) return custom
+  const def = toolDefs.find(t => t?.name === toolName)
+  if (def) return def
+  return null
+}
+
+function schemaForToolSpec(spec = {}) {
+  return spec.parameters || spec.input_schema || spec.inputSchema || null
+}
+
+function validateToolCallsContract(calls = [], context = {}) {
+  if (!Array.isArray(calls) || calls.length === 0) return null
+  const invalid = []
+  for (const call of calls) {
+    const error = validateToolCallContract(call, context)
+    if (error) invalid.push(error)
+  }
+  if (!invalid.length) return null
+  return {
+    invalid,
+    summary: invalid.map(item => `${item.name || 'unknown'}: ${item.reason}`).join('; '),
+  }
+}
+
+function validateToolCallContract(call = {}, context = {}) {
+  const name = stringifyPromptText(call?.name).trim()
+  if (!name) {
+    return {
+      id: call?.id,
+      name: '',
+      reason: 'missing tool name',
+      errors: ['Tool call is missing a tool name.'],
+    }
+  }
+  const spec = findToolContractSpec(name, context)
+  if (!spec) return null
+  const schema = schemaForToolSpec(spec)
+  const validation = validateToolInputAgainstSchema(schema, call?.input)
+  if (!validation) return null
+  return {
+    id: call?.id,
+    name,
+    input: call?.input,
+    schema,
+    ...validation,
+  }
+}
+
+function validateToolInputAgainstSchema(schema, input) {
+  if (!schema || schema.type !== 'object') return null
+  const properties = schema.properties && typeof schema.properties === 'object' ? schema.properties : {}
+  const args = input && typeof input === 'object' && !Array.isArray(input) ? input : {}
+  const errors = []
+  const missing = []
+
+  if (input !== undefined && input !== null && (typeof input !== 'object' || Array.isArray(input))) {
+    errors.push('Arguments must be a JSON object.')
+  }
+
+  for (const key of Array.isArray(schema.required) ? schema.required : []) {
+    if (!hasToolValue(args[key])) missing.push(key)
+  }
+  if (missing.length) {
+    errors.push(`Missing required parameter${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}.`)
+  }
+
+  for (const [key, value] of Object.entries(args)) {
+    if (!hasToolValue(value)) continue
+    const prop = properties[key]
+    if (!prop || typeof prop !== 'object') continue
+    const typeError = validateSchemaType(key, value, prop.type)
+    if (typeError) errors.push(typeError)
+    if (Array.isArray(prop.enum) && prop.enum.length && !prop.enum.includes(value)) {
+      errors.push(`Parameter ${key} must be one of: ${prop.enum.map(item => JSON.stringify(item)).join(', ')}.`)
+    }
+  }
+
+  if (!errors.length) return null
+  return {
+    reason: missing.length ? `missing ${missing.join(', ')}` : errors[0],
+    errors,
+    missing,
+    example: buildToolContractExample(schema, missing.length ? missing : Array.isArray(schema.required) ? schema.required : []),
+  }
+}
+
+function validateSchemaType(key, value, type) {
+  if (!type) return ''
+  const types = Array.isArray(type) ? type : [type]
+  if (types.includes('null') && value === null) return ''
+  const ok = types.some(item => {
+    if (item === 'string') return typeof value === 'string'
+    if (item === 'number') return typeof value === 'number' && Number.isFinite(value)
+    if (item === 'integer') return Number.isInteger(value)
+    if (item === 'boolean') return typeof value === 'boolean'
+    if (item === 'array') return Array.isArray(value)
+    if (item === 'object') return value && typeof value === 'object' && !Array.isArray(value)
+    return true
+  })
+  if (ok) return ''
+  return `Parameter ${key} must be ${types.join(' or ')}.`
+}
+
+function hasToolValue(value) {
+  if (value === undefined || value === null) return false
+  if (typeof value === 'string') return value.trim() !== ''
+  return true
+}
+
+function buildToolContractExample(schema = {}, preferredFields = []) {
+  if (!schema || schema.type !== 'object') return null
+  const properties = schema.properties && typeof schema.properties === 'object' ? schema.properties : {}
+  const fields = Array.from(new Set((preferredFields.length ? preferredFields : schema.required || []).filter(Boolean)))
+  const example = {}
+  for (const field of fields) {
+    example[field] = exampleValueForSchema(properties[field], field)
+  }
+  return Object.keys(example).length ? example : null
+}
+
+function exampleValueForSchema(def = {}, field = 'value') {
+  if (Array.isArray(def.enum) && def.enum.length) return def.enum[0]
+  const type = Array.isArray(def.type) ? def.type.find(item => item !== 'null') : def.type
+  if (type === 'number' || type === 'integer') return 0
+  if (type === 'boolean') return false
+  if (type === 'array') return []
+  if (type === 'object') return {}
+  return `<${field}>`
+}
+
+function buildToolContractRepairMessage(repair, { attempt = 1, maxAttempts = MAX_TOOL_CONTRACT_REPAIRS } = {}) {
+  const lines = [
+    'Internal tool contract repair. The previous assistant message contained tool call arguments that do not satisfy the declared schema.',
+    'Do not mention this repair message to the user. Retry with a valid tool call, or answer without tools if no valid call is needed.',
+    `Repair attempt: ${attempt}/${maxAttempts}.`,
+    '',
+  ]
+  for (const item of repair.invalid || []) {
+    lines.push(`Tool: ${item.name || '(missing)'}`)
+    if (item.id) lines.push(`Tool call id: ${item.id}`)
+    for (const error of item.errors || []) lines.push(`- ${error}`)
+    if (item.example) lines.push(`Minimal valid call: ${JSON.stringify(item.example)}`)
+    lines.push('')
+  }
+  return lines.join('\n').trim()
+}
+
 async function executeTool(name, input, config) {
   // ─── Required argument validation ───
   // Catch empty/missing required params before entering execute.
   // Returns a structured error the model can immediately act on.
   const spec = toolRegistry.get(name) || (config.customTools || []).find(t => t.name === name);
-  if (spec && spec.parameters) {
-    const missing = validateRequiredArgs(spec.parameters, input);
+  const schema = schemaForToolSpec(spec)
+  if (schema) {
+    const missing = validateRequiredArgs(schema, input);
     if (missing) return missing;
   }
 
