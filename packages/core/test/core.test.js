@@ -273,6 +273,38 @@ describe('agentic-core', () => {
       expect(calls[1].body.system[1].stability).toBeUndefined()
       expect(calls[1].body.system[1].cache_control).toBeUndefined()
     })
+
+    it('caps Anthropic cache_control blocks across system and tools', async () => {
+      const calls = []
+      mockAnthropicFetch(calls)
+
+      await collect(agenticAsk('hi', {
+        apiKey: 'sk-test',
+        provider: 'anthropic',
+        model: 'claude-test',
+        stream: false,
+        system: Array.from({ length: 6 }, (_, index) => ({
+          type: 'text',
+          text: `system-${index}`,
+          cache_control: { type: 'ephemeral' },
+        })),
+        tools: [{
+          name: 'noop',
+          description: 'No-op tool',
+          input_schema: { type: 'object', properties: {} },
+          execute: async () => 'ok',
+        }],
+      }))
+
+      const body = calls[0].body
+      const systemCacheControls = body.system.filter(block => block.cache_control).length
+      const toolCacheControls = body.tools.filter(tool => tool.cache_control).length
+      expect(systemCacheControls + toolCacheControls).toBeLessThanOrEqual(4)
+      expect(systemCacheControls).toBe(3)
+      expect(toolCacheControls).toBe(1)
+      expect(body.system.map(block => Boolean(block.cache_control))).toEqual([false, false, false, false, true, true, true])
+      expect(body.tools[body.tools.length - 1].cache_control).toEqual({ type: 'ephemeral' })
+    })
   })
 
   describe('tool input hashing', () => {

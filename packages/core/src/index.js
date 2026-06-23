@@ -14,6 +14,7 @@ const TOOL_CALL_HISTORY_SIZE = 30
 const EAGER_HINT = 'When you need to use tools, call them BEFORE writing your text response. This allows parallel execution while you compose your answer.'
 const DEFAULT_OUTPUT_MAX_TOKENS = 4096
 const MAX_ANTHROPIC_OUTPUT_TOKENS = 32000
+const MAX_ANTHROPIC_CACHE_CONTROL_BLOCKS = 4
 
 // ── Hash helpers (browser-safe) ──
 
@@ -671,6 +672,47 @@ function normalizeAnthropicSystem(system) {
   return out.length ? out : undefined
 }
 
+function limitAnthropicCacheControlBlocks(blocks, maxCacheControlBlocks) {
+  if (!Array.isArray(blocks)) return blocks
+  let remaining = Math.max(0, Number(maxCacheControlBlocks) || 0)
+  const limited = new Array(blocks.length)
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const block = blocks[i]
+    if (!block || typeof block !== 'object' || !block.cache_control) {
+      limited[i] = block
+      continue
+    }
+    if (remaining > 0) {
+      remaining--
+      limited[i] = block
+      continue
+    }
+    const { cache_control, ...withoutCacheControl } = block
+    limited[i] = withoutCacheControl
+  }
+  return limited
+}
+
+function applyAnthropicPromptCaching(body, { system, tools } = {}) {
+  const hasTools = Array.isArray(tools) && tools.length > 0
+  const toolCacheBlocks = hasTools ? 1 : 0
+  const normalizedSystem = normalizeAnthropicSystem(system)
+  if (normalizedSystem) {
+    body.system = limitAnthropicCacheControlBlocks(
+      normalizedSystem,
+      MAX_ANTHROPIC_CACHE_CONTROL_BLOCKS - toolCacheBlocks,
+    )
+  }
+  if (hasTools) {
+    body.tools = tools.map((tool, index) => {
+      const { cache_control, ...withoutCacheControl } = tool
+      return index === tools.length - 1
+        ? { ...withoutCacheControl, cache_control: { type: 'ephemeral' } }
+        : withoutCacheControl
+    })
+  }
+}
+
 function systemToText(system) {
   if (!system) return ''
   if (Array.isArray(system)) {
@@ -980,14 +1022,7 @@ async function* _streamCallWithFailover(opts) {
           messages: anthropicMessages,
           stream: true,
         }
-        const normalizedSystem = normalizeAnthropicSystem(system)
-        if (normalizedSystem) body.system = normalizedSystem
-        if (tools?.length) {
-          body.tools = tools.map((t, i) => i === tools.length - 1
-            ? { ...t, cache_control: { type: 'ephemeral' } }
-            : t
-          )
-        }
+        applyAnthropicPromptCaching(body, { system, tools })
         // Enable prompt caching beta
         headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
         if (pProxyUrl) { headers = { ...headers, 'x-base-url': pBaseUrl || 'https://api.anthropic.com', 'x-provider': 'anthropic' }; url = pProxyUrl }
@@ -1656,10 +1691,6 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
     messages: anthropicMessages,
     stream,
   }
-  if (tools?.length) {
-    body.tools = tools
-  }
-  
   const headers = { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' }
 
   // Enable prompt caching for system + tools (Anthropic beta)
@@ -1667,17 +1698,7 @@ async function anthropicChat({ messages, tools, model = 'claude-sonnet-4', baseU
     headers['anthropic-beta'] = 'prompt-caching-2024-07-31'
   }
 
-  // Apply cache_control to system prompt
-  const normalizedSystem = normalizeAnthropicSystem(system)
-  if (normalizedSystem) body.system = normalizedSystem
-
-  // Apply cache_control to last tool definition (caches all tools up to that point)
-  if (tools?.length) {
-    body.tools = tools.map((t, i) => i === tools.length - 1
-      ? { ...t, cache_control: { type: 'ephemeral' } }
-      : t
-    )
-  }
+  applyAnthropicPromptCaching(body, { system, tools })
 
   if (stream && !proxyUrl) {
     // Stream mode — direct SSE
@@ -3390,15 +3411,7 @@ async function warmup(config = {}) {
         messages: [{ role: 'user', content: 'hi' }],
         stream: false,
       }
-      if (warmupSystem) {
-        body.system = [{ type: 'text', text: warmupSystem, cache_control: { type: 'ephemeral' } }]
-      }
-      if (toolDefs.length) {
-        body.tools = toolDefs.map((t, i) => i === toolDefs.length - 1
-          ? { ...t, cache_control: { type: 'ephemeral' } }
-          : t
-        )
-      }
+      applyAnthropicPromptCaching(body, { system: warmupSystem, tools: toolDefs })
 
       const fetchUrl = proxyUrl || url
       const fetchHeaders = proxyUrl
